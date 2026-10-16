@@ -12,7 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from manifest import ROOT, manifest  # noqa: E402
 
 FONTS = ('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900'
-         '&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@500;700;900&display=swap')
+         '&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@500;700;900&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..900;1,8..60,400..900&display=swap')
 
 TITLE = "Jiang Cheng's Phone"
 

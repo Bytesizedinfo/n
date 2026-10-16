@@ -11,7 +11,7 @@
   --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-rounded: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Inter", "Helvetica Neue", Arial, sans-serif;
-  --font-serif: "Noto Serif SC", "Songti SC", "STSong", Georgia, serif;
+  --font-serif: "Source Serif 4", "Noto Serif SC", "Songti SC", "STSong", Georgia, serif;
   --font-brush: "Ma Shan Zheng", "Noto Serif SC", "Kaiti SC", serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
