@@ -657,17 +657,17 @@
   });
 
   /* =====================================================================
-     p_shot_bank — Yunmeng Commercial Bank: allowance to Jin Ling (9:19.5)
+     p_shot_bank — Yunmeng Commercial Bank: New Year red envelope to Jin Ling (9:19.5)
      ===================================================================== */
   def('p_shot_bank', {
-    title: 'Allowance transfer', w: 900, h: 1950, tags: ['screenshot', 'bank', 'jinling', 'allowance'],
+    title: 'Red envelope transfer', w: 900, h: 1950, tags: ['screenshot', 'bank', 'jinling', 'allowance'],
     svg: (w, h) => {
       const T = (x, y, s, c, txt, wt, anchor) => `<text x="${x}" y="${y}" font-family="${FONT}" font-size="${s}" fill="${c}"${wt ? ` font-weight="${wt}"` : ''}${anchor ? ` text-anchor="${anchor}"` : ''}>${txt}</text>`;
       const TEAL = '#0d6e74';
       const defs = lin('hd', '0 0 1 1', '#0b5a68 0|#13857c 1') + lin('ok', '0 0 0 1', '#3ad07a 0|#1fa85a 1');
       let b = `<rect width="${w}" height="${h}" fill="#f1f2f6"/>`;
       b += `<path d="M0 0H900V470Q450 520 0 470Z" fill="url(#hd)"/>`;
-      b += statusBar('08:01', true);
+      b += statusBar('09:40', true);
       b += `<path d="M58 168l-22 22 22 22" stroke="#fff" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
       b += T(450, 204, 40, '#fff', 'Transfer Details', 700, 'middle');
       // bank mark: three wave-petals in a ring
@@ -677,18 +677,18 @@
       b += `<rect x="40" y="350" width="820" height="520" rx="36" fill="#fff"/>`;
       b += `<circle cx="450" cy="480" r="66" fill="url(#ok)"/><path d="M420 482l22 22 40-44" stroke="#fff" stroke-width="12" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
       b += T(450, 610, 38, '#1a1a1e', 'Transfer Successful', 700, 'middle');
-      b += T(450, 720, 84, '#1a1a1e', '¥3,000.00', 700, 'middle');
+      b += T(450, 720, 84, '#1a1a1e', '¥8,888.00', 700, 'middle');
       b += T(450, 790, 32, '#6a6a72', 'To Jin Ling (金凌)', 400, 'middle');
       // details
       b += `<rect x="40" y="900" width="820" height="700" rx="36" fill="#fff"/>`;
       const rows = [
         ['Payee', 'Jin Ling 金凌'],
-        ['Payee account', 'Yunmeng Comm. ···· 1018'],
-        ['From', 'Debit Card ···· 0515'],
-        ['Note', 'Allowance (Oct). Not for dog toys.'],
-        ['Time', '2026-10-01 08:00:47'],
+        ['Payee account', 'Yunmeng Comm. ···· 7781'],
+        ['From', 'Debit Card ···· 4417'],
+        ['Note', 'New Year red envelope'],
+        ['Time', '2026-02-17 09:40:12'],
         ['Fee', '¥0.00'],
-        ['Reference', 'YC2026100108004731'],
+        ['Reference', 'YC2026021709401288'],
       ];
       rows.forEach(([k, v], i) => {
         const y = 980 + i * 88;
@@ -742,7 +742,7 @@
       r += T(30, 428, 19, 'SUBTOTAL') + T(410, 428, 19, '844.00', 0, 'end');
       r += T(30, 458, 19, 'MEMBER -5%') + T(410, 458, 19, '-42.20', 0, 'end');
       r += T(30, 500, 26, 'TOTAL', 700) + T(410, 500, 26, '¥801.80', 700, 'end');
-      r += T(30, 540, 18, 'PAID  DEBIT ****0515');
+      r += T(30, 540, 18, 'PAID  DEBIT ****4417');
       r += T(30, 570, 18, 'MEMBER: JIANG W.Y.');
       r += T(30, 600, 18, 'PET ON FILE: FAIRY (XL)');
       r += T(220, 650, 20, '* THANK YOU! WOOF! *', 700, 'middle');
