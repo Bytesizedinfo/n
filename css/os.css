@@ -99,8 +99,9 @@
   transform: translateZ(0);
 }
 #screen * { box-sizing: border-box; }
-#screen input, #screen textarea, #screen button { font: inherit; letter-spacing: inherit; color: inherit; }
-#screen button { background: none; border: 0; padding: 0; margin: 0; cursor: pointer; }
+/* resets with zero specificity so kit/app classes always win */
+:where(#screen) :where(input, textarea, button) { font: inherit; letter-spacing: inherit; color: inherit; }
+:where(#screen) :where(button) { background: none; border: 0; padding: 0; margin: 0; cursor: pointer; }
 #screen .tap, #screen [role="button"] { cursor: pointer; }
 #screen :focus-visible { outline: 2px solid var(--tint); outline-offset: 2px; }
 #screen [hidden] { display: none !important; }
@@ -734,3 +735,6 @@
 #home.on-library .dock { opacity: 0; transform: translateY(30px); pointer-events: none; }
 #home.on-library .lib-content { padding-bottom: 60px; }
 #screen input:focus-visible, #screen textarea:focus-visible { outline: none; }
+
+/* knock-out glyph centres follow the surface in dark bars */
+#screen.dark .tabbar, #screen.dark .navbar, #screen.dark .toolbar, #screen.dark .sheet-head { --knock: #2c2c2e; }

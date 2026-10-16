@@ -158,6 +158,18 @@
       start: waitFor('ops', 'dogs'),
       dogs: [
         lock('ops'),
+        { if: (s) => F(s).car_known && !F(s).tow_huang, go: 'carvid' },
+        { go: 'pitch' },
+      ],
+      carvid: [
+        { m: 'Boss. My nephew sends me video. Sandu. In Pond. 😢', from: 'huang' },
+        { m: '• Noted', from: 'liu' },
+        { m: '• Not an ops issue', from: 'liu' },
+        { m: '• Unless it is?', from: 'liu' },
+        { m: 'It is a Jin Ling issue. Those are never ops issues until Monday.', from: 'ea' },
+        { go: 'pitch' },
+      ],
+      pitch: [
         { m: 'While I have everyone:', from: 'liu' },
         { m: "Re: Bring Your Dog to Work Friday — you said you'd decide tonight.", from: 'liu', img: 'p_dogfriday_poster' },
         { m: '• 47 signatures', from: 'liu' },

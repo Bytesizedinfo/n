@@ -25,6 +25,7 @@
           ] },
       ],
       takeback: [
+        { fx: { set: { busy_wwx: false } } },
         { m: 'ok. ok good' },
         { m: 'that was a weird bit. never do a bit again' },
         { m: '(if ur a stranger, ur a VERY good jiang cheng. the "get lost" was perfect)' },
@@ -71,6 +72,7 @@
           ] },
       ],
       takeback: [
+        { fx: { set: { busy_jl: false } } },
         { m: "that's NOT funny jiujiu" },
         { m: "u don't even make jokes. who taught u jokes" },
         { m: '…ok. goodnight. weirdo' },

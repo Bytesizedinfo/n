@@ -1906,6 +1906,9 @@
     homePage = 0;
     els.cinema.classList.remove('on');
     els.cinema.innerHTML = '';
+    els.cinema.style.opacity = '';
+    els.cinema.getAnimations().forEach((a) => a.cancel());
+    JC.time.unfreezeAll();
     els['sys-overlays'].innerHTML = '';
     els.banners.innerHTML = '';
     applyAppearance();

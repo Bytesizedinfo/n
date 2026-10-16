@@ -130,7 +130,7 @@ async function playthrough(page, seed, strategy) {
     await sleep(900);
     const log = [];
     const did = {};
-    for (let it = 0; it < 900; it++) {
+    for (let it = 0; it < 2600; it++) {
       const st = JC.state.d;
       if (st.ended) return { ending: st.ended, it, log: log.slice(-12), flags: st.flags, sus: st.sus, aff: st.aff };
       // occasional optional actions that open branches
@@ -159,7 +159,9 @@ async function playthrough(page, seed, strategy) {
       await sleep(25);
     }
     const st = JC.state.d;
-    return { ending: null, stuck: true, log: log.slice(-15), runs: st.runs.map((r) => r.sc + '.' + r.node + '[' + r.i + ']' + (r.wait ? ' wait:' + r.wait : '')), done: Object.keys(st.done), flags: st.flags };
+    const c = JC.story.call();
+    const dbg = JC.story._debug ? JC.story._debug() : null;
+    return { dbg, ending: null, stuck: true, log: log.slice(-15), runs: st.runs.map((r) => r.sc + '.' + r.node + '[' + r.i + ']' + (r.wait ? ' wait:' + r.wait : '') + (r.phase ? ' phase:' + r.phase : '') + ' until+' + Math.round((r.until || 0) - st.eng)), frozen: JC.time.frozen, cinema: document.getElementById('cinema').className, call: c ? c.id + ':' + c.phase + ':' + c.dir + (c.pend ? ':pend' : '') : null, eng: Math.round(st.eng), clock: new Date(JC.time.now()).toString().slice(0, 24) };
   }, { seed, strategy });
 }
 
@@ -179,7 +181,7 @@ async function playthrough(page, seed, strategy) {
     const r = await playthrough(page, 1000 + k * 7919, strategy);
     const key = r.ending || 'STUCK';
     tally[key] = (tally[key] || 0) + 1;
-    if (!r.ending || verbose) console.log(`run ${k} [${strategy}] → ${key}${r.stuck ? '\n   runs: ' + JSON.stringify(r.runs) + '\n   last: ' + JSON.stringify(r.log) : ''}`);
+    if (!r.ending || verbose) console.log(`run ${k} [${strategy}] → ${key}${r.stuck ? '\n   runs: ' + JSON.stringify(r.runs) + '\n   last: ' + JSON.stringify(r.log) + '\n   state: ' + JSON.stringify({ frozen: r.frozen, cinema: r.cinema, call: r.call, eng: r.eng, clock: r.clock }) + '\n   dbg: ' + JSON.stringify(r.dbg) : ''}`);
   }
   console.log('ENDINGS', JSON.stringify(tally));
   const errs = await done();

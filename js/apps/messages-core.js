@@ -417,7 +417,7 @@
     const ox = o.x != null ? o.x : W * 0.7, oy = o.y != null ? o.y : H * 0.7;
     if (kind === 'balloons') for (let i = 0; i < 16; i++) parts.push({ x: R() * W, y: H + 40 + R() * H * 0.6, r: 22 + R() * 14, col: COLORS[i % COLORS.length], sway: R() * 6.28, sp: 1.6 + R() * 1.4 });
     if (kind === 'confetti') for (let i = 0; i < 170; i++) parts.push({ x: R() * W, y: -R() * H * 0.8 - 10, w: 5 + R() * 6, h: 8 + R() * 8, col: COLORS[i % COLORS.length], a: R() * 6.28, va: (R() - 0.5) * 0.3, vy: 1.6 + R() * 2.2, sway: R() * 6.28 });
-    if (kind === 'celebration') for (let i = 0; i < 90; i++) { const a = Math.PI * (0.55 + R() * 0.5); const sp = 2 + R() * 7; parts.push({ x: W - 10, y: 10, vx: Math.cos(a) * sp, vy: -Math.sin(a) * sp * -1 * 0.6 + R() * 2, r: 1.5 + R() * 3, col: R() < 0.7 ? '#ffd60a' : '#fff4c2', life: 0.6 + R() * 0.4 }); }
+    if (kind === 'celebration') for (let i = 0; i < 90; i++) { const a = Math.PI * (0.55 + R() * 0.5); const sp = 2 + R() * 7; parts.push({ x: W - 10, y: 10, vx: Math.cos(a) * sp, vy: Math.abs(Math.sin(a)) * sp * 0.6 + R() * 2, r: 1.5 + R() * 3, col: R() < 0.7 ? '#ffd60a' : '#fff4c2', life: 0.6 + R() * 0.4 }); }
     if (kind === 'petals') for (let i = 0; i < 11; i++) parts.push({ x: R() * W, y: -30 - R() * H * 0.7, r: 7 + R() * 6, a: R() * 6.28, va: (R() - 0.5) * 0.02, vy: 0.45 + R() * 0.45, sway: R() * 6.28 });
     if (kind === 'echo') for (let i = 0; i < 26; i++) parts.push({ x: -200 - R() * W, y: 60 + R() * (H - 180), sp: 3 + R() * 5, s: 0.6 + R() * 0.6 });
     const bursts = [];
@@ -433,6 +433,7 @@
     }
     function rr(x, y, w, hh, r) { c.beginPath(); c.moveTo(x + r, y); c.arcTo(x + w, y, x + w, y + hh, r); c.arcTo(x + w, y + hh, x, y + hh, r); c.arcTo(x, y + hh, x, y, r); c.arcTo(x, y, x + w, y, r); c.closePath(); }
     function frame(now) {
+      if (!cv.isConnected) return;
       const el = now - start;
       const k = el / T;
       c.clearRect(0, 0, W, H);

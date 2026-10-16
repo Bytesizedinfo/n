@@ -28,6 +28,7 @@
     },
     advance(ms) { time.set(time.now() + ms); },
     freeze(on) { frozen += on ? 1 : -1; if (frozen < 0) frozen = 0; },
+    unfreezeAll() { frozen = 0; },
     get frozen() { return frozen > 0; },
     /** '-3 21:04' | '+1 07:40' | '2009-02-12 18:30' | '23:12' | ms */
     parse(x) {

@@ -1,0 +1,191 @@
+/* Health — iOS 26. Prefix: hl- ; chart kit: hc- */
+.win[data-app="health"] {
+  --hl-activity: #ff6b1a; --hl-heart: #ff2d55; --hl-sleep: #32a8d8; --hl-mind: #2bb5a8; --hl-meds: #2f8cf0; --hl-body: #a259ff;
+  --hl-hearing: #5856d6; --hl-resp: #3fb6e8; --hl-nutrition: #34c759; --hl-symptoms: #6a5acd; --hl-cycle: #ff375f;
+  --hl-awake: #ff6a4d; --hl-rem: #4fc3f7; --hl-core: #2f7cf6; --hl-deep: #4b3bb8;
+  --hl-v-3: #5b3fd1; --hl-v-2: #7d68e0; --hl-v-1: #a99bed; --hl-v0: #a7a7ad; --hl-v1: #ffc56b; --hl-v2: #ffa42e; --hl-v3: #f07f00;
+}
+#screen.dark .win[data-app="health"] {
+  --hl-activity: #ff7c33; --hl-heart: #ff375f; --hl-sleep: #4cc0ec; --hl-mind: #40c8b8; --hl-meds: #4a9df5; --hl-body: #b77bff;
+  --hl-hearing: #6e6cf0; --hl-resp: #58c6f2; --hl-nutrition: #30d158; --hl-symptoms: #7f70e0; --hl-cycle: #ff4f75;
+  --hl-awake: #ff7a5e; --hl-rem: #63cdf8; --hl-core: #3d8af7; --hl-deep: #6b5ae0;
+  --hl-v-3: #7357f0; --hl-v-2: #8f7cf0; --hl-v-1: #b3a8f2; --hl-v0: #8e8e93; --hl-v1: #ffd07a; --hl-v2: #ffad3d; --hl-v3: #ff9214;
+}
+.app-health .tabs .page-scroll { padding-bottom: calc(var(--safe-bottom) + 100px); }
+.app-health .tab-item.on, .app-health .tabbar-search.on { color: var(--hl-heart); }
+.hl-me { margin-top: 4px; border-radius: 50%; }
+.hl-me:active { opacity: .6; }
+.hl-chev { color: var(--label3); }
+.hl-cic { display: inline-flex; }
+.hl-sec-h { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 20px 8px; font-size: 22px; font-weight: 700; color: var(--label); }
+.hl-edit { font-size: 17px; font-weight: 400; color: var(--blue); }
+.hl-foot { text-align: center; font-size: 13px; color: var(--label3); padding: 6px 30px 24px; }
+
+/* alert banner at top of Summary */
+.hl-alert { display: flex; gap: 12px; align-items: flex-start; margin: 0 16px 14px; padding: 14px; border-radius: 20px; background: var(--cell); }
+.hl-alert:active { background: var(--cell-hl); }
+.hl-alert-ic { width: 34px; height: 34px; border-radius: 10px; background: var(--hl-heart); color: #fff; display: flex; align-items: center; justify-content: center; flex: 0 0 34px; }
+.hl-alert-m { flex: 1; min-width: 0; }
+.hl-alert-t { font-size: 16px; font-weight: 600; color: var(--label); }
+.hl-alert-s { font-size: 14px; color: var(--label2); line-height: 1.35; margin-top: 2px; }
+.hl-alert-x { width: 26px; height: 26px; border-radius: 13px; background: var(--fill3); color: var(--label2); display: flex; align-items: center; justify-content: center; flex: 0 0 26px; }
+
+/* cards */
+.hl-cards { display: grid; gap: 12px; padding: 0 16px 16px; }
+.hl-card { position: relative; padding: 13px 14px 14px 16px; border-radius: 20px; background: var(--cell); }
+.hl-card:active { background: var(--cell-hl); }
+.hl-card-top { display: flex; align-items: center; gap: 6px; }
+.hl-card-t { font-size: 15px; font-weight: 600; flex: 1; }
+.hl-card-time { font-size: 13px; color: var(--label2); }
+.hl-card-body { display: flex; align-items: flex-end; gap: 10px; margin-top: 10px; }
+.hl-card-l { flex: 1; min-width: 0; }
+.hl-card-sub { font-size: 13px; color: var(--label2); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hl-card-chart { width: 110px; flex: 0 0 110px; }
+.hl-val { display: flex; align-items: baseline; gap: 4px; flex-wrap: wrap; }
+.hl-val-n { font-size: 30px; font-weight: 600; letter-spacing: -.01em; color: var(--label); line-height: 1.1; }
+.hl-val-u { font-size: 16px; font-weight: 600; color: var(--label2); margin-right: 4px; }
+.hl-med-v { display: flex; flex-direction: column; }
+.hl-med-n { font-size: 22px; font-weight: 600; color: var(--label); }
+.hl-med-s { font-size: 14px; color: var(--label2); }
+.hl-logbtn { flex: 0 0 auto; align-self: center; height: 34px; padding: 0 18px; border-radius: 17px; background: var(--fill3); color: var(--blue); font-weight: 600; font-size: 15px; display: flex; align-items: center; }
+.hl-logbtn:active { opacity: .6; }
+.hl-logged { align-self: center; color: var(--green); display: flex; }
+
+/* highlights */
+.hl-hls { display: grid; gap: 12px; padding: 0 16px 18px; }
+.hl-hl { padding: 14px 16px; border-radius: 20px; background: var(--cell); }
+.hl-hl:active { background: var(--cell-hl); }
+.hl-hl-top { display: flex; align-items: center; gap: 6px; font-size: 15px; font-weight: 600; }
+.hl-hl-top > span:nth-child(2) { flex: 1; }
+.hl-hl-t { font-size: 17px; font-weight: 600; color: var(--label); line-height: 1.3; margin-top: 8px; }
+.hl-hl-chart { margin-top: 10px; }
+.hl-promo { display: flex; align-items: center; gap: 12px; margin: 0 16px 18px; padding: 14px 16px; border-radius: 20px; background: var(--cell); }
+.hl-promo:active { background: var(--cell-hl); }
+.hl-promo-ic { width: 46px; height: 46px; border-radius: 12px; background: linear-gradient(135deg, #34c759, #30b0c7); color: #fff; display: flex; align-items: center; justify-content: center; flex: 0 0 46px; }
+.hl-promo > div:nth-child(2) { flex: 1; }
+.hl-promo-t { font-size: 16px; font-weight: 600; }
+.hl-promo-s { font-size: 14px; color: var(--label2); line-height: 1.3; }
+.hl-pin { color: var(--label3); display: flex; }
+.hl-pin.on { color: var(--blue); }
+
+/* detail pages */
+.hl-seg { padding: 0 16px 12px; }
+.hl-chartcard { margin: 0 16px 18px; padding: 14px 14px 12px 16px; border-radius: 22px; background: var(--cell); }
+.hl-dh { min-height: 74px; margin-bottom: 6px; }
+.hl-dh-k { font-size: 13px; font-weight: 600; color: var(--label2); letter-spacing: .01em; }
+.hl-dh-d { font-size: 15px; color: var(--label2); margin-top: 1px; }
+.hl-about { padding: 12px 16px; font-size: 15px; line-height: 1.42; color: var(--label); }
+.hl-legend { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 8px; font-size: 12px; color: var(--label2); }
+.hl-legend span { display: inline-flex; align-items: center; gap: 5px; }
+.hl-legend i { width: 10px; height: 10px; border-radius: 3px; }
+.hl-legend i.round { border-radius: 50%; }
+.hl-legend b { color: var(--label); font-weight: 600; }
+.hl-btnrow { display: flex; justify-content: center; padding: 0 16px 18px; }
+.hl-bigbtn, .hl-next { display: flex; align-items: center; justify-content: center; gap: 8px; height: 50px; padding: 0 24px; border-radius: 25px; background: var(--hl-mind); color: #fff; font-weight: 600; font-size: 17px; }
+.hl-next { background: var(--blue); margin-top: 20px; }
+.hl-bigbtn:active, .hl-next:active { opacity: .7; }
+.hl-field { display: flex; align-items: center; gap: 10px; padding: 10px 16px; min-height: 52px; }
+.hl-field > span:first-child { flex: 0 0 auto; }
+.hl-field .field { flex: 1; min-width: 0; border: 0; background: transparent; text-align: right; color: var(--label); }
+.hl-field-u { color: var(--label2); }
+
+/* workouts */
+.hl-wic { width: 36px; height: 36px; border-radius: 50%; background: color-mix(in srgb, var(--hl-activity) 18%, transparent); color: var(--hl-activity); display: flex; align-items: center; justify-content: center; flex: 0 0 36px; }
+.hl-wic.big { width: 56px; height: 56px; flex: 0 0 56px; }
+.hl-whead { display: flex; align-items: center; gap: 14px; padding: 0 20px 16px; }
+.hl-wt { font-size: 22px; font-weight: 700; }
+.hl-wsub { font-size: 15px; color: var(--label2); }
+.hl-wgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 1px; margin: 0 16px 18px; border-radius: 22px; overflow: hidden; background: var(--sep); }
+.hl-ws { background: var(--cell); padding: 12px 14px; }
+.hl-ws-k { font-size: 13px; color: var(--label2); }
+.hl-ws-v { font-size: 22px; font-weight: 600; margin-top: 2px; }
+.hl-route { margin: 6px 0; border-radius: 14px; background: color-mix(in srgb, var(--hl-activity) 8%, var(--bg2)); }
+
+/* meds */
+.hl-med-hero { display: flex; align-items: center; gap: 14px; padding: 4px 4px 16px; }
+.hl-med-hero.card { margin: 0 16px 18px; padding: 16px; border-radius: 22px; background: var(--cell); }
+.hl-pill { width: 56px; height: 56px; border-radius: 16px; background: color-mix(in srgb, var(--hl-meds) 18%, transparent); color: var(--hl-meds); display: flex; align-items: center; justify-content: center; flex: 0 0 56px; }
+.hl-medlog { padding: 0 16px 16px; }
+.hl-medrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 0; border-top: .5px solid var(--sep); }
+.hl-medrow .seg { width: 170px; }
+.hl-medrow-t { font-size: 17px; font-weight: 600; }
+.hl-medrow-s { font-size: 13px; color: var(--label2); }
+.hl-med-warn { display: flex; gap: 6px; align-items: flex-start; font-size: 13px; color: var(--label2); line-height: 1.35; margin-top: 10px; }
+.hl-med-warn .ic { color: var(--orange); margin-top: 1px; }
+.hl-st { display: flex; }
+.hl-st.taken { color: var(--green); }
+.hl-st.skipped { color: var(--label3); }
+
+/* state of mind */
+.hl-mind { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 8px 22px 24px; }
+.hl-mind-q { font-size: 22px; font-weight: 700; margin-bottom: 16px; line-height: 1.25; }
+.hl-mind-opt { width: 100%; padding: 16px; border-radius: 18px; background: var(--cell); margin-bottom: 10px; text-align: left; }
+.hl-mind-opt:active { background: var(--cell-hl); }
+.hl-mind-ot { font-size: 17px; font-weight: 600; }
+.hl-mind-os { font-size: 14px; color: var(--label2); }
+.hl-blob { --c: var(--hl-v0); --s: .8; width: 170px; height: 170px; margin: 10px 0 14px; border-radius: 42% 58% 55% 45% / 48% 42% 58% 52%; background: radial-gradient(circle at 35% 30%, color-mix(in srgb, var(--c) 55%, #fff), var(--c)); transform: scale(var(--s)); transition: transform .35s var(--spring), background .3s; animation: hl-morph 6s ease-in-out infinite alternate; }
+@keyframes hl-morph { to { border-radius: 55% 45% 42% 58% / 52% 58% 42% 48%; } }
+.hl-blob-l { font-size: 20px; font-weight: 600; }
+.hl-mind-sl { width: 100%; margin-top: 14px; }
+.hl-mind-ends { display: flex; justify-content: space-between; font-size: 11px; font-weight: 600; color: var(--label2); margin-top: 4px; }
+.hl-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.hl-chip { padding: 8px 14px; border-radius: 18px; background: var(--fill3); font-size: 15px; color: var(--label); }
+.hl-chip.on { background: var(--hl-mind); color: #fff; font-weight: 600; }
+.hl-cbar { display: flex; align-items: center; gap: 8px; width: 140px; }
+.hl-cbar i { display: block; height: 6px; border-radius: 3px; background: var(--hl-mind); }
+.hl-cbar span { font-size: 15px; color: var(--label2); font-variant-numeric: tabular-nums; min-width: 22px; text-align: right; margin-left: auto; }
+.hl-vdot { width: 12px; height: 12px; border-radius: 50%; flex: 0 0 12px; }
+.hl-breathe { display: flex; flex-direction: column; align-items: center; padding: 30px 20px; }
+.hl-breathe-c { width: 120px; height: 120px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--hl-mind) 40%, #fff), var(--hl-mind)); transform: scale(1.6); transition: transform 5s ease-in-out; margin: 50px 0 60px; box-shadow: 0 0 60px color-mix(in srgb, var(--hl-mind) 60%, transparent); }
+.hl-breathe-c.out { transform: scale(.8); }
+.hl-breathe-l { font-size: 24px; font-weight: 700; }
+.hl-breathe-s { font-size: 15px; color: var(--label2); margin-top: 6px; }
+
+/* sharing */
+.hl-req { margin: 0 16px 18px; padding: 16px; border-radius: 22px; background: var(--cell); }
+.hl-req-top { display: flex; gap: 12px; align-items: center; }
+.hl-req-t { font-size: 17px; font-weight: 600; line-height: 1.25; }
+.hl-req-s { font-size: 14px; color: var(--label2); margin-top: 2px; }
+.hl-req-list { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; }
+.hl-req-chip { font-size: 13px; padding: 4px 10px; border-radius: 12px; background: var(--fill3); }
+.hl-req-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.hl-req-btn { height: 44px; border-radius: 22px; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 16px; }
+.hl-req-btn.decline { background: var(--fill3); color: var(--label); }
+.hl-req-btn.accept { background: var(--blue); color: #fff; }
+.hl-req-btn:active { opacity: .7; }
+.hl-share-hero { display: flex; flex-direction: column; align-items: center; text-align: center; margin: 0 16px 18px; padding: 22px 20px; border-radius: 22px; background: var(--cell); }
+.hl-share-ic { width: 70px; height: 70px; border-radius: 50%; background: color-mix(in srgb, var(--blue) 15%, transparent); color: var(--blue); display: flex; align-items: center; justify-content: center; }
+.hl-share-t { font-size: 20px; font-weight: 700; margin-top: 12px; }
+.hl-share-s { font-size: 15px; color: var(--label2); margin-top: 6px; line-height: 1.35; }
+.hl-share-hero .hl-next { margin-top: 16px; }
+.hl-prof { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 4px 0 18px; }
+.hl-prof-n { font-size: 24px; font-weight: 700; }
+.hl-ck { display: inline-flex; align-items: center; gap: 4px; color: var(--green); font-size: 15px; }
+.hl-setup { color: var(--blue); font-size: 15px; }
+
+/* Medical ID */
+.hl-mid-head { display: flex; align-items: center; gap: 14px; padding: 0 20px 16px; }
+.hl-mid-n { font-size: 22px; font-weight: 700; }
+.hl-mid-a { font-size: 14px; color: var(--label2); }
+.hl-mid-card { margin: 0 16px 20px; padding: 2px 16px; border-radius: 22px; background: var(--cell); }
+.hl-mid-row { padding: 11px 0; border-bottom: .5px solid var(--sep); }
+.hl-mid-row:last-child { border-bottom: 0; }
+.hl-mid-k { font-size: 13px; color: var(--red); font-weight: 600; }
+.hl-mid-v { font-size: 16px; margin-top: 2px; line-height: 1.3; }
+
+/* ── chart kit (Health, Stocks) ── */
+.hc { position: relative; }
+.hc svg { display: block; overflow: visible; outline: none; }
+.hc-grid { stroke: var(--sep); stroke-width: 1; shape-rendering: crispEdges; }
+.hc-ylab, .hc-xlab { fill: var(--label2); font-size: 11px; font-family: inherit; font-variant-numeric: tabular-nums; }
+.hc-goal { stroke: var(--label2); stroke-width: 1; }
+.hc-goall { fill: var(--label2); font-size: 10px; font-weight: 600; }
+.hc-base { stroke: var(--label3); stroke-width: 1; }
+.hc-ann { fill: var(--label); font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.hc-empty { fill: var(--label2); font-size: 15px; font-weight: 600; }
+.hc-cross { stroke: var(--label2); stroke-width: 1; }
+.hc-dot { stroke: var(--cell); stroke-width: 2; }
+.hc-hdot { stroke: var(--cell); stroke-width: 2.5; }
+.hc-m { transition: opacity .12s; }
+svg.picking .hc-m { opacity: .35; }
+svg.picking .hc-m.on { opacity: 1; }

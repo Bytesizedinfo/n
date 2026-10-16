@@ -445,3 +445,10 @@ await T.shot(page, 'notes-home');                  // PNG of the device into $SH
 const errors = await done();                       // console + page errors (ignore font ERR_FAILED)
 ```
 Look at your screenshots with the Read tool, in light and dark, and fix what looks wrong. Click through every control.
+
+### Notes from integration
+- `JC.ui.page({ content })` renders synchronously inside the constructor: inside `content(pg)` use the `pg` argument, not
+  the `const page = …` you are assigning (TDZ error).
+- `JC.story.call(def)` registers a call script; `JC.story.call()` (no argument) returns the live call.
+- Extra engine APIs: `JC.story.rename(id, name)`, `JC.story.restore(id)`, `JC.story.removed()`, `JC.story.hideMsg(id, msgId)`,
+  `JC.story.dial(cid, { video, num })`; `JC.story.pending(id).left` = ms left on a timed choice.

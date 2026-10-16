@@ -25,6 +25,8 @@
   const isMemo = (p) => !!p && p.id === 'memo14';
   const target = (p) => String((p && (p.to || p.thread)) || '');
   const canThank = (s) => !F(s).wwx_thanked && !F(s).memo_sent;
+  // story.act('memo_share') already sets memo_sent before triggers fire, so the climax guards on its own flag.
+  const climaxOk = (s) => !F(s).burned && !F(s).memo_climax;
 
   // The real thank-you, without the memo (for players who found out some other way).
   function thanksNodes() {
@@ -545,10 +547,10 @@
     id: 'memo_to_wwx',
     thread: 'wwx',
     trigger: { on: 'act', act: 'memo_share', match: (p) => isMemo(p) && target(p) === 'wwx' },
-    when: (s) => !F(s).memo_sent && !F(s).burned,
+    when: climaxOk,
     nodes: {
       start: [
-        { fx: { set: { memo_sent: true }, aff: { wwx: 3 } } },
+        { fx: { set: { memo_sent: true, memo_climax: true }, aff: { wwx: 3 } } },
         { wait: 6 },
         { typing: 9 },
         { wait: 5 },
@@ -629,10 +631,10 @@
     id: 'memo_to_fam',
     thread: 'fam',
     trigger: { on: 'act', act: 'memo_share', match: (p) => isMemo(p) && target(p) === 'fam' },
-    when: (s) => !F(s).memo_sent && !F(s).burned,
+    when: climaxOk,
     nodes: {
       start: [
-        { fx: { set: { memo_sent: true }, aff: { wwx: 3, jl: 1 } } },
+        { fx: { set: { memo_sent: true, memo_climax: true }, aff: { wwx: 3, jl: 1 } } },
         { wait: 5 },
         { m: '?', from: 'jl' },
         { m: 'why is there a voice memo in the family chat', from: 'jl' },
@@ -687,10 +689,10 @@
     id: 'memo_to_lwj',
     thread: 'lwj',
     trigger: { on: 'act', act: 'memo_share', match: (p) => isMemo(p) && target(p) === 'lwj' },
-    when: (s) => !F(s).memo_sent && !F(s).burned,
+    when: climaxOk,
     nodes: {
       start: [
-        { fx: { set: { memo_sent: true }, aff: { wwx: 2 } } },
+        { fx: { set: { memo_sent: true, memo_climax: true }, aff: { wwx: 2 } } },
         { wait: 25 },
         { m: 'This is not for me.' },
         { m: 'He is awake. He is not supposed to be.' },
@@ -701,6 +703,52 @@
         { m: 'you kept this for two years?', th: 'wwx', from: 'wwx' },
         { wait: 5 },
         { m: 'Thank you.' },
+      ],
+    },
+  });
+
+  // Shared into a big group chat: everyone hears it.
+  scene({
+    id: 'memo_to_alumni',
+    thread: 'alumni',
+    trigger: { on: 'act', act: 'memo_share', match: (p) => isMemo(p) && target(p) === 'alumni' },
+    when: climaxOk,
+    nodes: {
+      start: [
+        { fx: { set: { memo_sent: true, memo_climax: true }, aff: { wwx: 3 } } },
+        { wait: 30 },
+        { m: '👀', from: 'nhs' },
+        { m: '…', from: 'nhs' },
+        { m: 'Oh, Jiang Cheng.', from: 'mian' },
+        { m: "Mr. Jiang, I'm sorry. I told you that night because I thought you should know. I'm sorry it was so hard. — Wen Ning", from: 'wn' },
+        { typing: 9, from: 'wwx' },
+        { wait: 4 },
+        { m: 'you kept this for two years?', from: 'wwx' },
+        { m: 'Thank you.', th: 'lwj', from: 'lwj' },
+        { m: '(I am not crying. I am a chairman. Chairmen do not cry 😭)', from: 'nhs' },
+        { m: 'Nobody screenshot this. Huaisang, I mean you.', from: 'mian' },
+        { m: '…deleted my screenshot 🙈', from: 'nhs' },
+      ],
+    },
+  });
+  scene({
+    id: 'memo_to_bday',
+    thread: 'bday',
+    trigger: { on: 'act', act: 'memo_share', match: (p) => isMemo(p) && target(p) === 'bday' },
+    when: climaxOk,
+    nodes: {
+      start: [
+        { fx: { set: { memo_sent: true, memo_climax: true }, aff: { wwx: 3 } } },
+        { wait: 30 },
+        { m: 'wait', from: 'jy' },
+        { m: 'what liver 💀', from: 'jy' },
+        { m: 'Jingyi.', from: 'sz' },
+        { m: '…Mr. Wei, is that true?', from: 'sz' },
+        { typing: 8, from: 'wwx' },
+        { m: 'you kept this for two years?', from: 'wwx' },
+        { m: 'Thank you.', th: 'lwj', from: 'lwj' },
+        { m: "this chat was supposed to be about CAKE 😭", from: 'jy' },
+        { m: "I'm going to pretend I'm not crying in a group called DO NOT ADD JIN LING 🙈", from: 'nhs' },
       ],
     },
   });

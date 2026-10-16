@@ -49,13 +49,13 @@
     nodes: {
       start: [
         { time: '+12m' },
-        ...tick(250, '+10m'),
-        ...tick(300, '+10m'),
-        ...tick(300, '+10m'),
+        ...tick(250, '+12m'),
+        ...tick(300, '+15m'),
+        ...tick(300, '+15m'),
+        ...tick(300, '+15m'),
+        ...tick(300, '+15m'),
         ...tick(300, '+12m'),
-        ...tick(300, '+10m'),
-        ...tick(300, '+10m'),
-        ...tick(300, '+8m'),
+        ...tick(300, '+6m'),
       ],
       stop: [{ end: true }],
     },
@@ -77,11 +77,10 @@
         { go: 'start' },
       ],
       sleepy: [
-        { run: (api) => { try { api.os.setBattery(9); } catch (e) { /* optional */ } } },
+        { run: (api) => { try { api.os.setBattery(10); } catch (e) { /* optional */ } } },
         { notify: { app: 'settings', title: 'Low Battery', body: '10% of battery remaining' } },
         { wait: 20 },
         { fx: { set: { night_done: true } } },
-        { run: (api) => { try { api.os.lock(); } catch (e) { /* optional */ } } },
         { time: '07:38', card: 'You plug his phone into your charger and close your eyes. Just for a minute. Across Lanling a wet dog is asleep on someone’s bed, a pot is cooling on a stove in Gusu, and in Room 1808 Jiang Cheng is asleep with no idea what he said tonight.' },
         { run: (api) => { try { api.os.setBattery(100); } catch (e) { /* optional */ } } },
         { start: 'morning' },
@@ -90,7 +89,8 @@
   });
 
   // ── Saturday, 07:38 ──────────────────────────────────────────────
-  const LOST = 'This iPhone has been lost. Please call Lotus Pier HQ. — J.C. Return it. I mean it.';
+  // The lock screen renders its own "This iPhone has been lost." title above this message.
+  const LOST = 'Please call Lotus Pier HQ. — J.C. Return it. I mean it.';
   S.scene({
     id: 'morning',
     thread: 'ea',
@@ -98,7 +98,7 @@
     nodes: {
       start: [
         { fx: { set: { lost_mode: true, finale: true } } },
-        { run: (api) => { try { api.os.lostMode({ message: LOST, phone: '+86 555 0716 0000' }); } catch (e) { /* optional */ } } },
+        { run: (api) => { try { api.os.lostMode({ message: LOST, phone: '+86 555 0716 0000', contact: 'hq' }); } catch (e) { /* optional */ } } },
         { wait: 4 },
         { m: "To whoever has this phone: this is Tang Mei, Mr. Jiang's assistant." },
         { m: 'He will call it from the Lotus Pier HQ line at 7:41. He was specific about the minute.' },
@@ -108,7 +108,7 @@
       ],
       // He read everything on his laptop at six. Some of it, he keeps.
       m_wwx: [
-        { me: 'Ignore everything this phone sent after midnight.', th: 'wwx' },
+        { me: 'Ignore everything this phone sent last night.', th: 'wwx' },
         { wait: 3 },
         { me: 'Except Sunday.', th: 'wwx' },
         { m: 'JIANG CHENG', th: 'wwx', from: 'wwx' },
@@ -148,7 +148,7 @@
 
   // ── The call. Shared by the incoming call, the callback, and the player phoning HQ. ─
   function hqNodes(opening, ignoreFlag, after) {
-    const ignore = [{ fx: { set: { [ignoreFlag]: true } } }, { start: after }, { hangup: true }];
+    const ignore = [{ fx: { set: { [ignoreFlag]: true } } }, { start: after }, { hangup: 'me' }];
     const first = [
       { t: `"I found it in the taxi. I'm sorry."`, go: 'truth' },
       { t: '"Swift Ride, Master Wu speaking."', label: '(Pretend to be the taxi driver)', go: 'driver' },
@@ -186,7 +186,7 @@
       ],
 
       truth: [
-        { fx: { set: { told_truth: true } } },
+        { fx: { set: { told_truth: true, hq_truth: true } } },
         { say: '…' },
         { say: 'Fine.' },
         { say: 'Where are you.' },
@@ -197,7 +197,10 @@
       ],
       bring: [
         { say: "You're not taking my phone on any more trips. Where are you." },
-        { choice: [{ t: '"Jinxing Road 27. Lanling."', go: 'where' }] },
+        { choice: [
+            { t: '"Jinxing Road 27. Lanling."', go: 'where' },
+            { t: '(Hang up)', go: 'hang' },
+          ] },
       ],
       where: [
         { say: "Stay there. Someone will come for it at ten. Don't touch anything else." },
@@ -211,7 +214,7 @@
       ],
       lie: [
         { say: 'I have a laptop.' },
-        { say: "I read every message this phone sent after midnight. At six o'clock this morning. In a hotel bathrobe." },
+        { say: "I read every message this phone sent last night. At six o'clock this morning. In a hotel bathrobe." },
         { go: 'why' },
       ],
       read_some: [
@@ -287,7 +290,7 @@
       r_memo_sent: [
         { say: '…And you sent it.' },
         { say: 'The memo.' },
-        { say: '(For a while there is only his breathing, and a door closing somewhere at Lotus Pier.)', from: 'sys' },
+        { say: '(For a while there is only his breathing, and somewhere behind him a hotel door closing.)', from: 'sys' },
         { say: 'Two years I kept that.' },
         { say: "Fine. That's— fine." },
         { go: 'r_tea' },
@@ -420,7 +423,7 @@
     onHangup: firstIgnore,
     nodes: hqNodes([
       { say: 'Lotus Pier, Yunmeng Jiang Gr—' },
-      { say: '(A hand over the receiver. A short argument. A different voice.)', from: 'sys' },
+      { say: '(A click. One bar of hold music. The switchboard patches you through to a hotel room in Lanling.)', from: 'sys' },
       { say: 'You. Whoever has my phone.' },
       { say: "Don't hang up." },
     ], 'hq_ignored1', 'hq_after1'),
@@ -448,7 +451,7 @@
     trigger: { on: 'manual' },
     nodes: {
       start: [
-        { if: (s) => F(s).told_truth, go: 'fin' },
+        { if: (s) => F(s).hq_truth, go: 'fin' },
         { wait: 15 },
         { call: 'call_hq2' },
       ],
@@ -461,9 +464,9 @@
     trigger: { on: 'manual' },
     nodes: {
       start: [
-        { if: (s) => F(s).told_truth, go: 'fin' },
+        { if: (s) => F(s).hq_truth, go: 'fin' },
         { wait: 3 },
-        { m: 'He has your address. He has Find My. He has a car again.', th: 'ea', from: 'ea' },
+        { m: 'He has your address. He has Find My. He has a taxi waiting.', th: 'ea', from: 'ea' },
         { m: 'I would put the kettle on.', th: 'ea', from: 'ea' },
         { wait: 4 },
         { ending: 'zidian' },

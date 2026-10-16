@@ -136,7 +136,14 @@
         { choice: [
             { t: 'Fine. Call Old Huang.', fx: { set: { tow_huang: true } }, go: 'huang' },
             { t: 'Fine. Ask Wen Ning.', fx: { set: { wn_asked: true } }, go: 'wn' },
+            { t: 'I said leave it.', fx: { sus: { jl: 1 } }, go: 'left_it' },
           ] },
+      ],
+      left_it: [
+        { m: 'ok' },
+        { m: "ur so weird tonight. u'd kill me for a scratch on it yesterday" },
+        { m: 'a koi just swam into the exhaust. i think it lives there now' },
+        { go: 'calm' },
       ],
       security: [
         { m: 'the security guy is literally filming it for the jin staff group chat' },
@@ -167,10 +174,10 @@
       wet: [
         lock('jl'),
         { m: 'ok update' },
-        { if: (s) => F(s).tow_huang || F(s).wn_asked, go: 'towing', else: 'still' },
+        { if: (s) => F(s).tow_huang || (F(s).wn_asked && !F(s).wn_declined), go: 'towing', else: 'still' },
       ],
       towing: [{ m: 'someone is coming for the car' }, { go: 'fairy' }],
-      still: [{ m: 'the car is still in the pond. a koi lives in the exhaust now' }, { go: 'fairy' }],
+      still: [{ m: 'the car is still in the pond. the koi have accepted it as one of their own' }, { go: 'fairy' }],
       fairy: [
         { m: 'but' },
         { m: 'fairy finally jumped off the roof. into the pond. on purpose' },

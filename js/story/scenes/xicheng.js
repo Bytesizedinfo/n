@@ -134,7 +134,7 @@
         { m: 'On Wednesday I asked about Saturday, and you said "I\'ll see."' },
         { m: 'May I ask again, properly? You can still say no.' },
         { m: 'Would you come to tea tomorrow? At the Hanshi, at three.' },
-        { m: 'I still have the white peony. The tin that came from Yunmeng by coincidence.', img: 'p_tea_hanshi' },
+        { m: 'I still have the white peony. The one you liked. (The tin that arrived from Yunmeng, by coincidence.)', img: 'p_tea_hanshi' },
         { fx: { set: { lxc_invited: true } } },
         { choice: [
             { t: 'Three. Fine.', fx: { set: { tea_yes: true }, aff: { lxc: 1 } }, go: 'yes' },
@@ -176,16 +176,16 @@
       moon: [
         lock('lxc'),
         { m: 'Forgive me. I know it is late.' },
-        { m: 'The moon is very clear over Gusu tonight.', img: 'p_gusu_moon' },
-        { m: 'You photographed it from the balcony, just before I said what I said. I saw you do it.' },
         { if: (s) => F(s).told_recipe, go: 'recipe' },
-        { go: 'reply' },
+        { go: 'sky' },
       ],
       recipe: [
-        { m: 'Also: Wangji says Wei Wuxian is making soup at one in the morning, and crying into it. Apparently someone finally told him about the fire. 🙂' },
-        { go: 'reply' },
+        { m: 'Wangji tells me Wei Wuxian is making soup at one in the morning, and crying into it. Apparently someone finally told him about the fire. 🙂' },
+        { go: 'sky' },
       ],
-      reply: [
+      sky: [
+        { m: 'The moon is very clear over Gusu tonight.', img: 'p_gusu_moon' },
+        { m: 'You photographed it from the balcony, just before I said what I said. I saw you do it.' },
         { m: 'This is the same moon, from the other side. That is all. I wanted you to have it.' },
         { choice: [
             { t: 'Same moon.', label: '[Send him your balcony photo]', silent: true, go: 'photo' },

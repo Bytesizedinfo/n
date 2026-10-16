@@ -653,7 +653,7 @@
       const list = h('div.wheel-col.scroll', { style: col.width ? { flex: '0 0 ' + col.width + 'px' } : null });
       const pad = () => h('div.wheel-pad');
       list.appendChild(pad());
-      const nodes = items.map((it) => h('div.wheel-item', { class: { left: col.align === 'left', right: col.align === 'right' } }, it.label));
+      const nodes = items.map((it) => h('div.wheel-item', { class: { left: col.align === 'left', right: col.align === 'right' } }, h('span.wheel-face', it.label)));
       nodes.forEach((n) => list.appendChild(n));
       list.appendChild(pad());
       el.appendChild(list);
@@ -664,7 +664,7 @@
         nodes.forEach((n, i) => {
           const d = (i * ROW - center + ROW * 2) / ROW;
           const a = U.clamp(d * 22, -80, 80);
-          n.style.transform = `rotateX(${-a}deg) translateZ(0)`;
+          n.firstChild.style.transform = `rotateX(${-a}deg)`;
           n.style.opacity = String(U.clamp(1 - Math.abs(d) * 0.28, 0.15, 1));
           n.classList.toggle('sel', Math.abs(d) < 0.5);
         });

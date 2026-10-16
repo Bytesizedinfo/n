@@ -23,21 +23,24 @@
   const lock = (k) => ({ fx: { set: { ['busy_' + k]: true } } });
   const free = (k) => ({ fx: { set: { ['busy_' + k]: false } } });
 
+  // The original #BalconyGate post (23:21) is seeded by the Wavelet app; tonight's is the sequel.
   const balconyMild = {
-    id: 'post_balconygate', by: 'teaspiller_qh', art: 'p_gala_hall', likes: 2481,
-    text: 'Which CEO in purple fled a certain balcony at 11:15 tonight, right after a certain Chancellor in white said something soft? 🙈 Sources say the moon was involved. #BalconyGate #KoiTowerGala',
+    id: 'post_balconygate2', by: 'teaspiller_qh', art: 'p_gala_hall', likes: 2481,
+    text: '#BalconyGate, part two 🫖 Our sources say the CEO in purple went straight to his hotel and has been texting ever since. The Chancellor in white has been seen looking at the moon. On purpose. 👀 #BalconyGate #JinGala',
     comments: [
       { by: 'yiling_radish_king', text: 'LMAOOOO' },
       { by: 'rulan_jin', text: 'delete this' },
+      { by: 'huaisang_fans', text: "I still don't know anything!! 🙈" },
     ],
   };
   const balconyHot = {
-    id: 'post_balconygate', by: 'teaspiller_qh', art: 'p_gala_hall', likes: 9132,
-    text: 'Which CEO in purple fled a certain balcony at 11:15 tonight? Our sources say a certain Chancellor in white told him he MISSED him 😳 …and the CEO has CONFIRMED it?? 🙈🪭 #BalconyGate #KoiTowerGala',
+    id: 'post_balconygate2', by: 'teaspiller_qh', art: 'p_gala_hall', likes: 9132,
+    text: '#BalconyGate, part two 🫖 A source close to the CEO in purple CONFIRMS: the Chancellor in white told him he MISSED him 😳 Make of that what you will 🙈 #BalconyGate #JinGala',
     comments: [
       { by: 'yiling_radish_king', text: 'WAIT WHAT' },
       { by: 'rulan_jin', text: 'delete this' },
       { by: 'jingyi_lan', text: 'MR JIANG 💀💀💀' },
+      { by: 'huaisang_fans', text: "I don't know who the source is!! 🙈" },
     ],
   };
   const koiPost = {
@@ -247,7 +250,7 @@
     },
   });
 
-  // ── 4. @teaspiller_qh posts #BalconyGate ─────────────────────────
+  // ── 4. @teaspiller_qh posts #BalconyGate, part two ───────────────
   scene({
     id: 'nhs_post',
     thread: 'nhs',
@@ -265,9 +268,9 @@
       react: [
         lock('nhs'),
         { m: 'Brother Jiang!!! 😱' },
-        { m: 'Have you SEEN this?? Some anonymous account posted about the balcony!!', img: 'p_shot_gossip' },
+        { m: 'That tea account posted about the balcony AGAIN!! Part TWO!!' },
         { m: "I don't know who would DO such a thing 🙈" },
-        { m: '(It has 2,000 likes)' },
+        { m: '(It already has 2,000 likes)' },
         { choice: [
             { t: "It's you.", go: 'you' },
             { t: 'Delete it.', go: 'del' },
@@ -286,7 +289,7 @@
       del: [
         { m: "I can't delete something I didn't post!!" },
         { wait: 20 },
-        { run: (api) => { try { api.store.remove('posts', 'post_balconygate'); } catch (e) { /* already gone */ } } },
+        { run: (api) => { try { api.store.remove('posts', 'post_balconygate2'); } catch (e) { /* already gone */ } } },
         { m: "…it's gone now. Weird! The internet is so mysterious 🙈" },
         { go: 'end' },
       ],

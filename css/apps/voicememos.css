@@ -1,0 +1,103 @@
+/* ═══ Voice Memos ═══ */
+.app-voicememos { --tint: var(--blue); background: var(--bg); }
+.vmo-fic { width: 30px; height: 30px; display: flex; align-items: center; justify-content: center; color: var(--tint); }
+.vmo-list .page-scroll { padding-bottom: 190px; }
+.vmo-list.has-toolbar .page-scroll { padding-bottom: 190px; }
+.vmo-list .toolbar { bottom: 0; z-index: 22; }
+.vmo-deleted .page-scroll { padding-bottom: 110px; }
+
+/* rows */
+.vmo-row { position: relative; margin-left: 16px; border-bottom: .5px solid var(--sep); transition: background .2s; }
+.vmo-head { display: flex; align-items: center; gap: 10px; padding: 12px 16px 12px 0; }
+.vmo-head:active { opacity: .7; }
+.vmo-check { width: 22px; height: 22px; border-radius: 50%; border: 1.5px solid var(--label3); display: flex; align-items: center; justify-content: center; color: #fff; flex: 0 0 auto; }
+.vmo-check.on { background: var(--tint); border-color: var(--tint); }
+.vmo-hmain { flex: 1; min-width: 0; }
+.vmo-title { display: flex; align-items: center; gap: 5px; font-size: 17px; font-weight: 600; letter-spacing: -.01em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.vmo-favic { color: var(--red); display: flex; }
+.vmo-sub { display: flex; justify-content: space-between; gap: 10px; font-size: 15px; color: var(--label2); margin-top: 3px; font-variant-numeric: tabular-nums; }
+.vmo-row.open .vmo-title { font-size: 20px; }
+.vmo-more { color: var(--tint); display: flex; padding: 4px; }
+.vmo-panel { padding: 0 16px 14px 0; }
+.vmo-wf { position: relative; height: 56px; margin: 4px 0 4px; touch-action: none; cursor: pointer; }
+.vmo-wf svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.vmo-wf svg.base rect { fill: var(--label3); }
+.vmo-wf svg.played rect { fill: var(--label); }
+.vmo-wf svg.played { clip-path: inset(0 100% 0 0); }
+.vmo-head-line { position: absolute; top: -5px; bottom: -5px; left: 0; width: 2px; margin-left: -1px; border-radius: 1px; background: var(--tint); box-shadow: 0 0 0 2px color-mix(in srgb, var(--tint) 20%, transparent); }
+.vmo-times { display: flex; justify-content: space-between; font-size: 13px; color: var(--label2); font-variant-numeric: tabular-nums; }
+.vmo-ctrls { display: flex; align-items: center; justify-content: space-between; margin-top: 6px; }
+.vmo-cbtn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: var(--label); border-radius: 22px; }
+.vmo-cbtn:active { background: var(--fill3); }
+.vmo-cbtn.blue, .vmo-cbtn.on { color: var(--tint); }
+.vmo-play { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; color: var(--label); border-radius: 28px; }
+.vmo-play:active { background: var(--fill3); }
+.vmo-text { margin-top: 12px; padding: 12px 14px; border-radius: 18px; background: var(--fill4); font-size: 16px; line-height: 1.5; color: var(--label3); }
+.vmo-text span { transition: color .25s; }
+.vmo-text span.on { color: var(--label); }
+.vmo-text span.cur { color: var(--tint); }
+.vmo-text span.ev { font-style: italic; }
+.vmo-text span.cut { opacity: .35; text-decoration: line-through; }
+.vmo-delfoot { text-align: center; color: var(--label2); font-size: 13px; padding: 16px 30px; }
+.vmo-tbtext { font-size: 17px; color: var(--tint); padding: 10px 8px; }
+.vmo-tbtext.red { color: var(--red); }
+.vmo-tbtext.off { opacity: .35; }
+
+/* record dock */
+.vmo-dock {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 21;
+  display: flex; flex-direction: column; align-items: center;
+  padding: 16px 0 calc(var(--safe-bottom) + 14px);
+  background: var(--material); backdrop-filter: blur(26px) saturate(1.7); -webkit-backdrop-filter: blur(26px) saturate(1.7);
+  box-shadow: 0 -.5px 0 var(--sep);
+}
+.vmo-list.has-toolbar .vmo-dock { display: none; }
+.vmo-recbtn { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 4px var(--gray3); }
+.vmo-recdot { width: 58px; height: 58px; border-radius: 50%; background: #ff3b30; transition: transform .18s; }
+.vmo-recbtn:active .vmo-recdot { transform: scale(.88); }
+.vmo-dock.recording { padding-top: 18px; border-radius: 30px 30px 0 0; }
+.vmo-rname { font-size: 20px; font-weight: 700; letter-spacing: -.01em; }
+.vmo-rtime { font-size: 15px; color: var(--label2); font-variant-numeric: tabular-nums; margin-top: 2px; }
+.vmo-rtime.paused { animation: vmo-blink 1.1s steps(2) infinite; }
+@keyframes vmo-blink { 50% { opacity: .2; } }
+.vmo-live { position: relative; width: 100%; height: 66px; margin: 10px 0 12px; padding: 0 20px; display: flex; align-items: center; justify-content: flex-end; gap: 2px; overflow: hidden; }
+.vmo-live::after { content: ""; position: absolute; top: 2px; bottom: 2px; right: 20px; width: 2px; border-radius: 1px; background: var(--tint); }
+.vmo-live i { display: block; width: 3px; border-radius: 2px; background: #ff3b30; flex: 0 0 auto; }
+.vmo-rctrls { display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; width: 100%; padding: 0 26px; }
+.vmo-rside { font-size: 17px; color: var(--tint); text-align: center; padding: 8px; }
+.vmo-stopbtn { width: 72px; height: 72px; border-radius: 50%; display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 4px var(--gray3); }
+.vmo-stopsq { width: 28px; height: 28px; border-radius: 7px; background: #ff3b30; transition: transform .15s; }
+.vmo-stopbtn:active .vmo-stopsq { transform: scale(.86); }
+
+/* Dynamic Island recording activity */
+.vmo-isl { display: flex; align-items: center; color: #ff453a; font-variant-numeric: tabular-nums; }
+.vmo-iex { display: flex; align-items: center; justify-content: space-between; height: 100%; color: #fff; gap: 12px; }
+.vmo-iex-main { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.vmo-iex-dot { width: 14px; height: 14px; border-radius: 50%; background: #ff453a; box-shadow: 0 0 10px #ff453a; animation: vmo-blink 1.4s ease-in-out infinite; }
+.vmo-iex-n { font-size: 17px; font-weight: 600; }
+.vmo-iex-t { font-size: 14px; color: #ff6961; font-variant-numeric: tabular-nums; }
+.vmo-iex-btns { display: flex; gap: 12px; }
+.vmo-iex-b { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: rgba(255, 255, 255, .2); color: #fff; }
+.vmo-iex-b.red { background: #ff3b30; }
+
+/* trim sheet */
+.vmo-trim .sheet-body { padding: 0 18px calc(var(--safe-bottom) + 16px); }
+.vmo-ttitle { font-size: 20px; font-weight: 700; text-align: center; margin-top: 6px; }
+.vmo-tsub { text-align: center; color: var(--label2); font-size: 14px; margin: 4px 0 22px; }
+.vmo-tarea { position: relative; height: 96px; border-radius: 14px; background: var(--fill4); margin: 0 8px; }
+.vmo-twf { position: absolute; left: 0; right: 0; top: 12px; bottom: 12px; }
+.vmo-twf svg { width: 100%; height: 100%; display: block; }
+.vmo-twf rect { fill: var(--label2); }
+.vmo-tshade { position: absolute; top: 0; bottom: 0; background: color-mix(in srgb, var(--bg2) 72%, transparent); }
+.vmo-tshade.l { left: 0; border-radius: 14px 0 0 14px; }
+.vmo-tshade.r { right: 0; border-radius: 0 14px 14px 0; }
+.vmo-tbox { position: absolute; top: 0; bottom: 0; border: 3px solid #ffcc00; border-radius: 12px; pointer-events: none; }
+.vmo-thandle { position: absolute; top: -6px; bottom: -6px; width: 22px; margin-left: -11px; border-radius: 7px; background: #ffcc00; touch-action: none; cursor: ew-resize; box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
+.vmo-thandle::after { content: ""; position: absolute; left: 9px; top: 50%; width: 4px; height: 26px; margin-top: -13px; border-radius: 2px; background: rgba(0, 0, 0, .35); }
+.vmo-tlabel { text-align: center; font-variant-numeric: tabular-nums; color: var(--label2); font-size: 15px; margin: 16px 0 22px; }
+.vmo-tbtns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.vmo-tbtn { height: 50px; border-radius: 25px; display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--fill3); color: var(--tint); font-weight: 600; }
+.vmo-tbtn:active { background: var(--fill); }
+.vmo-sheet .section-body { background: var(--bg3); }
+#screen.dark .vmo-sheet .section-body { background: #2c2c2e; }
+.vmo-dock.recording { background: color-mix(in srgb, var(--bg2) 96%, transparent); box-shadow: 0 -8px 30px rgba(0, 0, 0, .12), 0 -.5px 0 var(--sep); }

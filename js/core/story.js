@@ -12,6 +12,7 @@
   let call = null; // live call state (not persisted)
   let callRun = null;
   let ringT = 0;
+  let endT = null;
   const S = () => JC.state.d;
 
   // ── Authoring API ────────────────────────────────────────────────
@@ -127,12 +128,15 @@
     const all = hist.concat(st.live || []);
     // apply runtime reactions/unsends to history messages
     const mods = st.mods || {};
-    return all.map((m) => {
+    const out = [];
+    all.forEach((m) => {
       let o = m;
       if (mods[m.id]) o = Object.assign({}, m, mods[m.id]);
+      if (o.hidden) return;
       if (o.from === 'me' && !o.status) o = Object.assign({}, o, { status: o.fail ? 'failed' : 'read' });
-      return o;
+      out.push(o);
     });
+    return out;
   };
 
   story.threads = () => {
@@ -165,7 +169,7 @@
     const step = stepAt(run);
     if (!step || !step.choice) return null;
     const opts = visibleOptions(step);
-    return { options: opts.map((o, i) => ({ i, label: o.label || o.t, text: o.t, silent: !!o.silent })), timeout: step.timeout || 0 };
+    return { options: opts.map((o, i) => ({ i, label: o.label || o.t, text: o.t, silent: !!o.silent })), timeout: step.timeout || 0, left: run.tleft > 0 ? run.tleft : 0 };
   };
 
   function visibleOptions(step) {
@@ -188,6 +192,16 @@
   story.pin = (id, on) => { th(id).pinned = !!on; JC.state.save(); JC.bus.emit('story:threads'); };
   story.mute = (id, on) => { th(id).muted = !!on; JC.state.save(); JC.bus.emit('story:threads'); JC.bus.emit('story:thread', { thread: id }); };
   story.remove = (id) => { th(id).removed = JC.time.now(); th(id).unread = 0; JC.state.save(); updateBadge(); JC.bus.emit('story:threads'); };
+  story.rename = (id, name) => {
+    th(id).rename = name || null;
+    JC.state.save();
+    if (name) deliver(id, { from: 'sys', sys: true, text: 'You named the conversation \u201C' + name + '\u201D.' }, { quiet: true });
+    JC.bus.emit('story:threads');
+    JC.bus.emit('story:thread', { thread: id });
+  };
+  story.restore = (id) => { delete th(id).removed; JC.state.save(); JC.bus.emit('story:threads'); };
+  story.removed = () => Object.keys(S().threads).filter((k) => S().threads[k].removed).map((k) => ({ id: k, name: threadName(k), at: S().threads[k].removed }));
+  story.hideMsg = (id, msgId) => applyMod(id, msgId, { hidden: true });
   story.markUnread = (id) => { th(id).unread = Math.max(1, th(id).unread || 0); JC.state.save(); updateBadge(); JC.bus.emit('story:threads'); };
   story.setDraft = (id, text) => { th(id).draft = text; JC.state.save(); };
   story.threadFor = (cid) => {
@@ -638,8 +652,10 @@
     if (!opt) return false;
     JC.state.snapshot('choice:' + id);
     if (!opt.silent) {
-      deliver(id, { from: 'me', text: opt.t, status: 'delivered' });
-      (opt.send || []).forEach((t) => deliver(id, typeof t === 'string' ? { from: 'me', text: t, status: 'delivered' } : Object.assign({ from: 'me', status: 'delivered' }, t)));
+      const d = tdef(id);
+      const st0 = (d && d.fails) || !JC.os.online() ? 'failed' : 'delivered';
+      deliver(id, { from: 'me', text: opt.t, status: st0 });
+      (opt.send || []).forEach((t) => deliver(id, typeof t === 'string' ? { from: 'me', text: t, status: st0 } : Object.assign({ from: 'me', status: st0 }, t)));
       JC.audio.play('send');
     }
     resolveChoice(run, id, opt);
@@ -858,6 +874,7 @@
   }
 
   // ── Loop ─────────────────────────────────────────────────────────
+  story._debug = () => ({ paused: paused(), started: S().started, ended: S().ended, frozen: JC.time.frozen, loop: !!loopT, tick: (() => { try { tick(false); return 'ok'; } catch (e) { return 'ERR ' + (e && e.stack || e); } })() });
   function paused() {
     const s = S();
     return !s.started || !!s.ended || JC.time.frozen;
@@ -894,7 +911,8 @@
   function callRecord(dir, dur) {
     if (!call) return;
     try {
-      JC.store.add('calls', { contact: call.cid, num: (JC.contacts.get(call.cid) || { phones: [{ num: '' }] }).phones[0].num, t: call.t0, dir, dur: Math.round(dur || 0), video: !!call.video }, { front: true });
+      const c = JC.contacts.get(call.cid);
+      JC.store.add('calls', { contact: c ? call.cid : null, num: call.num || (c && c.phones[0] ? c.phones[0].num : ''), t: call.t0, dir, dur: Math.round(dur || 0), video: !!call.video }, { front: true });
     } catch (e) { /* calls collection may not be seeded yet */ }
   }
   function incomingCall(callId) {
@@ -931,7 +949,12 @@
     phoneBadge();
   }
   story.silenceRing = () => { JC.audio.ring(false); };
-  story.call = () => call;
+  /** JC.story.call(def) registers a call script; JC.story.call() returns the live call (or null) */
+  story.call = (def) => {
+    if (def && def.id) { defs.calls[def.id] = def; return def; }
+    return call;
+  };
+  story.call.__dual = true;
   story.answer = () => {
     if (!call || call.phase !== 'ringing') return;
     JC.audio.ring(false);
@@ -1018,7 +1041,7 @@
     }
     const def = callId ? defs.calls[callId] : defaultCallDef(cid, o);
     if (!def) return;
-    call = { id: def.id, def, cid, video: !!o.video || !!def.video, dir: 'out', phase: 'ringing', t0: JC.time.now(), lines: [], pend: null, run: null, start: 0 };
+    call = { id: def.id, def, cid, num: o.num || null, video: !!o.video || !!def.video, dir: 'out', phase: 'ringing', t0: JC.time.now(), lines: [], pend: null, run: null, start: 0 };
     JC.bus.emit('story:call', call);
     JC.audio.ringback(true);
     const ringFor = def.ringFor != null ? def.ringFor : (c && c.dial === 'voicemail' ? 7 : 3 + Math.random() * 2);
@@ -1107,12 +1130,14 @@
     s.runs = [];
     JC.state.saveNow();
     JC.bus.emit('story:ending', { id: ids[0], also: ids.slice(1) });
-    setTimeout(() => JC.os.ending(ids[0], ids.slice(1)), 1600);
+    clearTimeout(endT);
+    endT = setTimeout(() => { if (S().ended === ids[0]) JC.os.ending(ids[0], ids.slice(1)); }, 1600);
     if (JC.os.refreshWidgets) setTimeout(JC.os.refreshWidgets, 2000);
   }
   story.finish = finishGame;
 
   story.rewind = () => {
+    clearTimeout(endT);
     if (!JC.state.rewind()) { JC.ui.toast('Nothing to rewind'); return; }
     call = null;
     JC.audio.ring(false);
@@ -1121,6 +1146,7 @@
     setTimeout(() => JC.ui.toast('Rewound to your last choice', { icon: 'arrow.counterclockwise' }), 400);
   };
   story.restart = () => {
+    clearTimeout(endT);
     JC.state.restart();
     call = null;
     JC.audio.ring(false);

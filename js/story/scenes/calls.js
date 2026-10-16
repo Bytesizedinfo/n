@@ -74,7 +74,7 @@
         { start: 'wn_ending' },
         { hangup: true },
       ],
-      hang: [{ start: 'wn_after_realized' }, { hangup: true }],
+      hang: [{ start: 'wn_after_realized' }, { hangup: 'me' }],
     },
   });
 
@@ -111,6 +111,7 @@
       ],
       yes: [{ m: 'Okay! Doing it. Sorry. — Wen Ning' }, { start: 'wn_tow_done' }],
       no: [
+        { fx: { set: { wn_declined: true } } },
         { m: "Okay. Sorry. I'll go home. — Wen Ning" },
         { m: '(The koi look a little worried, though.)' },
       ],
@@ -217,7 +218,7 @@
         { start: 'wwx_honest_end' },
         { hangup: true },
       ],
-      hang: [{ start: 'wwx_ft_hung' }, { hangup: true }],
+      hang: [{ start: 'wwx_ft_hung' }, { hangup: 'me' }],
     },
   });
 
@@ -333,7 +334,7 @@
         { start: 'honest_after_call' },
         { hangup: true },
       ],
-      hang: [{ hangup: true }],
+      hang: [{ hangup: 'me' }],
     },
   });
   S.dialScript('jl', 'call_jl_out', night);
@@ -385,7 +386,7 @@
         { start: 'wwx_honest_end' },
         { hangup: true },
       ],
-      hang: [{ hangup: true }],
+      hang: [{ hangup: 'me' }],
     },
   });
   S.dialScript('wwx', 'call_wwx_out', (s) => night(s) && !F(s).burned);
@@ -429,7 +430,7 @@
         { start: 'honest_after_call' },
         { hangup: true },
       ],
-      hang: [{ hangup: true }],
+      hang: [{ hangup: 'me' }],
     },
   });
   S.dialScript('lxc', 'call_lxc_out', night);
@@ -462,7 +463,7 @@
         { start: 'caught_nhs' },
         { hangup: true },
       ],
-      hang: [{ hangup: true }],
+      hang: [{ hangup: 'me' }],
     },
   });
   S.dialScript('nhs', 'call_nhs_out', night);
@@ -500,8 +501,8 @@
         { start: 'wn_ending' },
         { hangup: true },
       ],
-      hang_r: [{ start: 'wn_after_realized' }, { hangup: true }],
-      hang: [{ hangup: true }],
+      hang_r: [{ start: 'wn_after_realized' }, { hangup: 'me' }],
+      hang: [{ hangup: 'me' }],
     },
   });
   S.dialScript('wn', 'call_wn_out', night);
@@ -537,7 +538,7 @@
         { say: 'Okay. Sleep. Thumbs up.' },
         { hangup: true },
       ],
-      hang: [{ hangup: true }],
+      hang: [{ hangup: 'me' }],
     },
   });
   S.dialScript('huang', 'call_huang_out', night);
@@ -576,8 +577,8 @@
         { start: 'honest_after_call' },
         { hangup: true },
       ],
-      hang_r: [{ start: 'lwj_after_hang' }, { hangup: true }],
-      hang: [{ hangup: true }],
+      hang_r: [{ start: 'lwj_after_hang' }, { hangup: 'me' }],
+      hang: [{ hangup: 'me' }],
     },
   });
   S.dialScript('lwj', 'call_lwj_out', night);
@@ -620,7 +621,7 @@
         { start: 'honest_after_call' },
         { hangup: true },
       ],
-      hang: [{ hangup: true }],
+      hang: [{ hangup: 'me' }],
     },
   });
   S.dialScript('hq', 'call_hq_night', (s) => !F(s).lost_mode);
