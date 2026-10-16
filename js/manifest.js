@@ -12,6 +12,7 @@ window.JC_MANIFEST = {
   "css/apps/facetime.css",
   "css/apps/findmy.css",
   "css/apps/health.css",
+  "css/apps/lotuseats.css",
   "css/apps/lotusleap.css",
   "css/apps/mail.css",
   "css/apps/maps.css",
@@ -27,6 +28,7 @@ window.JC_MANIFEST = {
   "css/apps/stocks.css",
   "css/apps/swift.css",
   "css/apps/voicememos.css",
+  "css/apps/wallet.css",
   "css/apps/wavelet.css",
   "css/apps/weather.css"
  ],
@@ -90,6 +92,7 @@ window.JC_MANIFEST = {
   "js/apps/stocks.js",
   "js/apps/swift.js",
   "js/apps/voicememos.js",
+  "js/apps/wallet.js",
   "js/apps/wavelet-data.js",
   "js/apps/wavelet.js",
   "js/apps/weather.js",

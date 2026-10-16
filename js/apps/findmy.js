@@ -11,8 +11,10 @@
   function st() {
     const d = JC.state.d;
     d.apps = d.apps || {};
-    d.apps.findmy = Object.assign({ sharingWith: ['jl', 'ea'], removed: [], favs: ['jl'], rules: [], notify: { airpods: true, macbook: false, ipad: false, fairy: false, 'sandu-keys': true }, sharing: true, names: {}, pwTries: 0, sounds: {}, friendReq: true }, d.apps.findmy || {});
-    return d.apps.findmy;
+    const cur = d.apps.findmy || (d.apps.findmy = {});
+    const def = { sharingWith: ['jl', 'ea'], removed: [], favs: ['jl'], rules: [], notify: { airpods: true, macbook: false, ipad: false, fairy: false, 'sandu-keys': true }, sharing: true, names: {}, pwTries: 0, sounds: {}, friendReq: true };
+    Object.keys(def).forEach((k) => { if (!(k in cur)) cur[k] = def[k]; });
+    return cur;
   }
   const save = () => JC.state.save();
   const F = () => (JC.state.d.flags || {});

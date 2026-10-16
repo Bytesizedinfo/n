@@ -39,8 +39,10 @@
   function st() {
     const d = JC.state.d;
     d.apps = d.apps || {};
-    d.apps.swift = Object.assign({ cash: 120.5, card: 'ycb', saved: { home: 'lp-residence', work: 'lotus-pier' }, safety: { check: true, pin: false, share: true }, notif: { trips: true, promos: false }, promo: null, reports: [] }, d.apps.swift || {});
-    return d.apps.swift;
+    const cur = d.apps.swift || (d.apps.swift = {});
+    const def = { cash: 120.5, card: 'ycb', saved: { home: 'lp-residence', work: 'lotus-pier' }, safety: { check: true, pin: false, share: true }, notif: { trips: true, promos: false }, promo: null, reports: [] };
+    Object.keys(def).forEach((k) => { if (!(k in cur)) cur[k] = def[k]; });
+    return cur;
   }
   const save = () => JC.state.save();
   const SUPPORT = '+86 555 0101 8888';

@@ -856,6 +856,34 @@
         h('div.w-foot', '© Swift Ride · Safety · Terms')]),
     },
   });
+  simpleSite('swiftride.app', {
+    name: 'Swift Ride', icon: { letter: 'S', bg: '#111214', fg: '#ffd60a' },
+    pages: {
+      '/': () => page('w-swift', 'Swift Ride — Get there. Swiftly.', [h('div.w-swift-hdr', h('span.w-swift-logo', 'Swift'), h('span', 'Ride · Lanling · Gusu · Yunmeng')), h('h1.w-swift-t', 'Get there. Swiftly.'),
+        para(['Rides in minutes, day and night. Swift Go, Comfort, XL — and Swift Pet, for very large dogs.', 'Left something in a car? Use Report a Lost Item in the app; drivers keep found items for 48 hours.']),
+        Btn('Open Swift Ride', () => JC.os.open('swift'), 'w-btn-swift'), Btn('Lost something?', () => JC.os.open('swift', { report: true }), 'w-btn-ghost'),
+        h('div.w-foot', '© Swift Ride Technology (Lanling) Co., Ltd. · Customer Care +86 555 0101 8888')]),
+      '/lost': () => SITES['help.swiftride.lanling'].pages['/lost-items'](),
+    },
+    patterns: [[/^\/rate\/([\w-]+)$/, (ctx, m) => page('w-swift', 'Rate your trip — Swift Ride', [h('div.w-swift-hdr', h('span.w-swift-logo', 'Swift'), h('span', 'Rate your trip')), h('h1.w-swift-t', 'How was your ride?'),
+      para(['Trip ' + m[1] + ' · Koi Tower → Golden Peony Hotel · Master Wu Lihua.', 'Ratings are anonymous and help keep Swift Ride safe.']),
+      Btn('Rate in the app', () => JC.os.open('swift', { id: 'ride_tonight' }), 'w-btn-swift'), Btn('Report a lost item', () => JC.os.open('swift', { report: true }), 'w-btn-ghost'),
+      h('div.w-foot', '© Swift Ride · Safety · Terms')])]],
+  });
+  simpleSite('lotuseats.app', {
+    name: 'Lotus Eats', icon: { letter: '🪷', bg: '#ff4d5e', fg: '#fff' },
+    pages: {
+      '/': () => page('w-swift', 'Lotus Eats — Food delivery in Lanling, Gusu & Yunmeng', [h('div.w-swift-hdr', { style: { background: '#ff4d5e' } }, h('span.w-swift-logo', { style: { color: '#fff' } }, 'Lotus Eats'), h('span', 'Delivery')), h('h1.w-swift-t', 'Hungry at midnight?'),
+        para(['Congee, skewers, dumplings and soup — delivered across Lanling, Gusu and Yunmeng.', 'This weekend: 20% off all hotpot.']),
+        Btn('Open Lotus Eats', () => JC.os.open('lotuseats'), 'w-btn-swift'), h('div.w-foot', '© Lotus Eats · hello@lotuseats.app')]),
+    },
+    patterns: [[/^\/r\/([\w-]+)$/, (ctx, m) => {
+      const r = JC.lotusEatsData && JC.lotusEatsData.RESTS.find((x) => x.id === m[1]);
+      return page('w-swift', (r ? r.name : 'Restaurant') + ' — Lotus Eats', [h('div.w-swift-hdr', { style: { background: '#ff4d5e' } }, h('span.w-swift-logo', { style: { color: '#fff' } }, 'Lotus Eats'), h('span', r ? r.cuisine : 'Restaurant')),
+        r && r.art ? JC.art.el(r.art, { cls: 'w-le-hero' }) : null, h('h1.w-swift-t', r ? r.name : 'Restaurant not found'), para([r ? r.cuisine + ' · ★ ' + r.rating.toFixed(1) + ' (' + r.reviews + ' ratings)' : 'This link may have expired.']),
+        Btn('Order in the app', () => JC.os.open('lotuseats', r ? { rest: r.id } : {}), 'w-btn-swift'), h('div.w-foot', '© Lotus Eats')]);
+    }]],
+  });
   simpleSite('police.lanling', {
     name: 'Lanling Public Security', icon: { letter: '警', bg: '#1d3f72', fg: '#fff' },
     pages: {

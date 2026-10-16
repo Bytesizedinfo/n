@@ -93,8 +93,10 @@
   function st() {
     const d = JC.state.d;
     d.apps = d.apps || {};
-    d.apps.wallet = Object.assign({ cash: 1288, metro: 86.4, express: true, hidden: [], notif: { ycb: true, ymj: true }, auto: { hotel: true, gala: true, petk: true }, suggest: { hotel: true, gala: false, petk: true }, order: null }, d.apps.wallet || {});
-    return d.apps.wallet;
+    const cur = d.apps.wallet || (d.apps.wallet = {});
+    const def = { cash: 1288, metro: 86.4, express: true, hidden: [], notif: { ycb: true, ymj: true }, auto: { hotel: true, gala: true, petk: true }, suggest: { hotel: true, gala: false, petk: true }, order: null };
+    Object.keys(def).forEach((k) => { if (!(k in cur)) cur[k] = def[k]; });
+    return cur;
   }
   const save = () => JC.state.save();
   const yen = (n) => U.fmtMoney(n);
@@ -154,12 +156,28 @@
     document.addEventListener('keydown', onKey);
     return el;
   }
+  /** While a payment is waiting: intercept the hardware side button (double-click = confirm) instead of sleeping. */
+  function sideButton(onDouble) {
+    let last = 0;
+    const isSide = (e) => e.target && e.target.closest && e.target.closest('.hw-side');
+    const down = (e) => { if (isSide(e)) { e.stopPropagation(); e.preventDefault(); } };
+    const up = (e) => {
+      if (!isSide(e)) return;
+      e.stopPropagation(); e.preventDefault();
+      const now = performance.now();
+      if (now - last < 600) { last = 0; onDouble(); } else { last = now; JC.audio.haptic(8); }
+    };
+    document.addEventListener('pointerdown', down, true);
+    document.addEventListener('pointerup', up, true);
+    return () => { document.removeEventListener('pointerdown', down, true); document.removeEventListener('pointerup', up, true); };
+  }
   function cardFace(id, o) {
     o = o || {};
     const c = cardDef(id);
     const S = st();
-    const el = h('div.wl-card.wl-c-' + id, { class: o.cls, data: { id } });
-    if (!c) return el;
+    const el0 = h('div.wl-card.wl-c-' + id, { class: o.cls, data: { id } });
+    if (!c) return el0;
+    const el = { append: (...kids) => el0.append(...kids.filter(Boolean)) };
     if (id === 'ycb') el.append(h('div.wl-ctop', h('span.wl-bank', JC.icon('lotus.fill', { size: 16 }), ' YUNMENG COMMERCIAL BANK'), h('span.wl-ctype', 'Black')), h('div.wl-chip'), h('div.wl-cbot', h('span', '•••• ' + c.last), h('span.wl-net', JC.icon('wave.3.right', { size: 16, weight: 2 }), ' CREDIT')));
     else if (id === 'ymj') el.append(h('div.wl-ctop', h('span.wl-bank', JC.icon('lotus.fill', { size: 16 }), ' YUNMENG JIANG GROUP'), h('span.wl-ctype', 'Corporate')), h('div.wl-chip'), h('div.wl-cbot', h('span', '•••• ' + c.last), h('span.wl-net', 'JIANG CHENG')));
     else if (id === 'cash') el.append(h('div.wl-ctop', h('span.wl-bank', JC.icon('lotus.fill', { size: 16 }), ' Cash'), h('span.wl-cbal', yen(S.cash))), h('div.wl-cash-swirl'), h('div.wl-cbot', h('span', 'Wallet Cash'), h('span.wl-net', 'Send & receive')));
@@ -168,7 +186,7 @@
     else if (id === 'gala') el.append(h('div.wl-ctop', h('span.wl-bank', 'JIN GROUP'), h('span.wl-pfield', h('small', 'FRI, OCT 16'), h('b', '7:00 PM'))), h('div.wl-gala-t', 'Autumn Charity Gala 2026'), h('div.wl-pmid', h('div', h('small', 'TABLE'), h('b', '1')), h('div', h('small', 'SEAT'), h('b', '2')), h('div', h('small', 'VENUE'), h('b', 'Koi Tower'))), o.full ? h('div.wl-qr', qrSvg('JG-GALA-2026-T1S2-JC', 108)) : null);
     else if (id === 'sandu') el.append(h('div.wl-ctop', h('span.wl-bank', JC.icon('car.key', { size: 17 }), ' Car Key'), h('span.wl-pfield', h('small', 'STATUS'), h('b', carStatus().short))), h('div.wl-car-art', JC.icon('car.side', { size: 96, weight: 1.2 })), h('div.wl-cbot', h('span', 'Sandu'), h('span.wl-net', 'Purple · Owner key')));
     else if (id === 'petk') el.append(h('div.wl-ctop', h('span.wl-bank', JC.icon('pawprint.fill', { size: 16 }), ' PET KINGDOM'), h('span.wl-pfield', h('small', 'POINTS'), h('b', '18,240'))), h('div.wl-pmid', h('div', h('small', 'TIER'), h('b', 'Platinum Paw')), h('div', h('small', 'MEMBER SINCE'), h('b', 'Oct 2018'))), o.full ? h('div.wl-bar', barSvg('6904 2018 1018 0716', 230, 54)) : h('div.wl-cbot', h('span', 'Jiang Cheng'), h('span.wl-net', 'Fairy’s account')));
-    return el;
+    return el0;
   }
   function carStatus() {
     const known = JC.story && JC.story.flag && JC.story.flag('car_known');
@@ -211,9 +229,12 @@
       const sheet = h('div.wlp');
       layer.append(back, sheet);
       let done = false;
+      let sideEl = null, offSide = null;
       const finish = (ok) => {
         if (done) return;
         done = true;
+        if (sideEl) sideEl.remove();
+        if (offSide) { offSide(); offSide = null; }
         U.anim(sheet, [{ transform: 'translateY(0)' }, { transform: 'translateY(110%)' }], { duration: 320 }).then(() => sheet.remove());
         U.anim(back, [{ opacity: 1 }, { opacity: 0 }], { duration: 300 }).then(() => back.remove());
         resolve({ ok, card });
@@ -224,19 +245,23 @@
         sheet.innerHTML = '';
         const fid = h('div.wlp-fid', JC.icon('faceid', { size: 46, weight: 1.6 }));
         const status = h('div.wlp-status', 'Confirm with Side Button');
-        const side = h('div.wlp-side', { onTap: () => go() }, h('span', 'Double Click'), h('i'));
+        if (sideEl) sideEl.remove();
+        const side = sideEl = h('div.wlp-side', { onTap: () => go() }, h('span', 'Double Click'), h('i'));
         sheet.append(
           h('div.wlp-head', h('div.wlp-logo', JC.icon('lotus.fill', { size: 18 }), ' Pay'), h('div.wlp-x', { onTap: () => finish(false) }, JC.icon('xmark', { size: 14, weight: 2.8 }))),
           h('div.wlp-row.tap', { onTap: () => pick() }, h('div.wlp-mini', cardFace(card, { cls: 'mini' })), h('div.wlp-rm', h('b', c.short + (c.last ? ' •• ' + c.last : '')), h('span', card === 'cash' ? 'Balance ' + yen(st().cash) : c.title)), JC.icon('chevron.right', { size: 14, weight: 2.6 })),
           h('div.wlp-row', h('div.wlp-k', 'CONTACT'), h('div.wlp-rm', h('span', 'jiang.cheng@lotuspier.yunmeng'))),
           h('div.wlp-total', h('div', h('small', 'PAY ' + String(o.merchant || 'MERCHANT').toUpperCase()), o.sub ? h('span', o.sub) : null), h('b', yen(o.amount || 0))),
-          h('div.wlp-auth', { onTap: () => go() }, fid, status),
-          side);
+          h('div.wlp-auth', { onTap: () => go() }, fid, status));
+        layer.appendChild(side);
         U.anim(side, [{ opacity: 0 }, { opacity: 1 }], { duration: 400 });
+        if (offSide) offSide();
+        offSide = sideButton(() => go());
         let busy = false;
         function go() {
           if (busy) return;
           busy = true;
+          if (offSide) { offSide(); offSide = null; }
           status.textContent = 'Face ID';
           faceId(fid).then(() => {
             status.textContent = 'Face Not Recognized';
@@ -249,6 +274,8 @@
         }
       };
       const pick = () => {
+        if (sideEl) { sideEl.remove(); sideEl = null; }
+        if (offSide) { offSide(); offSide = null; }
         sheet.innerHTML = '';
         sheet.append(h('div.wlp-head', h('div.wlp-back-btn', { onTap: () => main() }, JC.icon('chevron.left', { size: 18, weight: 2.4 })), h('div.wlp-title', 'Cards'), h('span')),
           h('div.wlp-cards', PAYABLE.map((id) => { const c = cardDef(id); return h('div.wlp-crow', { class: { on: id === card }, onTap: () => { card = id; main(); } }, h('div.wlp-mini', cardFace(id, { cls: 'mini' })), h('div.wlp-rm', h('b', c.short + (c.last ? ' •• ' + c.last : '')), h('span', id === 'cash' ? 'Balance ' + yen(st().cash) : c.title)), id === card ? JC.icon('checkmark', { size: 16, weight: 2.6 }) : null); })));
@@ -304,9 +331,8 @@
       body.classList.add('app-wallet');
       let sel = null; // selected card id
       let flipped = false;
-      const nav = JC.ui.nav(body, () => mainPage());
       let page = null, stage = null, detail = null, peek = null;
-      const CW = 370, CH = 233, GAP = 62;
+      const CH = 233, GAP = 62;
 
       function topButtons() { return [JC.ui.navBtn({ icon: 'plus', label: 'Add', onTap: () => addSheet() }), JC.ui.navBtn({ icon: 'ellipsis', label: 'More', onTap: (e) => moreMenu(e.currentTarget) })]; }
       function order() {
@@ -368,10 +394,9 @@
           page.el.classList.remove('wl-expanded');
         } else {
           if (!detail.parentElement) stage.appendChild(detail);
-          detail.style.top = (CH + 18) + 'px';
           renderDetail();
           requestAnimationFrame(() => detail.classList.add('on'));
-          stage.style.height = Math.max(CH + 18 + detail.offsetHeight + 120, 400) + 'px';
+          stage.style.height = Math.max(selH() + 18 + detail.offsetHeight + 130, 400) + 'px';
           renderPeek();
           peek.classList.add('on');
           page.el.classList.add('wl-expanded');
@@ -424,12 +449,14 @@
       function renderPeek() {
         peek.innerHTML = '';
         const others = order().filter((id) => id !== sel).slice(-4);
-        others.forEach((id, i) => { const m = cardFace(id, { cls: 'peekcard' }); m.style.bottom = (i * 9) + 'px'; m.style.zIndex = String(i); peek.appendChild(m); });
+        others.forEach((id, i) => { const m = cardFace(id, { cls: 'peekcard' }); m.style.top = (i * 11) + 'px'; m.style.zIndex = String(i); peek.appendChild(m); });
       }
 
       // ── detail panels ──
+      function selH() { return sel === 'gala' || sel === 'petk' ? 320 : CH; }
       function renderDetail() {
         detail.innerHTML = '';
+        detail.style.top = (selH() + 18) + 'px';
         const c = cardDef(sel);
         if (!c) return;
         if (flipped) { detail.append(passBack(c)); return; }
@@ -440,7 +467,7 @@
         else if (c.kind === 'event') detail.append(eventDetail());
         else if (c.kind === 'car') detail.append(carDetail());
         else if (c.kind === 'store') detail.append(storeDetail());
-        stage.style.height = Math.max(CH + 18 + detail.offsetHeight + 120, 400) + 'px';
+        stage.style.height = Math.max(selH() + 18 + detail.offsetHeight + 130, 400) + 'px';
       }
       const txFor = (card) => JC.store.all('tx').filter((t) => t.card === card).sort((a, b) => b.t - a.t);
       function txRow(t) {
@@ -495,10 +522,10 @@
           ] }, { rows: [{ title: 'Request late checkout', tinted: true, onTap: () => JC.ui.alert({ title: 'Late Checkout', message: 'Late checkout until 4:00 PM on Sunday has been requested. The front desk will confirm by message.', buttons: [{ text: 'OK' }] }) }, { title: 'Pre-authorization', detail: yen(3600), chevron: true, onTap: () => nav.push(txPage('tx_gp_preauth')) }] }], { cls: 'wl-list' }));
       }
       function hotelKey() {
-        const ov = h('div.wl-keyov', h('div.wl-key-card', cardFace('hotel')), h('div.wl-key-wave', h('i'), h('i'), h('i')), h('b', 'Hold Near Lock'), h('span', 'Room 1808 · Golden Peony Hotel'), h('div.wl-key-x.tap', { onTap: () => close() }, 'Cancel'));
+        const ov = h('div.wl-keyov', h('div.wl-key-card', cardFace('hotel')), h('div.wl-key-wave', h('i'), h('i'), h('i')), h('b.wl-key-t', 'Hold Near Lock'), h('span.wl-key-s', 'Room 1808 · Golden Peony Hotel'), h('div.wl-key-x.tap', { onTap: () => close() }, 'Cancel'));
         body.appendChild(ov);
         U.anim(ov, [{ opacity: 0 }, { opacity: 1 }], { duration: 240 });
-        const tm = setTimeout(() => { if (!ov.isConnected) return; ov.querySelector('b').textContent = 'No Lock Nearby'; ov.querySelector('span').textContent = 'You’re on Jinxing Road. Room 1808 is 2.6 km away.'; ov.classList.add('fail'); JC.audio.play('error'); }, 3600);
+        const tm = setTimeout(() => { if (!ov.isConnected) return; ov.querySelector('.wl-key-t').textContent = 'No Lock Nearby'; ov.querySelector('.wl-key-s').textContent = 'You’re on Jinxing Road. Room 1808 is ' + MV().fmtDist(MV().fromUser('golden-peony')) + ' away.'; ov.classList.add('fail'); JC.audio.play('error'); }, 3600);
         function close() { clearTimeout(tm); U.anim(ov, [{ opacity: 1 }, { opacity: 0 }], { duration: 200 }).then(() => ov.remove()); }
       }
       function eventDetail() {
@@ -649,46 +676,61 @@
       function payFlow(id) {
         const c = cardDef(id);
         const ov = h('div.wl-payov');
-        const close = () => { clearTimeout(tm); U.anim(ov, [{ opacity: 1 }, { opacity: 0 }], { duration: 220 }).then(() => ov.remove()); };
-        let tm = null;
+        let tm = null, offSide = null, busy = false;
+        const close = () => { clearTimeout(tm); if (offSide) offSide(); if (side.isConnected) side.remove(); U.anim(ov, [{ opacity: 1 }, { opacity: 0 }], { duration: 220 }).then(() => ov.remove()); };
         const fid = h('div.wlp-fid.big', JC.icon('faceid', { size: 56, weight: 1.5 }));
-        const t1 = h('b', 'Face ID');
-        ov.append(h('div.wl-pay-top', h('span.tap', { onTap: close }, 'Cancel')), h('div.wl-pay-card', cardFace(id)), h('div.wl-pay-mid', fid, t1));
+        const t1 = h('b', 'Double-Click to Pay');
+        const t2 = h('span.wl-pay-sub', 'Press the side button twice, then look at iPhone');
+        const side = h('div.wlp-side.wl-pay-side', { onTap: () => go() }, h('span', 'Double Click'), h('i'));
+        const mid = h('div.wl-pay-mid', h('div.tap', { onTap: () => go() }, fid), t1, t2, h('div.wl-pay-alt.tap', { onTap: () => passcode() }, 'Pay with Passcode'));
+        ov.append(h('div.wl-pay-top', h('span.tap', { onTap: close }, 'Cancel')), h('div.wl-pay-card', cardFace(id)), mid, side);
         body.appendChild(ov);
         U.anim(ov, [{ opacity: 0 }, { opacity: 1 }], { duration: 240 });
-        faceId(fid).then(() => {
-          t1.textContent = 'Face Not Recognized';
-          const mid = ov.querySelector('.wl-pay-mid');
-          mid.appendChild(JC.ui.btn({ text: 'Pay with Passcode', kind: 'filled', size: 'm', cls: 'wl-pcbtn', onTap: () => {
-            mid.innerHTML = '';
-            mid.appendChild(keypad({ title: 'Enter iPhone Passcode', cancel: close, fail: () => { close(); JC.ui.toast('Apple Pay disabled for 1 minute', { icon: 'lock.fill' }); }, ok: () => ready() }));
-          } }));
-        });
+        offSide = sideButton(() => go());
+        function go() {
+          if (busy) return;
+          busy = true;
+          if (offSide) { offSide(); offSide = null; }
+          side.remove();
+          t1.textContent = 'Face ID'; t2.textContent = '';
+          faceId(fid).then(() => {
+            t1.textContent = 'Face Not Recognized';
+            t2.textContent = 'Try again or use the passcode';
+            const alt = mid.querySelector('.wl-pay-alt'); if (alt) alt.remove();
+            mid.appendChild(JC.ui.btn({ text: 'Pay with Passcode', kind: 'filled', size: 'm', cls: 'wl-pcbtn', onTap: () => passcode() }));
+          });
+        }
+        function passcode() {
+          if (offSide) { offSide(); offSide = null; }
+          if (side.isConnected) side.remove();
+          mid.innerHTML = '';
+          mid.appendChild(keypad({ title: 'Enter iPhone Passcode', cancel: close, fail: () => { close(); JC.ui.toast('Pay disabled for 1 minute', { icon: 'lock.fill' }); }, ok: () => ready() }));
+        }
         function ready() {
-          const mid = ov.querySelector('.wl-pay-mid');
           mid.innerHTML = '';
           let left = 60;
           const cnt = h('span', 'Ready for 60 s');
           mid.append(h('div.wl-ready', h('div.wl-ripple', h('i'), h('i'), h('i'), JC.icon('wave.3.right', { size: 40, weight: 2.2 })), h('b', 'Hold Near Reader'), cnt, h('small', c.short + ' •• ' + c.last)));
           JC.audio.play('tink');
-          const tick = () => { left--; cnt.textContent = 'Ready for ' + left + ' s'; if (left <= 0) { close(); JC.ui.toast('Payment timed out', { icon: 'clock.fill' }); return; } tm = setTimeout(tick, 1000); };
+          const tick = () => { if (!ov.isConnected) return; left--; cnt.textContent = 'Ready for ' + left + ' s'; if (left <= 0) { close(); JC.ui.toast('No reader detected', { icon: 'wave.3.right' }); return; } tm = setTimeout(tick, 1000); };
           tm = setTimeout(tick, 1000);
         }
       }
 
       // ── transactions ──
       function allTx(card) {
-        return JC.ui.page({
+        let q = '';
+        const pg = JC.ui.page({
           title: card === 'metro' ? 'Trips' : 'Transactions', cls: 'wl-allp', bg: 'grouped',
-          search: { placeholder: 'Search' },
-          content: (p) => {
-            const q = p.searchEl && p.searchEl.querySelector('input') ? p.searchEl.querySelector('input').value.trim().toLowerCase() : '';
+          search: { placeholder: 'Search', onInput: (v) => { q = String(v || '').trim().toLowerCase(); pg.render(); } },
+          content: () => {
             const list = txFor(card).filter((t) => !q || (t.merchant + ' ' + (t.note || '')).toLowerCase().includes(q));
             const groups = {};
             list.forEach((t) => { const d = new Date(t.t); const k = U.MONTHS[d.getMonth()] + ' ' + d.getFullYear(); (groups[k] = groups[k] || []).push(t); });
-            return [JC.ui.list(Object.keys(groups).map((k) => ({ header: k, rows: groups[k].map(txRow) })), { cls: 'wl-list' })];
+            return [Object.keys(groups).length ? JC.ui.list(Object.keys(groups).map((k) => ({ header: k, rows: groups[k].map(txRow) })), { cls: 'wl-list' }) : JC.ui.empty({ icon: 'magnifyingglass', title: 'No Results' })];
           },
         });
+        return pg;
       }
       function txPage(id) {
         const t = JC.store.get('tx', id);
@@ -722,7 +764,7 @@
         const s = JC.ui.sheet({ title: 'Add to Wallet', detent: 'large', left: { text: 'Cancel' }, content: () => [
           h('div.wl-addhead', h('div.wl-addic', JC.icon('creditcard.fill', { size: 30 })), h('b', 'Add to Wallet'), h('span', 'Keep your cards, keys and passes in one place.')),
           JC.ui.list([{ rows: [
-            { icon: { glyph: 'creditcard.fill', bg: '#1c1c1e' }, title: 'Debit or Credit Card', chevron: true, onTap: () => pwFail('Add Card', 'Adding a card needs the Apple Account password for jiang.cheng@lotuspier.yunmeng.') },
+            { icon: { glyph: 'creditcard.fill', bg: '#48484a' }, title: 'Debit or Credit Card', chevron: true, onTap: () => pwFail('Add Card', 'Adding a card needs the Apple Account password for jiang.cheng@lotuspier.yunmeng.') },
             { icon: { glyph: 'tram.fill', bg: '#c8102e' }, title: 'Transit Card', chevron: true, onTap: () => JC.ui.actionSheet({ title: 'Transit Cards', actions: ['Gusu Metro', 'Yunmeng Bus & Ferry', 'Qinghe City Card'].map((n) => ({ text: n, onTap: () => JC.ui.alert({ title: n, message: 'A new transit card needs an initial top-up of ¥20 and Face ID.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Continue', style: 'default', onTap: () => setTimeout(() => JC.ui.alert({ title: 'Face ID Not Recognized', buttons: [{ text: 'OK' }] }), 300) }] }) })) }) },
             { icon: { glyph: 'car.key', bg: '#5b3fa6' }, title: 'Car Key', chevron: true, onTap: () => JC.ui.alert({ title: 'Pair a Car Key', message: 'Hold iPhone near the car’s key reader. No car found nearby.', buttons: [{ text: 'OK' }] }) },
             { icon: { glyph: 'clock.fill', bg: '#8e8e93' }, title: 'Previous Cards', chevron: true, onTap: () => { s.close(); prevCards(); } },
@@ -744,7 +786,7 @@
           { text: 'Orders', icon: 'bag.fill', onTap: () => nav.push(ordersPage()) },
           { text: 'Expired Passes', icon: 'clock.fill', sub: S.hidden.length ? S.hidden.length + ' pass' + (S.hidden.length > 1 ? 'es' : '') : null, onTap: () => nav.push(expiredPage()) },
           '-',
-          { text: 'Wallet & Pay Settings', icon: 'gearshape.fill', onTap: () => JC.os.open('settings') },
+          { text: 'Wallet & Pay Settings', icon: 'gearshape.fill', onTap: () => JC.os.open('settings', { page: 'walletpay' }) },
         ]);
       }
       function ordersPage() {
@@ -761,6 +803,8 @@
         } });
         return p;
       }
+
+      const nav = JC.ui.nav(body, () => mainPage());
 
       // ── intents & lifecycle ──
       const offTx = JC.bus.on('wallet:tx', () => { if (sel) refreshSel(); });

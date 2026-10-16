@@ -67,3 +67,45 @@
 - css/os.css: `#screen.dark` does not redefine `--knock` (it stays `#ffffff`), so knock-out glyphs (`clock.fill`, `person.crop.circle.fill`,
   `xmark.circle.fill` …) render as solid white discs in dark mode wherever the glyph itself is white — e.g. the Phone tab bar.
   Suggest `--knock` = the surface colour per context (or `#000` in dark). Phone works around it locally in css/apps/phone.css.
+
+## From Maps / Find My / Safari / Swift Ride / Lotus Eats / Wallet
+No core changes required; FYI for other app owners and scene authors.
+- **Shared APIs.** `JC.mapview` (js/apps/mapview.js): `create(el, opts)` interactive map, `thumb(place|[x,y], opts)` static
+  map image, `place(id)`, `route(a, b, 'drive'|'walk')`, `fare(route, tier)`, `hoursInfo(place)`, `fromUser(place)`,
+  `callPlace(id)` (businesses in `JC.callui.BIZ` ring through the real call screen; contacts via `JC.story.dial(cid, {num})`),
+  `fakeCall({...})` for in-world calls. `JC.wallet` (js/apps/wallet.js): `pay({ merchant, amount, card })` → Promise
+  `{ ok, card }` (Wallet Pay sheet: Face ID fails for the stranger → passcode), `charge()/refund()` record a `tx` and send
+  the 95588 SMS for card 4417, `balance('cash'|'metro')`. `JC.web` (safari-pages.js) is the fake web; `JC.lotusEatsData`.
+- **Story acts emitted** (beyond DEV.md): `findmy_share/findmy_unshare/findmy_ask {id}`, `safari_clear`, `safari_private`,
+  `ymj_locked`, `web_comment {url}`, `wallet_view {id}` (hotel/gala/sandu/petk), `wallet_tx {id}`. `ride_report_lost` fires
+  only for a *found-item* report on tonight's ride (`{ kind:'found', item, ride:'ride_tonight', no:'SR-1016-2347' }`) so it
+  matches the `swift_report` scene text; `order {rest, total, to}` fires on every Lotus Eats order.
+- **Consistency for other owners:**
+  - Settings › Wallet & Apple Pay lists “Yunmeng Commercial Bank Debit ••0716”. STORY facts make JC’s card **4417** (a credit
+    card — the bank e-Statement in Mail has a statement balance). Wallet shows 4417 (Credit) and keeps ••0716 only as an
+    expired card under Add › Previous Cards. Suggest Settings show “Yunmeng Commercial Bank · Credit ••4417”. (YMJ Corporate
+    ••1992 matches.)
+  - Mail’s Pet Kingdom receipt is dated **Sun 11 Oct 14:22**; STORY.md says the p_receipt purchase was **Sat 10 Oct 18:42**
+    (¥801.80, card 4417). Wallet follows STORY.md.
+  - Mail’s `swiftride://lost` link opens Swift Ride with `{}`; Swift supports `{ report: true }` (jumps straight to Report a
+    Lost Item for tonight’s ride). `https://swiftride.app/rate/…` and `https://lotuseats.app/r/<id>` now resolve in Safari.
+  - Map place phone numbers now match STORY.md (Golden Peony +86 555 0880 1808, Pet Kingdom +86 555 0601 3300,
+    Lanling International +86 555 0418 6600, Cloud Recesses Tea Shop +86 555 0512 2000, Koi Tower events +86 555 0518 0001).
+- **Facts my apps introduce** (please merge into STORY.md “Facts added” if you agree — I did not edit it):
+  - Swift Ride tonight: Master Wu Lihua’s car is a grey BYD Han EV; receipt SR-1016-2321 (Fare ¥58 + night ¥6, 6.8 km).
+    Other past trips: Cloud Recesses → Gusu North Station, Tue 20 May 2025 15:08, ¥86 Comfort (“Left before the toasts.”);
+    Guanyin Temple → Lotus Pier Residence, Fri 21 Jun 2024 23:44, ¥92; Laoma Hotpot → Cloud Recesses Guesthouse,
+    Sat 13 Apr 2024 22:46, ¥58.
+  - Wallet Cash ¥1,288.00: JC sent Wei Wuxian ¥5,200 “For the wedding.” (20 May 2025 15:02); WWX sent ¥5.20 “thank u for
+    the soup that u definitely didn’t send 🍲” (10 Dec 2024); Nie Huaisang sent ¥88 “for the hotpot hehe~ 🙈” (14 Apr 2024);
+    JC sent A-Ling ¥200 “Learner permit. Don’t crash anything.” (28 Aug 2026).
+  - Card 4417 also shows Silver Lotus Jewelers ¥680 “restoration & polish · antique silver bell” (28 Sep 2026), Thursday’s
+    drive (Petro Yunmeng ¥486, expressway toll ¥95), rail Yunmeng → Lanling South (23 Sep, 8 Oct) and the Lanling Motors
+    deposit/refund on Jin Ling’s ···· 7781. Statement balance ¥38,214.60, due 25 Oct (auto-pay), per the e-Statement mail.
+  - Sandu car key: parked Fri 18:41 at the Koi Tower car park; unlocked with the spare key at 23:52; “No Signal” from 23:58
+    once `car_known`. Golden Peony: Peony Suite, ¥1,200/night, check-out Sun 18 Oct 12:00. Pet Kingdom Platinum Paw member
+    since Oct 2018 (18,240 points). Lanling Metro card balance ¥86.40.
+  - Lotus Eats: the 2024 soup was the Large pot (¥148 + fees + ¥8 tip = ¥168, rider Lan Qiu); Grandma Qin’s order ¥136 (4417);
+    Night Owl Congee ¥75 and the 38 milk teas ¥878 went on the YMJ card ••1992; Pet Kingdom treats to Koi Tower Residences
+    on 18 Oct 2024 (“For Fairy. Do not give to A-Ling.”). The Yiling Radish Co. pop-up runs Sat–Sun from 18:00 at Lanling
+    Night Market — closed tonight because WWX is at the gala.

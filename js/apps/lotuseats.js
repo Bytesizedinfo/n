@@ -21,12 +21,18 @@
     { id: 'ymj', name: 'YMJ Corporate', short: 'YMJ', last: '1992', color: 'linear-gradient(135deg,#6f4cc3,#3b2a74)' },
   ];
   const cardOf = (id) => CARDS.find((c) => c.id === id) || CARDS[0];
+  // the kit appends content arrays one level deep — flatten nested sections first
+  const flatten = (f) => (typeof f === 'function' ? (x) => { const r = f(x); return Array.isArray(r) ? r.flat(Infinity).filter(Boolean) : r; } : f);
+  const PAGE = (o) => JC.ui.page(Object.assign({}, o, { content: flatten(o.content) }));
+  const SHEET = (o) => JC.ui.sheet(Object.assign({}, o, { content: flatten(o.content) }));
 
   function st() {
     const d = JC.state.d;
     d.apps = d.apps || {};
-    d.apps.lotuseats = Object.assign({ addr: 'here', cart: null, favs: ['night-owl-ll', 'lotus-root-kitchen'], recent: ['congee', 'lotus root soup', 'brown sugar milk tea'], addrs: [], card: 'ycb', notif: { orders: true, promos: false }, promo: null, rated: {} }, d.apps.lotuseats || {});
-    return d.apps.lotuseats;
+    const cur = d.apps.lotuseats || (d.apps.lotuseats = {});
+    const def = { addr: 'here', cart: null, favs: ['night-owl-ll', 'lotus-root-kitchen'], recent: ['congee', 'lotus root soup', 'brown sugar milk tea'], addrs: [], card: 'ycb', notif: { orders: true, promos: false }, promo: null, rated: {} };
+    Object.keys(def).forEach((k) => { if (!(k in cur)) cur[k] = def[k]; });
+    return cur;
   }
   const save = () => JC.state.save();
 
@@ -37,6 +43,7 @@
   const restName = (r) => r.name + (r.branch ? ' · ' + r.branch : '');
   function addrs() { return D().ADDRS.concat(st().addrs || []); }
   function addrOf(id) { return addrs().find((a) => a.id === id) || D().ADDRS[0]; }
+  const addrName = (a) => (a.id === 'here' ? 'Jinxing Road 27' : a.label);
   function hoursOf(r) {
     const p = restPlace(r);
     const spec = r.hours ? { hours: r.hours } : p;
@@ -159,7 +166,7 @@
 
       // ═══ HOME ═══
       function homePage() {
-        const page = JC.ui.page({
+        const page = PAGE({
           navbar: false, cls: 'le-home',
           footer: cartBar(),
           content: () => {
@@ -198,7 +205,7 @@
 
       // ═══ BROWSE ═══
       function browsePage() {
-        return JC.ui.page({
+        return PAGE({
           title: 'Browse', large: true, cls: 'le-browse', footer: cartBar(),
           content: () => [
             h('div.le-grid', D().CATS.map((c) => h('div.le-tile', { onTap: (e) => { void e; tabs.nav('browse').push(catPage(c)); } }, h('div.le-tile-img', c.art ? JC.art.el(c.art, { cls: 'le-tile-art' }) : h('div.le-tile-ic', JC.icon(c.icon, { size: 34 }))), h('span', c.n)))),
@@ -212,7 +219,7 @@
         return words.some((w) => hay.includes(w));
       }
       function catPage(c) {
-        return JC.ui.page({
+        return PAGE({
           title: c.n, cls: 'le-catpage', footer: cartBar(),
           content: () => {
             const a = addrOf(st().addr);
@@ -231,7 +238,7 @@
       // ═══ SEARCH ═══
       function searchPage() {
         let q = '';
-        const page = JC.ui.page({
+        const page = PAGE({
           title: 'Search', large: true, cls: 'le-searchp', footer: cartBar(),
           search: { placeholder: 'Dishes, restaurants or cuisines', onInput: (v) => { q = v; page.render(); }, onSubmit: (v) => { addRecent(v); page.render(); } },
           content: () => {
@@ -275,7 +282,7 @@
       }
       function restPage(r) {
         let menuSec = null;
-        const page = JC.ui.page({
+        const page = PAGE({
           title: r.name, cls: 'le-restp', footer: cartBar(),
           right: [JC.ui.navBtn({ icon: 'magnifyingglass', label: 'Search menu', onTap: () => menuSearch(r) }), JC.ui.navBtn({ icon: 'square.and.arrow.up', label: 'Share', onTap: () => JC.ui.share({ title: r.name, subtitle: 'Lotus Eats · ' + r.cuisine, icon: 'bag.fill', payload: { kind: 'link', url: 'https://lotuseats.app/r/' + r.id, text: r.name + ' on Lotus Eats' } }) }), JC.ui.navBtn({ icon: 'ellipsis', label: 'More', onTap: (e) => JC.ui.menu(e.currentTarget, [{ text: st().favs.includes(r.id) ? 'Remove from Favourites' : 'Add to Favourites', icon: 'heart', onTap: () => { toggleFav(r); } }, { text: 'Show on Map', icon: 'map', onTap: () => JC.os.open('maps', { place: r.place }) }, { text: 'Call Restaurant', icon: 'phone.fill', onTap: () => MV().callPlace(r.place) }, '-', { text: 'Report a Problem', icon: 'exclamationmark.bubble', onTap: () => JC.ui.alert({ title: 'Report a Problem', message: 'What’s wrong with this listing?', input: { placeholder: 'Wrong hours, menu, photos…' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Send', style: 'default' }] }).then((x) => { if (x.index === 1) JC.ui.toast('Thanks — we’ll take a look', { icon: 'checkmark' }); }) }]) })],
           onScroll: (y) => { page.el.classList.toggle('le-solid', y > 170); if (menuSec) { const chips = page.el.querySelector('.le-menutabs'); if (chips) chips.classList.toggle('stuck', y > 330); } },
@@ -343,7 +350,7 @@
         const sel = (it.opts || []).map((g) => (g.one ? new Set([g.ch[0][0]]) : new Set()));
         let q = 1, note = '';
         const unit = () => it.p + (it.opts || []).reduce((acc, g, gi) => acc + g.ch.filter((c) => sel[gi].has(c[0])).reduce((a, c) => a + c[1], 0), 0);
-        const s = JC.ui.sheet({
+        const s = SHEET({
           detent: 'large', cls: 'le-isheet', left: { icon: 'xmark' }, title: '',
           content: () => [
             it.art ? JC.art.el(it.art, { cls: 'le-isheet-art' }) : null,
@@ -368,7 +375,7 @@
       }
       function menuSearch(r) {
         let q = '';
-        const s = JC.ui.sheet({ title: 'Search ' + r.name, detent: 'large', left: { text: 'Done' }, content: () => {
+        const s = SHEET({ title: 'Search ' + r.name, detent: 'large', left: { text: 'Done' }, content: () => {
           const words = q.trim().toLowerCase().split(/\s+/).filter(Boolean);
           const hits = [];
           r.menu.forEach((c) => c.items.forEach((it) => { if (!words.length || words.every((w) => (it.n + ' ' + it.d).toLowerCase().includes(w))) hits.push(it); }));
@@ -384,7 +391,7 @@
           'night-owl-ll': [['Jinxing night shift', 5, 'The only thing open at 3 a.m. that loves you back.'], ['Ms. Q', 4, 'Baozi a little small. Congee perfect.']],
           'laoma-hotpot': [['Brother Nie', 5, 'Hehe~ the reunion table was the best night 🙈'], ['A.', 4, 'Too spicy for the Lan family. Perfect for everyone else.']],
         }[r.id] || [['Lotus Eats customer', 5, 'Fast delivery, still hot.'], ['Regular', 4, 'Reliable. Would order again.'], ['Night owl', 5, 'Exactly what I needed.']];
-        JC.ui.sheet({ title: 'Ratings & reviews', detent: 'large', left: { text: 'Done' }, content: () => [
+        SHEET({ title: 'Ratings & reviews', detent: 'large', left: { text: 'Done' }, content: () => [
           h('div.le-rvhead', h('b', r.rating.toFixed(1)), h('div', h('div.le-stars', '★★★★★'.slice(0, Math.round(r.rating))), h('span', r.reviews + ' ratings'))),
           JC.ui.list([{ rows: RV.map(([who, n, t]) => ({ title: who, subtitle: t, clamp: false, detail: '★'.repeat(n) })) }], { cls: 'le-list le-rvlist' }),
         ] });
@@ -403,7 +410,7 @@
         nav.push(cartPage());
       }
       function cartPage() {
-        const page = JC.ui.page({
+        const page = PAGE({
           title: 'Cart', cls: 'le-cartp', bg: 'grouped',
           onShow: () => tabs.hideBar(true), onHide: () => tabs.hideBar(false), onClose: () => tabs.hideBar(false),
           right: [JC.ui.navBtn({ text: 'Clear', onTap: () => JC.ui.alert({ title: 'Clear Cart?', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Clear', style: 'destructive', onTap: () => { st().cart = null; cartChanged(); page.nav.pop(); } }] }) })],
@@ -427,7 +434,7 @@
       function checkoutPage() {
         const S = st();
         const ck = { drop: 'Hand it to me', note: '', anon: false, tip: 3, when: null, promo: null };
-        const page = JC.ui.page({
+        const page = PAGE({
           title: 'Checkout', cls: 'le-checkout', bg: 'grouped',
           onShow: () => tabs.hideBar(true), onHide: () => tabs.hideBar(false), onClose: () => tabs.hideBar(false),
           content: () => {
@@ -499,11 +506,11 @@
         const slots = [];
         const d0 = new Date(base); d0.setMinutes(Math.ceil(d0.getMinutes() / 15) * 15, 0, 0);
         for (let i = 0; i < 10; i++) slots.push(d0.getTime() + i * 30 * 60000);
-        JC.ui.sheet({ title: 'Delivery time', detent: 'medium', left: { text: 'Cancel' }, content: (s) => [JC.ui.list([{ rows: (hi.open ? [{ title: 'As soon as possible', subtitle: delivery(r) ? delivery(r).range : '', check: !ck.when, onTap: () => { ck.when = null; s.close(); done(); } }] : []).concat(slots.map((t) => ({ title: U.fmtDate(t, 'day') + ' · ' + U.fmtTime(t), subtitle: (new Date(t).getDate() !== JC.time.date().getDate() ? 'Tomorrow' : 'Tonight') + ' · 30-minute window', check: ck.when === t, onTap: () => { ck.when = t; s.close(); done(); } }))) }], { cls: 'le-list' })] });
+        SHEET({ title: 'Delivery time', detent: 'medium', left: { text: 'Cancel' }, content: (s) => [JC.ui.list([{ rows: (hi.open ? [{ title: 'As soon as possible', subtitle: delivery(r) ? delivery(r).range : '', check: !ck.when, onTap: () => { ck.when = null; s.close(); done(); } }] : []).concat(slots.map((t) => ({ title: U.fmtDate(t, 'day') + ' · ' + U.fmtTime(t), subtitle: (new Date(t).getDate() !== JC.time.date().getDate() ? 'Tomorrow' : 'Tonight') + ' · 30-minute window', check: ck.when === t, onTap: () => { ck.when = t; s.close(); done(); } }))) }], { cls: 'le-list' })] });
       }
       function addrSheet(done) {
         const S = st();
-        const s = JC.ui.sheet({ title: 'Delivery address', detent: 'large', left: { text: 'Done' }, content: () => [
+        const s = SHEET({ title: 'Delivery address', detent: 'large', left: { text: 'Done' }, content: () => [
           JC.ui.list([{ rows: addrs().map((a) => ({ icon: { glyph: a.icon || 'mappin.fill', bg: a.id === S.addr ? TINT : '#8e8e93' }, title: a.label, subtitle: a.line + ', ' + a.city, check: a.id === S.addr, onTap: () => { S.addr = a.id; save(); s.close(); if (done) done(); refreshTop(['home', 'browse']); }, swipe: a.custom ? [{ text: 'Delete', color: '#ff3b30', onTap: () => { S.addrs = S.addrs.filter((x) => x.id !== a.id); if (S.addr === a.id) S.addr = 'here'; save(); s.render(); } }] : null })) },
             { rows: [{ title: 'Add a new address', tinted: true, onTap: () => newAddress(() => s.render()) }] }], { cls: 'le-list' }),
         ] });
@@ -540,14 +547,14 @@
           if (!res || !res.ok) return;
           const rider = D().RIDERS[Math.floor(Math.random() * D().RIDERS.length)];
           const o = JC.store.add('orders', {
-            rest: r.id, to: a.id, toLabel: a.label, toLine: a.line, t: JC.time.now(), status: ck.when ? 'scheduled' : 'active', phase: ck.when ? 'scheduled' : 'placed', sched: ck.when || null,
+            rest: r.id, to: a.id, toLabel: addrName(a), toLine: a.line, t: JC.time.now(), status: ck.when ? 'scheduled' : 'active', phase: ck.when ? 'scheduled' : 'placed', sched: ck.when || null,
             items: c.items.map((x) => ({ id: x.id, n: x.n, q: x.q, p: x.p, opts: x.opts || '', note: x.note || '' })), sub: T.sub, fee: T.fee, service: T.service, small: T.small, discount: T.discount, tip: T.tip, total: T.total,
             card: res.card || S.card, note: ck.note.trim(), anon: ck.anon, drop: ck.drop, utensils: !!c.utensils, eta: delivery(r, a) ? delivery(r, a).eta : 30,
             rider: { name: rider[0], rating: rider[1], vehicle: rider[2] },
           }, { front: true });
           S.cart = null; cartChanged();
           JC.story.act('order', { rest: r.id, total: T.total, to: a.id });
-          sms('[Lotus Eats] Order confirmed: ' + r.name + ' (' + cityOfRest(r) + ') → ' + a.label + (a.id === 'here' ? ', Jinxing Road 27' : '') + '. ' + o.items.map((x) => x.q + ' × ' + x.n).slice(0, 2).join(', ') + (o.items.length > 2 ? '…' : '') + (o.note ? '. Note to rider: "' + o.note + '"' : '') + (ck.when ? '. Scheduled for ' + U.fmtDate(ck.when, 'day') + ' ' + U.fmtTime(ck.when) + '.' : '. Estimated arrival ' + U.fmtTime(JC.time.now() + o.eta * 60000) + '.'));
+          sms('[Lotus Eats] Order confirmed: ' + r.name + ' (' + cityOfRest(r) + ') → ' + addrName(a) + '. ' + o.items.map((x) => x.q + ' × ' + x.n).slice(0, 2).join(', ') + (o.items.length > 2 ? '…' : '') + (o.note ? '. Note to rider: "' + o.note + '"' : '') + (ck.when ? '. Scheduled for ' + U.fmtDate(ck.when, 'day') + ' ' + U.fmtTime(ck.when) + '.' : '. Estimated arrival ' + U.fmtTime(JC.time.now() + o.eta * 60000) + '.'));
           const nav = tabs.nav();
           tabs.hideBar(false);
           while (nav.depth() > 1 && nav.pop({ instant: true })) { /* unwind */ }
@@ -660,7 +667,7 @@
         go(0);
       }
       function ordersPage() {
-        const page = JC.ui.page({
+        const page = PAGE({
           title: 'Orders', large: true, cls: 'le-orders', refreshOnShow: true,
           onShow: () => page.render(),
           content: () => {
@@ -686,7 +693,7 @@
           h('div.le-ocard-m',
             h('b', r.name + (r.branch ? ' · ' + r.branch : '')),
             h('span', live ? phaseTitle(o) : (o.status === 'cancelled' ? 'Cancelled · ' : '') + U.fmtDate(o.t, 'md') + (d.getFullYear() !== JC.time.date().getFullYear() ? ', ' + d.getFullYear() : '') + ' · ' + U.fmtTime(o.t)),
-            h('span', o.items.reduce((a, b) => a + b.q, 0) + ' item' + (o.items.reduce((a, b) => a + b.q, 0) === 1 ? '' : 's') + ' · ' + yen(o.total) + ' · to ' + (addrOf(o.to).label || o.toLabel))),
+            h('span', o.items.reduce((a, b) => a + b.q, 0) + ' item' + (o.items.reduce((a, b) => a + b.q, 0) === 1 ? '' : 's') + ' · ' + yen(o.total) + ' · to ' + (o.toLabel || addrName(addrOf(o.to))))),
           live ? JC.icon('chevron.right', { size: 14, weight: 2.6 }) : h('div.le-reorder', { onTap: (e) => { e.stopPropagation(); reorder(o); } }, 'Reorder'));
       }
       function reorder(o) {
@@ -704,7 +711,7 @@
         else go();
       }
       function orderPage(id) {
-        const page = JC.ui.page({
+        const page = PAGE({
           title: 'Order details', cls: 'le-opage', bg: 'grouped',
           right: [JC.ui.navBtn({ icon: 'square.and.arrow.up', label: 'Share receipt', onTap: () => { const o = JC.store.get('orders', id); const r = rest(o.rest); JC.ui.share({ title: 'Lotus Eats receipt', subtitle: r.name + ' · ' + yen(o.total), icon: 'bag.fill', payload: { kind: 'text', text: 'Lotus Eats · ' + r.name + ' → ' + (o.anon ? '(gift)' : addrOf(o.to).label) + ' · ' + U.fmtDate(o.t, 'medium') + ' · ' + yen(o.total) } }); } })],
           content: () => {
@@ -741,8 +748,8 @@
       function hashStr(s) { let x = 7; for (let i = 0; i < s.length; i++) x = (x * 31 + s.charCodeAt(i)) | 0; return x; }
       function rateSheet(o, after) {
         let stars = 5;
-        const s = JC.ui.sheet({ title: 'Rate your order', detent: 'medium', left: { text: 'Cancel' }, right: { text: 'Submit', onTap: () => { st().rated[o.id] = stars; save(); JC.ui.toast('Thanks for the feedback', { icon: 'star.fill' }); if (after) after(); } },
-          content: () => [h('div.le-rate', h('div.le-rate-q', 'How was ' + (rest(o.rest) || {}).name + '?'), h('div.le-rate-stars', [1, 2, 3, 4, 5].map((n) => h('span.tap', { class: { on: n <= stars }, onTap: () => { stars = n; s.render(); } }, '★'))), h('div.le-rate-s', ['', 'Not good', 'Could be better', 'Okay', 'Good', 'Excellent'][stars]))] });
+        const s = SHEET({ title: 'Rate your order', detent: 'medium', left: { text: 'Cancel' }, right: { text: 'Submit', onTap: () => { st().rated[o.id] = stars; save(); JC.ui.toast('Thanks for the feedback', { icon: 'star.fill' }); if (after) after(); } },
+          content: () => [h('div.le-ratebox', h('div.le-rate-q', 'How was ' + (rest(o.rest) || {}).name + '?'), h('div.le-rate-stars', [1, 2, 3, 4, 5].map((n) => h('span.tap', { class: { on: n <= stars }, onTap: () => { stars = n; s.render(); } }, '★'))), h('div.le-rate-s', ['', 'Not good', 'Could be better', 'Okay', 'Good', 'Excellent'][stars]))] });
       }
       function helpSheet(o) {
         JC.ui.actionSheet({ title: 'What went wrong?', actions: [
@@ -771,7 +778,7 @@
       }
       function chatRider(o) {
         const log = [];
-        const s = JC.ui.sheet({ title: o.rider.name, detent: 'large', left: { text: 'Done' }, cls: 'le-chat',
+        const s = SHEET({ title: o.rider.name, detent: 'large', left: { text: 'Done' }, cls: 'le-chat',
           content: () => [h('div.le-msgs', log.length ? log.map((m) => h('div.le-msg', { class: { me: m.me } }, m.t)) : h('div.le-muted', 'Messages are private and auto-translated.')),
             h('div.le-qr', ['Please leave it at the door', 'Call me when you’re here', 'Which way are you coming?', 'Thank you!'].map((t) => h('span.tap', { onTap: () => send(t) }, t))),
             h('div.le-msgin', JC.ui.input({ placeholder: 'Message your rider', enterkey: 'send', cls: 'le-chatin', onSubmit: (v, el) => { if (v.trim()) { send(v.trim()); el.value = ''; } } }))] });
@@ -788,7 +795,7 @@
         const box = h('div.le-tmap');
         const card = h('div.le-tcard');
         const cleanup = () => { if (dead) return; dead = true; off1(); off2(); if (map) { map.destroy(); map = null; } };
-        const page = JC.ui.page({
+        const page = PAGE({
           title: '', cls: 'le-track', transparentNav: true,
           right: [JC.ui.navBtn({ icon: 'questionmark.circle', label: 'Help', onTap: () => { const o = JC.store.get('orders', id); if (o) helpSheet(o); } })],
           onClose: () => cleanup(),
@@ -856,7 +863,7 @@
 
       // ═══ ACCOUNT ═══
       function accountPage() {
-        return JC.ui.page({
+        return PAGE({
           title: 'Account', large: true, cls: 'le-account', bg: 'grouped',
           content: (page) => {
             const S = st();
@@ -880,16 +887,16 @@
         });
       }
       function favPage() {
-        return JC.ui.page({ title: 'Favourites', cls: 'le-favp', content: () => { const f = st().favs.map(rest).filter(Boolean); return f.length ? [h('div.le-rlist', f.map((r) => restCard(r)))] : [JC.ui.empty({ icon: 'heart', title: 'No favourites yet', text: 'Tap the heart on a restaurant to save it.' })]; } });
+        return PAGE({ title: 'Favourites', cls: 'le-favp', content: () => { const f = st().favs.map(rest).filter(Boolean); return f.length ? [h('div.le-rlist', f.map((r) => restCard(r)))] : [JC.ui.empty({ icon: 'heart', title: 'No favourites yet', text: 'Tap the heart on a restaurant to save it.' })]; } });
       }
       function payPage() {
-        const page = JC.ui.page({ title: 'Payment', bg: 'grouped', content: () => [JC.ui.list([{ header: 'Wallet Pay', footer: 'Payments are confirmed with Face ID or the iPhone passcode.', rows: CARDS.map((c) => ({ leading: h('div.le-cardic', { style: { background: c.color } }), title: c.name, subtitle: '•• ' + c.last, check: st().card === c.id, onTap: () => { st().card = c.id; save(); page.render(); } })).concat([{ title: 'Open Wallet', tinted: true, onTap: () => JC.os.open('wallet') }]) },
+        const page = PAGE({ title: 'Payment', bg: 'grouped', content: () => [JC.ui.list([{ header: 'Wallet Pay', footer: 'Payments are confirmed with Face ID or the iPhone passcode.', rows: CARDS.map((c) => ({ leading: h('div.le-cardic', { style: { background: c.color } }), title: c.name, subtitle: '•• ' + c.last, check: st().card === c.id, onTap: () => { st().card = c.id; save(); page.render(); } })).concat([{ title: 'Open Wallet', tinted: true, onTap: () => JC.os.open('wallet') }]) },
           { header: 'Lotus Eats credit', rows: [{ title: 'Balance', detail: '¥0.00' }] }], { cls: 'le-list' })] });
         return page;
       }
       function notifSheet() {
         const S = st();
-        JC.ui.sheet({ title: 'Notifications', detent: 'medium', left: { text: 'Done' }, content: () => [JC.ui.list([{ rows: [{ title: 'Order updates', subtitle: 'Rider and delivery status', toggle: { on: S.notif.orders, onChange: (v) => { S.notif.orders = v; save(); } } }, { title: 'Offers & promotions', toggle: { on: S.notif.promos, onChange: (v) => { S.notif.promos = v; save(); } } }] }], { cls: 'le-list' })] });
+        SHEET({ title: 'Notifications', detent: 'medium', left: { text: 'Done' }, content: () => [JC.ui.list([{ rows: [{ title: 'Order updates', subtitle: 'Rider and delivery status', toggle: { on: S.notif.orders, onChange: (v) => { S.notif.orders = v; save(); } } }, { title: 'Offers & promotions', toggle: { on: S.notif.promos, onChange: (v) => { S.notif.promos = v; save(); } } }] }], { cls: 'le-list' })] });
       }
 
       // ═══ intents & lifecycle ═══

@@ -132,7 +132,8 @@
     }
     if (/^[a-z]+:\/\//.test(tok)) {
       const app = tok.startsWith('swiftride') ? 'swift' : tok.startsWith('wavelet') ? 'wavelet' : null;
-      return h('span.ml-link', { onTap: () => (app ? JC.os.open(app, app === 'wavelet' ? { user: 'teaspiller_qh' } : {}) : JC.ui.toast('No app can open this link', { icon: 'link' })) }, tok);
+      const intent = app === 'wavelet' ? { user: 'teaspiller_qh' } : app === 'swift' && /lost/.test(tok) ? { report: true } : {};
+      return h('span.ml-link', { onTap: () => (app ? JC.os.open(app, intent) : JC.ui.toast('No app can open this link', { icon: 'link' })) }, tok);
     }
     if (tok.includes('@')) return h('span.ml-link', { onTap: () => compose({ to: tok }) }, tok);
     const el = h('span.ml-link', { onTap: () => JC.callui.dialNumber(tok) }, tok);

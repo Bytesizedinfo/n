@@ -58,8 +58,10 @@
   function prefs() {
     const d = JC.state.d;
     d.apps = d.apps || {};
-    d.apps.maps = Object.assign({ style: 'explore', traffic: false, labels: true, avoidHwy: false, avoidTolls: false, voice: 'normal', pois: true }, d.apps.maps || {});
-    return d.apps.maps;
+    const cur = d.apps.maps || (d.apps.maps = {});
+    const def = { style: 'explore', traffic: false, labels: true, avoidHwy: false, avoidTolls: false, voice: 'normal', pois: true };
+    Object.keys(def).forEach((k) => { if (!(k in cur)) cur[k] = def[k]; });
+    return cur;
   }
   function setPref(k, v) { prefs()[k] = v; JC.state.save(); }
 
