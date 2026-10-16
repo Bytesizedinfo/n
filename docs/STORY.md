@@ -358,3 +358,7 @@ Ending art (4:3): `end_honest`, `end_wen_ning`, `end_busted`, `end_zidian`, `end
 - Nie Huaisang painted the "Moonlit Balcony" fan tonight (painting journal, 23:58). (added by lead)
 - Jiang Cheng replied to Lan Qiren's Q3 board letter by email in July, so an email reply tonight is "the second time this year". (added by lead)
 - Every front-camera photo taken tonight is the dark taxi selfie (art cam_selfie_dark, tagged front-camera): whoever receives it sees a stranger. (added by lead)
+- Jiang Cheng has shared his Medications (tacrolimus, 8 a.m. and 8 p.m.) with Wei Wuxian in Health since July 2024; Wei Wuxian checks it every night at 8:05. A-Ling set the medication alarms. (added by lead, from personal-app reactions)
+- The Calendar event "Tea? — Hanshi" (ev_tea_q) is Lan Xichen's invitation; he is its organizer. (added by lead)
+- His Reminders lists are shared: the bell list with Sizhui, the lotus root/soup lists with Old Huang, Work with Tang Mei. A reminder reads "The bell — purple velvet box (not gold)". (added by lead)
+- Voice Memos keeps "A-Ling — 'jiujiu' (2010)": the first time A-Ling said "jiujiu" properly (his real first word, in 2009, was "ba"). (added by lead)

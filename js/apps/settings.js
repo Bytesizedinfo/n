@@ -314,6 +314,7 @@
         item('message.fill', 'var(--green)', 'Reply as him — or don’t', 'Choices appear above the keyboard in Messages. Short, sharp and never an emoji is very Jiang Cheng. Gushing is not.'),
         item('eye.fill', 'var(--orange)', 'Suspicion', 'Out-of-character replies make people suspicious. Turn on Show Suspicion Meter to see how close you are to being caught.'),
         item('magnifyingglass', 'var(--blue)', 'Snoop for clues', 'Photos, Notes, Mail, Wallet, Voice Memos and Safari history know things you don’t. Some questions have answers hidden in other apps.'),
+        item('square.grid.2x2', 'var(--red)', 'His apps count too', 'Orders, rides, payments, photos, posts, notes, contacts and settings: people notice what “he” does, and some of it changes how the night ends. A lotus cue in the Dynamic Island tells you when something changed (Settings › Story Hints).'),
         item('lock.fill', 'var(--gray)', 'The passcode', 'You already cracked it. If you change it, don’t forget the new one.'),
         item('clock.fill', 'var(--indigo)', 'The night moves on', 'Messages arrive in real time while you explore. Leaving someone on read is also an answer.'),
         item('lotus.fill', 'var(--purple)', '13 endings', 'Rewind to your last choice or restart the story to find them all. Endings you find stay unlocked.'),

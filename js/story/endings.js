@@ -129,13 +129,25 @@
     text: [
       'You listened to it. Seventy-two seconds of a man on the road outside a temple, trying to say thank you to his brother, failing, and trying again.',
       "You didn't send it. Maybe it wasn't yours to send. Maybe you were afraid of what it would do. The night ended the way most of his nights end: with everything important still unsaid.",
-      'In the morning you told him the truth. He didn\'t ask what you had listened to, and you didn\'t say. But Voice Memos keeps a small, merciless record: Untitled 14. Played.',
+      (s) => 'In the morning you told him the truth. He didn\'t ask what you had listened to, and you didn\'t say. ' + (s.flags.memo_purged
+        ? 'Untitled 14 is gone. Not even Recently Deleted has it. You made sure.'
+        : s.flags.memo_deleted
+          ? 'But Voice Memos keeps a small, merciless record: Untitled 14. Played. Deleted. Thirty days in Recently Deleted.'
+          : 'But Voice Memos keeps a small, merciless record: Untitled 14. Played.'),
     ],
     jc: [
-      'When Jiang Cheng got his phone back, he saw it straight away. Untitled 14. Played. Not by him.',
+      (s) => (s.flags.memo_purged
+        ? 'When Jiang Cheng got his phone back, Untitled 14 was not there. Not in the list, not in Recently Deleted. Someone had listened to it, and then made sure nobody ever would again.'
+        : s.flags.memo_deleted
+          ? 'When Jiang Cheng got his phone back, he found it in Recently Deleted, twenty-nine days from gone. Untitled 14. Played. Not by him.'
+          : 'When Jiang Cheng got his phone back, he saw it straight away. Untitled 14. Played. Not by him.'),
       'For two years he had told himself it did not need sending; that Wei Wuxian knew; that some things are better left in a phone in a drawer. A stranger had listened to it once and handed it back, and suddenly that was unbearable.',
-      'He sat in the car outside Lotus Pier until the engine went cold. Then he pressed Share, chose the name he had saved as a joke and never changed, and sent it before he could stop himself.',
-      'The reply took four minutes. "you kept this for two years?" Jiang Cheng typed "Don\'t make it a thing.", deleted it, and called him instead.',
+      (s) => {
+        const name = s.flags.renamed_wwx || s.flags.renamed_wwx_cold ? 'chose the name a stranger had changed for him in the night' : 'chose the name he had saved as a joke and never changed';
+        if (s.flags.memo_purged) return 'He sat in the car outside Lotus Pier until the engine went cold. Then he recorded it again, shorter and worse, with the engine ticking, ' + name + ', and sent it before he could stop himself.';
+        return 'He sat in the car outside Lotus Pier until the engine went cold. Then he ' + (s.flags.memo_deleted ? 'put it back where it belonged, ' : '') + 'pressed Share, ' + name + ', and sent it before he could stop himself.';
+      },
+      { if: (s) => !!s.flags.memo_purged, t: 'The reply took four minutes. "did u just record this in a CAR??" Jiang Cheng typed "Don\'t make it a thing.", deleted it, and called him instead.', else: 'The reply took four minutes. "you kept this for two years?" Jiang Cheng typed "Don\'t make it a thing.", deleted it, and called him instead.' },
     ],
   });
 

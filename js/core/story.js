@@ -330,7 +330,10 @@
       s.sus[k] = Math.max(0, before + fx.sus[k]);
       if (s.sus[k] !== before) JC.bus.emit('story:sus', { cid: k, value: s.sus[k], delta: fx.sus[k] });
     });
-    if (fx.log) story.log(fx.log);
+    if (fx.log) {
+      const o = typeof fx.log === 'object' ? fx.log : { t: fx.log, once: fx.once };
+      story.log(o.t, o.once ? { once: o.once } : null);
+    }
     if (fx.hint) story.hint(fx.hint);
     JC.state.save();
     checkSuspicion();
@@ -399,8 +402,11 @@
   // Scenes marked `polite` (app reactions) don't talk over another scene in the same thread: they wait while
   // someone else is typing there or the player has an open question there.
   function openQuestion(tid, run) {
+    const s = S();
     const p = th(tid).pend;
-    return !!p && p.rid !== run.rid && S().runs.some((r) => r.rid === p.rid && r.wait === 'choice');
+    if (p && p.rid !== run.rid && s.runs.some((r) => r.rid === p.rid && r.wait === 'choice')) return true;
+    // a scene still answering the player's last reply here
+    return s.runs.some((r) => r !== run && r.floor === tid && s.eng < (r.floorUntil || 0));
   }
   function politeWait(run, tid) {
     const sc = sceneOf(run);
@@ -523,6 +529,7 @@
         const mem = tid ? members(tid) : [];
         const from = step.from || mem[0] || tid;
         if (tid) ensureThread(tid, from);
+        if (run.floor && tid !== run.floor) run.floor = null;
         if (run.phase !== 'typing' && politeWait(run, tid)) { run.until = s.eng + 1500; return; }
         if (run.phase !== 'typing') {
           run.phase = 'typing';
@@ -579,6 +586,7 @@
         if (!tid) { run.i++; continue; }
         ensureThread(tid);
         if (openQuestion(tid, run)) { run.until = s.eng + 1500; return; }
+        run.floor = null;
         th(tid).pend = { rid: run.rid };
         run.wait = 'choice';
         run.waitTh = tid;
@@ -599,6 +607,7 @@
       if (step.go) { run.node = step.go; run.i = 0; continue; }
       if (step.start) { startScene(step.start, { delay: step.delay || 0, th: step.inThread || null }); run.i++; continue; }
       if (step.wait != null) {
+        if (run.phase !== 'wait' && step.wait >= 8) run.floor = null;
         if (run.phase !== 'wait') { run.phase = 'wait'; run.until = at(step.wait * 1000 / speed()); return; }
         run.phase = null;
         run.i++;
@@ -606,6 +615,7 @@
       }
       if (step.typing != null) {
         const from = step.from || (tid ? members(tid)[0] : null);
+        if (run.phase !== 'typing' && politeWait(run, tid)) { run.until = s.eng + 1500; return; }
         if (run.phase !== 'typing') {
           run.phase = 'typing';
           if (tid) { th(tid).typing = from; JC.bus.emit('story:typing', { thread: tid, who: from }); }
@@ -726,6 +736,9 @@
     run.wait = null;
     if (opt.go) { run.node = opt.go; run.i = 0; } else run.i++;
     run.until = S().eng + 900 / speed();
+    // the answer gets its reply before any other scene speaks or asks in this thread
+    run.floor = id;
+    run.floorUntil = S().eng + 45000;
     JC.state.save();
     JC.bus.emit('story:pending', { thread: id });
     JC.bus.emit('story:thread', { thread: id });

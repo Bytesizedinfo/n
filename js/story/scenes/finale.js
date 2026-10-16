@@ -40,6 +40,13 @@
   const APP_REMARKS = [
     { if: (s) => F(s).soup_owned, lines: ['You told him about the soup.', "Both times. He wasn't supposed to know about the first one."] },
     { if: (s) => !!(F(s).wwx_draft || F(s).found_draft), lines: ['That draft was two years old.', 'You found it. You sent it.'] },
+    { if: (s) => !!F(s).xichen_draft_sent, lines: ['You sent him the note. The locked one.', (s) => (finishedNote() ? '…And you finished it. What did I say?' : 'I started that a year ago. I never got past the first line.')] },
+    { if: (s) => !!F(s).jiujiu_memo_deleted, lines: ['You deleted A-Ling saying jiujiu. The first time he got it right.', "It's in Recently Deleted. Thirty days. Don't touch it again."] },
+    { if: (s) => !!F(s).wwx_meds_stopped, lines: ['You turned off the medication sharing.', 'He checks it every night at 8:05.', "…I'll turn it back on."] },
+    { if: (s) => !!F(s).mom_vm_heard, lines: ["You played my mother's voicemail.", '…Did she sound angry?', "She always sounded angry. She wasn't."] },
+    { if: (s) => !!F(s).renamed_wwx, lines: [(s) => 'And Wei Wuxian is saved as "' + F(s).renamed_wwx + '" in my phone now.', '…Leave it.'] },
+    { if: (s) => !!F(s).renamed_wwx_cold, lines: ['You renamed Wei Wuxian in my phone.', 'Somehow you made it worse.'] },
+    { if: (s) => !!F(s).deleted_wwx_contact, lines: ['You deleted Wei Wuxian from my contacts.', '…I know the number.'] },
     { if: (s) => !!(F(s).deleted_ajie || F(s).deleted_moon), lines: ['You deleted—', "…It's in Recently Deleted. Thirty days. Don't touch anything else."] },
     { if: (s) => F(s).took_selfie && sentSelfie(), lines: ['You sent people a picture of your face. From my phone.', "Half my contacts know what you look like now. I don't."] },
     { if: (s) => !!F(s).looked_up_return, lines: ["You looked up how to give it back. It's in my history.", '…It took you long enough.'] },
@@ -51,13 +58,26 @@
     { if: (s) => !!F(s).soup_song_seen, lines: ['You played the soup song. A-Ling saw.', "He's watched me play it forty times. He never said a word about it until you."] },
     { if: (s) => !!F(s).loc_nhs, lines: ['You shared my location with Nie Huaisang.', "He's going to ask about Jinxing Road for the rest of my life."] },
     { if: (s) => !!F(s).knows_swap, lines: ["You read Huaisang's seating email.", "Then you know whose fault the balcony was."] },
+    { if: (s) => !!F(s).tea_cal && !!F(s).tea_yes, lines: ['You answered his calendar invitation.', 'He says it informed him very formally.'] },
+    { if: (s) => !!F(s).tea_declined && !F(s).tea_yes, lines: ["And you declined Xichen's tea. In my calendar.", '…I might go anyway.'] },
+    { if: (s) => !!F(s).renamed_lxc, lines: [(s) => 'Zewu-jun is "' + F(s).renamed_lxc + '" in my phone now.', 'Leave that too.'] },
+    { if: (s) => !!s.done.r_hl_jl, lines: ['You showed A-Ling my heart rate.', (s) => (F(s).lxc_saw_121 ? '…It was hot in there. Now Xichen knows too.' : '…It was hot in there.')] },
+    { if: (s) => !!(s.done.r_focus_wwx || s.done.r_focus_jl), lines: ['You put my phone on Do Not Disturb.', "Wei Wuxian thinks he's the disturb. He's right."] },
+    { if: (s) => !!F(s).tea_alarm, lines: ["There's an alarm on my phone labelled 'Tea'.", "…I'll keep it."] },
+    { if: (s) => !!F(s).med_alarm_off, lines: ['You turned off my medication alarm.', 'A-Ling set those.'] },
+    { if: (s) => !!F(s).wallpaper_changed, lines: ['You changed my wallpaper.', (s) => (/fairy|dog/i.test(String(F(s).wallpaper_changed)) ? '…To the dog. Leave it.' : 'Change it back.')] },
     { if: (s) => !!F(s).dog_friday_mail, lines: ['Liu Qian has my approval in writing now. Sent after midnight.'] },
     { if: (s) => !!F(s).wn_paid, lines: ['You paid Wen Ning for the tow. He kept fifty for petrol.', '…Good.'] },
     { if: (s) => !!F(s).ate_on_card, lines: ['You ate on my card.', '…Did you eat enough.'] },
     { if: (s) => !!F(s).huang_fridge, lines: ['Old Huang says thank you for whatever you sent the house. He ate it. That is the rule.'] },
   ];
+  const finishedNote = () => { try { return JC.story.trace().some((x) => /^finished his letter/i.test(x.text)); } catch (e) { return false; } };
   const remarks = (s) => APP_REMARKS.filter((r) => { try { return r.if(s); } catch (e) { return false; } }).slice(0, 2);
-  const remark = (k, j) => (s) => { const r = remarks(s)[k]; return (r && r.lines[j]) || null; };
+  const remark = (k, j) => (s) => {
+    const r = remarks(s)[k];
+    const l = r && r.lines[j];
+    try { return typeof l === 'function' ? l(s) : l || null; } catch (e) { return null; }
+  };
 
   // ── The night clock: 23:47 → ~02:00 in ~35 minutes of play ──────
   // Jumps on top of the 1:1 clock, so the arcs land near their beats (car ~00:03, moon ~01:00).
@@ -409,8 +429,8 @@
       ],
       r_pass2: [{ say: '…Tch.' }, { say: 'Fine.' }, { go: 'r_apps' }],
       r_apps: [
-        { say: remark(0, 0) }, { say: remark(0, 1) },
-        { say: remark(1, 0) }, { say: remark(1, 1) },
+        { say: remark(0, 0) }, { say: remark(0, 1) }, { say: remark(0, 2) },
+        { say: remark(1, 0) }, { say: remark(1, 1) }, { say: remark(1, 2) },
         { go: 'close' },
       ],
 

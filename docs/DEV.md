@@ -483,11 +483,13 @@ S.scene({
   unprompted photo/location/link is skipped, because the reaction answers in person. Set `claims: false` on a scene that
   should not suppress it (e.g. a reaction in a *different* thread).
 - New steps (also usable inside `fx`): `{ log: 'Text for the ending card' }` records a line under "What you did with his
-  phone" on the ending card (`once: 'key'` dedupes); `{ hint: 'A-Ling will remember that.' }` flashes a consequence cue in
+  phone" on the ending card (`once: 'key'` dedupes; inside fx write `{ log: 'text', once: 'key' }`); `{ hint: 'A-Ling will remember that.' }` flashes a consequence cue in
   the Dynamic Island (Settings → Story Hints turns cues off). Use hints sparingly: only when something changed (affection,
   suspicion, an ending flag), worded like Telltale ("Wei Wuxian noticed.", "Lan Xichen will remember that.").
   `JC.story.log(text, { once })` and `JC.story.hint(text)` can also be called from app code.
 - A choice in a thread that already has an open question now waits its turn (no more overwriting another scene's choice).
+  After the player answers, that scene holds the floor in the thread until it pauses (`wait` ≥ 8 s), asks again, talks
+  elsewhere, ends, or 45 s pass: other scenes' questions (and polite scenes' messages and typing) wait for its reply.
 - `{ cancel: 'sceneId' }` (or `JC.story.cancel(id)`) ends another scene's live run now, clearing its open question —
   for when the player answered it through another app (e.g. Swift Pet answers Jin Ling's "can she stay with u").
 - Call lines can be computed: `{ say: (s) => text | null }` (null skips the line). The morning call uses this for
@@ -508,7 +510,7 @@ S.scene({
 | `open_app` | OS | `{ app }` |
 | `unlock` | OS | `{ first }` |
 | `wallpaper` | OS / Settings | `{ id }` |
-| `setting` | Settings | `{ key, value }` (keys: passcode, faceAlt, appearance, wifi, bt, airplane, focus, silent, …) |
+| `setting` | Settings, Control Center, Action button | `{ key, value }` (keys: passcode, faceAlt, appearance, wifi, bt, airplane, focus, silent, …) |
 | `open_thread` | Messages | `{ thread }` |
 | `send` | Messages, share sheet | `{ thread, kind: text·img·loc·link·voice·memo, text, art, memo, link, loc }` |
 | `tapback` | Messages | `{ thread, msg, t }` |
@@ -517,10 +519,12 @@ S.scene({
 | `voicemail_play` | Phone | `{ id }` |
 | `photo_view` / `photo_fav` / `photo_delete` | Photos, Messages | `{ id, from? }` / `{ id, on }` / `{ id }` |
 | `photo_taken` | Camera | `{ id, selfie, mode, kind }` |
-| `note_open` / `note_edit` | Notes | `{ id, locked? }` / `{ id }` |
-| `event_open` / `event_add` | Calendar | `{ id }` / `{ id, title? , accepted?, invite?, status? }` |
-| `reminder_done` | Reminders | `{ id }` |
-| `alarm` / `alarm_stop` | Clock | `{ id, label }` / `{ id, label, missed }` |
+| `note_open` / `note_edit` / `note_delete` | Notes | `{ id, locked? }` / `{ id }` / `{ id, title }` |
+| `event_open` / `event_add` / `event_decline` | Calendar | `{ id }` / `{ id, title, accepted, status, invite?, isNew?, cal?, start?, allDay?, invitees? }` / `{ id, title, status, invite? }` |
+| `reminder_done` | Reminders | `{ id, list, title }` |
+| `alarm` / `alarm_stop` / `alarm_set` / `alarm_off` | Clock | `{ id, label }` / `{ id, label, missed }` / `{ id, label, time, h, m, repeat, isNew }` / `{ id, label, deleted }` |
+| `contact_edit` / `contact_delete` / `contact_block` | Contacts | `{ id, field, value, before }` (one per changed field; `display` = saved name) / `{ id, name }` |
+| `memo_recover` | Voice Memos | `{ id, copy? }` (`memo_delete` also carries `forever?`, `copy?`) |
 | `visit` / `web_comment` / `safari_private` / `safari_clear` / `ymj_locked` | Safari | `{ url }` / `{ text, page }` / `{}` / `{ ms }` / `{}` |
 | `mail_open` / `mail_send` | Mail | `{ id, draft? }` / `{ to, contacts, subject, … }` |
 | `music_play` | Music | `{ id, title, artist, album, playlist, src, shared }` (every track that starts) |
@@ -534,5 +538,5 @@ S.scene({
 | `wallet_view` / `wallet_tx` / `wallet_send` | Wallet | `{ id }` / `{ id }` / `{ to, amount, note, card, tx }` |
 | `like` / `comment` / `dm` / `post` | Wavelet | `{ post }` / `{ post, text }` / `{ to, text, post?, art? }` / `{ text, art }` |
 | `game_score` | Lotus Leap | `{ score }` |
-| `med_log` / `mood_log` / `health_share` | Health | `{ med, slot, status }` / `{ valence, feel }` / `{ to, accept?, invite?, topics? }` |
+| `med_log` / `mood_log` / `health_share` | Health | `{ med, slot, status, day, due, when }` / `{ valence, feel }` / `{ to, accept?, invite?, topics?, stop?, resume? }` |
 Writers adding a new act: emit it from the app (`try { JC.story.act('name', payload) } catch (e) {}`) and add a row here.

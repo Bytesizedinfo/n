@@ -138,6 +138,20 @@ const APP_ACTS = [
   ['web_comment', { text: 'Low fire. Two hours.', page: 'recipe:lotus-root-pork-rib-soup' }],
   ['mail_send', { to: 'liu.qian@lotuspier.yunmeng', contacts: ['liu'], subject: 'Re: Dog Friday', body: 'Approved.' }],
   ['music_play', { id: 'sj2', title: 'Little Lotus, Sleep', artist: 'Shen Yao', album: 'sy', playlist: 'pl_shijie', src: 'playlist', shared: true }],
+  ['note_open', { id: 'n_private', locked: true }],
+  ['event_add', { id: 'ev_tea_q', title: 'Tea? — Hanshi', accepted: true, status: 'accepted' }],
+  ['event_decline', { id: 'ev_tea_q', title: 'Tea? — Hanshi', status: 'declined' }],
+  ['reminder_done', { id: 'a_box', list: 'aling', title: 'The bell — purple velvet box (not gold)' }],
+  ['reminder_done', { id: 'g_lotus', list: 'groceries', title: 'Lotus root — 2 sections' }],
+  ['health_share', { to: 'jl', accept: true, topics: ['heart', 'sleep', 'steps', 'meds'] }],
+  ['med_log', { med: 'tacrolimus', slot: '20:00', status: 'skipped', day: 0, when: 'late' }],
+  ['memo_delete', { id: 'memo14' }],
+  ['voicemail_play', { id: 'vm_wwx' }],
+  ['voicemail_play', { id: 'vm_mom' }],
+  ['contact_edit', { id: 'wwx', field: 'display', value: 'A-Xian', before: '🐶 DO NOT ANSWER' }],
+  ['setting', { key: 'focus', value: 'dnd' }],
+  ['alarm_set', { id: 'al_t', label: 'Tea', time: '12:30', h: 12, m: 30, repeat: [], isNew: true }],
+  ['wallpaper', { id: 'wp_fairy' }],
 ];
 
 async function playthrough(page, seed, strategy) {

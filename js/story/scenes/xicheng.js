@@ -254,7 +254,14 @@
       xichen: [
         { typing: 6 },
         { m: '…Goodnight, Wanyin.' },
+        { if: (s) => !!F(s).xichen_draft_sent, go: 'xichen_twice' },
         { m: "You've never called me that before." },
+        { m: 'I find I like it very much.' },
+        { go: 'done' },
+      ],
+      // the player already sent him the locked "Xichen —" note (react-life.js)
+      xichen_twice: [
+        { m: 'Twice tonight. Once in writing.' },
         { m: 'I find I like it very much.' },
         { go: 'done' },
       ],
