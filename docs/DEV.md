@@ -522,7 +522,8 @@ S.scene({
 | `reminder_done` | Reminders | `{ id }` |
 | `alarm` / `alarm_stop` | Clock | `{ id, label }` / `{ id, label, missed }` |
 | `visit` / `web_comment` / `safari_private` / `safari_clear` / `ymj_locked` | Safari | `{ url }` / `{ text, page }` / `{}` / `{ ms }` / `{}` |
-| `mail_open` / `mail_send` | Mail | `{ id }` / `{ to, contacts, subject, … }` |
+| `mail_open` / `mail_send` | Mail | `{ id, draft? }` / `{ to, contacts, subject, … }` |
+| `music_play` | Music | `{ id, title, artist, album, playlist, src, shared }` (every track that starts) |
 | `place_view` / `directions` | Maps | `{ place }` |
 | `findmy_view` / `findmy_sound` / `findmy_share` / `findmy_unshare` / `findmy_ask` | Find My | `{ id }` / `{ id }` / `{ to, dur }` / `{ to }` / `{ to }` |
 | `order` | Lotus Eats | `{ rest, total, to, id, items, names, qty, anon, note, sched, card }` (address ids: here, gp, koires, lp, ymj, wh, jingshi, a_…) |

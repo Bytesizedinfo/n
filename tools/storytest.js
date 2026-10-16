@@ -128,6 +128,16 @@ const APP_ACTS = [
   ['findmy_ask', { to: 'lxc' }],
   ['directions', { place: 'golden-peony' }],
   ['place_view', { place: 'laoma-hotpot' }],
+  ['send', { thread: 'lxc', msg: { img: 'p_balcony_moon' } }],
+  ['send', { thread: 'wwx', msg: { img: 'p_puppies' } }],
+  ['send', { thread: 'jl', msg: { img: 'cam_selfie_dark' } }],
+  ['like', { post: 'wv_tea_teaser' }],
+  ['post', { text: 'July.', art: 'p_lotus_macro' }],
+  ['ymj_locked', {}],
+  ['visit', { url: 'https://howto.lanling/found-a-lost-phone' }],
+  ['web_comment', { text: 'Low fire. Two hours.', page: 'recipe:lotus-root-pork-rib-soup' }],
+  ['mail_send', { to: 'liu.qian@lotuspier.yunmeng', contacts: ['liu'], subject: 'Re: Dog Friday', body: 'Approved.' }],
+  ['music_play', { id: 'sj2', title: 'Little Lotus, Sleep', artist: 'Shen Yao', album: 'sy', playlist: 'pl_shijie', src: 'playlist', shared: true }],
 ];
 
 async function playthrough(page, seed, strategy) {

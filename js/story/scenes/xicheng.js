@@ -188,7 +188,7 @@
         { m: 'You photographed it from the balcony, just before I said what I said. I saw you do it.' },
         { m: 'This is the same moon, from the other side. That is all. I wanted you to have it.' },
         { choice: [
-            { t: 'Same moon.', label: '[Send him your balcony photo]', silent: true, go: 'photo' },
+            { t: 'Same moon.', label: '[Send him your balcony photo]', silent: true, if: (s) => !F(s).moon_sent, go: 'photo' },
             { t: "It's one in the morning. Go to sleep.", fx: { aff: { lxc: 1 }, set: { moon_replied: true } }, go: 'sleep' },
             { t: "It's beautiful. Like you. 🌙✨", fx: { aff: { lxc: 1 }, sus: { lxc: 2 }, set: { moon_replied: true } }, go: 'gush' },
             { t: '[Leave him on read]', silent: true, go: 'unread' },

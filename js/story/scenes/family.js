@@ -371,12 +371,24 @@
         { m: 'not asking again. just an update' },
         { m: "i'm making a practice batch. right now. after midnight. lan zhan is supervising", img: 'p_lotus_root_soup' },
         { m: "the lotus root goes in after the ribs. i remember her saying that. i don't remember much from 2009 but i remember that" },
+        { if: (s) => !!F(s).told_recipe, go: 'soup_known' },
         { m: 'and something about the fire. i forget the fire part' },
         { choice: [
             { t: "Low fire. Two hours. Don't rush it.", fx: { aff: { wwx: 2 }, set: { told_recipe: true } }, go: 'recipe' },
             { t: 'Go to sleep, Wei Wuxian.', go: 'sleep' },
             { t: 'Thank you.', if: canThank, go: 'thanks' },
             { t: 'Omg that looks amazing!! 😍', fx: { sus: { wwx: 3 } }, go: 'gush' },
+          ] },
+      ],
+      // the player already told him the fire part in a recipe comment (react-social.js r_web_cmt_soup)
+      soup_known: [
+        { m: 'and the fire. low. two hours. someone told me that on a recipe site tonight' },
+        { m: "i'm not going to make it a thing. it's just that she said it exactly like that" },
+        { m: 'jiang cheng. can i come home on sunday' },
+        { choice: [
+            { t: 'Six-thirty. Bring the soup.', fx: { set: { wwx_invited: true }, aff: { wwx: 1 } }, go: 'yes' },
+            { t: "We'll see.", fx: { set: { wwx_maybe: true } }, go: 'see' },
+            { t: 'Thank you.', if: canThank, go: 'thanks' },
           ] },
       ],
       recipe: [

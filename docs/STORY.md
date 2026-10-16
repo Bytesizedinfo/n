@@ -353,3 +353,8 @@ Ending art (4:3): `end_honest`, `end_wen_ning`, `end_busted`, `end_zidian`, `end
 - The anonymous Dec 2024 soup to the Jingshi was Jiang Cheng's unsigned thank-you for the liver, six months after Guanyin Temple. (added by lead)
 - The Golden Peony's night manager is Mr. Liang. (added by lead)
 - App reactions (what each app can change in the story) are documented in docs/reactions/*.md. (added by lead)
+- A-Ling turned on Apple Music friend sharing on Jiang Cheng's account in September and has watched him play "Come Home for Soup" about forty times without telling Wei Wuxian. (added by lead, from social reactions)
+- @teaspiller_qh also writes a blog, Spilled Tea (spilledtea.qinghe). (added by lead)
+- Nie Huaisang painted the "Moonlit Balcony" fan tonight (painting journal, 23:58). (added by lead)
+- Jiang Cheng replied to Lan Qiren's Q3 board letter by email in July, so an email reply tonight is "the second time this year". (added by lead)
+- Every front-camera photo taken tonight is the dark taxi selfie (art cam_selfie_dark, tagged front-camera): whoever receives it sees a stranger. (added by lead)

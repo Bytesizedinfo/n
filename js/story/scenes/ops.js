@@ -158,8 +158,15 @@
       start: waitFor('ops', 'dogs'),
       dogs: [
         lock('ops'),
+        { if: (s) => !!F(s).dog_friday_mail, go: 'mailed' },
         { if: (s) => F(s).car_known && !F(s).tow_huang, go: 'carvid' },
         { go: 'pitch' },
+      ],
+      // the boss already answered Liu Qian's proposal by email (js/story/scenes/react-social.js)
+      mailed: [
+        { m: '• The boss already answered my proposal by email', from: 'liu' },
+        { m: '• No further questions 🐕', from: 'liu' },
+        { go: 'done' },
       ],
       carvid: [
         { m: 'Boss. My nephew sends me video. Sandu. In Pond. 😢', from: 'huang' },

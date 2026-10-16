@@ -199,3 +199,12 @@ New content ids: posts `post_tea_jlselfie` and `post_koipondgate_jc` (by teaspil
    - Nie Huaisang painted the "Moonlit Balcony" fan tonight (painting journal, 23:58).
    - JC replied to Lan Qiren's Q3 board letter by email in July, so an email reply tonight is "the second time this year".
 6. Optional: `koigate_leak` could skip when `s.done.r_koigate` is set. This is cosmetic, because both end the game.
+7. Optional, for the `APP_ACTS` list in tools/storytest.js (payloads as my apps emit them):
+   `['send', { thread: 'lxc', msg: { img: 'p_balcony_moon' } }]`, `['send', { thread: 'wwx', msg: { img: 'p_puppies' } }]`,
+   `['like', { post: 'wv_tea_teaser' }]`, `['post', { text: 'July.', art: 'p_lotus_macro' }]`, `['ymj_locked', {}]`,
+   `['visit', { url: 'https://howto.lanling/found-a-lost-phone' }]`,
+   `['web_comment', { text: 'Low fire. Two hours.', page: 'recipe:lotus-root-pork-rib-soup' }]`,
+   `['mail_send', { to: 'liu.qian@lotuspier.yunmeng', contacts: ['liu'], subject: 'Re: Dog Friday', body: 'Approved.' }]`,
+   `['music_play', { id: 'sj2', title: 'Little Lotus, Sleep', artist: 'Shen Yao', album: 'sy', playlist: 'pl_shijie', src: 'playlist', shared: true }]`.
+   A selfie (`['send', { thread: 'jl', msg: { img: 'cam_selfie_dark' } }]`) opens a cover / come-clean question, so
+   the first-option strategy covers and the last-option strategy confesses and ends the game.

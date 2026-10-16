@@ -36,12 +36,22 @@
 
   // ── What "he" did through the other apps: the call picks the two most notable (in this order) ──
   // Lines are Jiang Cheng's. Flags come from js/story/scenes/react-*.js (docs/reactions/*.md).
+  const sentSelfie = () => { try { return JC.story.trace().some((x) => /selfie/i.test(x.text) && /^sent|^posted/i.test(x.text)); } catch (e) { return false; } };
   const APP_REMARKS = [
     { if: (s) => F(s).soup_owned, lines: ['You told him about the soup.', "Both times. He wasn't supposed to know about the first one."] },
+    { if: (s) => !!(F(s).wwx_draft || F(s).found_draft), lines: ['That draft was two years old.', 'You found it. You sent it.'] },
+    { if: (s) => !!(F(s).deleted_ajie || F(s).deleted_moon), lines: ['You deleted—', "…It's in Recently Deleted. Thirty days. Don't touch anything else."] },
+    { if: (s) => F(s).took_selfie && sentSelfie(), lines: ['You sent people a picture of your face. From my phone.', "Half my contacts know what you look like now. I don't."] },
+    { if: (s) => !!F(s).looked_up_return, lines: ["You looked up how to give it back. It's in my history.", '…It took you long enough.'] },
+    { if: (s) => !!(F(s).told_recipe && s.done.r_web_cmt_soup), lines: ['You told him about the fire. On a recipe website. As me.'] },
     { if: (s) => F(s).soup_sent && !F(s).soup_owned, lines: ["And there's a pot of Auntie Lu's going to the Jingshi at ten-thirty.", "…It's the right soup."] },
     { if: (s) => F(s).fed_jc === true, lines: ['And somebody sent food to my room at one in the morning. From my account.', '…It was good.'] },
     { if: (s) => F(s).fed_jc === 'later', lines: ['And breakfast is coming to my room. From my own account.'] },
+    { if: (s) => !!s.done.r_mu_shijie, lines: ["A-Ling says you played his mother's songs.", 'He saw that playlist in September. He never said anything. Neither did I.'] },
+    { if: (s) => !!F(s).soup_song_seen, lines: ['You played the soup song. A-Ling saw.', "He's watched me play it forty times. He never said a word about it until you."] },
     { if: (s) => !!F(s).loc_nhs, lines: ['You shared my location with Nie Huaisang.', "He's going to ask about Jinxing Road for the rest of my life."] },
+    { if: (s) => !!F(s).knows_swap, lines: ["You read Huaisang's seating email.", "Then you know whose fault the balcony was."] },
+    { if: (s) => !!F(s).dog_friday_mail, lines: ['Liu Qian has my approval in writing now. Sent after midnight.'] },
     { if: (s) => !!F(s).wn_paid, lines: ['You paid Wen Ning for the tow. He kept fifty for petrol.', '…Good.'] },
     { if: (s) => !!F(s).ate_on_card, lines: ['You ate on my card.', '…Did you eat enough.'] },
     { if: (s) => !!F(s).huang_fridge, lines: ['Old Huang says thank you for whatever you sent the house. He ate it. That is the rule.'] },
