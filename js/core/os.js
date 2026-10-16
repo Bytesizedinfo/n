@@ -349,6 +349,31 @@
     clearTimeout(islandFlash.t);
     islandFlash.t = setTimeout(() => els.island.classList.remove('flash'), 1700);
   }
+  // Story consequence cue ("A-Ling will remember that."): the island widens to fit the line, one cue at a time.
+  const hintQ = [];
+  let hintOn = false;
+  function nextHint() {
+    if (hintOn || !hintQ.length) return;
+    const { text, icon } = hintQ.shift();
+    hintOn = true;
+    const f = els.island.querySelector('.isl-flash');
+    f.innerHTML = '';
+    const label = h('span.isl-hint-t', text);
+    f.append(h('span.isl-flash-ic.isl-hint-ic', JC.icon(icon || 'lotus.fill', { size: 15 })), label);
+    els.island.style.setProperty('--hw', Math.min(340, Math.max(170, Math.round(text.length * 7.3) + 62)) + 'px');
+    els.island.classList.add('flash', 'hint');
+    JC.audio.haptic(6);
+    setTimeout(() => {
+      els.island.classList.remove('flash', 'hint');
+      setTimeout(() => { hintOn = false; nextHint(); }, 450);
+    }, 2600);
+  }
+  os.hint = (text, icon) => {
+    if (!text || hintQ.some((x) => x.text === text)) return;
+    hintQ.push({ text, icon });
+    nextHint();
+  };
+
   os.island = {
     start(id, a) { activities[id] = a; renderIsland(); },
     update(id, patch) { if (activities[id]) { Object.assign(activities[id], patch || {}); renderIsland(); } },
@@ -1879,8 +1904,18 @@
         (def.text || []).map((p) => h('p', p)),
         def.jc && def.jc.length ? h('div.end-jc', h('div.end-jc-k', JC.icon('lotus.fill', { size: 14 }), ' When Jiang Cheng got his phone back…'), def.jc.map((p) => h('p', p))) : null,
         opts.also && opts.also.length ? h('div.end-also', 'Also unlocked: ' + opts.also.map((id) => (JC.story.endingDef(id) || {}).title || id).join(', ')) : null,
+        opts.trace ? traceView() : null,
         h('div.end-count', 'Endings found: ' + got + ' / ' + (all.length || 13))));
     return body;
+  }
+  // What the player did with the phone tonight (story.log entries), oldest first, at most ten.
+  function traceView() {
+    const tr = JC.story.trace ? JC.story.trace() : [];
+    if (!tr.length) return null;
+    const rows = tr.length > 10 ? tr.slice(0, 3).concat([null], tr.slice(-6)) : tr;
+    return h('div.end-trace',
+      h('div.end-trace-k', JC.icon('iphone', { size: 14 }), ' What you did with his phone'),
+      h('ul', rows.map((x) => (x ? h('li', h('span.end-trace-t', U.fmtTime(x.t)), h('span.end-trace-x', x.text)) : h('li.gap', '⋯ ' + (tr.length - 9) + ' more')))));
   }
 
   os.ending = (id, also) => {
@@ -1896,7 +1931,7 @@
       h('div.end-btn', { onTap: () => { close(); JC.ui.toast('The story has ended — the phone is yours to explore', { icon: 'lotus.fill', ms: 3000 }); } }, JC.icon('iphone', { size: 18 }), h('span', 'Keep exploring the phone')),
       h('div.end-btn', { onTap: () => { close(); os.showEndings(); } }, JC.icon('square.grid.2x2', { size: 18 }), h('span', 'All endings')),
       h('div.end-btn.primary', { onTap: () => { close(); JC.story.restart(); } }, JC.icon('arrow.clockwise', { size: 18 }), h('span', 'Start over')));
-    wrap.append(endingView(e || { id, title: id }, { also }), btns);
+    wrap.append(endingView(e || { id, title: id }, { also, trace: true }), btns);
     C.appendChild(h('div.end-dim'));
     C.appendChild(wrap);
     U.anim(C.querySelector('.end-dim'), [{ opacity: 0 }, { opacity: 1 }], { duration: 1200 });

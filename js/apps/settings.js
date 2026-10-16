@@ -337,6 +337,7 @@
         { t: 'Restart Story', icon: ['arrow.clockwise', 'var(--red)'], tap: () => JC.os.confirmRestart() },
         { t: 'Message Speed', icon: ['hare', 'var(--teal)'], pick: { core: 'speed', options: SPEEDS, footer: 'How quickly people type and reply. Relaxed gives you more time; Fast is for replays.', header: 'Typing speed' } },
         { t: 'Show Suspicion Meter', icon: ['eye.fill', 'var(--orange)'], core: 'showSus', rerender: false },
+        { t: 'Story Hints', icon: ['lotus', 'var(--purple)'], core: 'storyHints', rerender: false },
         { t: 'How to Play', icon: ['questionmark.circle', 'var(--blue)'], tap: () => howToPlay(), chev: true },
       ] },
       { cls: 'set-profile', rows: [{ custom: () => h('div.set-prof.tap', { onTap: () => K.go('appleid') }, JC.ui.avatar('me', 62), h('div.set-prof-m', h('div.set-prof-n', 'Jiang Cheng'), h('div.set-prof-s', 'Apple Account, iCloud, and more')), JC.icon('chevron.right', { size: 14, weight: 2.6, cls: 'set-chev' })) }] },
@@ -397,7 +398,7 @@
       (d.idx || []).forEach((t) => out.push({ id, t, path: (d.path ? d.path + ' › ' : '') + title, icon: d.icon }));
     });
     // story & root items
-    [['Endings', 'story-endings'], ['Rewind to Last Choice', 'story-rewind'], ['Restart Story', 'story-restart'], ['Message Speed', 'story-speed'], ['Show Suspicion Meter', 'story-sus'], ['How to Play', 'story-how'], ['Airplane Mode', 'airplane']].forEach(([t, k]) => out.push({ t, path: 'Story', action: k, icon: ['lotus.fill', 'var(--purple)'] }));
+    [['Endings', 'story-endings'], ['Rewind to Last Choice', 'story-rewind'], ['Restart Story', 'story-restart'], ['Message Speed', 'story-speed'], ['Show Suspicion Meter', 'story-sus'], ['Story Hints', 'story-sus'], ['How to Play', 'story-how'], ['Airplane Mode', 'airplane']].forEach(([t, k]) => out.push({ t, path: 'Story', action: k, icon: ['lotus.fill', 'var(--purple)'] }));
     APP_ORDER().forEach((id) => out.push({ id: 'app', arg: id, t: appName(id), path: 'Apps', icon: 'app:' + id }));
     return out;
   }

@@ -330,10 +330,30 @@
       s.sus[k] = Math.max(0, before + fx.sus[k]);
       if (s.sus[k] !== before) JC.bus.emit('story:sus', { cid: k, value: s.sus[k], delta: fx.sus[k] });
     });
+    if (fx.log) story.log(fx.log);
+    if (fx.hint) story.hint(fx.hint);
     JC.state.save();
     checkSuspicion();
   }
   story.applyFx = applyFx;
+
+  /** Remember something the player did with the phone; the ending card lists these. `once` dedupes by key. */
+  story.log = (text, o) => {
+    if (!text) return;
+    const s = S();
+    s.trace = s.trace || [];
+    const k = (o && o.once) || null;
+    if (k && s.trace.some((x) => x.k === k)) return;
+    s.trace.push({ t: JC.time.now(), text: String(text), k });
+    if (s.trace.length > 80) s.trace.splice(0, s.trace.length - 80);
+    JC.state.save();
+  };
+  story.trace = () => (S().trace || []).slice();
+  /** A brief consequence cue in the Dynamic Island ("A-Ling will remember that."). Settings → Story Hints turns it off. */
+  story.hint = (text, icon) => {
+    if (!text || S().settings.storyHints === false || !JC.os.hint) return;
+    JC.os.hint(String(text), icon);
+  };
   function checkSuspicion() {
     const s = S();
     if (s.ended) return;
@@ -376,6 +396,19 @@
     if (!arr) return null;
     return arr[run.i] || null;
   }
+  // Scenes marked `polite` (app reactions) don't talk over another scene in the same thread: they wait while
+  // someone else is typing there or the player has an open question there.
+  function openQuestion(tid, run) {
+    const p = th(tid).pend;
+    return !!p && p.rid !== run.rid && S().runs.some((r) => r.rid === p.rid && r.wait === 'choice');
+  }
+  function politeWait(run, tid) {
+    const sc = sceneOf(run);
+    if (!sc || !sc.polite || !tid) return false;
+    if (openQuestion(tid, run)) return true;
+    return S().runs.some((r) => r !== run && r.phase === 'typing' && runThread(r, stepAt(r)) === tid);
+  }
+
   function runThread(run, step) {
     if (step && step.th) return step.th;
     if (run.th) return run.th;
@@ -478,6 +511,7 @@
         const mem = tid ? members(tid) : [];
         const from = step.from || mem[0] || tid;
         if (tid) ensureThread(tid, from);
+        if (run.phase !== 'typing' && politeWait(run, tid)) { run.until = s.eng + 1500; return; }
         if (run.phase !== 'typing') {
           run.phase = 'typing';
           if (tid) { th(tid).typing = from; JC.bus.emit('story:typing', { thread: tid, who: from }); }
@@ -529,6 +563,7 @@
         }
         if (!tid) { run.i++; continue; }
         ensureThread(tid);
+        if (openQuestion(tid, run)) { run.until = s.eng + 1500; return; }
         th(tid).pend = { rid: run.rid };
         run.wait = 'choice';
         run.waitTh = tid;
@@ -600,6 +635,8 @@
       if (step.removeMember) { if (tid) memberRemove(tid, step.removeMember); run.i++; continue; }
       if (step.rename) { if (tid) { th(tid).rename = step.rename; JC.bus.emit('story:threads'); } run.i++; continue; }
       if (step.add) { try { addItem(step.add); } catch (e) { console.error('[story] add failed', e); } run.i++; continue; }
+      if (step.log != null) { story.log(typeof step.log === 'function' ? evalFn(step.log, '') : step.log, step.once ? { once: step.once } : null); run.i++; continue; }
+      if (step.hint != null) { story.hint(step.hint, step.icon); run.i++; continue; }
       if (step.notify) { JC.notify.push(Object.assign({}, step.notify)); run.i++; continue; }
       if (step.call) {
         if (call) { run.until = s.eng + 3000; return; } // wait for the line to be free
@@ -708,9 +745,9 @@
     if (failed) m.status = 'failed';
     deliver(id, m);
     S().stats.sent++;
-    const kind = m.memo ? 'memo' : m.voice ? 'voice' : m.img ? 'img' : m.loc ? 'loc' : 'text';
-    story.act('send', { thread: id, kind, text: m.text || '', art: m.img, memo: m.memo });
-    if (m.memo) story.act('memo_share', { id: m.memo, to: id });
+    const kind = m.memo ? 'memo' : m.voice ? 'voice' : m.img ? 'img' : m.loc ? 'loc' : m.link && !m.text ? 'link' : 'text';
+    let armed = story.act('send', { thread: id, kind, text: m.text || '', art: m.img, memo: m.memo, link: m.link || null, loc: m.loc || null });
+    if (m.memo) armed = armed.concat(story.act('memo_share', { id: m.memo, to: id }));
     if (failed) {
       if (id === 'ajie' || members(id).includes('ajie')) applyFx({ set: { ajie_wrote: true } });
       return m;
@@ -737,12 +774,14 @@
           return m;
         }
       }
+      if (claimed(armed)) return m; // a reaction scene answers this one
       // off-script while they wait for an answer
       const who = pickMember(id);
       applyFx({ sus: { [who]: 1 } });
       aside(id, [{ m: flavor(who, 'confused', ['?', 'what', '…what does that mean']), from: who }]);
       return m;
     }
+    if (claimed(armed)) return m; // a reaction scene answers this one
     // unprompted message
     const who = pickMember(id);
     st.free = (st.free || 0) + 1;
@@ -829,10 +868,16 @@
     if (name === 'game_score' && p.score > 1824) s.flags.beat_score = true;
     if (name === 'setting' && p.key === 'passcode') s.flags.changed_passcode = true;
     if (name === 'ride_report_lost') s.flags.reported_lost = true;
+    // the ending card's "What you did with his phone"
+    if (name === 'memo_share' && p.id === 'memo14' && p.to) story.log('Sent his voice memo “Untitled 14” to ' + threadName(p.to), { once: 'memo14:' + p.to });
+    if (name === 'ride_report_lost') story.log('Reported the phone to Swift Ride as a found item', { once: 'ride_report' });
+    if (name === 'setting' && p.key === 'passcode') story.log('Changed his passcode', { once: 'passcode' });
+    if (name === 'game_score' && p.score > 1824) story.log('Beat A-Ling’s Lotus Leap high score with ' + p.score, { once: 'beat_score' });
     if (name === 'unlock' && p.first) s.unlockAt = s.eng;
     if (name === 'unlock' && s.unlockAt == null) s.unlockAt = s.eng;
     // arm act/open triggers
     s.armed = s.armed || {};
+    const armed = [];
     Object.values(defs.scenes).forEach((sc) => {
       const t = sc.trigger;
       if (!t || s.done[sc.id] || s.armed[sc.id] != null) return;
@@ -840,10 +885,15 @@
       if (t.on === 'act' && t.act === name) hit = !t.match || !!evalMatch(t.match, p);
       if (t.on === 'open' && name === 'open_thread' && t.thread && t.thread === p.thread) hit = true;
       if (t.on === 'open' && name === 'open_app' && t.app && t.app === p.app) hit = true;
-      if (hit) s.armed[sc.id] = s.eng;
+      if (hit) { s.armed[sc.id] = s.eng; armed.push(sc.id); }
     });
     JC.state.save();
+    return armed;
   };
+  /** true when one of the armed scenes will answer in person (so the generic "?" reply should stay quiet) */
+  function claimed(ids) {
+    return (ids || []).some((id) => { const sc = defs.scenes[id]; return sc && sc.claims !== false && (!sc.when || evalFn(sc.when, false)); });
+  }
   function evalMatch(fn, p) { try { return fn(p, sApi()); } catch (e) { return false; } }
 
   function atMs(at) {

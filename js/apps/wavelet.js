@@ -432,7 +432,7 @@
         const emojis = h('div.wv-cm-emojis', ['❤️', '🙌', '🔥', '👏', '😢', '😍', '😮', '😂'].map((e) => h('div.wv-cm-emoji', { onTap: () => { field.value += e; postBtn.classList.add('on'); field.focus(); } }, e)));
         const bottom = p0.noComments
           ? h('div.wv-cm-off', 'Commenting has been turned off.')
-          : h('div.wv-cm-bottom', emojis, h('div.wv-cm-row', av(ME, 34), h('div.wv-cm-field', field, postBtn)));
+          : h('div.wv-cm-bottom', { attrs: { 'data-kbkeep': '' } }, emojis, h('div.wv-cm-row', av(ME, 34), h('div.wv-cm-field', field, postBtn)));
         const s = JC.ui.sheet({ title: 'Comments', detent: 'large', cls: 'wv-cm-sheet', content: () => h('div.wv-cm', listEl, bottom) });
         const liked = pmap('cmLikes');
         function render() {
@@ -595,7 +595,7 @@
         const typing = h('div.wv-dm-typing', { hidden: true }, av(id, 24), h('div.wv-dm-dots', h('i'), h('i'), h('i')));
         const field = JC.ui.input({ placeholder: 'Message…', enterkey: 'send', onSubmit: () => send(), onInput: (v) => comp.classList.toggle('has', !!v.trim()) });
         field.classList.add('wv-dm-input');
-        const comp = h('div.wv-dm-comp',
+        const comp = h('div.wv-dm-comp', { attrs: { 'data-kbkeep': '' } },
           h('div.wv-dm-camb', { onTap: () => JC.os.open('camera') }, JC.icon('camera.fill', { size: 18 })),
           field,
           h('div.wv-dm-icons',

@@ -136,7 +136,7 @@
     const plusBtn = h('div.msg-plus', { attrs: { role: 'button', 'aria-label': 'Apps' }, onTap: () => openPlus() }, JC.icon('plus', { size: 22, weight: 2.1 }));
     const composer = h('div.msg-composer', plusBtn, fieldWrap);
     const selBar = h('div.msg-selbar', { hidden: true });
-    const bottom = h('div.msg-bottom', tray, composer, selBar);
+    const bottom = h('div.msg-bottom', { attrs: { 'data-kbkeep': '' } }, tray, composer, selBar);
     page.el.append(head, bottom, newPill);
     conv.field = field;
 

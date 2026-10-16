@@ -456,3 +456,73 @@ Look at your screenshots with the Read tool, in light and dark, and fix what loo
   you do: steps are then scheduled from when they were due rather than from the 200 ms tick that noticed them, so
   messages and trigger delays keep their real proportions. Without it, every message stretches to two ticks of
   fast-forwarded time and night-only scenes (Fairy, the Ops group) never get their turn. Real play never sets it.
+
+## App reactions — making the other apps matter to the story
+
+Every app reports what the player does through `JC.story.act(name, payload)`. A **reaction** is an ordinary scene whose
+trigger is an act. Reactions live in `js/story/scenes/react-*.js` (one file per area; `python3 tools/manifest.py` after
+adding a file).
+
+```js
+S.scene({
+  id: 'r_eats_ops',                 // prefix every reaction id with r_
+  thread: 'ops',                    // where the replies appear
+  polite: true,                     // ALWAYS for reactions: wait while another scene types here or the player has an open question here
+  trigger: { on: 'act', act: 'order', match: (p) => p.to === 'ymj' || p.to === 'wh', delay: 40 },  // delay = seconds of play time
+  when: (s) => !s.flags.night_done, // optional guard, checked when the scene starts
+  nodes: { start: [
+    { m: 'BOSS SENT FOOD???', from: 'bai' },
+    { fx: { inc: { ops_morale: 1 }, log: 'Ordered midnight dumplings for the Ops floor', hint: 'The Ops team will remember that.' } },
+  ] },
+});
+```
+
+- Scenes run **once** (`done`). For a second, different reaction to a repeat of the same act, write a second scene with its own
+  match (e.g. `match: (p, s) => s.flags.r_eats_once` …) — `match(p, sApi)` gets the payload and the story state.
+- `claims`: when a reaction scene is armed by a `send` (or `memo_share`), the generic "?" reply the contact would give to an
+  unprompted photo/location/link is skipped, because the reaction answers in person. Set `claims: false` on a scene that
+  should not suppress it (e.g. a reaction in a *different* thread).
+- New steps (also usable inside `fx`): `{ log: 'Text for the ending card' }` records a line under "What you did with his
+  phone" on the ending card (`once: 'key'` dedupes); `{ hint: 'A-Ling will remember that.' }` flashes a consequence cue in
+  the Dynamic Island (Settings → Story Hints turns cues off). Use hints sparingly: only when something changed (affection,
+  suspicion, an ending flag), worded like Telltale ("Wei Wuxian noticed.", "Lan Xichen will remember that.").
+  `JC.story.log(text, { once })` and `JC.story.hint(text)` can also be called from app code.
+- A choice in a thread that already has an open question now waits its turn (no more overwriting another scene's choice).
+- Effects that feed endings (see docs/STORY.md "Endings"): `aff.{lxc,jl,wwx}`, `sus.<cid>` (total ≥ 25 → Zidian; NHS ≥ 8 →
+  busted), flags `tea_yes`, `wwx_invited`, `wwx_thanked`, `memo_sent`, `car_handled`, `car_cover`, `bday_planned`,
+  `fairy_taken`, counter `ops_morale` (≥ 3 → Group Chat Legend; use `inc`). Do not set `told_truth` or end the game from a
+  reaction unless the design below says so.
+- Keep every reaction in character (docs/STORY.md "Who is who"); out-of-character app behaviour (gushing, emojis, public
+  posts, things Jiang Cheng would never do) should *raise suspicion* with whoever notices.
+- Night scenes should give up after the night: `when: (s) => !s.flags.night_done` unless the reaction belongs to the morning.
+
+### Act catalogue (what each app reports)
+| act | from | payload |
+|---|---|---|
+| `open_app` | OS | `{ app }` |
+| `unlock` | OS | `{ first }` |
+| `wallpaper` | OS / Settings | `{ id }` |
+| `setting` | Settings | `{ key, value }` (keys: passcode, faceAlt, appearance, wifi, bt, airplane, focus, silent, …) |
+| `open_thread` | Messages | `{ thread }` |
+| `send` | Messages, share sheet | `{ thread, kind: text·img·loc·link·voice·memo, text, art, memo, link, loc }` |
+| `tapback` | Messages | `{ thread, msg, t }` |
+| `memo_play` / `memo_share` / `memo_delete` | Voice Memos, Messages | `{ id }` / `{ id, to }` / `{ id }` |
+| `call_start` / `call_end` | Phone, FaceTime | `{ contact, dir }` / `{ contact, dur, answered }` |
+| `voicemail_play` | Phone | `{ id }` |
+| `photo_view` / `photo_fav` / `photo_delete` | Photos, Messages | `{ id, from? }` / `{ id, on }` / `{ id }` |
+| `photo_taken` | Camera | `{ id, selfie, mode, kind }` |
+| `note_open` / `note_edit` | Notes | `{ id, locked? }` / `{ id }` |
+| `event_open` / `event_add` | Calendar | `{ id }` / `{ id, title? , accepted?, invite?, status? }` |
+| `reminder_done` | Reminders | `{ id }` |
+| `alarm` / `alarm_stop` | Clock | `{ id, label }` / `{ id, label, missed }` |
+| `visit` / `web_comment` / `safari_private` / `safari_clear` / `ymj_locked` | Safari | `{ url }` / `{ text, page }` / `{}` / `{ ms }` / `{}` |
+| `mail_open` / `mail_send` | Mail | `{ id }` / `{ to, contacts, subject, … }` |
+| `place_view` / `directions` | Maps | `{ place }` |
+| `findmy_view` / `findmy_sound` / `findmy_share` / `findmy_unshare` / `findmy_ask` | Find My | `{ id }` / `{ id }` / `{ to, dur }` / `{ to }` / `{ to }` |
+| `order` | Lotus Eats | `{ rest, total, to }` (address ids: here, gp, koires, lp, ymj, wh, jingshi) |
+| `ride_view` / `ride_report_lost` | Swift Ride | `{ id }` / `{ kind, item, ride, no }` |
+| `wallet_view` / `wallet_tx` | Wallet | `{ id }` |
+| `like` / `comment` / `dm` / `post` | Wavelet | `{ post }` / `{ post, text }` / `{ to, text, post?, art? }` / `{ text, art }` |
+| `game_score` | Lotus Leap | `{ score }` |
+| `med_log` / `mood_log` / `health_share` | Health | `{ med, slot, status }` / `{ valence, feel }` / `{ to, accept?, invite?, topics? }` |
+Writers adding a new act: emit it from the app (`try { JC.story.act('name', payload) } catch (e) {}`) and add a row here.

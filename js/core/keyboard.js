@@ -327,6 +327,12 @@
       screen.addEventListener('focusin', (e) => {
         if (isField(e.target) && !e.target.dataset.nokb) show(e.target);
       });
+      // Buttons beside a text field (send, reply suggestions) must not take focus from it, or the keyboard
+      // drops after every message. Mark them, or a container around them, with data-kbkeep.
+      screen.addEventListener('pointerdown', (e) => {
+        if (!visible || isField(e.target)) return;
+        if (e.target.closest && e.target.closest('[data-kbkeep]')) e.preventDefault();
+      }, true);
       screen.addEventListener('focusout', () => {
         setTimeout(() => {
           const a = document.activeElement;

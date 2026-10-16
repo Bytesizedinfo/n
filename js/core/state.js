@@ -26,6 +26,7 @@
       lost: null, // lost mode {message, phone}
       battery: 23,
       ended: null,
+      trace: [], // things the player did with the phone, listed on the ending card
       endings: {}, // persists across restarts
       snaps: [],
       stats: { choices: 0, sent: 0, plays: 1 },
@@ -50,6 +51,7 @@
         rotationLock: true,
         flashlight: false,
         showSus: true,
+        storyHints: true,
         speed: 1,
         keyClicks: true,
         passcode: '181008',
