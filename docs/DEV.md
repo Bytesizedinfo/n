@@ -452,3 +452,7 @@ Look at your screenshots with the Read tool, in light and dark, and fix what loo
 - `JC.story.call(def)` registers a call script; `JC.story.call()` (no argument) returns the live call.
 - Extra engine APIs: `JC.story.rename(id, name)`, `JC.story.restore(id)`, `JC.story.removed()`, `JC.story.hideMsg(id, msgId)`,
   `JC.story.dial(cid, { video, num })`; `JC.story.pending(id).left` = ms left on a timed choice.
+- Story tests fast-forward play time by bumping `JC.state.d.eng`. Set `JC.story._ff = true` (and keep `speed` at 1) when
+  you do: steps are then scheduled from when they were due rather than from the 200 ms tick that noticed them, so
+  messages and trigger delays keep their real proportions. Without it, every message stretches to two ticks of
+  fast-forwarded time and night-only scenes (Fairy, the Ops group) never get their turn. Real play never sets it.

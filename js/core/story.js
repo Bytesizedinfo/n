@@ -455,6 +455,9 @@
   /** run steps until something waits */
   function process(run) {
     const s = S();
+    // story._ff (test harness only): schedule from when the step was due, not when the tick noticed it,
+    // so fast-forwarded play time keeps messages and trigger delays in their real proportions.
+    const at = (ms) => (story._ff && run.until && run.until <= s.eng ? run.until : s.eng) + ms;
     let guard = 0;
     while (guard++ < 200) {
       if (s.ended) return;
@@ -478,7 +481,7 @@
         if (run.phase !== 'typing') {
           run.phase = 'typing';
           if (tid) { th(tid).typing = from; JC.bus.emit('story:typing', { thread: tid, who: from }); }
-          run.until = s.eng + (step.d != null ? step.d * 1000 / speed() : typingMs(step.m));
+          run.until = at(step.d != null ? step.d * 1000 / speed() : typingMs(step.m));
           return;
         }
         run.phase = null;
@@ -488,7 +491,7 @@
           deliver(tid, msgFromStep(step, from));
         }
         run.i++;
-        run.until = s.eng + (500 + Math.random() * 500) / speed();
+        run.until = at((500 + Math.random() * 500) / speed());
         continue;
       }
       if (step.me != null) {
@@ -502,7 +505,7 @@
           run.phase = 'say';
           call.lines.push({ who: step.from || call.cid, text: step.say });
           JC.bus.emit('story:call', call);
-          run.until = s.eng + U.clamp(1100 + step.say.length * 48, 1500, 6500) / speed();
+          run.until = at(U.clamp(1100 + step.say.length * 48, 1500, 6500) / speed());
           return;
         }
         run.phase = null;
@@ -546,7 +549,7 @@
       if (step.go) { run.node = step.go; run.i = 0; continue; }
       if (step.start) { startScene(step.start, { delay: step.delay || 0, th: step.inThread || null }); run.i++; continue; }
       if (step.wait != null) {
-        if (run.phase !== 'wait') { run.phase = 'wait'; run.until = s.eng + step.wait * 1000 / speed(); return; }
+        if (run.phase !== 'wait') { run.phase = 'wait'; run.until = at(step.wait * 1000 / speed()); return; }
         run.phase = null;
         run.i++;
         continue;
@@ -556,13 +559,13 @@
         if (run.phase !== 'typing') {
           run.phase = 'typing';
           if (tid) { th(tid).typing = from; JC.bus.emit('story:typing', { thread: tid, who: from }); }
-          run.until = s.eng + step.typing * 1000 / speed();
+          run.until = at(step.typing * 1000 / speed());
           return;
         }
         run.phase = null;
         if (tid) { th(tid).typing = null; JC.bus.emit('story:typing', { thread: tid, who: null }); }
         run.i++;
-        run.until = s.eng + 700 / speed();
+        run.until = at(700 / speed());
         continue;
       }
       if (step.react) {

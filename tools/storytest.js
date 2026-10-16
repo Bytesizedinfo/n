@@ -2,7 +2,7 @@
 /* Story validator + automated playthroughs, run in headless Chromium against the real engine.
    node tools/storytest.js [runs=30] [--verbose]
    1) static checks over every scene / call / thread / ending
-   2) N randomized playthroughs (fast-forwarding play time) → which endings are reached, which runs get stuck */
+   2) N randomized playthroughs (fast-forwarding play time with JC.story._ff so pacing stays proportional) → which endings are reached, which runs get stuck */
 const T = require('./pw');
 
 const runs = parseInt(process.argv[2] || '30', 10);
@@ -118,12 +118,16 @@ async function playthrough(page, seed, strategy) {
     const pick = (n) => Math.floor(rnd() * n);
     const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
     // reset and skip intro
+    let ev = null;
+    JC.bus.on('story:ending', (e) => { ev = e; });
     JC.story.restart();
     await sleep(100);
     const sk = document.querySelector('.pro-skip');
     if (sk) sk.click();
     await sleep(1000);
-    JC.state.setting('speed', 40);
+    // fast-forward play time, but keep messages and trigger delays in their real proportions
+    JC.story._ff = true;
+    JC.state.setting('speed', 1);
     JC.state.setting('faceAlt', true);
     JC.state.d.unlocked = true;
     JC.os.unlockThen(() => {});
@@ -132,7 +136,7 @@ async function playthrough(page, seed, strategy) {
     const did = {};
     for (let it = 0; it < 2600; it++) {
       const st = JC.state.d;
-      if (st.ended) return { ending: st.ended, it, log: log.slice(-12), flags: st.flags, sus: st.sus, aff: st.aff };
+      if (st.ended) return { ending: st.ended, also: (ev && ev.also) || [], it, log: log.slice(-12), flags: st.flags, sus: st.sus, aff: st.aff };
       // occasional optional actions that open branches
       if (strategy !== 'minimal' && !did.memo && it > 30 && rnd() < 0.02) { did.memo = 1; JC.story.act('memo_play', { id: 'memo14' }); log.push('memo_play'); if (rnd() < 0.6) { JC.story.send(JC.story.threadFor('wwx'), { memo: 'memo14' }); log.push('memo_share'); } }
       if (strategy !== 'minimal' && !did.ajie && rnd() < 0.01) { did.ajie = 1; JC.story.act('open_thread', { thread: 'ajie' }); log.push('open ajie'); }
@@ -175,15 +179,18 @@ async function playthrough(page, seed, strategy) {
   (verbose ? res.warns : res.warns.slice(0, 25)).forEach((w) => console.log('  warn  ' + w));
   if (!verbose && res.warns.length > 25) console.log(`  … ${res.warns.length - 25} more warnings (--verbose)`);
   const tally = {};
+  const unlocked = {};
   const strategies = ['random', 'first', 'last', 'chaos', 'decline', 'minimal'];
   for (let k = 0; k < runs; k++) {
     const strategy = strategies[k % strategies.length];
     const r = await playthrough(page, 1000 + k * 7919, strategy);
     const key = r.ending || 'STUCK';
     tally[key] = (tally[key] || 0) + 1;
+    [key].concat(r.also || []).forEach((id) => { unlocked[id] = (unlocked[id] || 0) + 1; });
     if (!r.ending || verbose) console.log(`run ${k} [${strategy}] → ${key}${r.stuck ? '\n   runs: ' + JSON.stringify(r.runs) + '\n   last: ' + JSON.stringify(r.log) + '\n   state: ' + JSON.stringify({ frozen: r.frozen, cinema: r.cinema, call: r.call, eng: r.eng, clock: r.clock }) + '\n   dbg: ' + JSON.stringify(r.dbg) : ''}`);
   }
   console.log('ENDINGS', JSON.stringify(tally));
+  console.log('UNLOCKED (primary + also)', JSON.stringify(unlocked));
   const errs = await done();
   const real = errs.filter((e) => !e.includes('ERR_FAILED'));
   console.log('PAGE ERRORS:', real.length ? '\n' + real.slice(0, 20).join('\n') : 'none');
