@@ -1,0 +1,21 @@
+/* Calculator — always dark, like iOS */
+.win-body.calc { background: #000; color: #fff; display: flex; flex-direction: column; }
+.calc-top { height: calc(var(--safe-top) + 46px); padding: var(--safe-top) 22px 0; display: flex; align-items: center; color: #ff9f0a; }
+.calc-hist { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border-radius: 22px; }
+.calc-hist:active { background: #333; }
+.calc-display { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-end; padding: 0 26px 10px; min-height: 0; }
+.calc-expr { font-size: 26px; color: #8e8e93; min-height: 32px; text-align: right; word-break: break-all; font-variant-numeric: tabular-nums; }
+.calc-out { font-family: var(--font-display); font-size: 86px; font-weight: 300; line-height: 1.05; letter-spacing: -.03em; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.calc-pad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; padding: 0 18px calc(var(--safe-bottom) + 18px); justify-items: center; }
+.calc-pad.sci { grid-template-columns: repeat(5, 1fr); gap: 10px 8px; padding: 0 12px calc(var(--safe-bottom) + 14px); }
+.calc-key { width: 84px; height: 84px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 38px; font-weight: 400; background: #333336; color: #fff; transition: filter .15s; font-variant-numeric: tabular-nums; letter-spacing: 0; }
+.calc-key:active { filter: brightness(1.6); transition: none; }
+.calc-key.fn { background: #a5a5a5; color: #000; font-size: 32px; font-weight: 500; }
+.calc-key.op { background: #ff9f0a; font-size: 42px; }
+.calc-key.op:active { filter: brightness(1.3); }
+.calc-key.sm { width: 64px; height: 52px; border-radius: 26px; font-size: 26px; }
+.calc-key.sci-k.sm { font-size: 17px; background: #1c1c1e; }
+.calc-key.fn.sm { font-size: 21px; }
+.calc-key.op.sm { font-size: 30px; }
+.calc-gap { width: 64px; height: 52px; }
+@media (max-height: 760px) { .calc-key { width: 76px; height: 76px; } }

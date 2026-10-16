@@ -1,0 +1,48 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Art gallery (dev)</title>
+<style>
+  body { margin: 0; padding: 16px; font: 13px -apple-system, Helvetica, Arial, sans-serif; background: #222; color: #ddd; }
+  .grid { display: flex; flex-wrap: wrap; gap: 14px; }
+  figure { margin: 0; width: 300px; }
+  figure img { width: 300px; display: block; border-radius: 8px; background: #111; }
+  figure.wp img { width: 180px; }
+  figure.wp { width: 180px; }
+  figure.sq img { width: 160px; }
+  figure.sq { width: 160px; }
+  figcaption { margin-top: 4px; color: #aaa; }
+  figcaption b { color: #fff; }
+</style>
+<script src="../js/core/art.js"></script>
+<script>
+  // Usage: art-gallery.html?files=photos-1,photos-2&only=p_   (files are js/art/<name>.js)
+  const q = new URLSearchParams(location.search);
+  const files = (q.get('files') || '').split(',').filter(Boolean);
+  for (const f of files) document.write('<script src="../js/art/' + f + '.js"><\/script>');
+</script>
+</head>
+<body>
+<div class="grid" id="grid"></div>
+<script>
+  const only = q.get('only') || '';
+  const grid = document.getElementById('grid');
+  const ids = JC.art.ids().filter((id) => id.startsWith(only));
+  for (const id of ids) {
+    const m = JC.art.meta(id);
+    const fig = document.createElement('figure');
+    const r = m.w / m.h;
+    if (r < 0.8) fig.className = 'wp';
+    else if (r < 1.1) fig.className = 'sq';
+    const img = JC.art.img(id);
+    const cap = document.createElement('figcaption');
+    const kb = (JC.art.svg(id).length / 1024).toFixed(1);
+    cap.innerHTML = '<b>' + id + '</b> · ' + (m.title || '') + ' · ' + kb + ' KB';
+    fig.append(img, cap);
+    grid.append(fig);
+  }
+  document.title = 'Art gallery (' + ids.length + ')';
+</script>
+</body>
+</html>
