@@ -211,14 +211,6 @@
     'ck.handle': '<path d="M5 9h14M5 12h14M5 15h14"/>',
   });
 
-  /** ui.wheel workaround (see docs/REQUESTS.md + clock.css) */
-  function tameWheel(w) {
-    w.querySelectorAll('.wheel-col').forEach((c) => {
-      let t = null;
-      c.addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(() => { const i = Math.round(c.scrollTop / 34); if (Math.abs(c.scrollTop - i * 34) > 0.5) c.scrollTo({ top: i * 34, behavior: 'smooth' }); }, 160); }, { passive: true });
-    });
-    return w;
-  }
 
   // ═══════════════════════════════════════════════════════════════════════════
   JC.app({
@@ -352,11 +344,11 @@
             ui.toast(untilText(item), { icon: 'alarm.fill' });
           } },
           content: (sh) => [
-            h('div.ck-awheel', tameWheel(ui.wheel({ cols: [
+            h('div.ck-awheel', ui.wheel({ cols: [
               { items: Array.from({ length: 12 }, (_, i) => ({ label: String(i + 1), value: i + 1 })), value: d.h % 12 || 12, width: 70, align: 'right' },
               { items: Array.from({ length: 60 }, (_, i) => ({ label: String(i).padStart(2, '0'), value: i })), value: d.m, width: 70 },
               { items: ['AM', 'PM'], value: d.h >= 12 ? 'PM' : 'AM', width: 70, align: 'left' },
-            ], onChange: (v) => { let hh = v[0] % 12; if (v[2] === 'PM') hh += 12; d.h = hh; d.m = v[1]; } }))),
+            ], onChange: (v) => { let hh = v[0] % 12; if (v[2] === 'PM') hh += 12; d.h = hh; d.m = v[1]; } })),
             ui.list([{ rows: [
               { title: 'Repeat', detail: d.repeat.length ? repeatText(d.repeat).replace(/^every day$/, 'Every Day').replace(/^weekdays$/, 'Weekdays').replace(/^weekends$/, 'Weekends') : 'Never', chevron: true, onTap: () => repeatSheet(d, () => sh.render()) },
               { title: 'Label', custom: null, right: labelIn },
@@ -483,11 +475,11 @@
             const active = RT.timers.filter((t) => !t.done);
             const out = [];
             if (active.length) out.push(h('div.ck-tlist', active.map((t) => timerRow(t))));
-            const wheel = tameWheel(ui.wheel({ cols: [
+            const wheel = ui.wheel({ cols: [
               { items: Array.from({ length: 24 }, (_, i) => ({ label: String(i), value: i })), value: pick[0], width: 92 },
               { items: Array.from({ length: 60 }, (_, i) => ({ label: String(i), value: i })), value: pick[1], width: 92 },
               { items: Array.from({ length: 60 }, (_, i) => ({ label: String(i), value: i })), value: pick[2], width: 92 },
-            ], onChange: (v) => { pick = v; } }));
+            ], onChange: (v) => { pick = v; } });
             out.push(h('div.ck-twheel', wheel, h('div.ck-tunits', h('span', 'hours'), h('span', 'min'), h('span', 'sec'))));
             out.push(h('div.ck-btnrow',
               h('div.ck-round.gray', { class: { dis: !active.length }, onTap: () => { if (active.length) cancelTimer(active[0]); } }, 'Cancel'),

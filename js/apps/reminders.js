@@ -120,14 +120,6 @@
   const ICONS = ['list.bullet', 'cart.fill', 'gift.fill', 'briefcase.fill', 'house.fill', 'heart.fill', 'star.fill', 'pawprint.fill', 'car.fill', 'book.fill', 'leaf.fill', 'flame.fill', 'airplane', 'lotus.fill', 'music.note', 'bell.fill', 'bag.fill', 'creditcard.fill'];
   const COLORS = ['#ff3b30', '#ff9500', '#ffcc00', '#34c759', '#5ac8fa', '#0a84ff', '#5856d6', '#af52de', '#ff2d55', '#a2845e', '#8e8e93', '#30b0c7'];
 
-  /** ui.wheel workaround (see docs/REQUESTS.md + reminders.css) */
-  function tameWheel(w) {
-    w.querySelectorAll('.wheel-col').forEach((c) => {
-      let t = null;
-      c.addEventListener('scroll', () => { clearTimeout(t); t = setTimeout(() => { const i = Math.round(c.scrollTop / 34); if (Math.abs(c.scrollTop - i * 34) > 0.5) c.scrollTo({ top: i * 34, behavior: 'smooth' }); }, 160); }, { passive: true });
-    });
-    return w;
-  }
 
   // ═══════════════════════════════════════════════════════════════════════════
   JC.app({
@@ -525,15 +517,15 @@
         base.setHours(0, 0, 0, 0);
         const items = [];
         for (let i = -30; i <= 400; i++) { const t = new Date(base); t.setDate(t.getDate() + i); items.push({ label: i === 0 ? 'Today' : U.DAYS[t.getDay()].slice(0, 3) + ' ' + U.fmtDate(t, 'md') + (t.getFullYear() !== base.getFullYear() ? ' ' + t.getFullYear() : ''), value: t.getTime() }); }
-        return h('div.rm-wheel', tameWheel(ui.wheel({ cols: [{ items, value: sod(d.due) }], onChange: (v) => { const t = new Date(v[0]); const old = new Date(d.due); t.setHours(old.getHours(), old.getMinutes(), 0, 0); d.due = t.getTime(); const sub = sh.body.querySelector('.row .row-subtitle'); if (sub) sub.textContent = dueLabel(Object.assign({}, d, { allDay: true, repeat: null })); } })));
+        return h('div.rm-wheel', ui.wheel({ cols: [{ items, value: sod(d.due) }], onChange: (v) => { const t = new Date(v[0]); const old = new Date(d.due); t.setHours(old.getHours(), old.getMinutes(), 0, 0); d.due = t.getTime(); const sub = sh.body.querySelector('.row .row-subtitle'); if (sub) sub.textContent = dueLabel(Object.assign({}, d, { allDay: true, repeat: null })); } }));
       }
       function timeWheel(d, sh) {
         const cd = new Date(d.due);
-        return h('div.rm-wheel', tameWheel(ui.wheel({ cols: [
+        return h('div.rm-wheel', ui.wheel({ cols: [
           { items: Array.from({ length: 12 }, (_, i) => ({ label: String(i + 1), value: i + 1 })), value: cd.getHours() % 12 || 12 },
           { items: Array.from({ length: 12 }, (_, i) => ({ label: String(i * 5).padStart(2, '0'), value: i * 5 })), value: Math.round(cd.getMinutes() / 5) * 5 % 60 },
           { items: ['AM', 'PM'], value: cd.getHours() >= 12 ? 'PM' : 'AM' },
-        ], onChange: (v) => { const t = new Date(d.due); let hr = v[0] % 12; if (v[2] === 'PM') hr += 12; t.setHours(hr, v[1], 0, 0); d.due = t.getTime(); } })));
+        ], onChange: (v) => { const t = new Date(d.due); let hr = v[0] % 12; if (v[2] === 'PM') hr += 12; t.setHours(hr, v[1], 0, 0); d.due = t.getTime(); } }));
       }
       function pickContact(cb, cancel) {
         let picked = false;

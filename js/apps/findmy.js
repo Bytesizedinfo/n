@@ -352,7 +352,7 @@
             h('div.fm-lost-t', JC.icon('lock.fill', { size: 16 }), ' Lost Mode · Activated'),
             h('div.fm-lost-s', 'Activated from Jiang Cheng’s MacBook Pro. This iPhone is locked and shows this message:'),
             h('div.fm-lost-msg', JC.state.d.lost.message || 'This iPhone has been lost.'),
-            h('div.fm-lost-call.tap', { onTap: () => JC.story.dial(JC.state.d.lost.contact || 'hq') }, JC.icon('phone.fill', { size: 15 }), ' ' + (JC.state.d.lost.phone || 'Call Owner'))));
+            h('div.fm-lost-call.tap', { onTap: () => JC.story.dial(JC.state.d.lost.contact || 'hq', JC.state.d.lost.phone ? { num: JC.state.d.lost.phone } : undefined) }, JC.icon('phone.fill', { size: 15 }), ' ' + (JC.state.d.lost.phone || 'Call Owner'))));
         }
         out.push(JC.ui.list([{ header: 'Notifications', rows: [
           d.offline ? { title: 'Notify When Found', toggle: { on: !!S.notify[d.id], onChange: (v) => { S.notify[d.id] = v; save(); } } } : { title: 'Notify When Left Behind', subtitle: d.self ? 'Not available for this iPhone' : null, toggle: { on: !!S.notify[d.id], disabled: d.self, onChange: (v) => { S.notify[d.id] = v; save(); if (v) JC.ui.toast('You’ll be notified if you leave it behind'); } } },
@@ -459,7 +459,7 @@
       }
       function markLost(d) {
         if (d.self && JC.state.d.lost) {
-          JC.ui.alert({ title: 'Lost Mode Is On', message: 'This iPhone was marked as lost from Jiang Cheng’s MacBook Pro. To turn off Lost Mode, the owner has to unlock it — or you could just call him.', buttons: [{ text: 'Not Now', style: 'cancel' }, { text: 'Call Owner', style: 'default', onTap: () => JC.story.dial(JC.state.d.lost.contact || 'hq') }] });
+          JC.ui.alert({ title: 'Lost Mode Is On', message: 'This iPhone was marked as lost from Jiang Cheng’s MacBook Pro. To turn off Lost Mode, the owner has to unlock it — or you could just call him.', buttons: [{ text: 'Not Now', style: 'cancel' }, { text: 'Call Owner', style: 'default', onTap: () => JC.story.dial(JC.state.d.lost.contact || 'hq', JC.state.d.lost.phone ? { num: JC.state.d.lost.phone } : undefined) }] });
           return;
         }
         if (d.self) {

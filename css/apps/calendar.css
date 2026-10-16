@@ -143,6 +143,3 @@
 [data-app="calendar"] .cal-inv-status.declined { color: var(--red); }
 [data-app="calendar"] .cal-inv-change { color: var(--red); font-weight: 500; }
 
-/* wheel workaround (docs/REQUESTS.md): Chrome snaps .wheel-col to the rotateX-transformed rows, so the initial
-   scrollTop lands one row off. Disable CSS snap here; calendar.js snaps after scrolling instead. */
-[data-app="calendar"] .wheel-col { scroll-snap-type: none !important; }

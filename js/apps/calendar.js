@@ -201,17 +201,6 @@
   });
 
   const PLACE_IDS = [[/koi tower/i, 'koi-tower'], [/golden peony/i, 'golden-peony'], [/hanshi/i, 'hanshi'], [/jingshi/i, 'jingshi'], [/cloud recesses/i, 'cloud-recesses'], [/lotus pier residence/i, 'lp-residence'], [/lotus pier/i, 'lotus-pier'], [/lanling international/i, 'lanling-intl'], [/unclean realm/i, 'unclean-realm'], [/radish/i, 'radish-farm'], [/laoma/i, 'laoma-hotpot'], [/guanyin/i, 'guanyin-temple'], [/yunmeng lake/i, 'yunmeng-lake'], [/pet kingdom/i, 'pet-kingdom']];
-  /** ui.wheel workaround: no CSS snap (see calendar.css); snap to the nearest row once scrolling settles */
-  function tameWheel(w) {
-    w.querySelectorAll('.wheel-col').forEach((c) => {
-      let t = null;
-      c.addEventListener('scroll', () => {
-        clearTimeout(t);
-        t = setTimeout(() => { const i = Math.round(c.scrollTop / 34); if (Math.abs(c.scrollTop - i * 34) > 0.5) c.scrollTo({ top: i * 34, behavior: 'smooth' }); }, 160);
-      }, { passive: true });
-    });
-    return w;
-  }
   function placeId(loc) { const m = PLACE_IDS.find(([re]) => re.test(loc || '')); return m ? m[1] : null; }
 
   JC.icon.add({
@@ -674,7 +663,7 @@
           const ap = cd.getHours() >= 12 ? 'PM' : 'AM';
           const cols = [{ items: days, value: anchor, width: d.allDay ? undefined : 150 }];
           if (!d.allDay) cols.push({ items: hrs, value: h12, width: 50 }, { items: mins, value: Math.round(cd.getMinutes() / 5) * 5 % 60, width: 50 }, { items: ['AM', 'PM'], value: ap, width: 56 });
-          return h('div.cal-wheel', tameWheel(ui.wheel({ cols, onChange: (v) => {
+          return h('div.cal-wheel', ui.wheel({ cols, onChange: (v) => {
             let t = v[0];
             if (!d.allDay) { let hr = v[1] % 12; if (v[3] === 'PM') hr += 12; t = v[0] + hr * 3600e3 + v[2] * 60e3; }
             else t = which === 'end' ? v[0] + DAY - 60e3 : v[0];
@@ -684,7 +673,7 @@
             const chips = s.body.querySelectorAll('.cal-chips');
             if (chips[0]) { chips[0].children[0].textContent = U.fmtDate(d.start, 'medium'); if (chips[0].children[1]) chips[0].children[1].textContent = fmtT(d.start); }
             if (chips[1]) { chips[1].children[0].textContent = U.fmtDate(d.end, 'medium'); if (chips[1].children[1]) chips[1].children[1].textContent = fmtT(d.end); chips[1].classList.toggle('bad', d.end < d.start); }
-          } })));
+          } }));
         }
         function save() {
           if (d.end < d.start) { ui.alert({ title: 'Cannot Save Event', message: 'The start date must be before the end date.', buttons: [{ text: 'OK' }] }); return false; }

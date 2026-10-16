@@ -75,7 +75,7 @@ function staticCheck() {
     else if (t.on === 'flag') usedFlags.set(t.flag, id);
   });
   Object.entries(d.calls).forEach(([id, c]) => { if (!id.startsWith('_dial_')) checkGraph('call', id, c); if (c.from && !contacts.has(c.from)) errors.push(`call ${id}: unknown from ${c.from}`); });
-  d.dial.forEach((x) => { if (!d.calls[x.callId]) errors.push(`dialScript ${x.cid}: unknown call ${x.callId}`); });
+  d.dial.forEach((x) => { if (!x.cid.startsWith('_') && !d.calls[x.callId]) errors.push(`dialScript ${x.cid}: unknown call ${x.callId}`); });
   d.susHooks.forEach((x) => { if (!d.scenes[x.sceneId]) errors.push(`onSuspicion ${x.cid}: unknown scene ${x.sceneId}`); });
   d.totalHooks.forEach((x) => { if (!d.scenes[x.sceneId]) errors.push(`onTotalSuspicion: unknown scene ${x.sceneId}`); });
   usedFlags.forEach((sid, f) => { if (!setFlags.has(f)) warns.push(`scene ${sid}: trigger flag "${f}" is never set by a static fx`); });

@@ -1,7 +1,6 @@
 /* Clock (iOS 26) — orange tint, thin numerals */
 .win[data-app="clock"] { --tint: var(--orange); }
 #screen [data-app="clock"] .navbtn { color: var(--orange); }
-[data-app="clock"] .wheel-col { scroll-snap-type: none !important; }
 
 /* world clock */
 [data-app="clock"] .ck-wlist { margin: 0 16px; }

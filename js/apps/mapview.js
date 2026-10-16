@@ -2129,7 +2129,7 @@
     const p = placeOf(x);
     if (!p) return;
     if (p.contact) {
-      JC.ui.actionSheet({ title: p.short || p.name, actions: [{ text: 'Call ' + (p.phone || JC.contacts.name(p.contact)), onTap: () => JC.story.dial(p.contact) }] });
+      JC.ui.actionSheet({ title: p.short || p.name, actions: [{ text: 'Call ' + (p.phone || JC.contacts.name(p.contact)), onTap: () => JC.story.dial(p.contact, p.phone ? { num: p.phone } : undefined) }] });
       return;
     }
     if (!p.phone) { JC.ui.toast('No phone number for ' + (p.short || p.name)); return; }
