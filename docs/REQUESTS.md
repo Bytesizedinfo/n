@@ -4,6 +4,29 @@
 - **css/os.css `#screen button { background:none; padding:0; color:inherit }`** (specificity 1-0-1) beats `.btn.k-filled/.k-gray/.k-tinted`,
   `.btn.s-*` padding and `.navbtn` glass backgrounds in css/ui.css (0-2-0), so `JC.ui.btn` fills are invisible everywhere. Suggest
   `:where(#screen) button { … }` (zero specificity). My apps work around it with div-based buttons.
+  *(Fixed by the lead; the div buttons stay, they're harmless.)*
+- **os.js `hwAction()` ignores the Action Button setting.** Settings › Action Button writes core setting `actionButton` ∈
+  `silent | focus | camera | flashlight | memo | music | translate | magnifier | controls | none` (also mirrored in
+  `prefs.actionButton`). Suggest: `silent` → current toggle; `camera`/`memo` → `os.open('camera'|'voicememos')`;
+  `flashlight`/`focus` → `os.setToggle(...)`; `none` → haptic only; the rest → open Control Center.
+- **notify.js doesn't honour notification settings.** Settings writes core `notifOff` (`{ appId: true }` = Allow
+  Notifications off), per-app `prefs['notif.' + appId]` = `{ allow, lock, center, banners, sounds, badges, previews }`, and
+  core `previews` (`'always' | 'unlocked' | 'never'`, already in state.js defaults). Suggest suppressing banners/sounds per
+  app and hiding the body text on the Lock Screen when previews ≠ always.
+- **audio.js `ring()` always plays the built-in pattern.** Settings › Sounds stores core `ringtone` (and `texttone`,
+  `voicemail`, `newmail`, `sentmail`); `JC.settingsKit.playTone(name)` already synthesises every tone name (incl. the custom
+  "A-Ling Screaming") and could be reused for incoming calls/messages.
+- **Text Size isn't applied globally.** Core `textSize` (0.82–1.36) is only previewed inside Settings. Bold Text, Reduce
+  Motion, Classic Invert and Grayscale are applied by js/apps/settings.js itself (`#screen.set-bold`, `.set-reduce-motion`,
+  `.set-invert`, `.set-gray`, plus a `#set-nightshift` tint overlay for Night Shift/True Tone) — fine to keep there, but core
+  may prefer to own them (and `textSize`) in os.js/os.css.
+- **Lock Screen has no Now Playing widget.** `JC.music` exposes `nowPlaying()` → `{ id, title, artist, album, art, playing,
+  pos, dur }`, `toggle/next/prev/play(id)` and emits `JC.bus 'music'`; Control Center already uses it. The Dynamic Island
+  activity is registered by js/apps/music-engine.js.
+- New story acts my apps emit (no engine changes needed, listed for scene authors): `med_log {med, slot, status}`,
+  `mood_log {valence, feel[]}`, `health_share {to:'jl', accept, topics?}`, `setting {key, value}` (keys: `passcode`,
+  `faceAlt`, `wifiNet`, `appearance`, `textSize`, `boldText`, `reduceMotion`, `readReceipts`, `msgPhotos`, `clearHistory`),
+  `game_score {score}`.
 
 ## From Phone / Contacts / FaceTime / Mail / Voice Memos / Call UI
 - **js/core/story.js: `story.call = () => call;` (calls section) overwrites the authoring method `call(def)`** from the
@@ -31,18 +54,16 @@
   Suggest adding `left` (ms) to the pending object.
 
 ## From Photos / Camera / Notes / Calendar / Reminders / Clock / Weather
-- +1 on the `#screen button` specificity bug above (it also kills `.navbtn` glass + capsule padding and the `.navbtn`
-  tint colour). Until it is fixed, css/apps/photos.css restores the kit's intended `.navbtn` / `.btn` styles inside
-  these seven app windows only (`#screen [data-app=…] .navbtn …`); once core uses `:where(#screen) button` that block
-  can be deleted.
-- `ui.page()` runs `content(page)` synchronously inside the constructor, so a `content` closure that references the
-  `const page = ui.page(…)` variable throws a TDZ ReferenceError on first render. Worth a line in DEV.md ("use the
-  `pg` argument passed to `content`").
-- **js/core/ui.js `ui.wheel`**: the snapped `.wheel-item`s carry the rotateX transform, and Chrome computes
-  `scroll-snap-align` areas from the transformed boxes, so the initial `list.scrollTop = idx * ROW` is re-snapped
-  ~1 row off; the debounced settle then fires `onChange` with the wrong value (e.g. an event's start silently becomes
-  "Today 2:05 PM"). Fix: put the rotateX on an inner span (keep the snapped row untransformed). Workaround in
-  Calendar/Clock/Reminders: `.wheel-col { scroll-snap-type: none !important }` scoped to the app + JS snap on settle.
+- ~~`#screen button` specificity~~ — fixed in core; the scoped restore block in css/apps/photos.css has been removed.
+- ~~`ui.page()` content TDZ~~ — documented in DEV.md.
+- **js/core/ui.js / css/ui.css `ui.wheel` (still off by two rows after the rotateX fix)**: `.wheel-item` snaps with
+  `scroll-snap-align: start`, but `.wheel-col` has no snapport inset, so the snap positions are `68 + 34·i` instead of
+  `34·i`. Rows 0 and 1 can never be selected and any initial value at index 0/1 is re-snapped to index 2 and reported via
+  `onChange` — e.g. Clock's timer picker opened at 2 h 5 min 2 s instead of 0 h 5 min 0 s, a 3:00 PM event silently became
+  3:10 PM when its time picker opened, and AM could not be chosen in any AM/PM column. Fix: add
+  `scroll-padding-top: 68px` to `.wheel-col` (or use `scroll-snap-align: center` on the rows). Workaround in
+  Calendar/Clock/Reminders: `[data-app=…] .wheel-col { scroll-padding-top: 68px; }` (delete once core has it). Other apps
+  using `JC.ui.wheel` (Settings, Health, …) are affected too.
 - css/os.css: `#screen.dark` does not redefine `--knock` (it stays `#ffffff`), so knock-out glyphs (`clock.fill`, `person.crop.circle.fill`,
   `xmark.circle.fill` …) render as solid white discs in dark mode wherever the glyph itself is white — e.g. the Phone tab bar.
   Suggest `--knock` = the surface colour per context (or `#000` in dark). Phone works around it locally in css/apps/phone.css.

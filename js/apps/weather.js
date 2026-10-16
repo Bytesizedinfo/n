@@ -108,6 +108,17 @@
   // ── units ──────────────────────────────────────────────────────────────────
   const prefs = () => Object.assign({ unit: 'C' }, JC.state.get('apx_weather') || {});
   const T = (c) => Math.round(prefs().unit === 'F' ? c * 9 / 5 + 32 : c);
+
+  /** live conditions for widgets (home screen, lock screen) */
+  JC.weather = {
+    now(cid) {
+      cid = cid || 'lanling';
+      const t = JC.time.now();
+      const m = metrics(cid, t);
+      const d = dayOf(cid, dayIdx(t));
+      return { temp: T(m.temp), cond: m.cond, label: (typeof NAMES !== 'undefined' && NAMES[m.cond]) || m.cond, hi: T(d.hi), lo: T(d.lo), name: climate(cid).name, night: m.night };
+    },
+  };
   const deg = (c) => T(c) + '°';
   const Tf = (c) => (prefs().unit === 'F' ? c * 9 / 5 + 32 : c);
 
@@ -277,6 +288,8 @@
           compact.innerHTML = '';
           compact.append(h('span.wx-c-name', cl.name), h('span.wx-c-sep', ' | '), h('span', deg(m.temp) + ' ' + NAMES[m.cond]));
           const st = scroll.scrollTop;
+          const hs = scroll.querySelector('.wx-hours');
+          const hx = hs ? hs.scrollLeft : 0;
           scroll.innerHTML = '';
           scroll.append(
             h('div.wx-head',
@@ -302,6 +315,8 @@
             h('div.wx-foot', h('div', 'Weather for ' + cl.name + ', ' + cl.region), h('div.wx-foot-l', { onTap: () => JC.os.open('safari', { search: 'weather data sources' }) }, 'Learn more about weather data'), h('div.wx-foot-l', { onTap: () => mapSheet(c.id) }, 'Open in Maps · Precipitation')),
           );
           scroll.scrollTop = st;
+          const hs2 = scroll.querySelector('.wx-hours');
+          if (hs2 && hx) hs2.scrollLeft = hx;
         }
         render();
         return p;
@@ -630,7 +645,7 @@
       function niceStep(s) { const p = Math.pow(10, Math.floor(Math.log10(Math.max(s, 0.01)))); const n = s / p; return (n <= 1 ? 1 : n <= 2 ? 2 : n <= 5 ? 5 : 10) * p; }
 
       const offC = JC.store.on('wxcities', () => { build(); if (!listLayer.hidden) renderList(); });
-      const onMin = () => { pages.forEach((p) => p.render()); };
+      const onMin = () => { if (visible) pages.forEach((p) => p.render()); };
       JC.bus.on('minute', onMin);
       build();
 

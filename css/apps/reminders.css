@@ -1,6 +1,9 @@
 /* Reminders (iOS 26) */
 .win[data-app="reminders"] { --rm-c: var(--blue); }
 [data-app="reminders"] .rm-root .page-scroll { padding-top: calc(var(--safe-top) + var(--nav-h) - 4px); }
+/* core ui.wheel snaps rows with scroll-snap-align:start but no snapport inset, so rows 0–1 are unreachable and values
+   shift by two rows (docs/REQUESTS.md); inset the snapport to the selection band. */
+[data-app="reminders"] .wheel-col { scroll-padding-top: 68px; }
 
 /* smart tiles */
 [data-app="reminders"] .rm-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 4px 16px 24px; }

@@ -525,7 +525,12 @@
           { items: Array.from({ length: 12 }, (_, i) => ({ label: String(i + 1), value: i + 1 })), value: cd.getHours() % 12 || 12 },
           { items: Array.from({ length: 12 }, (_, i) => ({ label: String(i * 5).padStart(2, '0'), value: i * 5 })), value: Math.round(cd.getMinutes() / 5) * 5 % 60 },
           { items: ['AM', 'PM'], value: cd.getHours() >= 12 ? 'PM' : 'AM' },
-        ], onChange: (v) => { const t = new Date(d.due); let hr = v[0] % 12; if (v[2] === 'PM') hr += 12; t.setHours(hr, v[1], 0, 0); d.due = t.getTime(); } }));
+        ], onChange: (v) => {
+          const t = new Date(d.due); let hr = v[0] % 12; if (v[2] === 'PM') hr += 12; t.setHours(hr, v[1], 0, 0); d.due = t.getTime();
+          const row = [...sh.body.querySelectorAll('.row')].find((r) => { const k = r.querySelector('.row-title'); return k && k.textContent === 'Time'; });
+          const sub = row && row.querySelector('.row-subtitle');
+          if (sub) sub.textContent = U.fmtTime(d.due);
+        } }));
       }
       function pickContact(cb, cancel) {
         let picked = false;

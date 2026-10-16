@@ -1,6 +1,9 @@
 /* Clock (iOS 26) — orange tint, thin numerals */
 .win[data-app="clock"] { --tint: var(--orange); }
 #screen [data-app="clock"] .navbtn { color: var(--orange); }
+/* core ui.wheel snaps rows with scroll-snap-align:start but no snapport inset, so rows 0–1 are unreachable and values
+   shift by two rows (docs/REQUESTS.md); inset the snapport to the selection band. */
+[data-app="clock"] .wheel-col { scroll-padding-top: 68px; }
 
 /* world clock */
 [data-app="clock"] .ck-wlist { margin: 0 16px; }

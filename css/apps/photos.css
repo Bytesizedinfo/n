@@ -3,23 +3,8 @@
 #screen .phk-img { position: absolute; left: 50%; top: 50%; width: 100%; height: 100%; transform: translate(-50%, -50%); background-repeat: no-repeat; }
 #screen .phk-vig { position: absolute; inset: 0; pointer-events: none; }
 
-/* ── Workaround (docs/REQUESTS.md): os.css `#screen button {background:none; padding:0; color:inherit}` outranks the
-   kit's .navbtn/.btn styles. Restore the kit's intended look inside my app windows only. ───────────────────────── */
-#screen :is([data-app="photos"], [data-app="camera"], [data-app="notes"], [data-app="calendar"], [data-app="reminders"], [data-app="clock"], [data-app="weather"]) .navbtn { background: var(--glass); color: var(--tint); }
-#screen :is([data-app="photos"], [data-app="camera"], [data-app="notes"], [data-app="calendar"], [data-app="reminders"], [data-app="clock"], [data-app="weather"]) .navbtn.cap { padding: 0 16px; }
-#screen :is([data-app="photos"], [data-app="camera"], [data-app="notes"], [data-app="calendar"], [data-app="reminders"], [data-app="clock"], [data-app="weather"]) .navbtn.back { color: var(--label); }
-#screen :is([data-app="photos"], [data-app="camera"], [data-app="notes"], [data-app="calendar"], [data-app="reminders"], [data-app="clock"], [data-app="weather"]) .navbtn:active { background: var(--glass-strong); }
-#screen :is([data-app="photos"], [data-app="camera"], [data-app="notes"], [data-app="calendar"], [data-app="reminders"], [data-app="clock"], [data-app="weather"]) .navbtn.prominent { background: var(--tint); color: #fff; }
-#screen :is([data-app="photos"], [data-app="camera"], [data-app="notes"], [data-app="calendar"], [data-app="reminders"], [data-app="clock"], [data-app="weather"]) .btn { color: var(--tint); }
-#screen :is([data-app="photos"], [data-app="camera"], [data-app="notes"], [data-app="calendar"], [data-app="reminders"], [data-app="clock"], [data-app="weather"]) .btn.s-s { padding: 0 12px; }
-#screen :is([data-app="photos"], [data-app="camera"], [data-app="notes"], [data-app="calendar"], [data-app="reminders"], [data-app="clock"], [data-app="weather"]) .btn.s-m { padding: 0 18px; }
-#screen :is([data-app="photos"], [data-app="camera"], [data-app="notes"], [data-app="calendar"], [data-app="reminders"], [data-app="clock"], [data-app="weather"]) .btn.s-l { padding: 0 24px; }
-#screen :is([data-app="photos"], [data-app="camera"], [data-app="notes"], [data-app="calendar"], [data-app="reminders"], [data-app="clock"], [data-app="weather"]) .btn.icon-only.s-m { padding: 0; }
-#screen :is([data-app="photos"], [data-app="camera"], [data-app="notes"], [data-app="calendar"], [data-app="reminders"], [data-app="clock"], [data-app="weather"]) .btn.k-plain.s-m, #screen :is([data-app="photos"], [data-app="camera"], [data-app="notes"], [data-app="calendar"], [data-app="reminders"], [data-app="clock"], [data-app="weather"]) .btn.k-plain.s-s { padding: 0 6px; }
-#screen :is([data-app="photos"], [data-app="camera"], [data-app="notes"], [data-app="calendar"], [data-app="reminders"], [data-app="clock"], [data-app="weather"]) .btn.k-filled { background: var(--tint); color: #fff; }
-#screen :is([data-app="photos"], [data-app="camera"], [data-app="notes"], [data-app="calendar"], [data-app="reminders"], [data-app="clock"], [data-app="weather"]) .btn.k-tinted { background: color-mix(in srgb, var(--tint) 16%, transparent); }
-#screen :is([data-app="photos"], [data-app="camera"], [data-app="notes"], [data-app="calendar"], [data-app="reminders"], [data-app="clock"], [data-app="weather"]) .btn.k-gray { background: var(--fill3); color: var(--label); }
-#screen :is([data-app="photos"], [data-app="camera"], [data-app="notes"], [data-app="calendar"], [data-app="reminders"], [data-app="clock"], [data-app="weather"]) .btn.k-glass { background: var(--glass); color: var(--label); }
+/* core ui.wheel snaps rows with scroll-snap-align:start but no snapport inset (docs/REQUESTS.md) — inset it to the band */
+[data-app="photos"] .wheel-col { scroll-padding-top: 68px; }
 
 .win[data-app="photos"] { --ph-gap: 2px; }
 

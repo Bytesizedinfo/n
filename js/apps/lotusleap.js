@@ -141,6 +141,9 @@
       resize();
       const offs = [];
       offs.push(JC.bus.on('layout', () => setTimeout(resize, 50)));
+      // a locked screen or an incoming call pauses the run
+      offs.push(JC.bus.on('lock', () => { if (G && G.mode === 'play') pause(); }));
+      offs.push(JC.bus.on('story:call', () => { if (G && G.mode === 'play') pause(); }));
 
       const rec = () => JC.store.get('lotusleap', 'me') || { best: 1203, plays: 0 };
       const best = () => rec().best || 0;

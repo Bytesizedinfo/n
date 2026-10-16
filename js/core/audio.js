@@ -138,8 +138,19 @@
     ring(on) {
       clearInterval(ringTimer);
       ringTimer = null;
-      if (!on) return;
+      if (!on) {
+        const custom = settings().ringtone;
+        if (custom && custom !== 'Reflection' && JC.settingsKit && JC.settingsKit.playTone) JC.settingsKit.playTone('None');
+        return;
+      }
       if (!ensure() || settings().silent) return;
+      const custom = settings().ringtone;
+      const kit = JC.settingsKit && JC.settingsKit.playTone;
+      if (custom && custom !== 'Reflection' && kit) {
+        kit(custom);
+        ringTimer = setInterval(() => kit(custom), 4200);
+        return;
+      }
       const playOnce = () => {
         if (!ctx || ctx.state !== 'running') return;
         const t = ctx.currentTime + 0.02;

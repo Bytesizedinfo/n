@@ -51,6 +51,11 @@
     push(n) {
       n = Object.assign({ id: U.uid('n'), t: JC.time.now(), app: 'messages' }, n);
       if (typeof n.t === 'string') n.t = JC.time.parse(n.t);
+      const pr = notify.prefsFor(n.app);
+      if (!pr.allow) return n; // Settings › Notifications › Allow Notifications is off
+      if (pr.sounds === false) n.quiet = true;
+      if (pr.banners === false) n.noBanner = true;
+      if (pr.lock === false && pr.center === false) return n;
       list().unshift(n);
       if (list().length > 80) list().length = 80;
       JC.state.save();
@@ -61,8 +66,12 @@
       if (os.asleep) os.wake({ quiet: !!focus });
       if (n.silent) return n;
       const viewing = os.isViewing && os.isViewing(n);
-      if (!focus && !viewing) {
-        JC.audio.play(n.app === 'messages' ? 'receive' : 'notify');
+      if (!focus && !viewing && !n.quiet) {
+        const st = JC.state.d.settings;
+        const prefs = st.prefs || {};
+        const tone = n.app === 'messages' ? prefs['tone.texttone'] : n.app === 'mail' ? prefs['tone.newmail'] : null;
+        if (tone && tone !== 'None' && JC.settingsKit && JC.settingsKit.playTone && !st.silent) JC.settingsKit.playTone(tone);
+        else if (tone !== 'None') JC.audio.play(n.app === 'messages' ? 'receive' : 'notify');
         JC.audio.haptic(25);
       }
       if (!os.locked && !focus && !viewing && !n.noBanner) notify.banner(n);
@@ -86,8 +95,22 @@
       JC.state.d.notifs = list().filter((n) => !((match.thread && n.thread === match.thread) || (match.app && !match.thread && n.app === match.app)));
       if (JC.state.d.notifs.length !== before) { JC.state.save(); JC.bus.emit('notifs'); }
     },
+    /** per-app notification settings written by the Settings app */
+    prefsFor(app) {
+      const st = (JC.state && JC.state.d && JC.state.d.settings) || {};
+      const off = st.notifOff || {};
+      const p = (st.prefs || {})['notif.' + app] || {};
+      return { allow: !off[app] && p.allow !== false, sounds: p.sounds, banners: p.banners, lock: p.lock, center: p.center, badges: p.badges, previews: p.previews };
+    },
+    /** should this notification's content be hidden right now? */
+    hidden(n) {
+      const st = (JC.state && JC.state.d && JC.state.d.settings) || {};
+      const pr = notify.prefsFor(n.app);
+      const mode = pr.previews && pr.previews !== 'default' ? pr.previews : st.previews || 'always';
+      return mode === 'never' || (mode === 'unlocked' && JC.os && JC.os.locked);
+    },
     badge(app, n) {
-      if (n === undefined) return badges[app] || 0;
+      if (n === undefined) return notify.prefsFor(app).badges === false || !notify.prefsFor(app).allow ? 0 : badges[app] || 0;
       badges[app] = n || 0;
       JC.bus.emit('badge', { app, n: badges[app] });
       return badges[app];
@@ -100,13 +123,15 @@
     },
     card(n, o) {
       o = o || {};
+      const hide = notify.hidden(n);
+      const shown = hide ? Object.assign({}, n, { avatar: null, title: appName(n.app), subtitle: null, body: 'Notification', art: null }) : n;
       const el = h('div.ncard', { class: o.cls },
-        leading(n, 38),
+        leading(shown, 38),
         h('div.n-main',
-          h('div.n-top', h('div.n-title', n.title || appName(n.app)), h('div.n-time', stamp(n.t))),
-          n.subtitle ? h('div.n-sub', n.subtitle) : null,
-          h('div.n-body', { class: { clamp4: !o.full } }, n.body || '')),
-        n.art ? JC.art.el(n.art, { cls: 'n-art' }) : null);
+          h('div.n-top', h('div.n-title', shown.title || appName(n.app)), h('div.n-time', stamp(n.t))),
+          shown.subtitle ? h('div.n-sub', shown.subtitle) : null,
+          h('div.n-body', { class: { clamp4: !o.full } }, shown.body || '')),
+        shown.art ? JC.art.el(shown.art, { cls: 'n-art' }) : null);
       if (o.onTap) JC.ui.onTap(el, o.onTap);
       if (n.thread) U.longPress(el, () => { if (!JC.os.locked) { if (o.cls === 'banner') notify.hideBanner(); notify.expand(n); } }, 450);
       if (o.swipe !== false) {

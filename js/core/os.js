@@ -111,6 +111,7 @@
     applyAppearance();
     applyWallpaper();
     applyBrightness();
+    applyTextSize();
     keyboardShortcuts();
     document.addEventListener('touchstart', () => {}, { passive: true }); // :active on iOS
     os.ready = true;
@@ -442,13 +443,21 @@
     return { title: 'A-Ling turns 18 🎂', when: 'Sun' };
   }
 
+  function wxGlyph(wx) {
+    if (/rain|shower|drizzle/.test(wx.cond)) return 'cloud.rain.fill';
+    if (wx.cond === 'clear' || (wx.night && wx.cond === 'sunny')) return 'moon.fill';
+    if (wx.cond === 'sunny') return 'sun.max.fill';
+    return 'cloud.fill';
+  }
+  JC.icon.add({ 'cloud.rain.fill': '<path d="M7 14.5a4.5 4.5 0 0 1-.5-9 6 6 0 0 1 11.4 1.6A3.8 3.8 0 0 1 17.5 14.5z" fill="currentColor" stroke="none"/><path d="M8 17.5l-1 2.5M12 17.5l-1 2.5M16 17.5l-1 2.5" stroke-width="1.8"/>' });
   function renderLockWidgets() {
     const W = els.lockWidgets;
     W.innerHTML = '';
+    const wx = JC.weather ? JC.weather.now('lanling') : { temp: 14, cond: 'rain', night: true };
     const up = upcomingLabel();
     W.append(
       h('div.lw.lw-rect', { onTap: () => unlockThen(() => os.open('calendar')) }, h('div.lw-k', JC.icon('calendar', { size: 13 }), ' ', up.when), h('div.lw-v', up.title)),
-      h('div.lw.lw-circ', { onTap: () => unlockThen(() => os.open('weather')) }, JC.icon('cloud.fill', { size: 15 }), h('div.lw-temp', '14°')),
+      h('div.lw.lw-circ', { onTap: () => unlockThen(() => os.open('weather')) }, JC.icon(wxGlyph(wx), { size: 15 }), h('div.lw-temp', wx.temp + '°')),
       h('div.lw.lw-circ', { onTap: () => unlockThen(() => os.open('settings', { page: 'battery' })) }, h('div.lw-ring', { style: { '--p': S().battery } }), h('div.lw-temp', S().battery + '%')));
   }
 
@@ -492,13 +501,28 @@
     });
   }
   function renderAll() { renderLockNotifs(); if (els.ncList) renderNCList(); }
+  function lockNowPlaying() {
+    const np = JC.music && JC.music.nowPlaying ? JC.music.nowPlaying() : null;
+    if (!np) return null;
+    const pct = np.dur ? Math.min(100, (np.pos / np.dur) * 100) : 0;
+    return h('div.lock-np', { onTap: () => unlockThen(() => os.open('music')) },
+      h('div.lnp-top', JC.art.el(np.art, { cls: 'lnp-art' }), h('div.lnp-meta', h('div.lnp-title', np.title), h('div.lnp-artist', np.artist)), h('div.lnp-wave', { class: { on: !!np.playing } }, h('i'), h('i'), h('i'), h('i'))),
+      h('div.lnp-bar', h('div.lnp-fill', { style: { width: pct + '%' } })),
+      h('div.lnp-ctrls',
+        h('div.lnp-btn', { onTap: (e) => { e.stopPropagation(); JC.music.prev && JC.music.prev(); } }, JC.icon('backward.fill', { size: 24 })),
+        h('div.lnp-btn', { onTap: (e) => { e.stopPropagation(); JC.music.toggle && JC.music.toggle(); } }, JC.icon(np.playing ? 'pause.fill' : 'play.fill', { size: 30 })),
+        h('div.lnp-btn', { onTap: (e) => { e.stopPropagation(); JC.music.next && JC.music.next(); } }, JC.icon('forward.fill', { size: 24 }))));
+  }
   function renderLockNotifs() {
     if (!els.lockNotifs) return;
     renderNotifList(els.lockNotifs, {
       onOpen: (n) => unlockThen(() => JC.notify.open(n)),
     });
-    els.lockNotifs.classList.toggle('empty', !JC.notify.list().length);
+    const np = lockNowPlaying();
+    if (np) els.lockNotifs.prepend(np);
+    els.lockNotifs.classList.toggle('empty', !JC.notify.list().length && !np);
   }
+  JC.bus.on('music', U.throttle(() => { if (os.locked) renderLockNotifs(); }, 400));
 
   // Lost mode panel (finale)
   os.lostMode = (o) => {
@@ -1197,7 +1221,9 @@
     const d = JC.time.date();
     const open = (app, intent) => { if (!jiggle && !preview) os.open(app, intent, JC.ui.toLocal(el.getBoundingClientRect())); };
     if (id === 'weather') {
-      el.append(h('div.ww-city', 'Lanling ', JC.icon('location.fill', { size: 10 })), h('div.ww-temp', '14°'), h('div.ww-cond', JC.icon('cloud.fill', { size: 16 }), h('span', 'Rain')), h('div.ww-hl', 'H:17° L:11°'));
+      const wx = JC.weather ? JC.weather.now('lanling') : { temp: 14, label: 'Rain', cond: 'rain', hi: 17, lo: 11, night: true };
+      el.classList.toggle('night', !!wx.night);
+      el.append(h('div.ww-city', 'Lanling ', JC.icon('location.fill', { size: 10 })), h('div.ww-temp', wx.temp + '°'), h('div.ww-cond', JC.icon(wxGlyph(wx), { size: 16 }), h('span', wx.label)), h('div.ww-hl', 'H:' + wx.hi + '° L:' + wx.lo + '°'));
       JC.ui.onTap(el, () => open('weather'));
     } else if (id === 'calendar') {
       const evs = (JC.store.hasSeed('events') ? JC.store.all('events') : []).filter((e) => e.end >= JC.time.now() || e.start >= JC.time.now()).sort((a, b) => a.start - b.start).slice(0, 2);
@@ -1685,8 +1711,24 @@
     else os.sleep();
   }
   function hwAction() {
-    os.setToggle('silent', !S().settings.silent);
     JC.audio.haptic(20);
+    const a = S().settings.actionButton || 'silent';
+    if (a === 'silent') { os.setToggle('silent', !S().settings.silent); return; }
+    if (a === 'none') return;
+    if (a === 'flashlight') { os.setToggle('flashlight', !S().settings.flashlight); islandFlash(S().settings.flashlight ? 'Flashlight On' : 'Flashlight Off', S().settings.flashlight ? 'flashlight.on.fill' : 'flashlight.off.fill'); if (els.lockFlash) els.lockFlash.classList.toggle('on', !!S().settings.flashlight); return; }
+    if (a === 'focus') { os.setToggle('focus', S().settings.focus ? null : 'dnd'); islandFlash(S().settings.focus ? 'Do Not Disturb' : 'Focus Off', 'moon.fill', '#a78bfa'); return; }
+    if (a === 'camera' || a === 'memo' || a === 'music') {
+      const app = a === 'memo' ? 'voicememos' : a;
+      if (os.asleep) os.wake();
+      unlockThen(() => os.open(app, a === 'memo' ? { record: true } : null));
+      return;
+    }
+    if (os.locked) { openCC(); return; }
+    openCC();
+  }
+  function applyTextSize() {
+    const ts = U.clamp(S().settings.textSize || 1, 0.8, 1.4);
+    screen.style.setProperty('--ts', String(ts));
   }
   let volT = null;
   function volume(dir) {
@@ -1935,6 +1977,8 @@
       if (s.key === 'appearance') applyAppearance();
       if (s.key === 'brightness') applyBrightness();
       if (s.key === 'h24') { renderLockClock(); updateStatus(); }
+      if (s.key === 'textSize') applyTextSize();
+      if (s.key === 'previews' || s.key === 'notifOff' || s.key === 'prefs') renderAll();
     });
     JC.bus.on('kb', (k) => {
       screen.classList.toggle('kb-open', k.open);

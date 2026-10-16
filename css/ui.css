@@ -127,7 +127,7 @@
 .section-header { display: flex; justify-content: space-between; align-items: flex-end; padding: 0 16px 7px; font-size: 13px; color: var(--label2); text-transform: uppercase; letter-spacing: .01em; }
 .section-header.big { text-transform: none; font-size: 22px; font-weight: 700; color: var(--label); letter-spacing: .01em; padding: 8px 4px 9px; }
 .list.st-plain .section-header { padding: 6px 16px; background: var(--bg2); color: var(--label2); text-transform: none; font-weight: 600; font-size: 15px; }
-.section-footer { padding: 7px 16px 0; font-size: 13px; color: var(--label2); line-height: 1.35; }
+.section-footer { padding: 7px 16px 0; font-size: calc(13px * var(--ts, 1)); color: var(--label2); line-height: 1.35; }
 .section-body { background: var(--cell); border-radius: 26px; overflow: hidden; }
 .list.st-plain .section-body { border-radius: 0; background: var(--bg); }
 .row { --sep-inset: 16px; position: relative; background: inherit; }
@@ -141,15 +141,15 @@
 .row-appicon { --s: 30px; border-radius: 7.5px; box-shadow: none; }
 .row-art { width: 44px; height: 44px; border-radius: 8px; flex: 0 0 auto; }
 .row-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.row-title { font-size: 17px; color: var(--label); line-height: 1.25; display: flex; align-items: center; gap: 6px; overflow: hidden; }
+.row-title { font-size: calc(17px * var(--ts, 1)); color: var(--label); line-height: 1.25; display: flex; align-items: center; gap: 6px; overflow: hidden; }
 .row-title.destructive, .row.destructive .row-title { color: var(--red); }
 .row-title.tinted { color: var(--tint); }
 .row.center .row-main { align-items: center; }
 .row.center .row-title { color: var(--tint); }
 .row.center.destructive .row-title { color: var(--red); }
-.row-subtitle { font-size: 15px; color: var(--label2); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.row-subtitle { font-size: calc(15px * var(--ts, 1)); color: var(--label2); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .row-subtitle.clamp2 { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.row-detail { font-size: 17px; color: var(--label2); flex: 0 0 auto; max-width: 52%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
+.row-detail { font-size: calc(17px * var(--ts, 1)); color: var(--label2); flex: 0 0 auto; max-width: 52%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: right; }
 .row-chevron { color: var(--label3); display: flex; margin-left: -4px; }
 .row-check { color: var(--tint); display: flex; }
 .row-info { color: var(--tint); display: flex; padding: 4px; margin: -4px; }
@@ -208,7 +208,7 @@ textarea.field { resize: none; }
 /* wheel picker */
 .wheel { position: relative; display: flex; height: 170px; perspective: 900px; padding: 0 8px; }
 .wheel-band { position: absolute; left: 8px; right: 8px; top: 68px; height: 34px; border-radius: 9px; background: var(--fill3); pointer-events: none; }
-.wheel-col { position: relative; flex: 1; height: 170px; overflow-y: auto; scroll-snap-type: y mandatory; transform-style: preserve-3d; cursor: grab; }
+.wheel-col { position: relative; flex: 1; height: 170px; overflow-y: auto; scroll-snap-type: y mandatory; scroll-padding-top: 68px; transform-style: preserve-3d; cursor: grab; }
 .wheel-pad { height: 68px; }
 .wheel-item { height: 34px; line-height: 34px; text-align: center; font-size: 21px; color: var(--label); scroll-snap-align: start; scroll-snap-stop: normal; font-variant-numeric: tabular-nums; white-space: nowrap; perspective: 600px; }
 .wheel-face { display: block; transform-origin: 50% 50% -60px; }
@@ -308,7 +308,7 @@ textarea.field { resize: none; }
   padding: 10px 16px; border-radius: 22px; font-size: 14px; font-weight: 600; color: var(--label);
   background: var(--glass-strong); backdrop-filter: blur(24px) saturate(1.8); -webkit-backdrop-filter: blur(24px) saturate(1.8);
   box-shadow: 0 8px 30px rgba(0, 0, 0, .18), inset 0 0 0 .6px var(--glass-edge);
-  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  white-space: normal; text-align: left; line-height: 1.3; width: max-content;
 }
 
 /* share sheet */

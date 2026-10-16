@@ -63,6 +63,8 @@ window.JC_MANIFEST = {
   "js/apps/health-chart.js",
   "js/apps/health-data.js",
   "js/apps/health.js",
+  "js/apps/lotuseats-data.js",
+  "js/apps/lotuseats.js",
   "js/apps/lotusleap.js",
   "js/apps/mail-data.js",
   "js/apps/mail.js",
