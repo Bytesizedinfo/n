@@ -15,7 +15,7 @@ function staticCheck() {
   const warns = [];
   const contacts = new Set(JC.contacts.all().map((c) => c.id));
   const threads = new Set(Object.keys(d.threads));
-  const KNOWN = ['m', 'me', 'choice', 'fx', 'go', 'if', 'start', 'wait', 'typing', 'react', 'unsend', 'sys', 'add', 'notify', 'call', 'time', 'run', 'ending', 'endings', 'end', 'say', 'hangup', 'addMember', 'removeMember', 'rename', 'img', 'log', 'hint'];
+  const KNOWN = ['m', 'me', 'choice', 'fx', 'go', 'if', 'start', 'wait', 'typing', 'react', 'unsend', 'sys', 'add', 'notify', 'call', 'time', 'run', 'ending', 'endings', 'end', 'say', 'hangup', 'addMember', 'removeMember', 'rename', 'img', 'log', 'hint', 'cancel'];
   const setFlags = new Set(['memo_heard', 'memo_sent', 'ajie_read', 'ajie_wrote', 'beat_score', 'changed_passcode', 'reported_lost', 'told_truth', 'ajie_called']);
   const usedFlags = new Map();
   const startedScenes = new Set();

@@ -34,6 +34,21 @@
     return out;
   }
 
+  // ── What "he" did through the other apps: the call picks the two most notable (in this order) ──
+  // Lines are Jiang Cheng's. Flags come from js/story/scenes/react-*.js (docs/reactions/*.md).
+  const APP_REMARKS = [
+    { if: (s) => F(s).soup_owned, lines: ['You told him about the soup.', "Both times. He wasn't supposed to know about the first one."] },
+    { if: (s) => F(s).soup_sent && !F(s).soup_owned, lines: ["And there's a pot of Auntie Lu's going to the Jingshi at ten-thirty.", "…It's the right soup."] },
+    { if: (s) => F(s).fed_jc === true, lines: ['And somebody sent food to my room at one in the morning. From my account.', '…It was good.'] },
+    { if: (s) => F(s).fed_jc === 'later', lines: ['And breakfast is coming to my room. From my own account.'] },
+    { if: (s) => !!F(s).loc_nhs, lines: ['You shared my location with Nie Huaisang.', "He's going to ask about Jinxing Road for the rest of my life."] },
+    { if: (s) => !!F(s).wn_paid, lines: ['You paid Wen Ning for the tow. He kept fifty for petrol.', '…Good.'] },
+    { if: (s) => !!F(s).ate_on_card, lines: ['You ate on my card.', '…Did you eat enough.'] },
+    { if: (s) => !!F(s).huang_fridge, lines: ['Old Huang says thank you for whatever you sent the house. He ate it. That is the rule.'] },
+  ];
+  const remarks = (s) => APP_REMARKS.filter((r) => { try { return r.if(s); } catch (e) { return false; } }).slice(0, 2);
+  const remark = (k, j) => (s) => { const r = remarks(s)[k]; return (r && r.lines[j]) || null; };
+
   // ── The night clock: 23:47 → ~02:00 in ~35 minutes of play ──────
   // Jumps on top of the 1:1 clock, so the arcs land near their beats (car ~00:03, moon ~01:00).
   const tick = (wait, by) => [
@@ -321,6 +336,12 @@
         { say: "I wasn't going to go." },
         { say: '(A pause.)', from: 'sys' },
         { say: '…I was going to go.' },
+        { if: (s) => !!F(s).ride_gusu, go: 'r_tea_car' },
+        { go: 'r_car' },
+      ],
+      r_tea_car: [
+        { say: "And there's a car booked to Cloud Recesses. On my account." },
+        { say: "…I'll take it." },
         { go: 'r_car' },
       ],
       r_car: [{ if: (s) => F(s).car_handled, go: 'r_car_yes', else: 'r_car_no' }],
@@ -368,7 +389,7 @@
           ] },
       ],
       r_ajie2: [{ say: '…' }, { say: 'Okay.' }, { go: 'r_pass' }],
-      r_pass: [{ if: (s) => F(s).changed_passcode, go: 'r_pass_yes' }, { go: 'close' }],
+      r_pass: [{ if: (s) => F(s).changed_passcode, go: 'r_pass_yes' }, { go: 'r_apps' }],
       r_pass_yes: [
         { say: 'And you changed my passcode.' },
         { choice: [
@@ -376,7 +397,12 @@
             { t: '"Jin Ling told you to. Twice."', go: 'r_pass2' },
           ] },
       ],
-      r_pass2: [{ say: '…Tch.' }, { say: 'Fine.' }, { go: 'close' }],
+      r_pass2: [{ say: '…Tch.' }, { say: 'Fine.' }, { go: 'r_apps' }],
+      r_apps: [
+        { say: remark(0, 0) }, { say: remark(0, 1) },
+        { say: remark(1, 0) }, { say: remark(1, 1) },
+        { go: 'close' },
+      ],
 
       close: [{ if: (s) => cond.true(s), go: 'invite' }, { go: 'bye' }],
       bye: [

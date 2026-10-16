@@ -202,6 +202,7 @@
 .wlp-fid.scan .ic { animation: wlscan 1.2s ease-in-out infinite; }
 @keyframes wlscan { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(.88); opacity: .55; } }
 .wlp-fid.fail { color: var(--red); animation: wlshake .45s; }
+.wlp-fid.ok { color: var(--green); }
 .wlp-side { position: absolute; right: 0; top: 180px; z-index: 72; display: flex; align-items: center; gap: 10px; color: var(--label); font-size: 13px; font-weight: 600; cursor: pointer; }
 .wlp-side span { padding: 6px 10px; border-radius: 12px; background: var(--material); box-shadow: 0 2px 10px rgba(0, 0, 0, .15); }
 .wlp-side i { width: 8px; height: 66px; border-radius: 4px 0 0 4px; background: var(--blue); animation: wlside 1.1s ease-in-out infinite; }
@@ -232,3 +233,26 @@
 .wlk-key.del { background: none !important; }
 .wlk-key:active { background: var(--fill); }
 .wlk-cancel { font-size: 16px; font-weight: 500; color: var(--blue); padding: 6px 12px; }
+
+/* ═══ Send & Request (Wallet Cash) ═══ */
+.sheet.wl-send .sheet-body { overflow-y: auto; }
+.wls-search { padding: 2px 16px 4px; }
+.wls-list .wl-list { margin-top: 6px; }
+.wls-to { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0 16px; cursor: pointer; }
+.wls-to-n { margin-top: 6px; font-size: 17px; font-weight: 600; color: var(--label); }
+.wls-to-s { font-size: 13px; color: var(--blue); }
+.wls-amt { padding: 10px 16px 0; text-align: center; font-size: 62px; font-weight: 700; line-height: 1.05; letter-spacing: -.03em; font-variant-numeric: tabular-nums; color: var(--label); white-space: nowrap; }
+.wls-amt.zero { color: var(--label3); }
+.wls-amt.shake { animation: wlshake .45s; }
+.wls-err { min-height: 4px; padding: 2px 16px 0; text-align: center; font-size: 13px; color: var(--red); }
+.wls-err:empty { min-height: 0; padding: 0; }
+.wls-hint { min-height: 18px; padding: 0 16px 2px; text-align: center; font-size: 13px; color: var(--label2); }
+.wls-notewrap { padding: 4px 48px 8px; }
+#screen .wls-note { display: block; width: 100%; height: 38px; border: 0; outline: none; border-radius: 19px; background: var(--fill3); padding: 0 16px; text-align: center; font-size: 15px; color: var(--label); }
+#screen .wls-note::placeholder { color: var(--label2); }
+.wls-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px 8px; padding: 0 34px; }
+.wls-key { height: 54px; display: flex; align-items: center; justify-content: center; border-radius: 27px; font-size: 28px; font-weight: 500; color: var(--label); font-variant-numeric: tabular-nums; cursor: pointer; }
+.wls-key:active { background: var(--fill3); }
+.wls-btns { display: flex; gap: 12px; padding: 12px 20px 2px; }
+.wls-btns .btn { flex: 1; }
+.wls-bal { padding: 8px 0 4px; text-align: center; font-size: 13px; color: var(--label2); font-variant-numeric: tabular-nums; }

@@ -427,6 +427,18 @@
     JC.state.save();
   }
 
+  /** End a scene's live run(s) now, e.g. when the player answered its question through another app.
+      Clears its open question and typing indicator; the scene counts as finished. */
+  story.cancel = (sceneId) => {
+    const s = S();
+    s.runs.filter((r) => r.sc === sceneId).forEach((r) => {
+      const tid = runThread(r, stepAt(r));
+      if (tid && r.phase === 'typing' && th(tid).typing) { th(tid).typing = null; JC.bus.emit('story:typing', { thread: tid, who: null }); }
+      finishRun(r);
+      if (tid) JC.bus.emit('story:thread', { thread: tid });
+    });
+  };
+
   function speed() { return S().settings.speed || 1; }
   function typingMs(text) {
     const len = (text || '').length;
@@ -640,6 +652,7 @@
       if (step.add) { try { addItem(step.add); } catch (e) { console.error('[story] add failed', e); } run.i++; continue; }
       if (step.log != null) { story.log(typeof step.log === 'function' ? evalFn(step.log, '') : step.log, step.once ? { once: step.once } : null); run.i++; continue; }
       if (step.hint != null) { story.hint(step.hint, step.icon); run.i++; continue; }
+      if (step.cancel) { story.cancel(step.cancel); run.i++; continue; }
       if (step.notify) { JC.notify.push(Object.assign({}, step.notify)); run.i++; continue; }
       if (step.call) {
         if (call) { run.until = s.eng + 3000; return; } // wait for the line to be free
@@ -1175,11 +1188,23 @@
 
   // ── Endings ──────────────────────────────────────────────────────
   story.endingDef = (id) => defs.endings[id] || null;
+  /** An ending's paragraphs for the current night: entries are strings, `{ if: (s) => bool, t, else }`, or (s) => string|null. */
+  story.endingText = (def, key) => ((def && def[key]) || []).map((p) => {
+    if (typeof p === 'function') return evalFn(p, null);
+    if (p && typeof p === 'object') return evalFn(p.if, false) ? p.t : (p.else || null);
+    return p;
+  }).filter(Boolean);
   story.endings = () => Object.values(defs.endings).sort((a, b) => (a.n || 99) - (b.n || 99)).map((e) => Object.assign({}, e, { unlocked: !!S().endings[e.id], at: S().endings[e.id] ? S().endings[e.id].at : 0 }));
   function finishGame(ids) {
     const s = S();
     if (s.ended) return;
-    ids.forEach((id) => { if (!s.endings[id]) s.endings[id] = { at: Date.now() }; });
+    // keep the version of the text this night earned (paragraphs can depend on flags), for the gallery too
+    ids.forEach((id) => {
+      const rec = s.endings[id] || { at: Date.now() };
+      const d = defs.endings[id];
+      if (d) { rec.text = story.endingText(d, 'text'); rec.jc = story.endingText(d, 'jc'); }
+      s.endings[id] = rec;
+    });
     s.ended = ids[0];
     if (call) { JC.audio.ring(false); JC.audio.ringback(false); const c = call; c.phase = 'ended'; call = null; JC.bus.emit('story:call', c); }
     Object.keys(s.threads).forEach((k) => { s.threads[k].typing = null; s.threads[k].pend = null; });

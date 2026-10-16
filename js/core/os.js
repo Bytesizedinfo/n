@@ -1896,13 +1896,16 @@
     const all = JC.story.endings();
     const got = all.filter((x) => x.unlocked).length;
     const def = JC.story.endingDef(e.id) || e;
+    const rec = (JC.state.d.endings || {})[def.id] || {};
+    const text = rec.text || (JC.story.endingText ? JC.story.endingText(def, 'text') : def.text || []);
+    const jc = rec.jc || (JC.story.endingText ? JC.story.endingText(def, 'jc') : def.jc || []);
     const body = h('div.end-body',
       h('div.end-art', JC.art.el(def.art || 'end_' + def.id, { cls: 'end-art-img' }), h('div.end-art-fade')),
       h('div.end-text',
         h('div.end-tag', (def.tag ? def.tag + ' · ' : '') + 'Ending ' + (def.n || '') + ' of ' + (all.length || 13)),
         h('div.end-title', def.title),
-        (def.text || []).map((p) => h('p', p)),
-        def.jc && def.jc.length ? h('div.end-jc', h('div.end-jc-k', JC.icon('lotus.fill', { size: 14 }), ' When Jiang Cheng got his phone back…'), def.jc.map((p) => h('p', p))) : null,
+        text.map((p) => h('p', p)),
+        jc.length ? h('div.end-jc', h('div.end-jc-k', JC.icon('lotus.fill', { size: 14 }), ' When Jiang Cheng got his phone back…'), jc.map((p) => h('p', p))) : null,
         opts.also && opts.also.length ? h('div.end-also', 'Also unlocked: ' + opts.also.map((id) => (JC.story.endingDef(id) || {}).title || id).join(', ')) : null,
         opts.trace ? traceView() : null,
         h('div.end-count', 'Endings found: ' + got + ' / ' + (all.length || 13))));

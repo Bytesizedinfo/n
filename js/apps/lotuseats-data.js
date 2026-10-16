@@ -23,12 +23,14 @@
       { id: 'cg5', n: 'Chicken & mushroom congee', d: 'Free-range chicken, shiitake, sesame oil.', p: 28, opts: [SIZE(6)] },
       { id: 'cg6', n: 'Sweet potato & millet congee', d: 'Gentle, golden, good at 3 a.m.', p: 16 },
       { id: 'cg7', n: 'Plain white congee', d: 'Just rice and patience.', p: 8 },
+      { id: 'cg14', n: 'Lotus root & pork rib congee', d: 'Yunmeng-style: lotus root and pork rib simmered into the rice until both give up.', p: 28, opts: [SIZE(6)] },
     ] },
     { cat: 'Sides', items: [
       { id: 'cg8', n: 'Youtiao', d: 'Two crisp fried dough sticks.', p: 6 },
       { id: 'cg9', n: 'Tea egg', d: 'Marbled with soy and star anise.', p: 4 },
       { id: 'cg10', n: 'Smashed cucumber', d: 'Garlic, black vinegar, chili.', p: 12 },
       { id: 'cg11', n: 'Pickled mustard greens', d: 'The classic congee companion.', p: 4 },
+      { id: 'cg15', n: 'Osmanthus lotus root', d: 'Sticky-rice stuffed lotus root in osmanthus syrup. Served cool.', p: 14, art: 'food_lotus_cake' },
     ] },
     { cat: 'Drinks', items: [
       { id: 'cg12', n: 'Hot soy milk', d: 'Fresh-ground, lightly sweet.', p: 6, opts: [{ n: 'Sweetness', one: true, req: true, ch: [['Sweet', 0], ['Unsweetened', 0]] }] },

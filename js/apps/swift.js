@@ -1,7 +1,9 @@
 /* Swift Ride — fictional ride-hailing (black + yellow). Home / Services / Activity / Account; booking flow
    (where to → ride options → matching → driver card → Dynamic Island ETA → trip → rating → receipt),
    trip history with route maps and receipts, Help → Report a lost item (act ride_report_lost).
-   Acts: ride_view {id}, ride_report_lost {}. Intents: {id} {to, tier} {report}. */
+   Acts: ride_view {id}, ride_report_lost {}, ride_book {tier, from, to, price, reserve?, at?, id?} (driver assigned, or a
+   reservation made), ride_arrive {id, tier, from, to}, ride_cancel {id, tier, from, to, reserve, at},
+   phone_dropoff {place, leave} (the Golden Peony front-desk sheet). Intents: {id} {to, tier} {report}. */
 (function () {
   'use strict';
   const JC = (window.JC = window.JC || {});
@@ -40,7 +42,7 @@
     const d = JC.state.d;
     d.apps = d.apps || {};
     const cur = d.apps.swift || (d.apps.swift = {});
-    const def = { cash: 120.5, card: 'ycb', saved: { home: 'lp-residence', work: 'lotus-pier' }, safety: { check: true, pin: false, share: true }, notif: { trips: true, promos: false }, promo: null, reports: [] };
+    const def = { cash: 120.5, card: 'ycb', saved: { home: 'lp-residence', work: 'lotus-pier' }, safety: { check: true, pin: false, share: true }, notif: { trips: true, promos: false }, promo: null, reports: [], reserved: [] };
     Object.keys(def).forEach((k) => { if (!(k in cur)) cur[k] = def[k]; });
     return cur;
   }
@@ -63,6 +65,10 @@
   }
   const placeName = (id) => { const p = MV().place(id); return p ? (p.short || p.name) : String(id || '—'); };
   const fmtY = (n) => '¥' + Number(n).toFixed(2);
+  const pad2 = (n) => String(n).padStart(2, '0');
+  /** the reserve wheel gives [day, hour, minute]; day 1 = tomorrow (Sat 17 Oct), 2 = Sun 18, 3 = Mon 19 */
+  const reserveAt = (w) => { const v = Array.isArray(w) ? w : [1, 7, 30]; return JC.time.parse('+' + (v[0] || 1) + ' ' + pad2(v[1] || 0) + ':' + pad2(v[2] || 0)); };
+  const storyLog = (text, once) => { try { JC.story.log(text, { once }); } catch (e) { /* story not loaded */ } };
   const ink = () => (JC.os && JC.os.dark ? '#ffd60a' : '#111214');
   const ink2 = () => (JC.os && JC.os.dark ? '#f2f2f7' : '#111214');
 
@@ -164,9 +170,26 @@
           content: () => {
             const rides = JC.store.all('rides').slice().sort((a, b) => b.t - a.t);
             const upcoming = active ? [h('div.sw-h', 'Current'), h('div.sw-trip.cur', { onTap: () => openFlow() }, h('div.sw-trip-ic', JC.icon('car.fill', { size: 22 })), h('div.sw-trip-m', h('div.sw-trip-t', 'Ride to ' + placeName(active.to)), h('div.sw-trip-s', flowStatus())), h('div.sw-trip-go', JC.icon('chevron.right', { size: 14, weight: 2.6 })))] : [];
-            return [h('div.sw-acts', upcoming, h('div.sw-h', 'Past'), rides.map(rideRow))];
+            const rsv = (st().reserved || []).slice().sort((a, b) => a.at - b.at);
+            const later = rsv.length ? [h('div.sw-h', 'Reserved'), rsv.map(reservedRow)] : [];
+            return [h('div.sw-acts', upcoming, later, h('div.sw-h', 'Past'), rides.map(rideRow))];
           },
         });
+      }
+      function reservedRow(res) {
+        const T = TIERS[res.tier] || TIERS.go;
+        return h('div.sw-trip.sw-rsv', { onTap: () => JC.ui.actionSheet({ title: T.name + ' to ' + placeName(res.to), message: U.fmtDate(res.at, 'full') + ' at ' + U.fmtTime(res.at) + ' · about ¥' + res.price + '. Your driver is confirmed an hour before pickup.', actions: [{ text: 'Cancel Reservation', style: 'destructive', onTap: () => cancelReservation(res) }] }) },
+          h('div.sw-trip-ic', JC.icon('calendar', { size: 22 })),
+          h('div.sw-trip-m', h('div.sw-trip-t', placeName(res.to)), h('div.sw-trip-s', U.fmtDate(res.at, 'day') + ' · ' + U.fmtTime(res.at)), h('div.sw-trip-s', T.name + ' · Reserved')),
+          h('div.sw-trip-go', JC.icon('chevron.right', { size: 14, weight: 2.6 })));
+      }
+      function cancelReservation(res) {
+        const S = st();
+        S.reserved = (S.reserved || []).filter((x) => x.id !== res.id);
+        save();
+        JC.story.act('ride_cancel', { id: res.id, tier: res.tier, from: res.from, to: res.to, reserve: true, at: res.at });
+        JC.ui.toast('Reservation cancelled', { icon: 'xmark' });
+        refreshTabs();
       }
       function tripPage(id) {
         const r = JC.store.get('rides', id);
@@ -516,7 +539,15 @@
       }
       function request() {
         if (active.reserve) {
-          JC.ui.alert({ title: 'Ride Reserved', message: TIERS[active.tier].name + ' to ' + placeName(active.to) + '. We’ll confirm your driver an hour before pickup.', buttons: [{ text: 'OK' }] });
+          const R = active;
+          const at = reserveAt(R.reserve);
+          const res = { id: U.uid('rsv'), from: R.from, to: R.to, tier: R.tier, at, price: priceFor(R.tier), t: JC.time.now() };
+          const S = st();
+          S.reserved = (S.reserved || []).concat(res);
+          save();
+          storyLog('Reserved a ' + TIERS[R.tier].name + ' to ' + placeName(R.to) + ' for ' + U.fmtDate(at, 'day') + ' at ' + U.fmtTime(at), 'rsv:' + res.id);
+          JC.story.act('ride_book', { id: res.id, tier: R.tier, from: R.from, to: R.to, price: res.price, reserve: true, at });
+          JC.ui.alert({ title: 'Ride Reserved', message: TIERS[R.tier].name + ' to ' + placeName(R.to) + ' · ' + U.fmtDate(at, 'day') + ' at ' + U.fmtTime(at) + '. We’ll confirm your driver an hour before pickup.', buttons: [{ text: 'OK' }] });
           closeFlow(true);
           return;
         }
@@ -544,6 +575,8 @@
         active.eta = TIERS[active.tier].eta;
         JC.audio.play('receive');
         JC.notify.push({ app: 'swift', title: 'Your driver is on the way', body: active.driver.name + ' · ' + active.driver.car + ' · ' + active.driver.plate, open: { app: 'swift' } });
+        storyLog('Called a ' + TIERS[active.tier].name + ' to ' + placeName(active.to) + (active.from !== 'player-home' ? ' from ' + placeName(active.from) : '') + ' on his Swift account (¥' + active.price + ')', 'ride:' + active.from + '>' + active.to + ':' + active.tier);
+        JC.story.act('ride_book', { tier: active.tier, from: active.from, to: active.to, price: active.price });
         islandStart();
         render();
         flow && flow.map.fit([start, [P0.x, P0.y]], { margin: 80, maxZoom: 120 });
@@ -660,6 +693,34 @@
         JC.notify.push({ app: 'swift', title: 'You’ve arrived', body: 'Thanks for riding with ' + R.driver.name + '. ¥' + R.price + ' charged to ' + (CARDS.find((c) => c.id === st().card) || CARDS[0]).name + '.', open: { app: 'swift', intent: { id: ride.id } } });
         JC.os.island.stop('swift-ride');
         if (flow) renderPanel(); else openFlow();
+        JC.story.act('ride_arrive', { id: ride.id, tier: R.tier, from: R.from, to: R.to });
+        if (R.to === 'golden-peony') setTimeout(deskPrompt, 900);
+      }
+
+      // ── At the Golden Peony: "Leave the phone at the front desk for Room 1808?" ──
+      let deskPending = false;
+      function deskPrompt() {
+        if (JC.state.d.ended) return;
+        if (!JC.os.isOpen('swift')) {
+          deskPending = true;
+          JC.notify.push({ app: 'swift', title: 'You’re at the Golden Peony Hotel', body: 'Room 1808 is on the eighteenth floor. The front desk is open all night.', open: { app: 'swift' } });
+          return;
+        }
+        deskPending = false;
+        let decided = false;
+        const decide = (leave) => { if (decided) return; decided = true; JC.story.act('phone_dropoff', { place: 'golden-peony', leave }); };
+        const s = JC.ui.sheet({
+          detent: 'large', cls: 'sw-desk', noHead: true, onClose: () => decide(false),
+          content: () => [h('div.sw-desk-in',
+            h('div.sw-desk-art', JC.art.el('p_hotel_lobby', { cls: 'sw-desk-img' }), h('div.sw-desk-badge', JC.icon('bed.double.fill', { size: 15 }), ' Golden Peony Hotel · Riverside')),
+            h('div.sw-desk-t', 'You’re at the Golden Peony.'),
+            h('div.sw-desk-s', 'Room 1808 is on the eighteenth floor. Jiang Cheng is asleep in it, with no idea where his phone is. The night manager, Mr. Liang, is at the front desk.'),
+            h('div.sw-desk-phone', h('div.sw-desk-case'), h('div', h('b', 'Jiang Cheng’s iPhone'), h('span', 'Matte purple case · ' + JC.os.battery() + '% battery'))),
+            h('div.sw-desk-q', 'Leave the phone at the front desk for Room 1808?'),
+            h('div.sw-desk-btns',
+              JC.ui.btn({ text: 'Leave It at the Front Desk', kind: 'filled', size: 'l', cls: 'sw-cta', onTap: () => { decide(true); s.close(); } }),
+              JC.ui.btn({ text: 'Not Yet', kind: 'gray', size: 'l', onTap: () => { decide(false); s.close(); } })))],
+        });
       }
       function donePanel() {
         const R = active;
@@ -728,7 +789,7 @@
       setTimeout(() => handle(intent0), 50);
       return {
         intent: handle,
-        show() { if (flow) flow.map.resize(); },
+        show() { if (flow) flow.map.resize(); if (deskPending) setTimeout(deskPrompt, 450); },
         back() { if (flow) { if (active && active.phase === 'options') { active.phase = 'search'; active.route = null; render(); return true; } closeFlow(); return true; } return false; },
         destroy() { stopSim(); JC.os.island.stop('swift-ride'); if (flow) flow.map.destroy(); },
       };

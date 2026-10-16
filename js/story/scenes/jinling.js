@@ -243,7 +243,7 @@
       address: [
         { m: 'jinxing road?? whose house is that' },
         { m: "wtv. fairy doesn't care. sizhui is driving us. omw" },
-        { fx: { set: { fairy_taken: true } } },
+        { fx: { set: { fairy_taken: true, fairy_where: 'home' } } },
         free('jl'),
         { start: 'fairy_meet' },
       ],

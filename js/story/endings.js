@@ -4,20 +4,23 @@
   'use strict';
   const JC = (window.JC = window.JC || {});
   const E = (d) => JC.story.ending(Object.assign({ art: 'end_' + d.id }, d));
+  // Paragraphs can depend on how the night went: { if: (s) => …, t: 'text', else: 'text' } (see JC.story.endingText).
+  const desk = (s) => !!s.flags.phone_at_desk;
+  const fairyHome = (s) => s.flags.fairy_where === 'home' || !!s.done.r_fm_jl_fairy || !!s.done.r_ride_pet_fairy_from;
 
   E({
     id: 'honest', n: 1, title: 'The Honest Stranger', tag: 'Truth',
     hint: "Sometimes the right thing is the shortest message you'll ever send.",
     text: [
-      'You tell the truth. It takes four words longer than lying would have, and it costs you the rest of the night.',
-      'Nobody yells. That is the strange part. Somebody calls the Golden Peony, somebody knocks on Room 1808, and a man in a hotel bathrobe is told that his phone has been found by a stranger who said so.',
-      'At ten the next morning a woman in a grey coat rings your doorbell, holds out her hand for the purple case, and looks at you for one long, assessing second. "Tang Mei," she says. "Thank you. He won\'t say it, so I\'m saying it now, and he can owe me."',
+      { if: desk, t: 'You give it back. It takes one more taxi ride than keeping it would have, and it costs you the rest of the night.', else: 'You tell the truth. It takes four words longer than lying would have, and it costs you the rest of the night.' },
+      { if: desk, t: 'The night manager of the Golden Peony is called Mr. Liang. He takes the purple phone in both hands, writes "Room 1808" on an envelope in very careful characters, and does not ask your name. Nobody yells. That is the strange part.', else: 'Nobody yells. That is the strange part. Somebody calls the Golden Peony, somebody knocks on Room 1808, and a man in a hotel bathrobe is told that his phone has been found by a stranger who said so.' },
+      { if: desk, t: 'At ten the next morning your own phone rings, a number you don\'t know. "Tang Mei," says a woman\'s voice. "Mr. Liang described you. Thank you. He won\'t say it, so I\'m saying it now, and he can owe me."', else: 'At ten the next morning a woman in a grey coat rings your doorbell, holds out her hand for the purple case, and looks at you for one long, assessing second. "Tang Mei," she says. "Thank you. He won\'t say it, so I\'m saying it now, and he can owe me."' },
       'You never find out how Sunday went. You think about it more than you expected to.',
     ],
     jc: [
-      'When Jiang Cheng got his phone back, he read every message from the night before, twice, in the back of a car going nowhere in particular.',
+      { if: desk, t: 'When Jiang Cheng got his phone back, it was in an envelope at the front desk with "Room 1808" on it. He read every message from the night before, twice, standing in the lobby in yesterday\'s suit.', else: 'When Jiang Cheng got his phone back, he read every message from the night before, twice, in the back of a car going nowhere in particular.' },
       'Most of them were people asking if he was all right. At a red light he typed "I\'m fine." to four different people, and for once it was almost true.',
-      "He kept the stranger's address. He didn't do anything with it. He just kept it.",
+      { if: desk, t: 'He asked Mr. Liang what the stranger looked like. Mr. Liang said: tired, and honest. He didn\'t do anything with that. He just kept it.', else: "He kept the stranger's address. He didn't do anything with it. He just kept it." },
     ],
   });
 
@@ -107,11 +110,11 @@
     id: 'fairy', n: 7, title: "Fairy's New Favorite", tag: 'Dog',
     hint: 'She is a very good girl. She has also never met you.',
     text: [
-      'The east gate of Koi Tower, after midnight, in the drizzle. A teenager in a tuxedo is holding the leash of the largest, wettest black dog you have ever seen.',
+      { if: fairyHome, t: 'Jinxing Road, after midnight, in the drizzle. A car stops outside number 27 and a teenager in a tuxedo climbs out, holding the leash of the largest, wettest black dog you have ever seen.', else: 'The east gate of Koi Tower, after midnight, in the drizzle. A teenager in a tuxedo is holding the leash of the largest, wettest black dog you have ever seen.' },
       'He looks at you. He looks at the phone in your hand, the matte purple case. He looks at you again. "Who," says Jin Ling, heir to the Jin Group, "the hell are you."',
       'Fairy does not care who you are. Fairy plants two enormous wet paws on your shoulders and licks your entire face, which she has only ever done to one other person in her life.',
       'You explain. Jin Ling listens, scowling, while his dog leans her whole pond-scented weight against your legs and refuses to move. "Traitor," he tells her. She wags.',
-      'In the end he takes the phone, Fairy takes you, and it is decided, by Fairy, that you are walking them both home.',
+      { if: fairyHome, t: 'In the end he takes the phone, Fairy takes your sofa, and it is decided, by Fairy, that everyone is staying until the rain stops.', else: 'In the end he takes the phone, Fairy takes you, and it is decided, by Fairy, that you are walking them both home.' },
     ],
     jc: [
       'When Jiang Cheng got his phone back, it was handed to him by his nephew, who was soaking wet, furious and, for some reason, trying not to smile.',

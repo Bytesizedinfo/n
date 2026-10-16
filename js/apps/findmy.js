@@ -1,6 +1,8 @@
 /* Find My — People / Devices / Items / Me over the shared map (JC.mapview), with person, device and
    AirTag cards: Contact, Directions, Notifications, location sharing, Play Sound, Mark As Lost,
-   Erase (Apple Account password → fails), Lost Mode for this iPhone. Acts: findmy_view, findmy_sound. */
+   Erase (Apple Account password → fails), Lost Mode for this iPhone.
+   Acts: findmy_view {id}, findmy_sound {id}, findmy_share {to, dur}, findmy_unshare {to}, findmy_ask {to}.
+   JC.findmy.answer(cid, ok) — the story answers a follow request (accepted people appear under People). */
 (function () {
   'use strict';
   const JC = (window.JC = window.JC || {});
@@ -12,7 +14,8 @@
     const d = JC.state.d;
     d.apps = d.apps || {};
     const cur = d.apps.findmy || (d.apps.findmy = {});
-    const def = { sharingWith: ['jl', 'ea'], removed: [], favs: ['jl'], rules: [], notify: { airpods: true, macbook: false, ipad: false, fairy: false, 'sandu-keys': true }, sharing: true, names: {}, pwTries: 0, sounds: {}, friendReq: true };
+    // He follows A-Ling; A-Ling doesn't get to follow him ("I know where you are. That's the point."). Tang Mei does.
+    const def = { sharingWith: ['ea'], removed: [], favs: ['jl'], rules: [], notify: { airpods: true, macbook: false, ipad: false, fairy: false, 'sandu-keys': true }, sharing: true, names: {}, pwTries: 0, sounds: {}, friendReq: true, asked: {} };
     Object.keys(def).forEach((k) => { if (!(k in cur)) cur[k] = def[k]; });
     return cur;
   }
@@ -20,6 +23,25 @@
   const F = () => (JC.state.d.flags || {});
   const morning = () => !!(F().night_done || F().lost_mode || F().finale || JC.state.d.lost);
   const AGO = (ms) => { const m = Math.round((JC.time.now() - ms) / 60000); return m < 1 ? 'Now' : m < 60 ? m + ' min ago' : U.fmtTime(ms); };
+  const storyLog = (text, once) => { try { JC.story.log(text, { once }); } catch (e) { /* story not loaded */ } };
+
+  // People who answered "Ask to Follow Location" (JC.findmy.answer, called by the story)
+  const wwxWhere = () => (morning() ? { at: [52.95, 63.12], label: 'The Jingshi, Gusu', place: 'jingshi', t: JC.time.now() - 900000 } : { at: [175.72, 96.08], label: 'Lanling Night Market, Lanling', place: 'night-market', t: JC.time.now() - 60000 });
+  const FOLLOW = {
+    lxc: () => ({ at: [51.42, 63.02], label: 'The Hanshi, Gusu', place: 'hanshi', t: JC.time.now() - 420000 }),
+    lwj: () => Object.assign(wwxWhere(), { t: JC.time.now() - 30000 }),
+    wn: () => (F().wn_towed ? { at: [180.5, 98.0], label: 'Golden Peony Hotel garage, Lanling', place: 'golden-peony', t: JC.time.now() - 60000 } : { at: [171.95, 90.85], label: 'Koi Tower car park, Lanling', place: 'koi-tower', t: JC.time.now() - 60000 }),
+  };
+  JC.findmy = {
+    answer(cid, ok) {
+      const S = st();
+      S.asked = S.asked || {};
+      S.asked[cid] = ok ? 'ok' : 'no';
+      save();
+      if (ok) { try { JC.notify.push({ app: 'findmy', title: 'Find My', body: JC.contacts.short(cid) + ' is now sharing location with you.', open: { app: 'findmy', intent: { id: cid } } }); } catch (e) { /* ignore */ } }
+      JC.bus.emit('findmy:people');
+    },
+  };
 
   // ── what is where ─────────────────────────────────────────────────────
   function people() {
@@ -31,6 +53,12 @@
         where: () => morning() ? { at: [52.95, 63.12], label: 'The Jingshi, Gusu', place: 'jingshi', t: JC.time.now() - 900000 } : { at: [175.72, 96.08], label: 'Lanling Night Market, Lanling', place: 'night-market', t: JC.time.now() - 60000 } },
       { id: 'ea', kind: 'person', name: 'Tang Mei (EA)', contact: 'ea', noLocation: true },
     ];
+    Object.keys(S.asked || {}).forEach((cid) => {
+      if (list.some((p) => p.id === cid)) return;
+      const ans = S.asked[cid];
+      const loc = ans === 'ok' && FOLLOW[cid] ? FOLLOW[cid] : null;
+      list.push({ id: cid, kind: 'person', name: JC.contacts.short(cid), contact: cid, since: JC.time.now(), noLocation: !loc, pending: ans === 'pending', declined: ans === 'no', where: loc || undefined });
+    });
     return list.filter((p) => !S.removed.includes(p.id));
   }
   function devices() {
@@ -180,7 +208,7 @@
         const S = st();
         if (!ps.length) return JC.ui.empty({ icon: 'person.2.fill', title: 'No People', text: 'Share your location with friends and family.' });
         return [JC.ui.list([{ rows: ps.map((p) => {
-          if (p.noLocation) return { avatar: p.contact, avatarSize: 46, title: p.name, subtitle: S.sharingWith.includes(p.id) ? 'Can see your location' : 'Location not available', onTap: () => openDetail(p.id), chevron: true };
+          if (p.noLocation) return { avatar: p.contact, avatarSize: 46, title: p.name, subtitle: p.pending ? 'Asked to follow · waiting' : p.declined ? 'Not sharing with you' : S.sharingWith.includes(p.id) ? 'Can see your location' : 'Location not available', onTap: () => openDetail(p.id), chevron: true };
           const w = p.where();
           return { avatar: p.contact, avatarSize: 46, title: p.name + (S.favs.includes(p.id) ? ' ★' : ''), subtitle: w.label, subtitle2: AGO(w.t), detail: distTo(w), onTap: () => openDetail(p.id) };
         }) }], { cls: 'fm-list' }),
@@ -321,6 +349,7 @@
           const S = st();
           if (!S.sharingWith.includes(p.id)) S.sharingWith.push(p.id);
           save();
+          storyLog('Shared his location (Jinxing Road 27) with ' + p.name + ' ' + dur, 'fm_share:' + p.id);
           JC.story.act('findmy_share', { to: p.id, dur });
           JC.ui.toast('Sharing location with ' + p.name + ' ' + dur, { icon: 'location.fill' });
           render();
@@ -332,6 +361,7 @@
           const S = st();
           S.sharingWith = S.sharingWith.filter((x) => x !== p.id);
           save();
+          storyLog('Stopped sharing his location with ' + p.name, 'fm_unshare:' + p.id);
           JC.story.act('findmy_unshare', { to: p.id });
           render();
         });
@@ -492,11 +522,22 @@
       }
       function addMenu(anchor) {
         if (tab === 'people') JC.ui.menu(anchor, [
-          { text: 'Share My Location', icon: 'location.fill', onTap: () => JC.ui.actionSheet({ title: 'Share My Location', actions: ['wwx', 'lxc', 'nhs', 'huang', 'wn'].map((cid) => ({ text: JC.contacts.short(cid), onTap: () => { const p = people().find((q) => q.id === cid) || { id: cid, name: JC.contacts.short(cid) }; shareWith(p); } })) }) },
-          { text: 'Ask to Follow Location', icon: 'person.badge.plus', onTap: () => JC.ui.actionSheet({ title: 'Ask to Follow', message: 'They’ll get a request from “Jiang Cheng”.', actions: ['lxc', 'nhs', 'lwj', 'wn'].map((cid) => ({ text: JC.contacts.short(cid), onTap: () => { JC.story.act('findmy_ask', { to: cid }); JC.ui.toast('Request sent to ' + JC.contacts.short(cid), { icon: 'paperplane.fill' }); } })) }) },
+          { text: 'Share My Location', icon: 'location.fill', onTap: () => JC.ui.actionSheet({ title: 'Share My Location', actions: ['jl', 'wwx', 'lxc', 'nhs', 'huang', 'wn'].map((cid) => ({ text: JC.contacts.short(cid), onTap: () => { const p = people().find((q) => q.id === cid) || { id: cid, name: JC.contacts.short(cid) }; shareWith(p); } })) }) },
+          { text: 'Ask to Follow Location', icon: 'person.badge.plus', onTap: () => JC.ui.actionSheet({ title: 'Ask to Follow', message: 'They’ll get a request from “Jiang Cheng”.', actions: ['lxc', 'nhs', 'lwj', 'wn'].map((cid) => ({ text: JC.contacts.short(cid), onTap: () => askFollow(cid) })) }) },
         ]);
         else if (tab === 'devices') JC.ui.menu(anchor, [{ text: 'Add AirTag', icon: 'airtag', onTap: () => addItem() }, { text: 'Add Other Item', icon: 'plus', onTap: () => addItem() }, '-', { text: 'Identify Found Item', icon: 'magnifyingglass', onTap: () => identifyItem() }]);
         else JC.ui.menu(anchor, [{ text: 'Add AirTag', icon: 'airtag', onTap: () => addItem() }, { text: 'Add Other Item', icon: 'plus', onTap: () => addItem() }, '-', { text: 'Identify Found Item', icon: 'magnifyingglass', onTap: () => identifyItem() }]);
+      }
+      function askFollow(cid) {
+        const S = st();
+        S.asked = S.asked || {};
+        if (S.asked[cid] === 'ok') { JC.ui.toast(JC.contacts.short(cid) + ' already shares with you', { icon: 'location.fill' }); return; }
+        S.asked[cid] = 'pending';
+        save();
+        storyLog('Asked ' + JC.contacts.short(cid) + ' to share their location with him', 'fm_ask:' + cid);
+        JC.story.act('findmy_ask', { to: cid });
+        JC.ui.toast('Request sent to ' + JC.contacts.short(cid), { icon: 'paperplane.fill' });
+        if (tab === 'people' && !detail) { render(); pins(); }
       }
       function addItem() {
         JC.ui.alert({ title: 'Looking for Items…', message: 'Hold an AirTag or a Find My accessory near this iPhone.', buttons: [{ text: 'Cancel', style: 'cancel' }] });
@@ -520,7 +561,7 @@
       }
 
       // live updates
-      const offs = [JC.bus.on('lostmode', () => { render(); pins(); }), JC.bus.on('minute', () => { if (!detail) render(); })];
+      const offs = [JC.bus.on('lostmode', () => { render(); pins(); }), JC.bus.on('minute', () => { if (!detail) render(); }), JC.bus.on('findmy:people', () => { if (tab === 'people') { if (!detail) render(); pins(); } })];
 
       function handle(it) {
         if (!it) return;

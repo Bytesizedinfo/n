@@ -4,6 +4,9 @@
    Shared API (used by Lotus Eats, Swift Ride…): JC.wallet.pay({ merchant, amount, card }) → Promise<{ ok, card }>
    shows the Wallet Pay sheet; JC.wallet.charge / refund record a transaction (+ the bank's SMS for card 4417).
    Collection `tx`: { card, merchant, amount (+ charge, − credit), t, cat, note, place, pending, supp }.
+   Cash → Send / Request: contact picker → amount keypad (+ note) → Pay sheet → the payment bubble in Messages.
+   Acts: wallet_view {id}, wallet_tx {id}, wallet_send {to, amount, note, card, tx}.
+   JC.wallet.sendBack(cid, { keep, note }) credits Cash when a contact returns a transfer (story reactions).
    Intents: { card } or { id } (card/pass id), { tx } (transaction id). */
 (function () {
   'use strict';
@@ -120,12 +123,18 @@
 
   // ═══ Shared keypad + Face ID helpers (used by the pay sheet and the in-Wallet Pay flow) ═══
   function faceId(el) {
-    // scanning → "Face Not Recognized" (whoever is holding this phone, it isn't Jiang Cheng)
+    // scanning → "Face Not Recognized" (whoever is holding this phone, it isn't Jiang Cheng) — unless they set up
+    // an alternate appearance in Settings › Face ID, which iOS honours for Pay too.
+    const alt = !!(JC.state.d.settings && JC.state.d.settings.faceAlt);
     return new Promise((resolve) => {
       el.classList.remove('fail', 'ok');
       el.classList.add('scan');
       JC.audio.haptic(10);
-      setTimeout(() => { el.classList.remove('scan'); el.classList.add('fail'); JC.audio.play('error'); JC.audio.haptic(30); resolve(false); }, 1300);
+      setTimeout(() => {
+        el.classList.remove('scan');
+        if (alt) { el.classList.add('ok'); JC.audio.haptic(12); resolve(true); return; }
+        el.classList.add('fail'); JC.audio.play('error'); JC.audio.haptic(30); resolve(false);
+      }, 1300);
     });
   }
   function keypad(o) {
@@ -263,7 +272,8 @@
           busy = true;
           if (offSide) { offSide(); offSide = null; }
           status.textContent = 'Face ID';
-          faceId(fid).then(() => {
+          faceId(fid).then((ok) => {
+            if (ok) { status.textContent = 'Done'; side.remove(); setTimeout(() => processing(), 250); return; }
             status.textContent = 'Face Not Recognized';
             sheet.classList.add('shake');
             setTimeout(() => sheet.classList.remove('shake'), 500);
@@ -313,9 +323,27 @@
     });
   }
 
+  /** A contact returns money ("I've sent it back. Sorry."): credit Cash with the latest transfer to `cid`, minus `keep`. */
+  function sendBack(cid, o) {
+    o = o || {};
+    const sent = JC.store.all('tx').filter((t) => t.contact === cid && t.cat === 'p2p' && t.amount > 0 && !t.returned).sort((a, b) => b.t - a.t)[0];
+    if (!sent) return 0;
+    JC.store.update('tx', sent.id, { returned: true });
+    const back = Math.round((sent.amount - (o.keep || 0)) * 100) / 100;
+    if (back <= 0) return 0;
+    const S = st();
+    S.cash = Math.round((S.cash + back) * 100) / 100;
+    save();
+    const tx = JC.store.add('tx', { card: 'cash', merchant: JC.contacts.short(cid), contact: cid, amount: -back, t: JC.time.now(), cat: 'p2p', note: o.note || 'Returned' }, { front: true });
+    JC.bus.emit('wallet:tx', tx);
+    try { JC.notify.push({ app: 'wallet', title: 'Wallet Cash', body: JC.contacts.short(cid) + ' sent you ' + yen(back) + '.', open: { app: 'wallet', intent: { card: 'cash' } } }); } catch (e) { /* ignore */ }
+    return back;
+  }
+
   JC.wallet = {
     cards: () => CARDS.slice(),
     pay,
+    sendBack,
     /** card-on-file charge without UI (e.g. a finished ride) */
     charge: (o) => record(Object.assign({}, o, { amount: Math.abs(o.amount) })),
     refund: (o) => record(Object.assign({}, o, { amount: -Math.abs(o.amount) })),
@@ -626,30 +654,106 @@
         ] });
       }
 
-      // ── money actions ──
-      function sendMoney(request) {
-        JC.ui.actionSheet({ title: request ? 'Request money from…' : 'Send money to…', actions: ['jl', 'wwx', 'nhs', 'lxc'].map((cid) => ({ text: JC.contacts.short(cid), onTap: () => amountAlert(cid, request) })) });
-      }
-      function amountAlert(cid, request) {
-        JC.ui.alert({ title: (request ? 'Request from ' : 'Send to ') + JC.contacts.short(cid), message: 'Amount in ¥', input: { placeholder: '0.00', kbType: 'num', cap: 'none' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: request ? 'Request' : 'Next', style: 'default' }] }).then((x) => {
-          if (x.index !== 1) return;
-          const amt = Math.round(parseFloat(String(x.value || '').replace(/[^\d.]/g, '')) * 100) / 100;
-          if (!amt || amt <= 0) return;
-          if (request) {
-            const th = JC.story.threadFor(cid);
-            JC.story.send(th, { text: 'Requested ' + yen(amt) + ' with Wallet Cash.' });
-            JC.ui.toast('Request sent to ' + JC.contacts.short(cid), { icon: 'paperplane.fill' });
-            return;
+      // ── money actions: Send & Request (Wallet Cash) ──
+      const CAST = ['jl', 'wwx', 'lwj', 'lxc', 'nhs', 'wn', 'sz', 'jy', 'mian', 'ea', 'huang', 'liu', 'bai'];
+      function sendMoney(request, preset) {
+        let who = preset || null;
+        let q = '';
+        let amt = '';
+        let note = '';
+        const s = JC.ui.sheet({ title: request ? 'Request Money' : 'Send Money', detent: 'large', cls: 'wl-send', left: { text: 'Cancel' }, content: (sh) => (who ? amountView(sh) : pickView(sh)) });
+        function lastWith(cid) {
+          const t = JC.store.all('tx').filter((x) => x.contact === cid && x.cat === 'p2p').sort((a, b) => b.t - a.t)[0];
+          if (!t) return 'Wallet Cash';
+          return (t.amount > 0 ? 'You sent ' : 'Sent you ') + yen(Math.abs(t.amount)) + ' · ' + U.fmtDate(t.t, 'md') + (new Date(t.t).getFullYear() !== JC.time.date().getFullYear() ? ', ' + new Date(t.t).getFullYear() : '');
+        }
+        function pickView(sh) {
+          sh.setTitle(request ? 'Request Money' : 'Send Money');
+          const list = h('div.wls-list');
+          const fill = () => {
+            list.innerHTML = '';
+            const qq = q.trim().toLowerCase();
+            const ids = CAST.filter((cid) => !qq || [JC.contacts.name(cid), JC.contacts.short(cid), JC.contacts.full(cid)].join(' ').toLowerCase().includes(qq));
+            list.appendChild(ids.length
+              ? JC.ui.list([{ header: qq ? null : 'Suggested', rows: ids.map((cid) => ({ avatar: cid, avatarSize: 40, title: JC.contacts.name(cid), subtitle: lastWith(cid), chevron: true, onTap: () => { who = cid; amt = ''; note = ''; sh.render(); } })) }], { cls: 'wl-list' })
+              : JC.ui.empty({ icon: 'person.crop.circle', title: 'No Results' }));
+          };
+          fill();
+          return [h('div.wls-search', JC.ui.search({ placeholder: 'Name', mic: false, onInput: (v) => { q = v || ''; fill(); } })), list];
+        }
+        function amountView(sh) {
+          sh.setTitle('');
+          const MAX = 20000;
+          const disp = h('div.wls-amt');
+          const err = h('div.wls-err');
+          const hint = h('div.wls-hint');
+          const valid = () => { const v = parseFloat(amt); return v > 0 && v <= MAX; };
+          const reqB = JC.ui.btn({ text: 'Request', kind: request ? 'filled' : 'gray', size: 'l', onTap: () => go(true) });
+          const sendB = JC.ui.btn({ text: 'Send', kind: request ? 'gray' : 'filled', size: 'l', onTap: () => go(false) });
+          const paint = () => {
+            disp.textContent = '¥' + (amt ? amt.replace(/^(\d+)/, (m) => Number(m).toLocaleString('en-US')) : '0');
+            disp.classList.toggle('zero', !amt);
+            reqB.disabled = sendB.disabled = !valid();
+            hint.textContent = valid() && !request && parseFloat(amt) > st().cash ? 'More than your Cash balance · pays with YCB •• 4417' : '';
+          };
+          const shake = () => { disp.classList.remove('shake'); void disp.offsetWidth; disp.classList.add('shake'); JC.audio.haptic(20); };
+          const press = (k) => {
+            JC.audio.play(k === 'del' ? 'key.delete' : 'key');
+            if (k === 'del') amt = amt.slice(0, -1);
+            else if (k === '.') { if (amt.includes('.')) { shake(); return; } amt = (amt || '0') + '.'; }
+            else {
+              const [i, d] = amt.split('.');
+              if ((d != null && d.length >= 2) || (d == null && i.length >= 5)) { shake(); return; }
+              amt = amt === '0' ? k : amt + k;
+            }
+            err.textContent = parseFloat(amt) > MAX ? 'You can send up to ' + yen(MAX) + ' at a time.' : '';
+            paint();
+          };
+          const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'del'];
+          const pad = h('div.wls-pad', keys.map((k) => h('div.wls-key', { onTap: () => press(k), attrs: { 'aria-label': k === 'del' ? 'Delete' : k } }, k === 'del' ? JC.icon('delete.left', { size: 24 }) : k)));
+          const noteIn = JC.ui.input({ value: note, placeholder: 'Add a note', cls: 'wls-note', max: 60, cap: 'sentences', onInput: (v) => { note = v; } });
+          paint();
+          function go(isReq) {
+            if (!valid()) { shake(); return; }
+            const v = Math.round(parseFloat(amt) * 100) / 100;
+            const cid = who;
+            const memo = note.trim();
+            s.close();
+            if (isReq) requestMoney(cid, v, memo);
+            else sendTo(cid, v, memo);
           }
-          pay({ merchant: JC.contacts.short(cid), amount: amt, card: 'cash', record: false }).then((r) => {
-            if (!r.ok) return;
-            const tx = JC.store.add('tx', { card: r.card, merchant: JC.contacts.short(cid), contact: cid, amount: amt, t: JC.time.now(), cat: 'p2p', note: 'Sent with Wallet Cash' }, { front: true });
-            if (r.card === 'cash') { const S = st(); S.cash = Math.round((S.cash - amt) * 100) / 100; save(); }
-            else bankSms(r.card, 'Card ending 4417: ' + yen(amt) + ' spent at WALLET CASH on ' + MM(tx.t) + '.');
-            JC.story.send(JC.story.threadFor(cid), { text: 'Sent ' + yen(amt) + ' with Wallet Cash.' });
-            refreshSel();
-          });
+          return [
+            h('div.wls-to', { onTap: () => { who = null; sh.render(); } }, JC.ui.avatar(who, 56), h('div.wls-to-n', JC.contacts.name(who)), h('div.wls-to-s', 'Wallet Cash · Change')),
+            disp, err, hint,
+            h('div.wls-notewrap', noteIn),
+            pad,
+            h('div.wls-btns', reqB, sendB),
+            h('div.wls-bal', 'Cash balance ' + yen(st().cash)),
+          ];
+        }
+        return s;
+      }
+      function sendTo(cid, amt, memo) {
+        const name = JC.contacts.short(cid);
+        // Cash first; when the balance can't cover it, the card on file pays (as Apple Cash does)
+        const card = st().cash >= amt ? 'cash' : 'ycb';
+        pay({ merchant: name, sub: 'Wallet Cash' + (memo ? ' · “' + memo + '”' : ''), amount: amt, card, record: false }).then((r) => {
+          if (!r.ok) return;
+          const tx = JC.store.add('tx', { card: r.card, merchant: name, contact: cid, amount: amt, t: JC.time.now(), cat: 'p2p', note: memo || 'Sent with Wallet Cash' }, { front: true });
+          if (r.card === 'cash') { const S = st(); S.cash = Math.round((S.cash - amt) * 100) / 100; save(); }
+          else bankSms(r.card, 'Card ending 4417: ' + yen(amt) + ' spent at WALLET CASH on ' + MM(tx.t) + '.');
+          // the payment bubble is posted as-is (not as a typed message): the contact answers through the story reaction
+          try { JC.story.incoming(JC.story.threadFor(cid), { from: 'me', status: 'delivered', text: 'Sent ' + yen(amt) + ' with Wallet Cash.' + (memo ? ' “' + memo + '”' : '') }); } catch (e) { /* ignore */ }
+          try { JC.story.log('Sent ' + name + ' ' + yen(amt) + (r.card === 'cash' ? ' from his Wallet Cash' : ' with Wallet Cash, on his card') + (memo ? ' (“' + memo + '”)' : ''), { once: 'pay:' + tx.id }); } catch (e) { /* ignore */ }
+          JC.story.act('wallet_send', { to: cid, amount: amt, note: memo, card: r.card, tx: tx.id });
+          JC.bus.emit('wallet:tx', tx);
+          JC.ui.toast('Sent ' + yen(amt) + ' to ' + name, { icon: 'paperplane.fill' });
+          refreshSel();
         });
+      }
+      function requestMoney(cid, amt, memo) {
+        JC.story.send(JC.story.threadFor(cid), { text: 'Requested ' + yen(amt) + ' with Wallet Cash.' + (memo ? ' “' + memo + '”' : '') });
+        JC.ui.toast('Request sent to ' + JC.contacts.short(cid), { icon: 'paperplane.fill' });
       }
       function addMoney() {
         JC.ui.actionSheet({ title: 'Add Money to Cash', actions: [100, 200, 500].map((n) => ({ text: yen(n), onTap: () => pay({ merchant: 'Wallet Cash', sub: 'Add Money', amount: n, card: 'ycb', record: false }).then((r) => {
@@ -693,7 +797,8 @@
           if (offSide) { offSide(); offSide = null; }
           side.remove();
           t1.textContent = 'Face ID'; t2.textContent = '';
-          faceId(fid).then(() => {
+          faceId(fid).then((ok) => {
+            if (ok) { setTimeout(() => ready(), 250); return; }
             t1.textContent = 'Face Not Recognized';
             t2.textContent = 'Try again or use the passcode';
             const alt = mid.querySelector('.wl-pay-alt'); if (alt) alt.remove();
@@ -753,6 +858,7 @@
             ].filter(Boolean) }, { rows: [
               p ? { title: 'Show in Maps', tinted: true, onTap: () => JC.os.open('maps', { place: p.id }) } : null,
               t.contact ? { title: 'Message ' + JC.contacts.short(t.contact), tinted: true, onTap: () => JC.os.open('messages', { thread: JC.story.threadFor(t.contact) }) } : null,
+              t.contact && t.cat === 'p2p' ? { title: 'Send Money to ' + JC.contacts.short(t.contact), tinted: true, onTap: () => sendMoney(false, t.contact) } : null,
               { title: 'Report an Issue', tinted: true, onTap: () => JC.ui.actionSheet({ title: 'Report an Issue', message: t.merchant, actions: [{ text: 'I don’t recognize this', onTap: () => JC.ui.alert({ title: 'Contact Your Bank', message: 'Call 95588 to dispute a transaction.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Call', style: 'default', onTap: () => JC.story.dial('bank', { num: '95588' }) }] }) }, { text: 'Wrong amount', onTap: () => JC.ui.toast('Reported to the bank', { icon: 'checkmark' }) }] }) },
             ].filter(Boolean) }], { cls: 'wl-list' }),
           ],

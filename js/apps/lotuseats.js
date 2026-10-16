@@ -3,7 +3,7 @@
    restaurant only delivers inside its own city. Menus → item sheets with options → cart → checkout (address,
    drop-off, note to rider, anonymous gift, tip, Wallet Pay) → live tracking (rider on a map, Dynamic Island,
    notifications + SMS) → order history with receipts and reorder.
-   Act: order { rest, total, to }. Intents: { id } (order) · { rest } (restaurant or map place id) · { search }. */
+   Acts: order { rest, total, to, id, items, names, qty, anon, note, sched, card } · order_delivered { id, rest, to }. Intents: { id } (order) · { rest } (restaurant or map place id) · { search }. */
 (function () {
   'use strict';
   const JC = (window.JC = window.JC || {});
@@ -553,7 +553,8 @@
             rider: { name: rider[0], rating: rider[1], vehicle: rider[2] },
           }, { front: true });
           S.cart = null; cartChanged();
-          JC.story.act('order', { rest: r.id, total: T.total, to: a.id });
+          try { JC.story.log(orderLog(o, r, a), { once: 'order:' + o.id }); } catch (e) { /* story not loaded */ }
+          JC.story.act('order', { rest: r.id, total: T.total, to: a.id, id: o.id, items: o.items.map((x) => x.id), names: o.items.map((x) => x.n), qty: o.items.reduce((n, x) => n + x.q, 0), anon: !!ck.anon, note: o.note, sched: ck.when || null, card: o.card });
           sms('[Lotus Eats] Order confirmed: ' + r.name + ' (' + cityOfRest(r) + ') → ' + addrName(a) + '. ' + o.items.map((x) => x.q + ' × ' + x.n).slice(0, 2).join(', ') + (o.items.length > 2 ? '…' : '') + (o.note ? '. Note to rider: "' + o.note + '"' : '') + (ck.when ? '. Scheduled for ' + U.fmtDate(ck.when, 'day') + ' ' + U.fmtTime(ck.when) + '.' : '. Estimated arrival ' + U.fmtTime(JC.time.now() + o.eta * 60000) + '.'));
           const nav = tabs.nav();
           tabs.hideBar(false);
@@ -563,6 +564,30 @@
         });
       }
       function sms(text) { try { JC.story.incoming('eats', { from: 'eats', text }); } catch (e) { /* story thread missing */ } }
+      // The ending card's "What you did with his phone" (the story reactions log what happened next).
+      function orderLog(o, r, a) {
+        const n = o.items.reduce((k, x) => k + x.q, 0);
+        const one = o.items.length === 1 ? o.items[0] : null;
+        const low = (t) => (/^[A-Z][a-z]+/.test(t) && !/^[A-Z][a-z]*[A-Z]/.test(t) ? t[0].toLowerCase() + t.slice(1) : t);
+        const dish = one ? (one.q > 1 ? one.q + ' × ' : '') + low(one.n) : n + ' things';
+        const from = ' from ' + r.name;
+        const soup = o.items.some((x) => x.id === 'al1' || x.id === 'lr1');
+        switch (a.id) {
+          case 'here': return 'Bought yourself ' + dish + from + ' on his card (' + yen(o.total) + ')';
+          case 'gp': return 'Sent ' + dish + from + ' to Room 1808, where Jiang Cheng was asleep';
+          case 'koires':
+            if (r.id === 'pet-kingdom') return 'Ordered Fairy ' + dish + ' from Pet Kingdom';
+            if (r.id === 'peony-bakery') return 'Ordered A-Ling a cake from Peony Bakery, two days early';
+            return 'Sent A-Ling ' + dish + from;
+          case 'lp': return 'Sent ' + dish + from + ' to Lotus Pier, where nobody was home except Old Huang';
+          case 'ymj': return 'Ordered ' + dish + from + ' for the Lotus Pier night desk';
+          case 'wh': return 'Ordered ' + dish + from + ' for the Warehouse B night shift';
+          case 'jingshi':
+            if (soup) return 'Sent Auntie Lu’s lotus root & pork rib soup to the Jingshi' + (o.anon ? ', anonymously. Again.' : ', with his name on it');
+            return 'Sent ' + dish + from + ' to the Jingshi';
+          default: return 'Ordered ' + dish + from + ' to ' + a.label + ' on his card (' + yen(o.total) + ')';
+        }
+      }
 
       // ═══ LIVE ORDER SIMULATION ═══
       const PHASES = ['placed', 'preparing', 'pickup', 'delivering', 'arrived', 'delivered'];
@@ -635,6 +660,7 @@
           stopSim(id);
           JC.audio.play('success');
           sms('[Lotus Eats] Delivered! Your order from ' + (r ? r.name : 'the restaurant') + ' has arrived at ' + (o.toLabel || 'your address') + '. Enjoy your meal!');
+          try { JC.story.act('order_delivered', { id, rest: o.rest, to: o.to }); } catch (e) { /* story not loaded */ }
         }
         if (JC.os.island.has(ISL)) JC.os.island.update(ISL);
       }

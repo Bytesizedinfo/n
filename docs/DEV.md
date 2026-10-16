@@ -488,6 +488,12 @@ S.scene({
   suspicion, an ending flag), worded like Telltale ("Wei Wuxian noticed.", "Lan Xichen will remember that.").
   `JC.story.log(text, { once })` and `JC.story.hint(text)` can also be called from app code.
 - A choice in a thread that already has an open question now waits its turn (no more overwriting another scene's choice).
+- `{ cancel: 'sceneId' }` (or `JC.story.cancel(id)`) ends another scene's live run now, clearing its open question —
+  for when the player answered it through another app (e.g. Swift Pet answers Jin Ling's "can she stay with u").
+- Call lines can be computed: `{ say: (s) => text | null }` (null skips the line). The morning call uses this for
+  `APP_REMARKS` in finale.js: add `{ if, lines }` entries there for app actions Jiang Cheng should bring up.
+- Ending paragraphs (`text`, `jc` in endings.js) can depend on the night: `{ if: (s) => …, t: '…', else: '…' }` or a
+  function. The text is resolved when the ending is reached and stored with it, so the gallery shows that version.
 - Effects that feed endings (see docs/STORY.md "Endings"): `aff.{lxc,jl,wwx}`, `sus.<cid>` (total ≥ 25 → Zidian; NHS ≥ 8 →
   busted), flags `tea_yes`, `wwx_invited`, `wwx_thanked`, `memo_sent`, `car_handled`, `car_cover`, `bday_planned`,
   `fairy_taken`, counter `ops_morale` (≥ 3 → Group Chat Legend; use `inc`). Do not set `told_truth` or end the game from a
@@ -519,9 +525,12 @@ S.scene({
 | `mail_open` / `mail_send` | Mail | `{ id }` / `{ to, contacts, subject, … }` |
 | `place_view` / `directions` | Maps | `{ place }` |
 | `findmy_view` / `findmy_sound` / `findmy_share` / `findmy_unshare` / `findmy_ask` | Find My | `{ id }` / `{ id }` / `{ to, dur }` / `{ to }` / `{ to }` |
-| `order` | Lotus Eats | `{ rest, total, to }` (address ids: here, gp, koires, lp, ymj, wh, jingshi) |
+| `order` | Lotus Eats | `{ rest, total, to, id, items, names, qty, anon, note, sched, card }` (address ids: here, gp, koires, lp, ymj, wh, jingshi, a_…) |
+| `order_delivered` | Lotus Eats | `{ id, rest, to }` |
 | `ride_view` / `ride_report_lost` | Swift Ride | `{ id }` / `{ kind, item, ride, no }` |
-| `wallet_view` / `wallet_tx` | Wallet | `{ id }` |
+| `ride_book` / `ride_arrive` / `ride_cancel` | Swift Ride | `{ tier, from, to, price, reserve?, at?, id? }` / `{ id, tier, from, to }` / `{ id, tier, from, to, reserve, at }` (map place ids) |
+| `phone_dropoff` | Swift Ride | `{ place: 'golden-peony', leave }` (the arrival sheet at the Golden Peony) |
+| `wallet_view` / `wallet_tx` / `wallet_send` | Wallet | `{ id }` / `{ id }` / `{ to, amount, note, card, tx }` |
 | `like` / `comment` / `dm` / `post` | Wavelet | `{ post }` / `{ post, text }` / `{ to, text, post?, art? }` / `{ text, art }` |
 | `game_score` | Lotus Leap | `{ score }` |
 | `med_log` / `mood_log` / `health_share` | Health | `{ med, slot, status }` / `{ valence, feel }` / `{ to, accept?, invite?, topics? }` |
