@@ -118,6 +118,9 @@ window.JC_MANIFEST = {
   "js/story/scenes/jinling.js",
   "js/story/scenes/nhs.js",
   "js/story/scenes/ops.js",
+  "js/story/scenes/react-commerce.js",
+  "js/story/scenes/react-life.js",
+  "js/story/scenes/react-social.js",
   "js/story/scenes/xicheng.js",
   "js/story/endings.js",
   "js/core/boot.js"
