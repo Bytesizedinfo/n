@@ -345,6 +345,7 @@
     const f = els.island.querySelector('.isl-flash');
     f.innerHTML = '';
     f.append(h('span.isl-flash-ic', { style: { color: color || '#fff' } }, JC.icon(icon, { size: 16 })), h('span', text));
+    els.island.classList.remove('hint');
     els.island.classList.add('flash');
     clearTimeout(islandFlash.t);
     islandFlash.t = setTimeout(() => els.island.classList.remove('flash'), 1700);
@@ -354,6 +355,9 @@
   let hintOn = false;
   function nextHint() {
     if (hintOn || !hintQ.length) return;
+    // never over Face ID or a system flash ("Silent Mode"): try again shortly
+    const isl = els.island;
+    if (isl.classList.contains('faceid') || (isl.classList.contains('flash') && !isl.classList.contains('hint'))) { setTimeout(nextHint, 900); return; }
     const { text, icon } = hintQ.shift();
     hintOn = true;
     const f = els.island.querySelector('.isl-flash');
@@ -389,11 +393,12 @@
       const isl = els.island;
       const f = isl.querySelector('.isl-flash');
       f.innerHTML = '';
-      f.appendChild(h('div.faceid', h('div.faceid-glyph', success ? JC.icon('checkmark', { size: 34, weight: 2.4 }) : faceGlyph())));
+      const glyph = h('div.faceid-glyph', success ? JC.icon('checkmark', { size: 34, weight: 2.4 }) : faceGlyph());
+      f.appendChild(h('div.faceid', glyph));
       isl.classList.add('faceid');
       if (!success) setTimeout(() => isl.classList.add('shake'), 650);
       setTimeout(() => {
-        if (success) f.querySelector('.faceid-glyph').classList.add('ok');
+        if (success) glyph.classList.add('ok');
       }, 300);
       setTimeout(() => {
         isl.classList.remove('faceid', 'shake');
