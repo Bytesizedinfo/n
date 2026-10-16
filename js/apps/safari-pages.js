@@ -241,6 +241,9 @@
     { re: /weather|rain|forecast/i, weather: true },
     { re: /lanling daily|news/i, site: ['https://lanlingdaily.lanling/', 'Lanling Daily — News from Lanling and beyond'] },
     { re: /intranet/i, site: ['https://intranet.lotuspier.yunmeng/', 'YMJ Intranet — Sign in'] },
+    { re: /balcony ?gate|tea ?spill|teaspiller|spilled tea|gossip/i, site: ['https://spilledtea.qinghe/balconygate', '#BalconyGate: everything we know (so far) — Spilled Tea ☕'] },
+    { re: /hottest|single ceo/i, site: ['https://spilledtea.qinghe/hottest-single-ceos-2026', 'Hottest Single CEOs 2026: the full list — Spilled Tea ☕'] },
+    { re: /moonlit balcony|fan journal|painting notes/i, site: ['https://huaisangfans.qinghe/journal/moonlit-balcony', 'Painting notes: Moonlit Balcony — Huaisang Fans'] },
   ];
   function calcAnswer(q) {
     const s = q.replace(/\s+/g, '').replace(/x/gi, '*').replace(/÷/g, '/').replace(/×/g, '*');
@@ -841,9 +844,75 @@
   simpleSite('huaisangfans.qinghe', {
     name: 'Huaisang Fans', icon: { letter: '扇', bg: '#f6efe2', fg: '#2f9e44' },
     pages: {
+      // Painting journal (comments here reach Nie Huaisang: web_comment page 'fans-moonlit-balcony')
+      '/journal': () => SITES['huaisangfans.qinghe'].pages['/journal/moonlit-balcony'](),
+      '/journal/moonlit-balcony': () => article({ brand: 'Huaisang Fans', cls: 'w-fans w-fans-j', kicker: 'PAINTING NOTES', title: 'Painting notes: Moonlit Balcony', dek: 'A new fan, painted tonight, for no reason at all. 🪭', by: 'Huaisang', date: 'Fri Oct 16, 2026 · 11:58 PM', read: '1 min read',
+        hero: 'wv_fan_lotus', caption: 'Not the Moonlit Balcony fan. That one is still drying.',
+        paras: [
+          'I painted a new fan tonight!! I couldn’t sleep. I don’t know why. Nothing happened today. 🙈',
+          'Two figures on a balcony under a full moon. One in white, one in purple. A little distance between them. Not too much. Just enough for one more sentence.',
+          'Silk: white. Ribs: dark bamboo. Tassel: purple, obviously.',
+          'Where did the idea come from? I don’t know!! A little bird!! I just had a feeling!!',
+          'Edition of one. Not for sale. It’s a gift. For whom? I don’t know anything. 🪭',
+        ],
+        comments: [['lotus_fan_88', 'is this about #BalconyGate 👀', '20m'], ['yiling_radish_king', 'huaisang. HUAISANG.', '12m'], ['mianmian_studio', 'It isn’t Sunday yet. I owe you nothing.', '5m']], commentKey: 'fans-moonlit-balcony',
+        related: [['https://huaisangfans.qinghe/', 'Shop: hand-painted fans'], ['https://spilledtea.qinghe/balconygate', '#BalconyGate: everything we know (so far)']] },
+      (b) => h('div', h('div.w-fans-hdr', A('https://huaisangfans.qinghe/', 'Huaisang Fans 🪭')), b, h('div.w-foot', '© Huaisang Fans · The artist knows nothing.'))),
       '/': () => page('w-fans', 'Huaisang Fans — hand-painted fans', [h('div.w-fans-hdr', 'Huaisang Fans 🪭'), h('div.w-fans-sub', 'Hand-painted in Qinghe. Every fan is one of a kind (like every secret).'),
+        A('https://huaisangfans.qinghe/journal/moonlit-balcony', h('div.w-fans-jlink', h('b', 'Painting journal'), h('span', 'New tonight: “Moonlit Balcony” ›'))),
         h('div.w-fans-grid', [['Lotus at Dusk', '¥1,200'], ['Mist over Gusu', '¥1,500'], ['Two Koi', '¥980'], ['NEW: Moonlit Balcony ✨', 'Limited · ¥2,600'], ['A Very Large Dog', '¥880'], ['Radish (commissioned)', 'Sold']].map(([t, p]) => h('div.w-fans-card', h('div.w-fans-art', { style: { background: 'hsl(' + (hash(t) % 360) + ',45%,82%)' } }, '🪭'), h('b', t), h('span', p), h('span.tap.w-fans-buy', { onTap: () => JC.ui.alert({ title: t, message: t.includes('Balcony') ? '“Two figures on a balcony under a full moon. One in white, one in purple. Painted tonight.” — The artist knows nothing about where the inspiration came from.' : 'Commissions open. The artist will reply “soon~”.', buttons: [{ text: 'OK' }] }) }, 'Details')))),
         h('div.w-foot', '© Huaisang Fans · The artist knows nothing.')]),
+    },
+  });
+  // ═══ Spilled Tea — the blog of @teaspiller_qh (anonymous; obviously not Nie Huaisang) ═══
+  // Comments here reach Nie Huaisang (web_comment pages 'tea-balconygate', 'tea-ceos', 'tea-return').
+  const SPILL = 'https://spilledtea.qinghe';
+  const SPILL_POSTS = [
+    ['/balconygate', '#BalconyGate: everything we know (so far)', 'Fri Oct 16 · 11:48 PM'],
+    ['/hottest-single-ceos-2026', 'Hottest Single CEOs 2026: the full list (and our reasoning)', 'Jan 14'],
+    ['/zewujun-returns', '#ZewuJunReturns: who has he been texting?', 'Sep 26'],
+  ];
+  const spillChrome = (b) => h('div',
+    h('div.w-spill-hdr', A(SPILL + '/', h('span.w-spill-logo', '☕ Spilled Tea')), h('span.w-spill-sub', 'by @teaspiller_qh')),
+    b,
+    h('div.w-spill-more', h('b', 'More tea ☕'), SPILL_POSTS.map((x) => A(SPILL + x[0], h('div.w-spill-li', h('span', x[1]), h('i', x[2]))))),
+    h('div.w-foot', 'Spilled Tea · anonymous · sources everywhere · never wrong ☕ · DMs open on Wavelet'));
+  const spillArticle = (o) => article(Object.assign({ brand: 'Spilled Tea', cls: 'w-spill', by: 'the tea spiller ☕' }, o), spillChrome);
+  simpleSite('spilledtea.qinghe', {
+    name: 'Spilled Tea', icon: { letter: '☕', bg: 'linear-gradient(135deg,#9775fa,#15aabf)', fg: '#fff' },
+    pages: {
+      '/': () => page('w-spill', 'Spilled Tea ☕ — the blog of @teaspiller_qh', [
+        h('div.w-spill-hdr', h('span.w-spill-logo', '☕ Spilled Tea'), h('span.w-spill-sub', 'by @teaspiller_qh')),
+        h('div.w-spill-hero', art('wv_tea_teaser', 'w-spill-heroimg'), h('div.w-spill-herot', h('b', 'Steeping now: #BalconyGate'), A(SPILL + '/balconygate', 'Read the timeline ›'))),
+        h('div.w-spill-list', SPILL_POSTS.map((x) => A(SPILL + x[0], h('div.w-spill-li', h('span', x[1]), h('i', x[2]))))),
+        h('div.w-foot', 'Spilled Tea · anonymous · sources everywhere · never wrong ☕ · DMs open on Wavelet')]),
+      '/balconygate': () => spillArticle({ kicker: 'TEA · LIVE ☕', title: '#BalconyGate: everything we know (so far)', dek: 'Purple. White. A balcony on the 52nd floor. One moon. Zero comments from anyone involved.', date: 'Fri Oct 16, 2026 · 11:48 PM', read: '2 min read', hero: 'wv_tea_teaser', commentKey: 'tea-balconygate',
+        paras: [
+          'Our sources (we have many) give us this timeline:',
+          '7:00 PM — The CEO in purple arrives late. He parks the car himself. Nobody touches the car. (Remember this.)',
+          '7:06 PM — Seating. The CEO in purple is in Seat 4. The Chancellor in white is in Seat 5. The official chart said otherwise. Who changed it? We don’t know! Nobody knows!! 🪭',
+          '10:47 PM — The CEO in purple photographs the moon from the balcony. A white sleeve is, allegedly, in the frame.',
+          '10:50 PM — Something is said. We don’t know what. (We know what.)',
+          '11:15 PM — The CEO in purple leaves. Fast. Without his coat.',
+          '11:21 PM — The Chancellor in white looks at the moon. Alone. For a long time. On purpose.',
+          'We will update this post as the tea steeps. ☕ #BalconyGate',
+        ],
+        comments: [['lotus_fan_88', 'PURPLE AND WHITE. i KNEW it', '2h'], ['koi_watchers', 'the koi saw nothing. the koi will not be talking at this time.', '1h'], ['jingyi_lan', 'WITHOUT HIS COAT 💀💀', '1h'], ['huaisang_fans', 'I don’t know anything about this!! 🙈', '58m']] }),
+      '/hottest-single-ceos-2026': () => spillArticle({ kicker: 'LISTS', title: 'Hottest Single CEOs 2026: the full list (and our reasoning)', date: 'Wed Jan 14, 2026', hero: 'wv_tea_ceos', commentKey: 'tea-ceos',
+        paras: [
+          '1. Lan Xichen, Gusu Lan Academy. Tall, kind, makes tea for the reporters who ambush him. Currently “away”. We’ll wait.',
+          '2. Nie Huaisang, Nie Corp. Fans. Mystery. Asked us to say “no comment”. (We have never met him. Not once.)',
+          '3. Jiang Cheng, Yunmeng Jiang Group. Has never smiled in public. Owns a car with a name. Sends soup anonymously, allegedly.',
+          'Disagree? Our comments are open. Our hearts are not. ☕',
+        ],
+        comments: [['lotus_fan_88', '#3 deserved #1 sorry', '9mo'], ['huaisang_fans', 'Who is #2?? I know nothing 🙈', '9mo'], ['yiling_radish_king', 'the SOUP. who told u about the soup', '9mo']] }),
+      '/zewujun-returns': () => spillArticle({ kicker: 'TEA', title: '#ZewuJunReturns: who has he been texting?', date: 'Sat Sep 26, 2026', hero: 'wv_tea_return', commentKey: 'tea-return',
+        paras: [
+          'One year of seclusion. One statement: “I am grateful to the few who wrote to me anyway, about ordinary things — the weather, the lotus season, the lake.”',
+          'The lotus season. The LAKE. Whose lake, Chancellor? ☕',
+          'We are not saying anything. We are only saying that there is one lake that people mean when they say “the lake”.',
+        ],
+        comments: [['lotus_fan_88', 'YUNMENG LAKE. it’s yunmeng lake', '3w'], ['jingyi_lan', 'not me thats for sure', '3w']] }),
     },
   });
   simpleSite('help.swiftride.lanling', {

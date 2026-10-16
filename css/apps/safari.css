@@ -682,6 +682,33 @@
 .app-safari .w-fans-card { display: flex; flex-direction: column; gap: 2px; font-size: 14px; }
 .app-safari .w-fans-art { aspect-ratio: 1; border-radius: 50% 50% 8px 8px; display: flex; align-items: center; justify-content: center; font-size: 46px; margin-bottom: 4px; }
 .app-safari .w-fans-buy { color: #2f9e44; font-weight: 700; }
+.app-safari .w-fans-jlink { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin: 0 16px 12px; padding: 12px 14px; border-radius: 14px; background: #f1e8d4; font-size: 14px; }
+.app-safari .w-fans-jlink b { color: #2f9e44; }
+.app-safari .w-fans-jlink span { color: #6d5f43; }
+.app-safari .w-fans-j .w-fans-hdr .w-a { color: inherit; }
+.app-safari .w-fans-j .w-kicker { color: #2f9e44; }
+.app-safari .w-fans-j .w-h1 { font-family: 'Source Serif 4', 'Noto Serif SC', Georgia, serif; }
+.app-safari .w-fans-j .w-cm { border-color: #ece3cf; }
+.app-safari .w-fans-j .w-related { border-color: #2a2a22; }
+.app-safari .w-fans-j .w-rel-i, .app-safari .w-fans-j .w-foot { border-color: #ece3cf; }
+/* Spilled Tea — @teaspiller_qh's blog */
+.app-safari .w-spill { background: #fbf9ff; color: #1d1530; }
+.app-safari .w-spill-hdr { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; padding: 14px 18px; background: linear-gradient(120deg, #3b1f6e, #0f6f8f); color: #fff; }
+.app-safari .w-spill-hdr .w-a { color: #fff; }
+.app-safari .w-spill-logo { font-weight: 900; font-size: 21px; letter-spacing: -.01em; }
+.app-safari .w-spill-sub { font-size: 12.5px; color: #c9f2fb; font-weight: 600; }
+.app-safari .w-spill .w-kicker { color: #7a3ff2; }
+.app-safari .w-spill .w-hero { aspect-ratio: 1; }
+.app-safari .w-spill .w-related, .app-safari .w-spill .w-cm, .app-safari .w-spill .w-foot { border-color: #e7e0f5; }
+.app-safari .w-spill-hero { position: relative; }
+.app-safari .w-spill-heroimg { width: 100%; aspect-ratio: 1; }
+.app-safari .w-spill-herot { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: rgba(20, 10, 40, .72); color: #fff; font-size: 14px; }
+.app-safari .w-spill-herot .w-a { color: #7ee8fa; font-weight: 700; white-space: nowrap; }
+.app-safari .w-spill-list, .app-safari .w-spill-more { padding: 6px 18px 0; }
+.app-safari .w-spill-more { margin-top: 18px; border-top: 1px solid #e7e0f5; padding-top: 14px; }
+.app-safari .w-spill-more b { font-size: 13px; letter-spacing: .06em; text-transform: uppercase; color: #7a3ff2; }
+.app-safari .w-spill-li { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 12px 0; border-bottom: 1px solid #e7e0f5; font-weight: 700; font-size: 15px; line-height: 1.3; }
+.app-safari .w-spill-li i { font-style: normal; font-weight: 500; font-size: 12.5px; color: #8a80a0; white-space: nowrap; }
 .app-safari .w-swift { background: #fff; padding-bottom: 10px; }
 .app-safari .w-swift-hdr { display: flex; align-items: center; gap: 8px; padding: 14px 18px; background: #111214; color: #fff; font-weight: 600; }
 .app-safari .w-swift-logo { color: #ffd60a; font-weight: 900; font-size: 20px; font-style: italic; }

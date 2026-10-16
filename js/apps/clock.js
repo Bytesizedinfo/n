@@ -301,19 +301,22 @@
               h('div.ck-sechead', 'Other'),
               h('div.ck-alist', list.map((a) => {
                 const t = fmt12(a.h, a.m);
-                const tog = ui.toggle({ on: a.on, onChange: (v) => { JC.store.update('alarms', a.id, { on: v }); if (v) ui.toast(untilText(a), { icon: 'alarm.fill' }); } });
+                const tog = ui.toggle({ on: a.on, onChange: (v) => { JC.store.update('alarms', a.id, { on: v }); if (v) ui.toast(untilText(a), { icon: 'alarm.fill' }); else alarmOff(a); } });
                 const row = h('div.ck-arow', { class: { off: !a.on, editing } },
-                  editing ? h('div.ck-del', { onTap: () => JC.store.remove('alarms', a.id) }, JC.icon('minus.circle.fill', { size: 24 })) : null,
+                  editing ? h('div.ck-del', { onTap: () => { JC.store.remove('alarms', a.id); alarmOff(a, true); } }, JC.icon('minus.circle.fill', { size: 24 })) : null,
                   h('div.ck-amain', h('div.ck-atime', t.t, h('span', t.ap)), h('div.ck-alabel', (a.label || 'Alarm') + (a.repeat && a.repeat.length ? ', ' + repeatText(a.repeat) : ''))),
                   editing ? h('div.ck-chev', JC.icon('chevron.right', { size: 15, weight: 2.4 })) : tog);
                 ui.onTap(row, (e) => { if (e.target.closest('.toggle, .ck-del')) return; alarmSheet(a); });
-                U.drag(row, { axis: 'x', end: (e, p) => { if (p.dx < -80) ui.actionSheet({ title: 'Delete this alarm?', actions: [{ text: 'Delete', style: 'destructive', onTap: () => JC.store.remove('alarms', a.id) }] }); } });
+                U.drag(row, { axis: 'x', end: (e, p) => { if (p.dx < -80) ui.actionSheet({ title: 'Delete this alarm?', actions: [{ text: 'Delete', style: 'destructive', onTap: () => { JC.store.remove('alarms', a.id); alarmOff(a, true); } }] }); } });
                 return row;
               })),
             ];
           },
         }));
         return page;
+      }
+      function alarmOff(a, deleted) {
+        try { JC.story.act('alarm_off', { id: a.id, label: a.label, deleted: !!deleted }); } catch (e) { /* ignore */ }
       }
       function untilText(a) {
         const n = JC.time.date();
@@ -340,8 +343,10 @@
           title: isNew ? 'Add Alarm' : 'Edit Alarm', detent: 'large', cls: 'ck-asheet', left: { text: 'Cancel' },
           right: { text: 'Save', onTap: () => {
             const item = { h: d.h, m: d.m, label: (d.label || '').trim() || 'Alarm', repeat: d.repeat, on: true, sound: d.sound, snooze: d.snooze };
-            if (isNew) JC.store.add('alarms', Object.assign({ id: U.uid('al') }, item)); else JC.store.update('alarms', a.id, item);
+            const id = isNew ? U.uid('al') : a.id;
+            if (isNew) JC.store.add('alarms', Object.assign({ id }, item)); else JC.store.update('alarms', a.id, item);
             ui.toast(untilText(item), { icon: 'alarm.fill' });
+            try { JC.story.act('alarm_set', { id, label: item.label, time: String(item.h).padStart(2, '0') + ':' + String(item.m).padStart(2, '0'), h: item.h, m: item.m, repeat: (item.repeat || []).slice(), isNew }); } catch (e) { /* ignore */ }
           } },
           content: (sh) => [
             h('div.ck-awheel', ui.wheel({ cols: [
@@ -355,7 +360,7 @@
               { title: 'Sound', detail: d.sound, chevron: true, onTap: () => soundSheet(d, () => sh.render()) },
               { title: 'Snooze', toggle: { on: d.snooze !== false, onChange: (v) => { d.snooze = v; } } },
             ] }]),
-            !isNew ? ui.list([{ rows: [{ title: 'Delete Alarm', destructive: true, center: true, onTap: () => { s.close(); JC.store.remove('alarms', a.id); } }] }]) : null,
+            !isNew ? ui.list([{ rows: [{ title: 'Delete Alarm', destructive: true, center: true, onTap: () => { s.close(); JC.store.remove('alarms', a.id); alarmOff(a, true); } }] }]) : null,
           ],
         });
       }

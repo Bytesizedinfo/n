@@ -9,9 +9,10 @@
 
   JC.store.seed('remlists', [
     { id: 'reminders', title: 'Reminders', color: '#0a84ff', icon: 'list.bullet' },
-    { id: 'groceries', title: 'Groceries', color: '#34c759', icon: 'cart.fill', kind: 'groceries' },
-    { id: 'aling', title: 'A-Ling', color: '#af52de', icon: 'gift.fill' },
-    { id: 'work', title: 'Work', color: '#ff9500', icon: 'briefcase.fill' },
+    // shared lists: the people in `shared` see what gets ticked off (story reactions: js/story/scenes/react-life.js)
+    { id: 'groceries', title: 'Groceries', color: '#34c759', icon: 'cart.fill', kind: 'groceries', shared: ['huang'] },
+    { id: 'aling', title: 'A-Ling', color: '#af52de', icon: 'gift.fill', shared: ['sz'] },
+    { id: 'work', title: 'Work', color: '#ff9500', icon: 'briefcase.fill', shared: ['ea'] },
   ]);
   const R = (id, list, title, o) => {
     const it = Object.assign({ id, list, title, done: false, due: null, notes: '', flagged: false, priority: 0, created: '-20 09:00' }, o || {});
@@ -29,6 +30,7 @@
     R('r_clean', 'reminders', 'Pick up dry cleaning (black suit)', { done: true, doneAt: '-2 18:05' }),
     R('r_refill', 'reminders', 'Tacrolimus refill', { done: true, doneAt: '-6 10:00' }),
     R('a_bell', 'aling', 'Jin Ling’s birthday: the bell — polish ✓', { done: true, doneAt: '-4 14:30', notes: 'Lotus Pier silversmith. Purple velvet box.' }),
+    R('a_box', 'aling', 'The bell — purple velvet box (not gold)', { due: '+1 18:00', notes: 'He’ll complain. Good.', created: '-4 14:35' }),
     R('a_card', 'aling', 'Birthday card — write something. Not a speech.', { due: '+1 20:00', priority: 1 }),
     R('a_cake', 'aling', 'Cake — lotus seed paste (Sizhui knows the bakery)', { due: '+2 17:00', notes: 'Pick up at 17:00. Not gold.' }),
     R('a_sandu', 'aling', 'Do NOT let him drive Sandu', { flagged: true, priority: 3, notes: 'Not before the test. Not after the test. Not ever.' }),
@@ -90,6 +92,12 @@
     completed: { title: 'Completed', color: '#8e8e93', icon: 'checkmark', test: (r) => r.done },
   };
   function badgeCount() { return rems().filter((r) => isToday(r)).length; }
+  /** "Shared with Lan Sizhui" — the people who see this list (and what gets ticked off on it) */
+  function sharedText(l, short) {
+    const ppl = (l && l.shared) || [];
+    if (!ppl.length) return '';
+    return 'Shared with ' + ppl.map((c) => (short ? JC.contacts.short(c) : JC.contacts.real(c))).join(', ');
+  }
 
   // due notifications while the phone runs
   let lastCheck = 0;
@@ -166,6 +174,7 @@
               ui.list([{ header: 'My Lists', bigHeader: true, rows: lists().map((l) => ({
                 icon: { node: h('div.rm-licon', { style: { background: l.color } }, JC.icon(l.icon || 'list.bullet', { size: 16, weight: 2.2 })) },
                 title: l.title,
+                subtitle: sharedText(l, true) || undefined,
                 detail: String(rems().filter((r) => r.list === l.id && !r.done).length),
                 chevron: true,
                 info: editLists ? () => listSheet(l) : undefined,
@@ -219,6 +228,7 @@
             items = items.filter((r) => showDone || !r.done || pendingDone.has(r.id));
             items = sorted(items, sort);
             const out = [];
+            if ((l.shared || []).length) out.push(h('div.rm-shared', h('div.rm-shared-av', l.shared.map((c) => JC.ui.avatar(c, 24))), h('span', sharedText(l)), JC.icon('person.2.fill', { size: 13 })));
             out.push(h('div.rm-doneline', h('span', doneN + ' Completed'), h('span.rm-dot', '•'), h('span.rm-link', { onTap: () => clearDone(lid) }, 'Clear'), h('span.rm-link.r', { onTap: () => { showDone = !showDone; page.render(); } }, showDone ? 'Hide' : 'Show')));
             if (!items.length && !o.add) out.push(h('div.rm-emptyl', 'No Reminders'));
             if (l.kind === 'groceries') {
@@ -262,7 +272,7 @@
         function setSelBar() {
           if (!selecting) { page.setToolbar([h('div.rm-newbtn', { onTap: () => startAdd() }, JC.icon('rm.plus', { size: 24 }), h('span', 'New Reminder')), ui.spacer()]); return; }
           page.setToolbar([
-            ui.btn({ text: 'Complete', kind: 'glass', size: 'm', onTap: () => { sel.forEach((id) => JC.store.update('reminders', id, { done: true, doneAt: now() })); selecting = false; sel.clear(); setSelBar(); page.render(); } }),
+            ui.btn({ text: 'Complete', kind: 'glass', size: 'm', onTap: () => { sel.forEach((id) => { const x = JC.store.get('reminders', id); if (!x || x.done) return; JC.store.update('reminders', id, { done: true, doneAt: now() }); JC.story.act('reminder_done', { id, list: x.list, title: x.title }); }); selecting = false; sel.clear(); setSelBar(); page.render(); } }),
             ui.spacer(),
             ui.btn({ text: 'Flag', kind: 'glass', size: 'm', onTap: () => { sel.forEach((id) => JC.store.update('reminders', id, { flagged: true })); selecting = false; sel.clear(); setSelBar(); page.render(); } }),
             ui.btn({ text: 'Delete', kind: 'glass', size: 'm', cls: 'rm-red', onTap: () => { sel.forEach((id) => JC.store.remove('reminders', id)); selecting = false; sel.clear(); setSelBar(); page.render(); } }),
@@ -381,7 +391,7 @@
             const step = { daily: 1, weekly: 7, monthly: 30, yearly: 365 }[cur.repeat] || 1;
             JC.store.add('reminders', Object.assign({}, cur, { id: U.uid('rem'), done: false, doneAt: null, notified: false, due: cur.due + step * 86400e3 }));
           }
-          JC.story.act('reminder_done', { id: r.id });
+          JC.story.act('reminder_done', { id: r.id, list: cur.list, title: cur.title });
           setTimeout(() => {
             pendingDone.delete(r.id);
             const x = JC.store.get('reminders', r.id);

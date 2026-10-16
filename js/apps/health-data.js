@@ -229,7 +229,9 @@
 
   // ── seeds (persist edits) ─────────────────────────────────────────
   JC.store.seed('hldata', []);
-  JC.store.seed('hlprefs', [{ id: 'p', pins: ['steps', 'workouts', 'heart', 'sleep', 'mindful', 'meds', 'mind'], share: 'pending', topics: ['heart', 'sleep', 'steps', 'meds'], invites: [] }]);
+  // wwxShare: since July 2024 (after Guanyin Temple) he has shared Medications — only that — with Wei Wuxian.
+  // Neither of them has ever mentioned it. Wei Wuxian checks it every night at 8:05.
+  JC.store.seed('hlprefs', [{ id: 'p', pins: ['steps', 'workouts', 'heart', 'sleep', 'mindful', 'meds', 'mind'], share: 'pending', topics: ['heart', 'sleep', 'steps', 'meds'], invites: [], wwxShare: true }]);
   const medSeed = [];
   for (let d = -13; d <= 0; d++) {
     ['08:00', '20:00'].forEach((slot, k) => {

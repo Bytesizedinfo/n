@@ -201,6 +201,7 @@
       buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Block Contact', style: 'destructive' }],
     }).then((r) => {
       if (r.index !== 1) return;
+      try { JC.story.act('contact_block', { id: cid, name: nm }); } catch (e) { /* ignore */ }
       setTimeout(() => JC.ui.alert({
         title: 'Couldn’t Block Contact',
         message: (cid === 'wwx'
@@ -550,8 +551,10 @@
         if (registered.has(cid) && extras().some((x) => x.id === cid)) JC.store.remove('contactsextra', cid);
         else JC.store.add('contactedits', Object.assign({ id: cid }, editOf(cid) || {}, { hidden: true }));
         favs().filter((f) => f.contact === cid).forEach((f) => JC.store.remove('phonefavs', f.id));
+        const was = name(cid);
         applyAll();
         if (page && page.nav) page.nav.pop();
+        try { JC.story.act('contact_delete', { id: cid, name: was }); } catch (e) { /* ignore */ }
         JC.ui.toast('Contact deleted', { icon: 'trash' });
       } }],
     });
@@ -668,6 +671,8 @@
     if (!isNew && !c) return null;
     const base = c || {};
     const full = [base.first, base.last].filter(Boolean).join(' ');
+    // what the card said when the editor opened (the contact object itself is updated in place on save)
+    const was = { display: base.display, first: base.first, last: base.last, company: base.company, title: base.title, notes: base.notes, bday: base.bday, address: base.address };
     const m = {
       first: base.first || '', last: base.last || '',
       nickname: base.display && base.display !== full ? base.display : '',
@@ -750,6 +755,14 @@
       applyAll();
       JC.bus.emit('contacts:changed', { id });
       JC.bus.emit('story:threads');
+      // the story hears about edits to existing contacts, one act per changed field (display = the saved name)
+      if (!isNew) {
+        const after = get(id) || {};
+        Object.keys(was).forEach((field) => {
+          const b = String(was[field] || '').trim(), v = String(after[field] || '').trim();
+          if (b !== v) { try { JC.story.act('contact_edit', { id, field, value: v, before: b }); } catch (e) { /* ignore */ } }
+        });
+      }
       if (o.onSave) setTimeout(() => o.onSave(id), 320);
     }
     s = JC.ui.sheet({

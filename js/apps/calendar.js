@@ -22,10 +22,12 @@
   JC.store.seed('events', [
     // tonight & this weekend
     E('ev_gala', 'work', 'Jin Group Gala', '+0 19:00', '+0 23:30', { location: 'Koi Tower, Lanling', notes: 'Autumn Charity Gala. Black tie. Table 1.\nSeating chart “changed” — Nie Huaisang emailed (“hehe”).\nLeave by 11.', alert: 60, invitees: ['nhs', 'lxc', 'jl'], organizer: 'Jin Group Events', url: 'jingroup.lanling/gala' }),
-    E('ev_tea_q', 'home', 'Tea? — Hanshi', '+1 15:00', '+1 17:00', { location: 'The Hanshi, Cloud Recesses', notes: 'He said “Saturday, perhaps three?”\nI said I’d see.', tentative: true }),
+    // Lan Xichen's invitation, sent after Wednesday's call; Jiang Cheng answered "Maybe". Accepting or declining it here
+    // tells him (story: js/story/scenes/react-life.js).
+    E('ev_tea_q', 'home', 'Tea? — Hanshi', '+1 15:00', '+1 17:00', { location: 'The Hanshi, Cloud Recesses', notes: 'He said “Saturday, perhaps three?”\nI said I’d see.', tentative: true, organizer: 'Lan Xichen', organizerId: 'lxc' }),
     E('ev_aling18', 'family', 'A-Ling turns 18 🎂', '+2 00:00', '+2 23:59', { allDay: true, notes: 'The bell. The cake (lotus seed paste). Do not make a speech.', alert: 'd0' }),
     E('ev_dinner', 'family', 'Dinner — Lotus Pier (?)', '+2 18:30', '+2 21:00', { location: 'Lotus Pier Residence, Yunmeng', notes: 'Cake: pick up 17:00 (Sizhui’s bakery).\nChairs: four? five?\nSoup — he said he’d bring it. If.', alert: 120 }),
-    E('ev_board', 'work', 'Board — Q4', '+3 09:00', '+3 11:00', { location: 'Lotus Pier HQ, Boardroom 1', notes: 'Deck: Tang Mei. Talking points in Notes.\nDo not engage on Dog Friday.', alert: 30, organizer: 'Tang Mei' }),
+    E('ev_board', 'work', 'Board — Q4', '+3 09:00', '+3 11:00', { location: 'Lotus Pier HQ, Boardroom 1', notes: 'Deck: Tang Mei. Talking points in Notes.\nDo not engage on Dog Friday.', alert: 30, organizer: 'Tang Mei', organizerId: 'ea' }),
     // this week (past)
     E('ev_sync', 'work', 'Exec Team Sync', '2026-09-07 10:00', '2026-09-07 11:00', { location: 'Lotus Pier HQ, Boardroom 2', repeat: 'weekly', exdates: ['2026-10-05'], notes: 'Weekly. Tang Mei sends the agenda Sunday night.' }),
     E('ev_ops', 'work', 'Ops review — Q4 targets', '-3 14:00', '-3 15:30', { location: 'Lotus Pier HQ', notes: 'Liu Qian. Whiteboard. (Someone will draw a dog.)' }),
@@ -565,9 +567,9 @@
             if (o.tentative) out.push(h('div.cal-rsvp',
               h('div.cal-rsvp-k', 'Status: Maybe'),
               h('div.cal-rsvp-btns',
-                ui.btn({ text: 'Accept', kind: 'tinted', size: 'm', onTap: () => { JC.store.update('events', o.id, { tentative: false }); ui.toast('Accepted', { icon: 'checkmark' }); JC.story.act('event_add', { id: o.id, accepted: true }); } }),
+                ui.btn({ text: 'Accept', kind: 'tinted', size: 'm', onTap: () => { JC.store.update('events', o.id, { tentative: false }); ui.toast(ev && ev.organizer ? 'Accepted · ' + ev.organizer + ' will be notified' : 'Accepted', { icon: 'checkmark' }); JC.story.act('event_add', { id: o.id, title: o.title, accepted: true, status: 'accepted' }); } }),
                 ui.btn({ text: 'Maybe', kind: 'gray', size: 'm', onTap: () => ui.toast('Still a maybe', { icon: 'questionmark.circle' }) }),
-                ui.btn({ text: 'Decline', kind: 'gray', size: 'm', cls: 'cal-decline', onTap: () => ui.actionSheet({ title: 'Decline “' + o.title + '”?', actions: [{ text: 'Decline', style: 'destructive', onTap: () => { JC.store.remove('events', o.id); nav.pop(); } }] }) }))));
+                ui.btn({ text: 'Decline', kind: 'gray', size: 'm', cls: 'cal-decline', onTap: () => ui.actionSheet({ title: 'Decline “' + o.title + '”?', message: ev && ev.organizer ? ev.organizer + ' will be notified.' : undefined, actions: [{ text: 'Decline', style: 'destructive', onTap: () => { JC.store.remove('events', o.id); nav.pop(); try { JC.story.act('event_decline', { id: o.id, title: o.title, status: 'declined' }); } catch (e) { /* ignore */ } } }] }) }))));
             if (!o.ro) out.push(ui.list([{ rows: [{ title: 'Delete Event', destructive: true, center: true, onTap: () => deleteEvent(ev, o) }] }]));
             else out.push(h('div.cal-ro', o.cal === 'birthdays' ? 'Birthdays are taken from your contacts.' : 'Events from subscribed calendars can’t be edited.'));
             return out;
@@ -584,7 +586,7 @@
         ui.sheet({
           title: 'Invitees', detent: 'medium', right: { text: 'Done' },
           content: () => [ui.list([
-            ev.organizer ? { header: 'Organizer', rows: [{ icon: { node: ui.avatar('me', 32) }, title: ev.organizer }] } : null,
+            ev.organizer ? { header: 'Organizer', rows: [{ icon: { node: ui.avatar(ev.organizerId || 'me', 32) }, title: ev.organizer, onTap: ev.organizerId ? () => JC.os.open('contacts', { contact: ev.organizerId }) : undefined }] } : null,
             ev.invitees && ev.invitees.length ? { header: 'Invitees', rows: ev.invitees.map((cid) => ({ avatar: cid, avatarSize: 32, title: JC.contacts.name(cid), detail: 'Accepted', onTap: () => JC.os.open('contacts', { contact: cid }) })) } : null,
           ].filter(Boolean))],
         });
@@ -680,7 +682,7 @@
           const item = { cal: d.cal, title: (d.title || '').trim() || 'New Event', start: d.start, end: d.end, allDay: !!d.allDay, location: d.location || '', notes: d.notes || '', url: d.url || '', repeat: d.repeat || null, alert: d.alert == null ? null : d.alert, busy: d.busy !== false, invitees: d.invitees || [], tentative: ev ? ev.tentative : false };
           if (isNew) {
             const added = JC.store.add('events', Object.assign({ id: U.uid('ev') }, item));
-            JC.story.act('event_add', { id: added.id, title: added.title });
+            JC.story.act('event_add', { id: added.id, title: added.title, isNew: true, cal: added.cal, start: added.start, allDay: !!added.allDay, invitees: (item.invitees || []).slice() });
             if ((item.invitees || []).length) ui.toast('Invitations sent', { icon: 'paperplane.fill' });
             selected = sod(added.start);
             const top = nav.top();
@@ -762,10 +764,13 @@
           const patch = { status };
           if (status !== 'declined') {
             const id = 'ev_' + i.id;
-            JC.store.add('events', { id, cal: i.cal, title: i.title, start: i.start, end: i.end, location: i.location, notes: i.notes, organizer: i.organizer, tentative: status === 'maybe' });
+            JC.store.add('events', { id, cal: i.cal, title: i.title, start: i.start, end: i.end, location: i.location, notes: i.notes, organizer: i.organizer, organizerId: i.from || undefined, tentative: status === 'maybe' });
             patch.eventId = id;
-            JC.story.act('event_add', { id, invite: i.id, status });
-          } else if (i.eventId) JC.store.remove('events', i.eventId);
+            JC.story.act('event_add', { id, invite: i.id, status, title: i.title, accepted: status === 'accepted' });
+          } else {
+            if (i.eventId) JC.store.remove('events', i.eventId);
+            try { JC.story.act('event_decline', { id: i.eventId || 'ev_' + i.id, invite: i.id, status, title: i.title }); } catch (e) { /* ignore */ }
+          }
           JC.store.update('calinvites', i.id, patch);
           ui.toast(status === 'accepted' ? 'Accepted' : status === 'maybe' ? 'Replied Maybe' : 'Declined', { icon: status === 'declined' ? 'xmark' : 'checkmark' });
           s.render();

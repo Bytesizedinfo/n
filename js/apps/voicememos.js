@@ -213,9 +213,9 @@
         function paintTools() {
           if (kind === 'deleted') {
             page.setToolbar([
-              h('div.vmo-tbtext', { onTap: () => { const ids = new Set(deleted().map((m) => m.id)); if (!ids.size) return; JC.store.set('memos', all().map((m) => (ids.has(m.id) ? Object.assign({}, m, { deleted: false }) : m))); JC.ui.toast('Recovered', { icon: 'arrow.uturn.left' }); } }, 'Recover All'),
+              h('div.vmo-tbtext', { onTap: () => { const gone = deleted(); const ids = new Set(gone.map((m) => m.id)); if (!ids.size) return; JC.store.set('memos', all().map((m) => (ids.has(m.id) ? Object.assign({}, m, { deleted: false }) : m))); gone.forEach((m) => JC.story.act('memo_recover', { id: srcOf(m), copy: !!m.src })); JC.ui.toast('Recovered', { icon: 'arrow.uturn.left' }); } }, 'Recover All'),
               JC.ui.spacer(),
-              h('div.vmo-tbtext.red', { onTap: () => { if (!deleted().length) { JC.ui.toast('Recently Deleted is empty', { icon: 'trash' }); return; } JC.ui.alert({ title: 'Delete All?', message: 'These recordings will be deleted. You can’t undo this action.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete All', style: 'destructive', onTap: () => JC.store.set('memos', all().filter((m) => !m.deleted)) }] }); } }, 'Delete All'),
+              h('div.vmo-tbtext.red', { onTap: () => { if (!deleted().length) { JC.ui.toast('Recently Deleted is empty', { icon: 'trash' }); return; } JC.ui.alert({ title: 'Delete All?', message: 'These recordings will be deleted. You can’t undo this action.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete All', style: 'destructive', onTap: () => { const gone = deleted(); JC.store.set('memos', all().filter((m) => !m.deleted)); gone.forEach((m) => JC.story.act('memo_delete', { id: srcOf(m), forever: true, copy: !!m.src })); } }] }); } }, 'Delete All'),
             ]);
             return;
           }
@@ -279,8 +279,8 @@
       }
       function deletedActions(m) {
         JC.ui.actionSheet({ title: m.title, actions: [
-          { text: 'Recover', onTap: () => { JC.store.update('memos', m.id, { deleted: false }); JC.ui.toast('Recovered “' + m.title + '”', { icon: 'arrow.uturn.left' }); } },
-          { text: 'Delete Forever', style: 'destructive', onTap: () => JC.store.remove('memos', m.id) },
+          { text: 'Recover', onTap: () => { JC.store.update('memos', m.id, { deleted: false }); JC.story.act('memo_recover', { id: srcOf(m), copy: !!m.src }); JC.ui.toast('Recovered “' + m.title + '”', { icon: 'arrow.uturn.left' }); } },
+          { text: 'Delete Forever', style: 'destructive', onTap: () => { JC.store.remove('memos', m.id); JC.story.act('memo_delete', { id: srcOf(m), forever: true, copy: !!m.src }); } },
         ] });
       }
 
@@ -408,7 +408,7 @@
         if (player && player.memoId === m.id) stop();
         if (open === m.id) open = null;
         JC.store.update('memos', m.id, { deleted: true, delAt: JC.time.now() });
-        JC.story.act('memo_delete', { id: srcOf(m) });
+        JC.story.act('memo_delete', { id: srcOf(m), copy: !!m.src });
         if (!quiet) JC.ui.toast('Moved to Recently Deleted', { icon: 'trash' });
       }
       function moveTo(ids, done) {

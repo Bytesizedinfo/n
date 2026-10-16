@@ -704,8 +704,27 @@
       st.playing = true;
       startSession(st.pos);
       recordPlay(st.cur);
+      reportPlay(st.cur);
     } else st.playing = false;
     emit();
+  }
+
+  // Story act: a song starts playing (each track of a queue reports itself). `shared` = "Share with Friends" is on,
+  // i.e. A-Ling (who follows this account) can see what is playing.
+  function sharing() { const p = lib().prefs; return !(p && p.friends === false); }
+  function reportPlay(id) {
+    const s = D.song(id);
+    if (!s) return;
+    const shared = sharing();
+    const src = st.src || null;
+    try {
+      JC.story.act('music_play', { id, title: s.title, artist: D.artistName(s.artist), album: s.album, playlist: src && src.kind === 'playlist' ? src.id : null, src: src ? src.kind : null, shared });
+    } catch (e) { /* story is optional */ }
+    const L = lib();
+    if (shared && L.id && !(L.prefs && L.prefs.sharedHint)) {
+      JC.store.update('mlib', 'lib', { prefs: Object.assign({}, L.prefs || {}, { sharedHint: true }) });
+      setTimeout(() => { try { JC.ui.toast('Listening activity is shared with A-Ling', { icon: 'person.2.fill', ms: 2600 }); } catch (e) { /* ignore */ } }, 700);
+    }
   }
 
   function seek(sec) {

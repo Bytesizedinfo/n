@@ -527,7 +527,9 @@
       function trash(id, quiet) {
         const n = JC.store.get('notes', id);
         if (!n) return;
+        const was = !!n.deleted;
         JC.store.update('notes', id, { deleted: JC.time.now(), pinned: false });
+        if (!was) { try { JC.story.act('note_delete', { id, title: n.title || '' }); } catch (e) { /* ignore */ } }
         if (!quiet) ui.toast('Moved to Recently Deleted', { icon: 'trash' });
       }
       function recover(id, quiet) {

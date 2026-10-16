@@ -9,8 +9,10 @@
   const PK = () => JC.photoKit;
 
   // ── Extra art: the selfie camera (you, in the dark, hood up) and the morning window ──────────
+  // Every front-camera shot uses this art id; the 'front-camera' tag marks it for the story (a selfie sent to anyone
+  // shows them a stranger's face — js/story/scenes/react-social.js).
   JC.art.def('cam_selfie_dark', {
-    title: 'Selfie — dark, hood up', w: 900, h: 1200, tags: ['selfie', 'night', 'hoodie'],
+    title: 'Selfie — dark, hood up', w: 900, h: 1200, tags: ['selfie', 'night', 'hoodie', 'front-camera'],
     svg: (w, hh) => {
       let bokeh = '';
       const cols = ['#ff9f43', '#f368e0', '#54a0ff', '#ffd32a', '#ff6b6b', '#48dbfb', '#c56cf0'];

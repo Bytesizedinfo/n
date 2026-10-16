@@ -415,14 +415,18 @@
           right: { text: 'Done', onTap: () => {
             pend.forEach((p) => {
               const st = choice[p.slot];
-              JC.store.add('hlmeds', { med: 'tacrolimus', slot: p.slot, day: today(), status: st, t: now() });
-              try { JC.story.act('med_log', { med: 'tacrolimus', slot: p.slot, status: st }); } catch (e) { /* ignore */ }
+              const day = today();
+              const due = HD.dayStart(day) + parseInt(p.slot, 10) * 3600e3;
+              // ahead: a dose that isn't due yet; late: more than an hour after it was due
+              const when = due - now() > 90 * 60e3 ? 'ahead' : now() - due > 60 * 60e3 ? 'late' : 'ontime';
+              JC.store.add('hlmeds', { med: 'tacrolimus', slot: p.slot, day, status: st, t: now() });
+              try { JC.story.act('med_log', { med: 'tacrolimus', slot: p.slot, status: st, day, due, when }); } catch (e) { /* ignore */ }
             });
             JC.audio.play('success');
             JC.ui.toast(pend.length > 1 ? 'Doses logged' : 'Dose logged', { icon: 'pills.fill' });
           } },
           content: () => [h('div.hl-medlog', h('div.hl-med-hero', h('div.hl-pill', JC.icon('pills.fill', { size: 30 })), h('div', h('div.hl-med-n', 'Tacrolimus'), h('div.hl-med-s', '2 mg Capsule · Immunosuppressant'))),
-            pend.map((p) => h('div.hl-medrow', h('div', h('div.hl-medrow-t', p.slot), h('div.hl-medrow-s', p.slot === '20:00' ? 'Scheduled · during the gala' : 'Scheduled')),
+            pend.map((p) => h('div.hl-medrow', h('div', h('div.hl-medrow-t', p.slot), h('div.hl-medrow-s', p.slot === '20:00' && today() === 0 ? 'Scheduled · during the gala' : HD.dayStart(today()) + parseInt(p.slot, 10) * 3600e3 > now() ? 'Scheduled · not due yet' : 'Scheduled')),
               JC.ui.segmented({ items: ['Taken', 'Skipped'], value: 0, onChange: (i) => { choice[p.slot] = i ? 'skipped' : 'taken'; } }))),
             h('div.hl-med-warn', JC.icon('exclamationmark.triangle.fill', { size: 14 }), 'Tacrolimus interacts with alcohol and grapefruit. Take at the same times every day.'))],
         });
@@ -445,7 +449,7 @@
               h('div.hl-chartcard', head, JC.hchart.chart({ kind: 'bars', data: dots, color: 'var(--hl-meds)', h: 120, ticks: [0, 1, 2], barW: 10, xLabels: [{ i: 0, text: U.fmtDate(HD.dayStart(today() - 13), 'md') }, { i: 13, text: 'Today' }], onScrub: (i) => { head.innerHTML = ''; if (i == null) head.append(h('div.hl-dh-k', 'LAST 14 DAYS'), valueNode(String(dots.reduce((a, d) => a + d.v, 0)), 'of 28 doses taken')); else head.append(h('div.hl-dh-k', 'DOSES TAKEN'), valueNode(String(dots[i].v), 'of 2'), h('div.hl-dh-d', dots[i].full)); } })),
               JC.ui.list([
                 { header: 'Interactions', rows: [{ title: 'Alcohol', subtitle: 'Moderate · May increase side effects. Avoid while taking Tacrolimus.', icon: { glyph: 'exclamationmark.triangle.fill', bg: 'var(--orange)' } }, { title: 'Grapefruit', subtitle: 'Severe · Can raise Tacrolimus to unsafe levels.', icon: { glyph: 'exclamationmark.triangle.fill', bg: 'var(--red)' } }], footer: 'Medical ID note from A-Ling: “Do not give him alcohol. (He will not listen.)”' },
-                { header: 'Details', rows: [{ title: 'Prescribed', detail: 'Since Sep 2008' }, { title: 'Prescriber', detail: 'Lotus Pier Hospital' }, { title: 'Reminders', toggle: { on: prefs().medRem !== false, onChange: (v) => setPrefs({ medRem: v }) } }, { title: 'Archive Medication', destructive: true, onTap: () => JC.ui.alert({ title: 'Can’t Archive', message: 'Tacrolimus keeps a transplanted liver from being rejected. It is taken for life.', buttons: [{ text: 'OK' }] }) }] },
+                { header: 'Details', rows: [{ title: 'Prescribed', detail: 'Since Sep 2008' }, { title: 'Prescriber', detail: 'Lotus Pier Hospital' }, { title: 'Shared With', detail: prefs().wwxShare !== false ? JC.contacts.name('wwx') : 'No One', chevron: true, onTap: () => tabs.select('sharing') }, { title: 'Reminders', toggle: { on: prefs().medRem !== false, onChange: (v) => setPrefs({ medRem: v }) } }, { title: 'Archive Medication', destructive: true, onTap: () => JC.ui.alert({ title: 'Can’t Archive', message: 'Tacrolimus keeps a transplanted liver from being rejected. It is taken for life.', buttons: [{ text: 'OK' }] }) }] },
                 { header: 'Log History', rows: days.slice(0, 7).map((d) => { const ls = logs.filter((l) => l.day === d); return { title: d === today() ? 'Today' : U.fmtDate(HD.dayStart(d), 'long'), detail: ls.filter((l) => l.status === 'taken').length + ' of 2 taken' }; }) },
               ]),
             ];
@@ -656,9 +660,11 @@
                   h('div.hl-req-btn.decline', { onTap: () => { setPrefs({ share: 'declined' }); try { JC.story.act('health_share', { to: 'jl', accept: false }); } catch (e) { /* ignore */ } JC.ui.toast('Request declined', { icon: 'xmark' }); } }, 'Decline'),
                   h('div.hl-req-btn.accept', { onTap: () => acceptShare() }, 'Accept'))));
             }
-            if (p.share === 'accepted') {
-              out.push(JC.ui.list([{ header: 'Sharing With', rows: [{ title: 'A-Ling', subtitle: (p.topics || []).map((t) => ({ heart: 'Heart Rate', sleep: 'Sleep', steps: 'Steps', meds: 'Medications', mind: 'State of Mind' }[t])).join(', '), avatar: 'jl', chevron: true, onTap: () => sharePerson() }], footer: 'A-Ling can see a summary of the data you chose. Only you can see your data in Health.' }]));
-            }
+            const withRows = [];
+            if (p.share === 'accepted') withRows.push({ title: 'A-Ling', subtitle: (p.topics || []).map((t) => ({ heart: 'Heart Rate', sleep: 'Sleep', steps: 'Steps', meds: 'Medications', mind: 'State of Mind' }[t])).join(', '), avatar: 'jl', chevron: true, onTap: () => sharePerson() });
+            if (p.wwxShare !== false) withRows.push({ title: JC.contacts.name('wwx'), subtitle: 'Medications · since July 2024', avatar: 'wwx', chevron: true, onTap: () => shareWwx() });
+            if (withRows.length) out.push(JC.ui.list([{ header: 'Sharing With', rows: withRows, footer: (p.share === 'accepted' ? 'A-Ling can see a summary of the data you chose. ' : '') + (p.wwxShare !== false ? JC.contacts.short('wwx') + ' can see Medications only: what was taken, what was skipped, and when.' : 'Only you can see your data in Health.') }]));
+            if (p.wwxShare === false) out.push(JC.ui.list([{ rows: [{ title: 'You stopped sharing Medications', subtitle: 'with ' + JC.contacts.name('wwx'), avatar: 'wwx', onTap: () => JC.ui.actionSheet({ actions: [{ text: 'Share Medications Again', onTap: () => { setPrefs({ wwxShare: true }); try { JC.story.act('health_share', { to: 'wwx', resume: true, topics: ['meds'] }); } catch (e) { /* ignore */ } JC.ui.toast('Sharing Medications with ' + JC.contacts.short('wwx'), { icon: 'person.2.fill' }); } }] }) }] }]));
             if (p.share === 'declined') out.push(JC.ui.list([{ rows: [{ title: 'You declined A-Ling’s request', subtitle: 'He can ask again. He will.', avatar: 'jl', onTap: () => JC.ui.actionSheet({ actions: [{ text: 'Share with A-Ling Instead', onTap: () => acceptShare() }] }) }] }]));
             out.push(h('div.hl-share-hero', h('div.hl-share-ic', JC.icon('person.2.fill', { size: 34 })), h('div.hl-share-t', 'Share Your Health Data'), h('div.hl-share-s', 'Keep friends and family up to date on how you’re doing by securely sharing your Health data.'), h('div.hl-next', { onTap: () => inviteSheet() }, 'Share with Someone')));
             out.push(JC.ui.list([{ header: 'Sharing With You', rows: [{ title: 'No one is sharing Health data with you.', subtitle: 'Invite someone to share — they’ll see a request in their Health app.' }] }, { rows: [{ title: 'Share with Your Doctor', tinted: true, onTap: () => JC.ui.alert({ title: 'Share with Your Doctor', message: 'Lotus Pier Hospital supports sharing. Jiang Cheng hasn’t connected it — his doctor already calls every month.', buttons: [{ text: 'OK' }] }) }] }]));
@@ -676,7 +682,13 @@
         });
       }
       function sharePerson() {
-        JC.ui.actionSheet({ title: 'Sharing with A-Ling', actions: [{ text: 'Change Topics', onTap: () => acceptShare() }, { text: 'Stop Sharing', style: 'destructive', onTap: () => { setPrefs({ share: 'declined' }); JC.ui.toast('Stopped sharing with A-Ling', { icon: 'xmark' }); } }] });
+        JC.ui.actionSheet({ title: 'Sharing with A-Ling', actions: [{ text: 'Change Topics', onTap: () => acceptShare() }, { text: 'Stop Sharing', style: 'destructive', onTap: () => { setPrefs({ share: 'declined' }); try { JC.story.act('health_share', { to: 'jl', accept: false, stop: true }); } catch (e) { /* ignore */ } JC.ui.toast('Stopped sharing with A-Ling', { icon: 'xmark' }); } }] });
+      }
+      function shareWwx() {
+        const nm = JC.contacts.name('wwx');
+        JC.ui.actionSheet({ title: 'Sharing with ' + nm, message: 'Medications only, since July 2024. ' + JC.contacts.short('wwx') + ' is notified when a dose is logged or skipped.', actions: [
+          { text: 'Stop Sharing', style: 'destructive', onTap: () => { setPrefs({ wwxShare: false }); try { JC.story.act('health_share', { to: 'wwx', stop: true, topics: ['meds'] }); } catch (e) { /* ignore */ } JC.ui.toast('Stopped sharing with ' + JC.contacts.short('wwx'), { icon: 'xmark' }); } },
+        ] });
       }
       function inviteSheet() {
         const people = ['lxc', 'wwx', 'ea', 'sz', 'wn', 'huang', 'nhs'];

@@ -311,9 +311,15 @@
         return JC.ui.page({ title: 'Recently Played', tint, content: () => [h('div.mu-grid', (lib().recent || []).map((r) => tile(item(r.kind, r.id))).filter(Boolean))] });
       }
       function accountSheet() {
-        const prefs = Object.assign({ history: true, friends: false, notif: true }, (lib().prefs || {}));
-        const setP = (k, v) => JC.store.update('mlib', 'lib', { prefs: Object.assign({}, prefs, { [k]: v }) });
-        JC.ui.sheet({
+        // "Share with Friends" is on: A-Ling switched it on in September. The engine reports it with music_play.
+        const prefs = Object.assign({ history: true, friends: true, notif: true }, (lib().prefs || {}));
+        let sheet = null;
+        const setP = (k, v) => {
+          prefs[k] = v;
+          JC.store.update('mlib', 'lib', { prefs: Object.assign({}, lib().prefs || {}, prefs) });
+          if (k === 'friends' && sheet) setTimeout(() => sheet.render(), 260);
+        };
+        sheet = JC.ui.sheet({
           title: 'Account', detent: 'large', right: { text: 'Done' },
           content: () => [
             h('div.mu-acct', JC.ui.avatar('me', 76), h('div.mu-acct-n', 'Jiang Cheng'), h('div.mu-acct-s', 'jiang.cheng@lotuspier.yunmeng')),
@@ -326,7 +332,7 @@
               { header: 'Privacy', rows: [
                 { title: 'Use Listening History', toggle: { on: prefs.history, onChange: (v) => setP('history', v) } },
                 { title: 'Share with Friends', toggle: { on: prefs.friends, onChange: (v) => setP('friends', v) } },
-              ], footer: 'Music you play affects Recently Played and your recommendations. Friends who follow you could see what you listen to. (A-Ling follows you.)' },
+              ], footer: prefs.friends ? 'Music you play affects Recently Played and your recommendations. Friends who follow you can see what you’re listening to: A-Ling turned this on in September (“so i can see if ur still listening to sad lake music”).' : 'Music you play affects Recently Played and your recommendations. Nobody can see what you’re listening to.' },
               { header: 'Notifications', rows: [{ title: 'New Music & Pre-Adds', toggle: { on: prefs.notif, onChange: (v) => setP('notif', v) } }] },
               { rows: [{ title: 'Music Settings', chevron: true, onTap: () => JC.os.open('settings', { page: 'app:music' }) }] },
             ]),

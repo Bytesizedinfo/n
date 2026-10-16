@@ -21,6 +21,12 @@
   SK.pref = pref;
   SK.setPref = setPref;
 
+  // Focus, Airplane Mode and Silent Mode change from Settings, Control Center and the Action button alike; report
+  // every change to the story once, from here (story acts: `setting` { key: 'focus', value: 'dnd'|'sleep'|…|null }).
+  ['focus', 'airplane', 'silent'].forEach((key) => JC.bus.on('setting:' + key, (value) => {
+    try { if (JC.story && JC.story.act) JC.story.act('setting', { key, value: value == null ? null : value }); } catch (e) { /* ignore */ }
+  }));
+
   const APP_ORDER = () => Object.keys(JC.os.appNames).filter((id) => id !== 'settings').sort((a, b) => appName(a).localeCompare(appName(b)));
   const appName = (id) => (JC.apps[id] && JC.apps[id].name) || JC.os.appNames[id] || id;
 

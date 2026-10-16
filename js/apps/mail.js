@@ -426,7 +426,7 @@
             title: '',
             onTap: () => {
               if (selecting) { if (sel.has(m.id)) sel.delete(m.id); else sel.add(m.id); page.render(); paintToolbar(); return; }
-              if (draft) compose({ to: fmtAddrs(m.to), cc: fmtAddrs(m.cc), subject: m.subject, body: m.body, draftId: m.id });
+              if (draft) { JC.story.act('mail_open', { id: m.id, draft: true }); compose({ to: fmtAddrs(m.to), cc: fmtAddrs(m.cc), subject: m.subject, body: m.body, draftId: m.id }); }
               else openMsg(m, page);
             },
             lead: selecting ? null : [{ text: m.read ? 'Unread' : 'Read', color: 'var(--blue)', icon: m.read ? 'envelope.badge' : 'envelope.open', onTap: () => setRead(m, !m.read) }],
@@ -666,7 +666,7 @@
         while (nav.depth() > 1) nav.pop({ instant: true });
         const lp = boxPage(m.box === 'drafts' ? 'drafts' : m.box);
         nav.push(lp, { instant: true });
-        if (m.box === 'drafts') compose({ to: fmtAddrs(m.to), cc: fmtAddrs(m.cc), subject: m.subject, body: m.body, draftId: m.id });
+        if (m.box === 'drafts') { JC.story.act('mail_open', { id: m.id, draft: true }); compose({ to: fmtAddrs(m.to), cc: fmtAddrs(m.cc), subject: m.subject, body: m.body, draftId: m.id }); }
         else openMsg(m, lp);
       }
       return {

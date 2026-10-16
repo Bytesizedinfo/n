@@ -83,3 +83,10 @@
 [data-app="reminders"] .rm-swatch.on { box-shadow: 0 0 0 3px var(--cell), 0 0 0 5.5px var(--label3); }
 [data-app="reminders"] .rm-iconpick { width: 42px; height: 42px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: var(--fill3); color: var(--label2); }
 [data-app="reminders"] .rm-iconpick.on { box-shadow: 0 0 0 3px var(--cell), 0 0 0 5.5px var(--label3); color: var(--label); }
+
+/* shared lists ("Shared with Lan Sizhui") */
+[data-app="reminders"] .rm-shared { display: flex; align-items: center; gap: 8px; margin: -2px 20px 12px; font-size: 13px; color: var(--label2); }
+[data-app="reminders"] .rm-shared .ic { color: var(--rm-c); opacity: .9; margin-left: auto; }
+[data-app="reminders"] .rm-shared-av { display: flex; }
+[data-app="reminders"] .rm-shared-av > * { box-shadow: 0 0 0 2px var(--gbg); border-radius: 50%; }
+[data-app="reminders"] .rm-shared-av > * + * { margin-left: -6px; }
