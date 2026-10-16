@@ -159,7 +159,12 @@
         { react: 'love', from: 'lxc', on: 'me' },
         { wait: 2 },
         { if: (s) => !!F(s).tea_yes, go: 'end_tea' },
+        { if: draftFin, go: 'end_fin' },
         { m: 'Goodnight, Wanyin. Take as long as you like. 🙂' },
+        { go: 'done' },
+      ],
+      end_fin: [
+        { m: "Goodnight, Wanyin. I'm going to read it once more, and then sleep very badly. 🙂" },
         { go: 'done' },
       ],
       end_tea: [
