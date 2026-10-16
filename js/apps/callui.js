@@ -863,7 +863,7 @@
 
   function tick() {
     if (!root || !C) return;
-    root.querySelectorAll('.cu-timer').forEach((t) => { t.textContent = timerText(); });
+    (root || document.createElement("div")).querySelectorAll('.cu-timer').forEach((t) => { t.textContent = timerText(); });
     if (S.isl && S.isl.isConnected) S.isl.textContent = timerText();
   }
 
@@ -1039,7 +1039,7 @@
       JC.audio.dtmf(k);
       JC.audio.haptic(6);
       S.dtmf += k;
-      const d = root && root.querySelector('.cu-dtmf');
+      const d = root && (root || document.createElement("div")).querySelector('.cu-dtmf');
       if (d) d.textContent = S.dtmf;
     } }, h('div.cu-keyn', k), L[k] ? h('div.cu-keyl', L[k]) : null));
     return h('div.cu-kp',
@@ -1049,7 +1049,7 @@
   }
   function swapBottom() {
     if (!root) return;
-    const cur = root.querySelector('.cu-ctls, .cu-kp');
+    const cur = (root || document.createElement("div")).querySelector('.cu-ctls, .cu-kp');
     if (!cur) return;
     const next = S.keypad ? keypadPanel() : controls();
     cur.replaceWith(next);
@@ -1058,13 +1058,13 @@
   }
   function toggleSpeaker() {
     S.speaker = !S.speaker;
-    const b = root && root.querySelector('.k-speaker');
+    const b = root && (root || document.createElement("div")).querySelector('.k-speaker');
     if (b) b.classList.toggle('on', S.speaker);
     JC.ui.toast(S.speaker ? 'Speaker on' : 'Speaker off', { icon: S.speaker ? 'speaker.wave.2.fill' : 'speaker.fill' });
   }
   function toggleMute() {
     S.muted = !S.muted;
-    root && root.querySelectorAll('.k-mute').forEach((b) => b.classList.toggle('on', S.muted));
+    root && (root || document.createElement("div")).querySelectorAll('.k-mute').forEach((b) => b.classList.toggle('on', S.muted));
     if (S.islMute && S.islMute.isConnected) S.islMute.classList.toggle('on', S.muted);
   }
   function faceTimeUpgrade() {
@@ -1122,13 +1122,13 @@
           vbtn('ellipsis', 'More', (e) => vMore(e)),
           vbtn('mic.slash.fill', 'Mute', toggleMute, S.muted, 'k-mute'),
           vbtn('video.slash.fill', 'Camera', camera, true, 'k-cam'),
-          vbtn('speaker.wave.2.fill', 'Speaker', () => { S.speaker = !S.speaker; const b = root.querySelector('.k-spk'); if (b) b.classList.toggle('on', S.speaker); }, S.speaker, 'k-spk'),
+          vbtn('speaker.wave.2.fill', 'Speaker', () => { S.speaker = !S.speaker; const b = (root || document.createElement("div")).querySelector('.k-spk'); if (b) b.classList.toggle('on', S.speaker); }, S.speaker, 'k-spk'),
           h('div.cu-vbtn.end', { onTap: () => hangup(), attrs: { 'aria-label': 'End' } }, JC.icon('phone.down.fill', { size: 24 })))));
     return el;
   }
   /** your own picture-in-picture tile: camera off, a thumb over the lens, or (if the story shows your face) you */
   function paintPip(pip) {
-    pip = pip || (root && root.querySelector('.cu-pip'));
+    pip = pip || (root && (root || document.createElement("div")).querySelector('.cu-pip'));
     if (!pip) return;
     pip.innerHTML = '';
     pip.dataset.cam = S.cam || 'off';
@@ -1142,7 +1142,7 @@
     } else {
       pip.appendChild(h('div.cu-pip-in', JC.icon('video.slash.fill', { size: 26 }), h('div.cu-pip-t', 'Camera Off')));
     }
-    const cb = root && root.querySelector('.k-cam');
+    const cb = root && (root || document.createElement("div")).querySelector('.k-cam');
     if (cb) { cb.classList.toggle('on', S.cam !== 'face'); cb.innerHTML = ''; cb.appendChild(JC.icon(S.cam === 'face' ? 'video.fill' : 'video.slash.fill', { size: 22 })); }
   }
   function camFromChoice(text) {
@@ -1163,7 +1163,7 @@
   }
   function vMore(e) {
     JC.ui.menu(e.currentTarget, [
-      { text: S.capOn ? 'Hide Live Captions' : 'Show Live Captions', icon: 'captions.bubble', onTap: () => { S.capOn = !S.capOn; const cp = root && root.querySelector('.cu-cap'); if (cp) cp.classList.toggle('off', !S.capOn); } },
+      { text: S.capOn ? 'Hide Live Captions' : 'Show Live Captions', icon: 'captions.bubble', onTap: () => { S.capOn = !S.capOn; const cp = root && (root || document.createElement("div")).querySelector('.cu-cap'); if (cp) cp.classList.toggle('off', !S.capOn); } },
       { text: 'Flip Camera', icon: 'camera.rotate', onTap: () => JC.ui.toast('Camera is off', { icon: 'video.slash.fill' }) },
       { text: 'Effects', icon: 'sparkles', onTap: () => JC.ui.toast('Effects need the camera on', { icon: 'sparkles' }) },
       { text: 'Share My Screen', icon: 'rectangle.on.rectangle', onTap: () => JC.ui.alert({ title: 'Share Your Screen?', message: 'Everything on Jiang Cheng’s screen would be visible — including his messages.', buttons: [{ text: 'Don’t Share', style: 'cancel' }] }) },
@@ -1188,7 +1188,7 @@
 
   // ── live captions & choices ──
   function renderLines() {
-    const list = root && root.querySelector('.cu-caplist');
+    const list = root && (root || document.createElement("div")).querySelector('.cu-caplist');
     if (!list || !C) { if (C) S.lines = C.lines.length; return; }
     const lines = C.lines || [];
     const fresh = S.lines < lines.length;
@@ -1234,7 +1234,7 @@
     else JC.voiceBed.say('sys', text, { gain: S.speaker ? 0.7 : 0.4, earpiece: !S.speaker });
   }
   function renderOptions() {
-    const box = root && root.querySelector('.cu-opts');
+    const box = root && (root || document.createElement("div")).querySelector('.cu-opts');
     if (!box || !C) return;
     const pend = C.pend && C.pend.options && C.pend.options.length ? C.pend.options : null;
     const key = pend ? pend.map((o) => o.label).join('|') : '';
@@ -1269,8 +1269,8 @@
     }
     if (quick) { close(); return; }
     root.classList.add('ended');
-    root.querySelectorAll('.cu-timer').forEach((t) => { t.textContent = 'Call Ended'; });
-    const opts = root.querySelector('.cu-opts');
+    (root || document.createElement("div")).querySelectorAll('.cu-timer').forEach((t) => { t.textContent = 'Call Ended'; });
+    const opts = (root || document.createElement("div")).querySelector('.cu-opts');
     if (opts) opts.innerHTML = '';
     clearTimeout(closeT);
     closeT = setTimeout(close, 1500);

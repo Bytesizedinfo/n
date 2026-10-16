@@ -35,15 +35,26 @@
     ['Master Chen Jie', 'BYD Seal · Midnight Blue', '云A·7H3K9', 4.95], ['Master Fang Rui', 'Xpeng P7 · White', '云A·2M8D4', 4.91], ['Master Guo Lan', 'Zeekr 001 · Grey', '云A·6T1V8', 4.98],
     ['Master He Yong', 'Geely Preface · Black', '云A·9B2N5', 4.87], ['Master Kong Wei', 'Nio ET5 · Silver', '云A·4R7P1', 4.93], ['Master Bai Xue', 'Li Auto L7 · Green', '云A·3C6F2', 4.96],
   ];
-  const CARDS = [{ id: 'ycb', name: 'Yunmeng Commercial Bank', last: '4417', color: '#1c1c1e' }, { id: 'ymj', name: 'YMJ Corporate', last: '1992', color: '#5b3fa6' }, { id: 'cash', name: 'Swift Cash', last: '¥120.50', color: '#ffd60a' }];
+  const CARDS = [{ id: 'ycb', name: 'Yunmeng Commercial Bank', last: '4417', color: '#1c1c1e' }, { id: 'ymj', name: 'YMJ Corporate', last: '1992', color: '#5b3fa6' }, { id: 'swiftcash', name: 'Swift Cash', last: '¥120.50', color: '#ffd60a' }];
   function st() {
     const d = JC.state.d;
     d.apps = d.apps || {};
-    d.apps.swift = Object.assign({ card: 'ycb', saved: { home: 'lp-residence', work: 'lotus-pier' }, safety: { check: true, pin: false, share: true }, notif: { trips: true, promos: false }, promo: null, reports: [] }, d.apps.swift || {});
+    d.apps.swift = Object.assign({ cash: 120.5, card: 'ycb', saved: { home: 'lp-residence', work: 'lotus-pier' }, safety: { check: true, pin: false, share: true }, notif: { trips: true, promos: false }, promo: null, reports: [] }, d.apps.swift || {});
     return d.apps.swift;
   }
   const save = () => JC.state.save();
   const SUPPORT = '+86 555 0101 8888';
+  const payLabel = (id) => { const c = CARDS.find((x) => x.id === (id || 'ycb')) || CARDS[0]; return c.id === 'swiftcash' ? 'Swift Cash' : c.name + ' •• ' + c.last; };
+  const cashText = () => '¥' + Number(st().cash).toFixed(2);
+  function sms(text) { try { JC.story.incoming('swift', { from: 'swift', text }); } catch (e) { /* no thread */ } }
+  /** charge the selected payment method (Swift Cash is the app's own balance; cards go through Wallet) */
+  function charge(o) {
+    const S = st();
+    if (S.card === 'swiftcash') { S.cash = Math.round((S.cash - o.amount) * 100) / 100; save(); return; }
+    const tx = { card: S.card, merchant: o.merchant, amount: o.amount, cat: 'ride', note: o.note || '', place: o.place || null, sms: 'SWIFT RIDE' };
+    if (JC.wallet && JC.wallet.charge) JC.wallet.charge(tx);
+    else JC.store.add('tx', Object.assign({ t: JC.time.now() }, tx), { front: true });
+  }
   function callSupport() {
     if (JC.callui && JC.callui.dialNumber) { JC.callui.dialNumber(SUPPORT); return; }
     MV().fakeCall({ name: 'Swift Ride Customer Care', num: SUPPORT, glyph: 'questionmark.circle', lines: ['Thank you for calling Swift Ride. To report a lost item, please use Report a Lost Item in the app — it reaches your driver fastest.'] });
@@ -205,7 +216,7 @@
             h('div.sw-rcpt-logo', 'Swift'), h('div.sw-rcpt-t', 'Thanks for riding, Jiang Cheng'), h('div.sw-rcpt-d', U.fmtDate(r.t, 'full') + ' · ' + U.fmtTime(r.t)),
             h('div.sw-rcpt-total', h('span', 'Total'), h('b', fmtY(r.price))),
             [['Base fare', F.base], ['Distance (' + Number(r.km || 0).toFixed(1) + ' km)', F.dist], ['Time' + (mins ? ' (' + mins + ' min)' : ''), F.time], F.night ? ['Night surcharge (22:00–07:00)', F.night] : null].filter(Boolean).map(([k, v]) => h('div.sw-rcpt-row', h('span', k), h('span', fmtY(v)))),
-            h('div.sw-rcpt-row.pay', h('span', 'Paid with ' + (CARDS.find((c) => c.id === (r.card || 'ycb')) || CARDS[0]).name + ' •• ' + (CARDS.find((c) => c.id === (r.card || 'ycb')) || CARDS[0]).last), h('span', fmtY(r.price))),
+            h('div.sw-rcpt-row.pay', h('span', 'Paid with ' + payLabel(r.card)), h('span', fmtY(r.price))),
             h('div.sw-rcpt-trip', h('div', h('span.sw-dot.g'), ' ', placeName(r.from), ' · ', U.fmtTime(r.t)), h('div', h('span.sw-dot.b'), ' ', placeName(r.to), ' · ', r.end ? U.fmtTime(r.end) : '—')),
             h('div.sw-rcpt-drv', 'Your driver: ' + r.driver.name + ' · ' + r.driver.plate),
             h('div.sw-rcpt-foot', (r.ref ? 'Receipt ' + r.ref + ' · ' : '') + 'Swift Ride Technology (Lanling) Co., Ltd. · Fapiao available in the app for 180 days.'))] });
@@ -215,7 +226,7 @@
         const comps = new Set();
         const s = JC.ui.sheet({ title: 'Rate your trip', detent: 'large', left: { text: 'Skip' }, right: { text: 'Done', onTap: () => {
           JC.store.update('rides', r.id, { rated: stars, tip, compliments: [...comps] });
-          if (tip) { JC.store.add('tx', { card: r.card || 'ycb', merchant: 'Swift Ride — Tip', amount: tip, t: JC.time.now(), cat: 'transport', note: 'Tip for ' + r.driver.name }, { front: true }); }
+          if (tip) charge({ merchant: 'Swift Ride — Tip', amount: tip, note: 'Tip for ' + r.driver.name });
           JC.ui.toast('Thanks for your rating', { icon: 'star.fill' });
           if (after) after();
         } },
@@ -335,8 +346,12 @@
         const page = JC.ui.page({
           title: 'Wallet', bg: 'grouped', cls: 'sw-walletp',
           content: () => [
-            h('div.sw-cash', h('div', h('small', 'Swift Cash'), h('b', '¥120.50')), JC.ui.btn({ text: 'Add funds', kind: 'filled', size: 's', onTap: () => JC.ui.actionSheet({ title: 'Add to Swift Cash', actions: [50, 100, 200].map((n) => ({ text: '¥' + n, onTap: () => JC.ui.alert({ title: 'Confirm with Face ID', message: 'Face not recognised.', buttons: [{ text: 'OK' }] }) })) }) })),
-            JC.ui.list([{ header: 'Payment methods', rows: CARDS.map((c) => ({ leading: h('div.sw-cardic', { style: { background: c.color } }, c.id === 'cash' ? '¥' : ''), title: c.name, subtitle: c.id === 'cash' ? 'Balance ' + c.last : '•• ' + c.last, check: st().card === c.id, onTap: () => { st().card = c.id; save(); page.render(); } })).concat([{ title: 'Add payment method', tinted: true, onTap: () => JC.ui.alert({ title: 'Add Card', message: 'Adding a card needs the cardholder’s name to match the account: Jiang Cheng.', buttons: [{ text: 'OK' }] }) }]) },
+            h('div.sw-cash', h('div', h('small', 'Swift Cash'), h('b', cashText())), JC.ui.btn({ text: 'Add funds', kind: 'filled', size: 's', onTap: () => JC.ui.actionSheet({ title: 'Add to Swift Cash', actions: [50, 100, 200].map((n) => ({ text: '¥' + n, onTap: () => {
+              const ok = (r) => { if (!r || !r.ok) return; st().cash = Math.round((st().cash + n) * 100) / 100; save(); page.render(); JC.ui.toast('¥' + n + ' added to Swift Cash', { icon: 'checkmark' }); };
+              if (JC.wallet && JC.wallet.pay) JC.wallet.pay({ merchant: 'Swift Ride', sub: 'Swift Cash top-up', amount: n, card: 'ycb', cat: 'ride', note: 'Swift Cash top-up', sms: 'SWIFT RIDE' }).then(ok);
+              else JC.ui.alert({ title: 'Confirm with Face ID', message: 'Face not recognised.', buttons: [{ text: 'OK' }] });
+            } })) }) })),
+            JC.ui.list([{ header: 'Payment methods', rows: CARDS.map((c) => ({ leading: h('div.sw-cardic', { style: { background: c.color } }, c.id === 'swiftcash' ? '¥' : ''), title: c.name, subtitle: c.id === 'swiftcash' ? 'Balance ' + cashText() : '•• ' + c.last, check: st().card === c.id, onTap: () => { st().card = c.id; save(); page.render(); } })).concat([{ title: 'Add payment method', tinted: true, onTap: () => JC.ui.alert({ title: 'Add Card', message: 'Adding a card needs the cardholder’s name to match the account: Jiang Cheng.', buttons: [{ text: 'OK' }] }) }]) },
             { header: 'Vouchers', rows: [{ title: 'Night Owl Pass', subtitle: st().promo === 'NIGHTOWL' ? 'Active · 10% off after 23:00' : 'Not active', onTap: () => promoSheet('NIGHTOWL') }] }], { cls: 'sw-list' }),
           ],
         });
@@ -493,7 +508,7 @@
               h('div.sw-tier-p', '¥' + priceFor(k)));
           })),
           h('div.sw-payrow',
-            h('div.sw-pay', { onTap: () => JC.ui.actionSheet({ title: 'Pay with', actions: CARDS.map((c) => ({ text: c.name + (c.id === 'cash' ? ' (' + c.last + ')' : ' •• ' + c.last), onTap: () => { st().card = c.id; save(); renderPanel(); } })) }) }, h('span.sw-cardic.mini', { style: { background: card.color } }), h('span.sw-pay-t', card.name.split(' ')[0] + (card.id === 'cash' ? '' : ' •• ' + card.last)), JC.icon('chevron.down', { size: 11, weight: 3 })),
+            h('div.sw-pay', { onTap: () => JC.ui.actionSheet({ title: 'Pay with', actions: CARDS.map((c) => ({ text: c.name + (c.id === 'swiftcash' ? ' (' + cashText() + ')' : ' •• ' + c.last), onTap: () => { st().card = c.id; save(); renderPanel(); } })) }) }, h('span.sw-cardic.mini', { style: { background: card.color } }), h('span.sw-pay-t', card.name.split(' ')[0] + (card.id === 'swiftcash' ? ' ' + cashText() : ' •• ' + card.last)), JC.icon('chevron.down', { size: 11, weight: 3 })),
             h('div.sw-pay', { onTap: () => promosSheet() }, JC.icon('tag.fill', { size: 14 }), h('span', st().promo ? 'Night Owl −10%' : 'Promo'))),
           JC.ui.btn({ text: (active.reserve ? 'Reserve ' : 'Choose ') + TIERS[active.tier].name, kind: 'filled', size: 'l', cls: 'sw-cta', onTap: () => request() }));
       }
@@ -564,6 +579,7 @@
         if (!active || active.phase !== 'arrived') return;
         active.phase = 'trip';
         active.tripStart = JC.time.now();
+        sms('[Swift Ride] ' + active.driver.name + ' has arrived at ' + (active.from === 'player-home' ? 'Jinxing Road 27' : placeName(active.from)) + ' (' + active.driver.plate + '). Your trip has started.');
         JC.notify.push({ app: 'swift', title: 'Trip started', body: 'On the way to ' + placeName(active.to) + '. Share your trip status any time.', open: { app: 'swift' } });
         if (flow) { renderPanel(); drawMap(); flow.map.fit(active.route.pts, { margin: 60, maxZoom: 100 }); }
         islandUpdate();
@@ -621,7 +637,7 @@
         const fee = active.phase === 'arrived' ? 8 : 0;
         JC.ui.alert({ title: 'Cancel your ride?', message: fee ? 'Your driver is already waiting. A ¥' + fee + ' cancellation fee applies.' : 'Your driver is on the way. You won’t be charged if you cancel now.', buttons: [{ text: 'Keep Ride', style: 'cancel' }, { text: 'Cancel Ride', style: 'destructive' }] }).then((x) => {
           if (x.index !== 1) return;
-          if (fee) JC.store.add('tx', { card: st().card, merchant: 'Swift Ride — Cancellation fee', amount: fee, t: JC.time.now(), cat: 'transport' }, { front: true });
+          if (fee) charge({ merchant: 'Swift Ride — Cancellation fee', amount: fee, note: 'Driver was waiting' });
           JC.store.add('rides', { from: active.from, to: active.to, t: JC.time.now(), end: null, price: fee, tier: active.tier, card: st().card, status: 'cancelled', driver: active.driver, km: 0 }, { front: true });
           stopSim();
           active = null;
@@ -636,7 +652,8 @@
         R.phase = 'done';
         const ride = JC.store.add('rides', { from: R.from, to: R.to, t: R.tripStart || JC.time.now(), end: JC.time.now() + Math.round(R.route.min * 60000), price: R.price, tier: R.tier, km: Math.round(R.route.km * 10) / 10, card: st().card, status: 'completed', driver: R.driver, rated: 0 }, { front: true });
         R.rideId = ride.id;
-        JC.store.add('tx', { card: st().card === 'cash' ? 'cash' : st().card, merchant: 'Swift Ride', amount: R.price, t: JC.time.now(), cat: 'transport', note: placeName(R.from === 'player-home' ? 'player-home' : R.from) + ' → ' + placeName(R.to) }, { front: true });
+        charge({ merchant: 'Swift Ride', amount: R.price, note: placeName(R.from) + ' → ' + placeName(R.to), place: R.from });
+        sms('[Swift Ride] Trip complete · ' + placeName(R.from) + ' → ' + placeName(R.to) + ' · ' + Math.max(1, Math.round(R.route.min)) + ' min · ¥' + Number(R.price).toFixed(2) + '. Left something behind? Use Report a Lost Item in the app.');
         JC.audio.play('success');
         JC.notify.push({ app: 'swift', title: 'You’ve arrived', body: 'Thanks for riding with ' + R.driver.name + '. ¥' + R.price + ' charged to ' + (CARDS.find((c) => c.id === st().card) || CARDS[0]).name + '.', open: { app: 'swift', intent: { id: ride.id } } });
         JC.os.island.stop('swift-ride');
@@ -653,7 +670,7 @@
             h('div.sw-tips', [0, 5, 10, 20].map((t) => h('span.sw-tip.tap', { class: { on: tip === t }, onTap: () => { tip = t; draw(); } }, t ? '¥' + t : 'No tip'))),
             JC.ui.btn({ text: 'Done', kind: 'filled', size: 'l', cls: 'sw-cta', onTap: () => {
               JC.store.update('rides', R.rideId, { rated: stars, tip });
-              if (tip) JC.store.add('tx', { card: st().card, merchant: 'Swift Ride — Tip', amount: tip, t: JC.time.now(), cat: 'transport', note: 'Tip for ' + R.driver.name }, { front: true });
+              if (tip) charge({ merchant: 'Swift Ride — Tip', amount: tip, note: 'Tip for ' + R.driver.name });
               const rr = JC.store.get('rides', R.rideId);
               active = null;
               closeFlow();

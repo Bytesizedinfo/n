@@ -215,7 +215,7 @@
             page.setToolbar([
               h('div.vmo-tbtext', { onTap: () => { const ids = new Set(deleted().map((m) => m.id)); if (!ids.size) return; JC.store.set('memos', all().map((m) => (ids.has(m.id) ? Object.assign({}, m, { deleted: false }) : m))); JC.ui.toast('Recovered', { icon: 'arrow.uturn.left' }); } }, 'Recover All'),
               JC.ui.spacer(),
-              h('div.vmo-tbtext.red', { onTap: () => { if (!deleted().length) return; JC.ui.alert({ title: 'Delete All?', message: 'These recordings will be deleted. You can’t undo this action.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete All', style: 'destructive', onTap: () => JC.store.set('memos', all().filter((m) => !m.deleted)) }] }); } }, 'Delete All'),
+              h('div.vmo-tbtext.red', { onTap: () => { if (!deleted().length) { JC.ui.toast('Recently Deleted is empty', { icon: 'trash' }); return; } JC.ui.alert({ title: 'Delete All?', message: 'These recordings will be deleted. You can’t undo this action.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete All', style: 'destructive', onTap: () => JC.store.set('memos', all().filter((m) => !m.deleted)) }] }); } }, 'Delete All'),
             ]);
             return;
           }

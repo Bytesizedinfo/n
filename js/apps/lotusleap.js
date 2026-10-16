@@ -560,7 +560,7 @@
         hud.append(
           h('div.ll-hud-l', [0, 1, 2].map((i) => lotusIcon(i < G.lives))),
           h('div.ll-hud-c', h('div.ll-score', G.score.toLocaleString('en-US')), h('div.ll-sub', { class: { combo: G.mult > 1 } }, G.mult > 1 ? 'COMBO ×' + G.mult : 'BEST ' + best().toLocaleString('en-US'))),
-          h('div.ll-pause.tap', { onTap: () => pause() }, JC.icon('pause.fill', { size: 18 })));
+          G.mode === 'play' || G.mode === 'paused' ? h('div.ll-pause.tap', { onTap: () => (G.mode === 'paused' ? resume() : pause()) }, JC.icon(G.mode === 'paused' ? 'play.fill' : 'pause.fill', { size: 18 })) : null);
         if (G.score > GOAL && !G.beatShown) { G.beatShown = true; G.pops.push({ x: W / 2, y: laneY(G.frog.lane) - 70, text: 'You beat A-Ling!', life: 2, c: '#ffd36b', big: true }); sfx('best'); }
       }
       function btn(text, icon, onTap, cls) { return h('div.ll-btn', { class: cls, onTap: (e) => { sfx('tap'); buzz(5); onTap(e); } }, icon ? JC.icon(icon, { size: 18 }) : null, text ? h('span', text) : null); }

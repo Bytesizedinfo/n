@@ -100,7 +100,8 @@
   }
   function callBack(r) {
     if (r.contact) JC.callui.dial(r.contact, { num: r.num, video: !!r.video, ft: !!r.ft });
-    else JC.callui.dialNumber(r.num);
+    else if (r.num) JC.callui.dialNumber(r.num);
+    else JC.ui.alert({ title: 'No Caller ID', message: 'This caller\u2019s number wasn\u2019t available, so you can\u2019t call them back.', buttons: [{ text: 'OK' }] });
   }
   function groups(list) {
     const out = [];
