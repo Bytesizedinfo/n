@@ -8,6 +8,7 @@
   let bannerQ = [];
   let bannerEl = null;
   let bannerT = null;
+  let hiding = false;
 
   const APP_NAMES = () => (JC.os && JC.os.appNames) || {};
 
@@ -91,6 +92,10 @@
     },
     /** clear notifications for a thread/app once the user has seen it */
     seen(match) {
+      // drop queued/visible banners that point at what the user is now looking at
+      const hits = (n) => (match.thread && n.thread === match.thread) || (match.app && !match.thread && n.app === match.app);
+      bannerQ = bannerQ.filter((n) => !hits(n));
+      if (bannerEl && bannerEl.__n && hits(bannerEl.__n)) notify.hideBanner();
       const before = list().length;
       JC.state.d.notifs = list().filter((n) => !((match.thread && n.thread === match.thread) || (match.app && !match.thread && n.app === match.app)));
       if (JC.state.d.notifs.length !== before) { JC.state.save(); JC.bus.emit('notifs'); }
@@ -152,7 +157,7 @@
     },
     banner(n) {
       bannerQ.push(n);
-      if (!bannerEl) showNext();
+      if (!bannerEl && !hiding) showNext();
     },
     /** expanded message notification with quick reply (long-press a message notification) */
     expand(n) {
@@ -201,17 +206,22 @@
       if (!bannerEl) return;
       const el = bannerEl;
       bannerEl = null;
+      hiding = true;
       clearTimeout(bannerT);
-      U.anim(el, [{ transform: el.style.transform || 'translateY(0)', opacity: 1 }, { transform: 'translateY(-130%)', opacity: 0.6 }], { duration: 320 }).then(() => { el.remove(); showNext(); });
+      U.anim(el, [{ transform: el.style.transform || 'translateY(0)', opacity: 1 }, { transform: 'translateY(-130%)', opacity: 0.6 }], { duration: 320 }).then(() => { el.remove(); hiding = false; showNext(); });
     },
   };
 
   function showNext() {
-    const n = bannerQ.shift();
+    let n = bannerQ.shift();
+    while (n && JC.os && JC.os.isViewing && JC.os.isViewing(n)) n = bannerQ.shift();
     if (!n) return;
+    // collapse a burst from the same conversation into its latest message
+    while (bannerQ.length && bannerQ[0].thread && bannerQ[0].thread === n.thread) n = bannerQ.shift();
     const layer = document.getElementById('banners');
     if (!layer) return;
     const card = notify.card(n, { cls: 'banner', swipe: false, onTap: () => { notify.hideBanner(); notify.open(n); } });
+    card.__n = n;
     layer.appendChild(card);
     bannerEl = card;
     U.anim(card, [{ transform: 'translateY(-130%)', opacity: 0.5 }, { transform: 'translateY(0)', opacity: 1 }], { duration: 520, easing: U.SPRING });

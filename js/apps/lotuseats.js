@@ -102,7 +102,7 @@
       });
       const refreshTop = (ids) => (ids || ['home', 'browse', 'orders', 'account', 'search']).forEach((id) => { const n = tabs.nav(id); if (n && n.top()) n.top().render(); });
       offs.push(JC.bus.on('lotuseats:cart', () => { updateBars(); }));
-      offs.push(JC.bus.on('store:orders', () => { badge(); }));
+      offs.push(JC.bus.on('store:orders', () => { badge(); const hn = tabs.nav('home'); if (hn && hn.depth() === 1 && hn.top() && hn.top().el.isConnected) hn.top().render(); }));
       function badge() { tabs.badge('orders', JC.store.all('orders').filter((o) => o.status === 'active').length || 0); }
       badge();
 
@@ -784,19 +784,24 @@
 
       // ═══ TRACKING ═══
       function trackPage(id) {
-        let map = null;
+        let map = null, lastKey = '', dead = false;
         const box = h('div.le-tmap');
         const card = h('div.le-tcard');
+        const cleanup = () => { if (dead) return; dead = true; off1(); off2(); if (map) { map.destroy(); map = null; } };
         const page = JC.ui.page({
           title: '', cls: 'le-track', transparentNav: true,
           right: [JC.ui.navBtn({ icon: 'questionmark.circle', label: 'Help', onTap: () => { const o = JC.store.get('orders', id); if (o) helpSheet(o); } })],
-          onClose: () => { off(); if (map) map.destroy(); },
+          onClose: () => cleanup(),
           content: () => [box, card],
         });
-        const draw = () => {
+        const draw = (full) => {
+          if (dead) return;
           const o = JC.store.get('orders', id);
           if (!o) return;
-          if (o.status !== 'active') { page.nav && page.nav.replace(orderPage(id)); return; }
+          if (o.status !== 'active') {
+            if (page.nav && page.nav.top() === page) { cleanup(); page.nav.replace(orderPage(id)); }
+            return;
+          }
           const r = rest(o.rest), a = addrOf(o.to);
           const P = restPlace(r), Q = MV().place(a.place);
           const leg = legFor(r, a);
@@ -805,43 +810,47 @@
             if (P) map.addPin('rest', { place: r.place, cat: 'food', label: r.name });
             if (Q && a.id !== 'here') map.addPin('dest', { kind: 'dot', at: [Q.x, Q.y], color: '#1c1c1e', square: true, anchor: 'center', label: a.label });
             if (leg) map.setRoute('leg', { pts: leg.pts, color: TINT, width: 5 });
-            setTimeout(() => { map.resize && map.resize(); if (leg) map.fit(leg.pts, { margin: 50, maxZoom: 120, animate: false }); }, 60);
+            setTimeout(() => { if (!map) return; map.resize(); if (leg) map.fit(leg.pts, { margin: 46, maxZoom: 120, animate: false }); }, 80);
           }
           const sm = sims[id];
-          if (sm && sm.pos && (o.phase === 'delivering' || o.phase === 'arrived' || o.phase === 'pickup')) {
+          if (sm && sm.pos && (o.phase === 'pickup' || o.phase === 'delivering' || o.phase === 'arrived')) {
             if (!map._riderOn) { map.addPin('rider', { kind: 'rider', at: sm.pos, anchor: 'center', z: 9 }); map._riderOn = true; }
             else map.movePin('rider', sm.pos);
             if (o.phase === 'delivering' && leg) map.setRoute('leg', { pts: leg.pts, color: TINT, width: 5, progress: sm.k });
           }
-          renderCard(o, r, a);
+          const key = o.phase + '|' + o.status;
+          if (full || key !== lastKey) { lastKey = key; renderCard(o, r, a); }
+          else {
+            const sub = card.querySelector('.le-tsub'); if (sub) sub.textContent = tsub(o);
+            const msg = card.querySelector('.le-tmsg'); if (msg) msg.textContent = phaseSub(o);
+            const bar = card.querySelector('.le-step.cur i'); if (bar && sm) bar.style.width = Math.round((sm.k || 0) * 100) + '%';
+          }
         };
+        const tsub = (o) => { const left = remaining(o); return phaseTitle(o) + (o.phase === 'arrived' ? '' : ' · ' + (left <= 1 ? 'any minute' : left + ' min')); };
         function renderCard(o, r, a) {
           const idx = PHASES.indexOf(o.phase);
-          const left = remaining(o);
           card.innerHTML = '';
           card.append(
             h('div.le-tgrab'),
             h('div.le-teta', o.phase === 'arrived' ? 'Your rider is here' : 'Arriving at ' + U.fmtTime(arriveAt(o))),
-            h('div.le-tsub', phaseTitle(o) + (o.phase === 'arrived' ? '' : ' · ' + (left <= 1 ? 'any minute' : left + ' min'))),
-            h('div.le-steps', [0, 1, 2, 3].map((i) => h('div.le-step', { class: { done: i < idx || (i === idx && i === 0 && o.phase !== 'placed'), cur: i === Math.min(3, idx) } }, h('i', { style: i === Math.min(3, idx) && sims[o.id] ? { width: Math.round((sims[o.id].k || 0) * 100) + '%' } : null })))),
+            h('div.le-tsub', tsub(o)),
+            h('div.le-steps', [0, 1, 2, 3].map((i) => h('div.le-step', { class: { done: i < Math.min(3, idx) || (idx >= 4), cur: i === Math.min(3, idx) && idx < 4 } }, h('i', i === Math.min(3, idx) && sims[o.id] ? { style: { width: Math.round((sims[o.id].k || 0) * 100) + '%' } } : null)))),
             h('div.le-tmsg', phaseSub(o)),
             idx >= 2 ? h('div.le-rider',
               JC.ui.avatar({ initials: o.rider.name.split(' ').map((w) => w[0]).join(''), grad: ['#ff8a80', TINT] }, 46),
               h('div.le-rider-m', h('b', o.rider.name), h('span', '★ ' + o.rider.rating.toFixed(2) + ' · ' + o.rider.vehicle)),
               h('div.le-rbtn', { onTap: () => chatRider(o) }, JC.icon('message.fill', { size: 19 })),
-              h('div.le-rbtn', { onTap: () => callRider(o) }, JC.icon('phone.fill', { size: 19 }))) : h('div.le-tresto', h('div.le-tresto-img', heroEl(r)), h('div', h('b', r.name), h('span', idx === 0 ? 'Confirming your order…' : 'Cooking · ' + o.items.reduce((x, y) => x + y.q, 0) + ' items'))),
+              h('div.le-rbtn', { onTap: () => callRider(o) }, JC.icon('phone.fill', { size: 19 }))) : h('div.le-tresto', h('div.le-tresto-img', heroEl(r)), h('div', h('b', r.name), h('span', idx === 0 ? 'Confirming your order…' : 'Cooking · ' + o.items.reduce((x, y) => x + y.q, 0) + ' item' + (o.items.reduce((x, y) => x + y.q, 0) === 1 ? '' : 's')))),
             JC.ui.list([{ rows: [
               { icon: { glyph: a.icon || 'mappin.fill', bg: TINT }, title: a.label, subtitle: o.drop + (o.note ? ' · “' + o.note + '”' : '') },
               { icon: { glyph: 'bag.fill', bg: '#8e8e93' }, title: o.items.map((x) => x.q + '× ' + x.n).join(', '), subtitle: yen(o.total) + ' · ' + cardOf(o.card).short + ' •• ' + cardOf(o.card).last, chevron: true, onTap: () => page.nav.push(orderPage(id)) },
             ] }], { cls: 'le-list' }),
-            idx <= 1 ? h('div.le-tcancel.tap', { onTap: () => cancelOrder(o, () => draw()) }, 'Cancel order') : h('div.le-tcancel.muted', 'Too late to cancel — your food is on its way'));
+            idx <= 1 ? h('div.le-tcancel.tap', { onTap: () => cancelOrder(o, () => draw(true)) }, 'Cancel order') : h('div.le-tcancel.muted', 'Too late to cancel — your food is on its way'));
         }
         const off1 = JC.bus.on('lotuseats:tick', (e) => { if (e.id === id && page.el.isConnected) draw(); });
-        const off2 = JC.bus.on('store:orders', () => { if (page.el.isConnected) draw(); });
-        const off = () => { off1(); off2(); };
-        offs.push(off);
-        setTimeout(draw, 0);
-        page.el.classList.add('le-trackpage');
+        const off2 = JC.bus.on('store:orders', () => { if (page.el.isConnected) draw(true); });
+        offs.push(cleanup);
+        setTimeout(() => draw(true), 0);
         return page;
       }
 
