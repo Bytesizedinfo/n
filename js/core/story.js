@@ -536,10 +536,13 @@
       if (step.say != null) {
         if (!call || call.run !== run.rid) { run.i++; continue; }
         if (run.phase !== 'say') {
+          // a function computes the line from the story state; null/'' skips it
+          const line = typeof step.say === 'function' ? evalFn(step.say, null) : step.say;
+          if (!line) { run.i++; continue; }
           run.phase = 'say';
-          call.lines.push({ who: step.from || call.cid, text: step.say });
+          call.lines.push({ who: step.from || call.cid, text: line });
           JC.bus.emit('story:call', call);
-          run.until = at(U.clamp(1100 + step.say.length * 48, 1500, 6500) / speed());
+          run.until = at(U.clamp(1100 + String(line).length * 48, 1500, 6500) / speed());
           return;
         }
         run.phase = null;

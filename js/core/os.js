@@ -81,7 +81,7 @@
     device.appendChild(screen);
     const caption = h('div#caption',
       h('div.cap-title', 'Jiang Cheng’s Phone'),
-      h('div.cap-sub', 'You found it in a taxi. Everyone thinks you’re him.'),
+      h('div.cap-sub', 'You found it in a taxi. Everyone thinks you’re him. What you do in his apps counts too: people notice orders, photos, posts and money.'),
       h('div.cap-hints',
         h('div', h('b', 'Home'), ' drag up from the bottom bar (or tap it) · Esc'),
         h('div', h('b', 'Control Center'), ' drag down from the top-right'),
