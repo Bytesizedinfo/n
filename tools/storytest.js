@@ -111,8 +111,27 @@ function staticCheck() {
   return { errors, warns, stats: { threads: threads.size, messages: msgCount, scenes: Object.keys(d.scenes).length, calls: Object.keys(d.calls).filter((k) => !k.startsWith('_')).length, choices: choiceCount, endings: ends.length } };
 }
 
+// App actions a player might take mid-night (payloads as the apps emit them); random/chaos runs fire a few.
+const APP_ACTS = [
+  ['order', { rest: 'auntie-lu', to: 'jingshi', total: 168, items: ['al1'], names: ['Lotus root & pork rib soup'], anon: true }],
+  ['order', { rest: 'night-owl', to: 'ymj', total: 320, items: ['cg1'], names: ['Century egg & pork congee'] }],
+  ['order', { rest: 'pet-kingdom', to: 'koires', total: 186, items: ['pk2'], names: ['Salmon training treats'] }],
+  ['order', { rest: 'night-owl-ll', to: 'gp', total: 60, items: ['cg1'], names: ['Century egg & pork congee'] }],
+  ['order', { rest: 'skewers', to: 'here', total: 90, items: ['sk1'], names: ['Cumin lamb skewers ×5'], card: 'ycb' }],
+  ['ride_book', { tier: 'pet', from: 'koi-tower', to: 'player-home', price: 104 }],
+  ['phone_dropoff', { place: 'golden-peony', leave: false }],
+  ['wallet_send', { to: 'jl', amount: 1818 }],
+  ['wallet_send', { to: 'wwx', amount: 100 }],
+  ['wallet_send', { to: 'wn', amount: 300 }],
+  ['findmy_share', { to: 'nhs', dur: 'hour' }],
+  ['findmy_share', { to: 'jl', dur: 'hour' }],
+  ['findmy_ask', { to: 'lxc' }],
+  ['directions', { place: 'golden-peony' }],
+  ['place_view', { place: 'laoma-hotpot' }],
+];
+
 async function playthrough(page, seed, strategy) {
-  return page.evaluate(async ({ seed, strategy }) => {
+  return page.evaluate(async ({ seed, strategy, APP_ACTS }) => {
     let s = seed;
     const rnd = () => { s = (s * 1103515245 + 12345) & 0x7fffffff; return s / 0x7fffffff; };
     const pick = (n) => Math.floor(rnd() * n);
@@ -142,6 +161,17 @@ async function playthrough(page, seed, strategy) {
       if (strategy !== 'minimal' && !did.ajie && rnd() < 0.01) { did.ajie = 1; JC.story.act('open_thread', { thread: 'ajie' }); log.push('open ajie'); }
       if (strategy === 'chaos' && !did.game && rnd() < 0.01) { did.game = 1; JC.story.act('game_score', { score: 2000 }); log.push('game 2000'); }
       if (strategy === 'chaos' && rnd() < 0.004) { JC.story.send(JC.story.threadFor(['jl', 'wwx', 'nhs', 'lxc'][pick(4)]), { text: 'hello' }); log.push('free text'); }
+      // app actions (each at most once per run)
+      if ((strategy === 'random' || strategy === 'chaos') && it > 20 && rnd() < (strategy === 'chaos' ? 0.03 : 0.012)) {
+        const k = pick(APP_ACTS.length);
+        did.acts = did.acts || {};
+        if (!did.acts[k]) {
+          did.acts[k] = 1;
+          const [name, p] = APP_ACTS[k];
+          if (name === 'send') JC.story.send(p.thread, p.msg); else JC.story.act(name, JSON.parse(JSON.stringify(p)));
+          log.push('app ' + name + ' ' + JSON.stringify(p).slice(0, 40));
+        }
+      }
       // calls
       const c = JC.story.call();
       if (c && c.phase === 'ringing' && c.dir === 'in') { if (strategy === 'decline' && rnd() < 0.7) { JC.story.decline(); log.push('decline ' + c.cid); } else { JC.story.answer(); log.push('answer ' + c.cid); } }
@@ -166,7 +196,7 @@ async function playthrough(page, seed, strategy) {
     const c = JC.story.call();
     const dbg = JC.story._debug ? JC.story._debug() : null;
     return { dbg, ending: null, stuck: true, log: log.slice(-15), runs: st.runs.map((r) => r.sc + '.' + r.node + '[' + r.i + ']' + (r.wait ? ' wait:' + r.wait : '') + (r.phase ? ' phase:' + r.phase : '') + ' until+' + Math.round((r.until || 0) - st.eng)), frozen: JC.time.frozen, cinema: document.getElementById('cinema').className, call: c ? c.id + ':' + c.phase + ':' + c.dir + (c.pend ? ':pend' : '') : null, eng: Math.round(st.eng), clock: new Date(JC.time.now()).toString().slice(0, 24) };
-  }, { seed, strategy });
+  }, { seed, strategy, APP_ACTS });
 }
 
 (async () => {
