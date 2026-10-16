@@ -7,11 +7,19 @@
 
   const F = (s) => s.flags || {};
   const night = (s) => !F(s).night_done;
-  const waitFor = (k, next, self) => [
+  // One scene with choices per thread at a time: poll until the thread is free, then hold it.
+  // Night scenes give up quietly once the night is over (an 'off' node is added automatically).
+  const waitFor = (k, next, self, anytime) => [
+    ...(anytime ? [] : [{ if: (s) => !!F(s).night_done, go: 'off' }]),
     { if: (s) => !F(s)['busy_' + k], go: next },
     { wait: 6 },
     { go: self || 'start' },
   ];
+  const usesOff = (nodes) => Object.keys(nodes).some((n) => (nodes[n] || []).some((st) => st && st.go === 'off'));
+  const scene = (def) => {
+    if (def.nodes && !def.nodes.off && usesOff(def.nodes)) def.nodes.off = [{ end: true }];
+    return S.scene(def);
+  };
   const lock = (k) => ({ fx: { set: { ['busy_' + k]: true } } });
   const free = (k) => ({ fx: { set: { ['busy_' + k]: false } } });
 
@@ -42,7 +50,7 @@
   };
 
   // ── 1. "So........ the balcony" ──────────────────────────────────
-  S.scene({
+  scene({
     id: 'nhs_balcony',
     thread: 'nhs',
     trigger: { on: 'unlock', delay: 130 },
@@ -121,8 +129,8 @@
         { go: 'end' },
       ],
       email: [
-        { m: 'Brother Jiang… "hehe I swapped the seats~"? It\'s right there in your inbox 👀' },
-        { m: 'You always read my emails. You just never answer them' },
+        { m: 'Brother Jiang… you texted me "You changed the seating chart." at 18:54 👀' },
+        { m: '"hehe I swapped the seats~". Your inbox. You always read my emails. You just never answer them' },
         { go: 'end' },
       ],
       thanks: [
@@ -137,7 +145,7 @@
   });
 
   // ── 2. The quiz ──────────────────────────────────────────────────
-  S.scene({
+  scene({
     id: 'nhs_quiz',
     thread: 'nhs',
     trigger: { on: 'scene', scene: 'nhs_balcony', delay: 200 },
@@ -151,7 +159,7 @@
         { choice: [
             { t: 'Laoma Hotpot.', fx: { set: { nhs_quiz_ok: true } }, go: 'right' },
             { t: 'Why would I remember that.', fx: { sus: { nhs: 1 } }, go: 'dodge' },
-            { t: 'Haidilao.', fx: { sus: { nhs: 4 } }, go: 'wrong1' },
+            { t: 'Golden Ladle.', fx: { sus: { nhs: 4 } }, go: 'wrong1' },
             { t: 'Hotpot King?', fx: { sus: { nhs: 3 } }, go: 'wrong2' },
           ] },
       ],
@@ -168,7 +176,7 @@
       ],
       wrong1: [
         { m: '…' },
-        { m: 'Brother Jiang. We were fifteen. We were in Gusu. There was no Haidilao in Gusu 👀' },
+        { m: 'Brother Jiang. Golden Ladle opened in 2019. We were fifteen 👀' },
         { m: 'Hmm.' },
         { go: 'end' },
       ],
@@ -183,7 +191,7 @@
   });
 
   // ── 3. Alumni group: gala report ─────────────────────────────────
-  S.scene({
+  scene({
     id: 'alumni_gossip',
     thread: 'alumni',
     trigger: { on: 'unlock', delay: 660 },
@@ -200,7 +208,7 @@
         { m: 'Delete this.', from: 'lwj' },
         { m: 'LMAOOOO', from: 'wwx' },
         { m: "huaisang ur going to get us all killed. jiang cheng don't kill him he's small", from: 'wwx' },
-        { m: "It's past midnight and my daughter has just learned to climb out of her crib. Please be quieter in this chat.", from: 'mian' },
+        { m: "Tangtang's fever is gone and now she is wide awake asking why my phone keeps buzzing. Please be quieter in this chat.", from: 'mian' },
         { m: "Sorry about the van. I'll move it. Sorry.", from: 'wn' },
         { choice: [
             { t: 'Delete this.', go: 'delete' },
@@ -240,7 +248,7 @@
   });
 
   // ── 4. @teaspiller_qh posts #BalconyGate ─────────────────────────
-  S.scene({
+  scene({
     id: 'nhs_post',
     thread: 'nhs',
     trigger: { on: 'scene', scene: 'nhs_quiz', delay: 240 },
@@ -297,7 +305,7 @@
   });
 
   // ── 5. Tea accepted: somehow, he knows ───────────────────────────
-  S.scene({
+  scene({
     id: 'nhs_tea_knows',
     thread: 'nhs',
     trigger: { on: 'flag', flag: 'tea_yes', delay: 110 },
@@ -339,7 +347,7 @@
   });
 
   // ── 6. The cover-up leaks → #KoiPondGate ─────────────────────────
-  S.scene({
+  scene({
     id: 'koigate_leak',
     thread: 'jl',
     trigger: { on: 'flag', flag: 'car_cover', delay: 200 },
@@ -365,7 +373,7 @@
   });
 
   // ── 7. Caught: suspicion with Nie Huaisang ≥ 8 → I Know Nothing ─
-  S.scene({
+  scene({
     id: 'caught_nhs',
     thread: 'nhs',
     trigger: { on: 'manual' },

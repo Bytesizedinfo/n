@@ -7,11 +7,19 @@
 
   const F = (s) => s.flags || {};
   const night = (s) => !F(s).night_done;
-  const waitFor = (k, next, self) => [
+  // One scene with choices per thread at a time: poll until the thread is free, then hold it.
+  // Night scenes give up quietly once the night is over (an 'off' node is added automatically).
+  const waitFor = (k, next, self, anytime) => [
+    ...(anytime ? [] : [{ if: (s) => !!F(s).night_done, go: 'off' }]),
     { if: (s) => !F(s)['busy_' + k], go: next },
     { wait: 6 },
     { go: self || 'start' },
   ];
+  const usesOff = (nodes) => Object.keys(nodes).some((n) => (nodes[n] || []).some((st) => st && st.go === 'off'));
+  const scene = (def) => {
+    if (def.nodes && !def.nodes.off && usesOff(def.nodes)) def.nodes.off = [{ end: true }];
+    return S.scene(def);
+  };
   const lock = (k) => ({ fx: { set: { ['busy_' + k]: true } } });
   const free = (k) => ({ fx: { set: { ['busy_' + k]: false } } });
 
@@ -27,7 +35,7 @@
   };
 
   // ── 1. "Did you get home safely?" → the apology → the invitation ─
-  S.scene({
+  scene({
     id: 'lxc_home',
     thread: 'lxc',
     trigger: { on: 'unlock', delay: 40 },
@@ -123,9 +131,10 @@
 
       invite: [
         { wait: 2 },
-        { m: 'May I ask you something? You can say no.' },
+        { m: 'On Wednesday I asked about Saturday, and you said "I\'ll see."' },
+        { m: 'May I ask again, properly? You can still say no.' },
         { m: 'Would you come to tea tomorrow? At the Hanshi, at three.' },
-        { m: 'I still have the white peony. The one you liked.', img: 'p_tea_hanshi' },
+        { m: 'I still have the white peony. The tin that came from Yunmeng by coincidence.', img: 'p_tea_hanshi' },
         { fx: { set: { lxc_invited: true } } },
         { choice: [
             { t: 'Three. Fine.', fx: { set: { tea_yes: true }, aff: { lxc: 1 } }, go: 'yes' },
@@ -157,7 +166,7 @@
   });
 
   // ── 2. The moon over Gusu (~1 AM) ────────────────────────────────
-  S.scene({
+  scene({
     id: 'lxc_moon',
     thread: 'lxc',
     trigger: { on: 'scene', scene: 'lxc_home', delay: 420 },
@@ -169,6 +178,14 @@
         { m: 'Forgive me. I know it is late.' },
         { m: 'The moon is very clear over Gusu tonight.', img: 'p_gusu_moon' },
         { m: 'You photographed it from the balcony, just before I said what I said. I saw you do it.' },
+        { if: (s) => F(s).told_recipe, go: 'recipe' },
+        { go: 'reply' },
+      ],
+      recipe: [
+        { m: 'Also: Wangji says Wei Wuxian is making soup at one in the morning, and crying into it. Apparently someone finally told him about the fire. 🙂' },
+        { go: 'reply' },
+      ],
+      reply: [
         { m: 'This is the same moon, from the other side. That is all. I wanted you to have it.' },
         { choice: [
             { t: 'Same moon.', label: '[Send him your balcony photo]', silent: true, go: 'photo' },
@@ -220,7 +237,7 @@
       ],
       late_invite: [
         { m: 'I meant to ask you something earlier, and lost my nerve.' },
-        { m: 'Would you come to tea tomorrow? At the Hanshi, at three. I still have the white peony.' },
+        { m: 'On Wednesday you said "I\'ll see." Have you seen? Tea tomorrow, at the Hanshi, at three.' },
         { fx: { set: { lxc_invited: true } } },
         { choice: [
             { t: 'Three. Fine.', fx: { set: { tea_yes: true }, aff: { lxc: 1 } }, go: 'late_yes' },
@@ -246,7 +263,7 @@
   });
 
   // ── 3. Lan Qiren has no questions (~01:15) ───────────────────────
-  S.scene({
+  scene({
     id: 'qr_letter',
     thread: 'qr',
     trigger: { on: 'unlock', delay: 1250 },
@@ -277,7 +294,7 @@
   });
 
   // ── 4. Tang Mei sees the calendar ────────────────────────────────
-  S.scene({
+  scene({
     id: 'ea_tea',
     thread: 'ea',
     trigger: { on: 'flag', flag: 'tea_yes', delay: 150 },
@@ -293,11 +310,12 @@
         { go: 'coat' },
       ],
       nocar: [
-        { m: 'I have moved the Honghu Cooperative call to Monday. Leave by 12:30.' },
+        { m: 'Gusu is two hours by train. Leave by 12:30.' },
         { go: 'coat' },
       ],
       coat: [
         { m: 'Wear the grey coat. Not the purple one. You always wear the purple one.' },
+        { m: 'Do not bring white peony. He still has the tin you had me send on the 25th.' },
         { m: 'For the record, I have kept your Saturday afternoons free since September. You never asked why.' },
         { choice: [
             { t: 'Noted.', go: 'noted' },

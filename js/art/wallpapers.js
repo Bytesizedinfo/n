@@ -182,8 +182,8 @@
       // right: tall open lotus rising into the clock zone + a leaf
       stem(1150, 2622, 1010, 1960, 30, 12, '#1f3229') +
       cupLeaf(1010, 1920, 2.1, 10, '#3f6650', '#1f3328', '#ffc9a6') +
-      stem(960, 2622, 862, 790, 120, 14, '#25392d') +
-      lotusFlower(862, 796, 2.5, -6);
+      stem(960, 2622, 862, 850, 120, 14, '#25392d') +
+      lotusFlower(862, 856, 2.5, -6);
     if (fgOnly) {
       return wrap(w, h, lotusDefs() + padDef('pdF', '#ffc9a6') + lin('lfF', '0 0 0 1', '#2f4b3d 0|#1a2b22 1'), fg);
     }
@@ -263,7 +263,7 @@
     b += stem(1000, 2420, 960, 2150, -10, 6) + cupLeaf(960, 2128, 1.05, -6, '#4f7457', '#24392d', '#ffc6a2');
     // atmosphere darkening toward bottom, then the foreground
     b += `<rect y="${HZ}" width="${w}" height="${h - HZ}" fill="url(#fade)"/>`;
-    b += `<circle cx="862" cy="660" r="300" fill="url(#halo)"/>`;
+    b += `<circle cx="862" cy="720" r="300" fill="url(#halo)"/>`;
     b += fg;
     b += grain('gr', w, h, 0.07);
     return wrap(w, h, defs, b);

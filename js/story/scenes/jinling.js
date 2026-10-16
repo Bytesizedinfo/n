@@ -7,16 +7,24 @@
 
   const F = (s) => s.flags || {};
   const night = (s) => !F(s).night_done;
-  const waitFor = (k, next, self) => [
+  // One scene with choices per thread at a time: poll until the thread is free, then hold it.
+  // Night scenes give up quietly once the night is over (an 'off' node is added automatically).
+  const waitFor = (k, next, self, anytime) => [
+    ...(anytime ? [] : [{ if: (s) => !!F(s).night_done, go: 'off' }]),
     { if: (s) => !F(s)['busy_' + k], go: next },
     { wait: 6 },
     { go: self || 'start' },
   ];
+  const usesOff = (nodes) => Object.keys(nodes).some((n) => (nodes[n] || []).some((st) => st && st.go === 'off'));
+  const scene = (def) => {
+    if (def.nodes && !def.nodes.off && usesOff(def.nodes)) def.nodes.off = [{ end: true }];
+    return S.scene(def);
+  };
   const lock = (k) => ({ fx: { set: { ['busy_' + k]: true } } });
   const free = (k) => ({ fx: { set: { ['busy_' + k]: false } } });
 
   // ── 1. "jiujiu" ×3 — Sandu is in the koi pond (~00:03) ──────────
-  S.scene({
+  scene({
     id: 'jl_car',
     thread: 'jl',
     trigger: { on: 'unlock', delay: 200 },
@@ -30,7 +38,8 @@
         { m: 'JIUJIU', d: 0.5 },
         { typing: 3 },
         { m: 'ok dont be mad' },
-        { m: 'i took sandu' },
+        { m: 'i know u said nobody touches sandu' },
+        { m: 'i touched sandu' },
         { m: 'u left ur coat at the coat check when u ran off the balcony. the spare key was in the pocket' },
         { m: 'i wanted to practice for my test' },
         { m: 'i parked it' },
@@ -74,8 +83,9 @@
       ],
       cover: [
         { m: 'wait for real??' },
-        { m: 'ok. ok i can do that' },
-        { m: "but the valet is like 60 and he gave fairy a biscuit" },
+        { m: "jiujiu u wouldn't even let the valet PARK it" },
+        { m: '…ok actually that makes it believable. "the valet was mad and took revenge"' },
+        { m: "but he's like 60 and he gave fairy a biscuit" },
         { choice: [
             { t: '…Fine. Tell them it was you.', fx: { set: { car_cover: false }, aff: { jl: 1 } }, go: 'cover_undo' },
             { t: 'Not my problem.', go: 'cover_keep' },
@@ -147,7 +157,7 @@
   });
 
   // ── 2. Fairy needs somewhere to sleep ────────────────────────────
-  S.scene({
+  scene({
     id: 'jl_fairy',
     thread: 'jl',
     trigger: { on: 'scene', scene: 'jl_car', delay: 140 },
@@ -235,7 +245,7 @@
   });
 
   // Fairy's New Favorite: a teenager in a tuxedo, a soaking wet dog, and you.
-  S.scene({
+  scene({
     id: 'fairy_meet',
     thread: 'jl',
     trigger: { on: 'manual' },
@@ -256,7 +266,7 @@
   });
 
   // ── 3. The birthday group ────────────────────────────────────────
-  S.scene({
+  scene({
     id: 'bday_plan',
     thread: 'bday',
     trigger: { on: 'unlock', delay: 900 },
@@ -277,7 +287,7 @@
         { go: 'cake' },
       ],
       cake: [
-        { m: 'Cake first. The bakery on Peony Street can do lotus seed paste or chocolate.', from: 'sz', img: 'p_cake_lotus' },
+        { m: "Cake first. Jin's Cakes sent the design: lotus seed paste, like Mr. Wei said. Or they can do chocolate.", from: 'sz', img: 'p_cake_lotus' },
         { choice: [
             { t: 'Lotus seed paste.', fx: { set: { cake_ok: true } }, go: 'cake_ok' },
             { t: 'Chocolate. Kids love chocolate.', fx: { sus: { sz: 2, jy: 1 } }, go: 'cake_choc' },
@@ -337,8 +347,8 @@
         { go: 'gift' },
       ],
       gift: [
-        { m: 'and what r u getting him jiang cheng', from: 'wwx' },
-        { m: 'if u say "a watch" again i am leaving this chat', from: 'wwx' },
+        { m: 'and jiang cheng. what is "handled"', from: 'wwx' },
+        { m: 'if "handled" is a watch again i am leaving this chat', from: 'wwx' },
         { choice: [
             { t: "A-Jie's bell. I had it polished.", fx: { set: { gift_bell: true }, aff: { wwx: 1 } }, go: 'bell' },
             { t: 'A watch.', go: 'watch' },
@@ -394,7 +404,7 @@
   });
 
   // Jingyi adds the wrong Jin.
-  S.scene({
+  scene({
     id: 'bday_oops',
     thread: 'bday',
     trigger: { on: 'manual' },
@@ -462,7 +472,7 @@
   });
 
   // Jin Ling DMs, soft.
-  S.scene({
+  scene({
     id: 'jl_soft',
     thread: 'jl',
     trigger: { on: 'manual' },
@@ -535,7 +545,7 @@
   });
 
   // ── 4. Lotus Leap: someone beat 1824 ─────────────────────────────
-  S.scene({
+  scene({
     id: 'jl_score',
     thread: 'jl',
     trigger: { on: 'act', act: 'game_score', match: (p) => !!p && Number(p.score) > 1824 },
@@ -576,7 +586,7 @@
   });
 
   // ── 5. Find My: playing a sound ──────────────────────────────────
-  S.scene({
+  scene({
     id: 'jl_beep_fairy',
     thread: 'jl',
     trigger: { on: 'act', act: 'findmy_sound', match: (p) => /fairy/i.test(String(p && p.id)) },
@@ -591,7 +601,7 @@
       ],
     },
   });
-  S.scene({
+  scene({
     id: 'jl_beep_keys',
     thread: 'jl',
     trigger: { on: 'act', act: 'findmy_sound', match: (p) => /sandu|key/i.test(String(p && p.id)) },
@@ -607,7 +617,7 @@
   });
 
   // ── 6. Goodnight (~01:40) ────────────────────────────────────────
-  S.scene({
+  scene({
     id: 'jl_night',
     thread: 'jl',
     trigger: { on: 'unlock', delay: 1720 },

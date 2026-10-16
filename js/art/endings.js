@@ -80,53 +80,65 @@
     w: 1200, h: 900, tags: ['ending'],
     svg: () => {
       seed(1);
-      const SK = '#f1c7a4', SKD = '#d79f7c';
+      const SK = '#f1c7a4', SKD = '#cf9472', NAIL = '#fbe3d6';
       let rays = '';
       for (let i = 0; i < 14; i++) {
         const a = (i / 14) * Math.PI * 2 + 0.1, b = a + 0.09;
         rays += `M600 420L${f(600 + 1100 * Math.cos(a))} ${f(420 + 1100 * Math.sin(a))}L${f(600 + 1100 * Math.cos(b))} ${f(420 + 1100 * Math.sin(b))}Z`;
       }
-      const finger = (x, y, w, h) => `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${w / 2}" fill="${SK}" stroke="${SKD}" stroke-width="3"/>`;
+      // fingertip peeking past the phone edge (pointing down), with nail
+      const tip = (x, y, len, w = 32) => `<path d="M${x - w / 2} ${y}V${y + len - w / 2}A${w / 2} ${w / 2} 0 0 0 ${x + w / 2} ${y + len - w / 2}V${y}Z" fill="${SK}" stroke="${SKD}" stroke-width="3"/>`;
+      // sleeve from wrist (wx,wy) heading along (dx,dy)
+      const sleeve = (wx, wy, dx, dy, w0, w1, L, fill, cuff) => {
+        const nx = -dy, ny = dx, ex = wx + dx * L, ey = wy + dy * L;
+        const p = (x, y) => `${f(x)} ${f(y)}`;
+        return `<path d="M${p(wx + nx * w0, wy + ny * w0)}L${p(ex + nx * w1, ey + ny * w1)}L${p(ex - nx * w1, ey - ny * w1)}L${p(wx - nx * w0, wy - ny * w0)}Z" fill="${fill}"/>` +
+          `<path d="M${p(wx + dx * 30 + nx * (w0 + 6), wy + dy * 30 + ny * (w0 + 6))}L${p(wx + dx * 30 - nx * (w0 + 6), wy + dy * 30 - ny * (w0 + 6))}" stroke="${cuff}" stroke-width="44"/>` +
+          `<path d="M${p(wx + dx * 120 + nx * w0 * 0.6, wy + dy * 120 + ny * w0 * 0.6)}Q${p(wx + dx * 180, wy + dy * 180)} ${p(wx + dx * 260 - nx * w0 * 0.5, wy + dy * 260 - ny * w0 * 0.5)}" stroke="#000" stroke-width="6" fill="none" opacity=".18" stroke-linecap="round"/>`;
+      };
       return svg(
         lg('sky', [[0, '#8fb7de'], [0.5, '#f6dcc4'], [1, '#f1a882']]) +
         rg('sun', [[0, '#fffaf0', 1], [0.25, '#fff1cc', 0.8], [1, '#ffd9a0', 0]]) +
+        rg('pglow', [[0, '#c9a8ff', 0.55], [1, '#c9a8ff', 0]]) +
         lg('case', [[0, '#7a5ccc'], [0.5, '#5b3fa6'], [1, '#3a2470']], 0, 0, 1, 1) +
-        lg('suit', [[0, '#3a3a44'], [1, '#18181e']], 0, 0, 1, 1) +
-        lg('jean', [[0, '#7d8f9f'], [1, '#4f6070']], 0, 0, 1, 1) +
+        lg('suit', [[0, '#40404a'], [1, '#1a1a20']], 0, 0, 1, 1) +
+        lg('jean', [[0, '#8496a8'], [1, '#55687a']], 0, 0, 1, 1) +
+        lg('skin', [[0, '#f6d2b4'], [1, '#e7b48e']], 0, 0, 1, 1) +
         rg('lens', [[0, '#4a5a8a'], [0.6, '#10121c'], [1, '#05060a']], 0.35, 0.35, 0.7),
         `<rect width="1200" height="900" fill="url(#sky)"/>` +
         `<path d="${rays}" fill="#fff" opacity=".12"/>` +
         `<circle cx="600" cy="420" r="560" fill="url(#sun)"/>` +
         `<path d="${dots(26, 0, 1200, 0, 900, 8, 34)}" fill="#fff" opacity=".18"/>` +
-        // city line far away
         `<path d="M0 760H90V700H150V730H220V660H280V720H360V690H430V740H770V680H830V720H900V650H960V700H1040V670H1110V720H1200V900H0Z" fill="#e7a98a" opacity=".55"/>` +
+        `<circle cx="600" cy="430" r="330" fill="url(#pglow)"/>` +
         `<g transform="translate(600 430) rotate(-8)">` +
-        // receiver: suit sleeve from top right, palm behind the phone
-        `<path d="M250-70L520-330L640-210L360 40Z" fill="url(#suit)"/>` +
-        `<path d="M240-58L330-150L392-86L300 6Z" fill="#f4f1ea"/><rect x="318" y="-92" width="18" height="18" rx="4" fill="#8a4dff" transform="rotate(45 327 -83)"/>` +
-        `<path d="M140-70C170-110 230-120 270-90C300-60 300-10 270 30C240 70 170 80 140 50Z" fill="${SK}" stroke="${SKD}" stroke-width="3"/>` +
-        // giver: denim sleeve from bottom left, palm behind the phone
-        `<path d="M-250 70L-520 330L-640 210L-360-40Z" fill="url(#jean)"/>` +
-        `<path d="M-250 70L-330 150L-392 86L-310 6Z" fill="#5d6e7e"/>` +
-        `<path d="M-140 70C-170 110-230 120-270 90C-300 60-300 10-270-30C-240-70-170-80-140-50Z" fill="${SK}" stroke="${SKD}" stroke-width="3"/>` +
-        // fingers behind (peeking below)
-        finger(92, 70, 34, 64) + finger(130, 74, 34, 66) + finger(168, 70, 32, 58) +
-        finger(-196, 70, 34, 60) + finger(-158, 76, 34, 64) + finger(-120, 72, 32, 58) +
-        // the phone (back, purple case)
-        `<rect x="-206" y="-106" width="412" height="212" rx="38" fill="#000" opacity=".2" transform="translate(10 16)"/>` +
+        // receiver: charcoal suit, white cuff, purple cufflink
+        sleeve(300, -86, 0.62, -0.78, 64, 92, 520, 'url(#suit)', '#f4f1ea') +
+        `<rect x="330" y="-150" width="16" height="16" rx="3" fill="#8a4dff" transform="rotate(38 338 -142)"/>` +
+        `<path d="M196-60C214-98 262-120 306-112C334-104 344-72 330-44C314-12 270 14 220 22C206 24 198 10 196-4Z" fill="url(#skin)" stroke="${SKD}" stroke-width="3"/>` +
+        `<path d="M246-86C262-92 280-92 294-86M240-60C256-66 276-66 292-58" stroke="${SKD}" stroke-width="3" fill="none" opacity=".6" stroke-linecap="round"/>` +
+        // giver: denim jacket
+        sleeve(-300, 86, -0.62, 0.78, 64, 92, 520, 'url(#jean)', '#6d8094') +
+        `<path d="M-196 60C-214 98-262 120-306 112C-334 104-344 72-330 44C-314 12-270-14-220-22C-206-24-198-10-196 4Z" fill="url(#skin)" stroke="${SKD}" stroke-width="3"/>` +
+        // fingertips peeking below the phone
+        tip(108, 92, 44) + tip(144, 96, 50) + tip(180, 92, 42, 30) +
+        tip(-180, 92, 44, 30) + tip(-144, 96, 50) + tip(-108, 92, 42) +
+        // phone (back, purple case)
+        `<rect x="-206" y="-106" width="412" height="212" rx="38" fill="#000" opacity=".22" transform="translate(10 16)"/>` +
         `<rect x="-206" y="-106" width="412" height="212" rx="38" fill="url(#case)"/>` +
         `<rect x="-200" y="-100" width="400" height="200" rx="34" fill="none" stroke="#a58ae8" stroke-width="3" opacity=".6"/>` +
         `<rect x="-176" y="-82" width="96" height="96" rx="24" fill="#2e1d5a"/>` +
         `<circle cx="-150" cy="-56" r="18" fill="url(#lens)" stroke="#5a4a8a" stroke-width="3"/><circle cx="-106" cy="-56" r="18" fill="url(#lens)" stroke="#5a4a8a" stroke-width="3"/><circle cx="-150" cy="-12" r="18" fill="url(#lens)" stroke="#5a4a8a" stroke-width="3"/><circle cx="-106" cy="-14" r="6" fill="#ffe9b0"/>` +
         `<path d="M-190-60C-120-104 60-110 180-80" stroke="#fff" stroke-width="6" fill="none" opacity=".25" stroke-linecap="round"/>` +
         // thumbs on the case
-        `<path d="M222-20C200-40 168-58 140-62C124-64 116-48 128-38C150-22 180-4 206 8Z" fill="${SK}" stroke="${SKD}" stroke-width="3"/><path d="M140-60C130-58 126-48 132-42" fill="#fde6d6" stroke="${SKD}" stroke-width="2"/>` +
-        `<path d="M-222 20C-200 40-168 58-140 62C-124 64-116 48-128 38C-150 22-180 4-206-8Z" fill="${SK}" stroke="${SKD}" stroke-width="3"/><path d="M-140 60C-130 58-126 48-132 42" fill="#fde6d6" stroke="${SKD}" stroke-width="2"/>` +
+        `<path d="M226-40C200-52 168-66 140-70C120-72 112-50 128-40C152-26 184-10 214 2Z" fill="url(#skin)" stroke="${SKD}" stroke-width="3"/><path d="M142-66C130-64 124-52 132-44C140-46 146-56 142-66Z" fill="${NAIL}"/>` +
+        `<path d="M-226 40C-200 52-168 66-140 70C-120 72-112 50-128 40C-152 26-184 10-214-2Z" fill="url(#skin)" stroke="${SKD}" stroke-width="3"/><path d="M-142 66C-130 64-124 52-132 44C-140 46-146 56-142 66Z" fill="${NAIL}"/>` +
         `</g>` +
-        `<path d="${dots(16, 380, 820, 220, 640, 2, 5)}" fill="#fff" opacity=".7"/>`
+        `<path d="${dots(18, 380, 820, 220, 640, 2, 5)}" fill="#fff" opacity=".75"/>`
       , 0.45, 0.8);
     },
   });
+
 
   // ---- 2. Wen Ning Saw Nothing ------------------------------------------------------------
   def('end_wen_ning', {
@@ -157,10 +169,9 @@
         `<path d="M80 448Q220 470 360 458Q500 470 640 466Q780 474 920 470Q1060 476 1200 472" stroke="#2a2040" stroke-width="2" fill="none"/>` +
         `<path d="M0 680H1200V900H0Z" fill="url(#road)"/>` +
         `<path d="M0 700H1200" stroke="#5a4a78" stroke-width="3"/><path d="M40 760H1160" stroke="#f2d49a" stroke-width="6" stroke-dasharray="60 50" opacity=".55"/>` +
-        // headlight beam
-        `<path d="M810 600L1200 520V720Z" fill="url(#beam)"/>` +
-        // van
-        `<g transform="translate(0 20)">` +
+        // van (with its headlight beam)
+        `<g transform="translate(610 582) scale(1.22) translate(-610 -560)">` +
+        `<path d="M810 588L1100 500V680Z" fill="url(#beam)"/>` +
         `<ellipse cx="610" cy="672" rx="260" ry="18" fill="#000" opacity=".35"/>` +
         `<path d="M400 560V630Q400 652 424 652H800Q822 652 822 630V560Z" fill="url(#teal)"/>` +
         `<path d="M400 560V494Q400 462 434 460H716Q760 462 792 516L822 560Z" fill="url(#cream)"/>` +
@@ -174,8 +185,8 @@
         `<rect x="386" y="640" width="60" height="16" rx="6" fill="#2a2a30"/><rect x="780" y="640" width="54" height="16" rx="6" fill="#2a2a30"/>` +
         `<g fill="#8a6a4a" opacity=".5"><ellipse cx="452" cy="636" rx="14" ry="6"/><ellipse cx="768" cy="624" rx="10" ry="5"/></g>` +
         // painted sign
-        `<g transform="translate(478 610)"><path d="M0-22C-14-22-18-6-8 6C-2 14 0 22 0 26C0 22 2 14 8 6C18-6 14-22 0-22Z" fill="#fff6f0"/><path d="M0-22C-6-34-14-36-18-30M0-22C4-36 12-38 16-30" stroke="#6ab04c" stroke-width="5" fill="none" stroke-linecap="round"/></g>` +
-        text(506, 622, 'Yiling Radish Co.', { font: `'Marker Felt', 'Chalkboard SE', 'Trebuchet MS', ${SANS}`, size: 34, weight: 700, fill: '#fbf2e2' }) +
+        `<g transform="translate(462 594) scale(.9)"><path d="M0-22C-14-22-18-6-8 6C-2 14 0 22 0 26C0 22 2 14 8 6C18-6 14-22 0-22Z" fill="#fff6f0"/><path d="M0-22C-6-34-14-36-18-30M0-22C4-36 12-38 16-30" stroke="#6ab04c" stroke-width="5" fill="none" stroke-linecap="round"/></g>` +
+        text(488, 604, 'Yiling Radish Co.', { font: `'Marker Felt', 'Chalkboard SE', 'Trebuchet MS', ${SANS}`, size: 30, weight: 700, fill: '#fbf2e2' }) +
         `<circle cx="500" cy="650" r="42" fill="#1a1a1e"/><circle cx="500" cy="650" r="22" fill="#c9c6c0"/><circle cx="500" cy="650" r="8" fill="#7a7670"/>` +
         `<circle cx="730" cy="650" r="42" fill="#1a1a1e"/><circle cx="730" cy="650" r="22" fill="#c9c6c0"/><circle cx="730" cy="650" r="8" fill="#7a7670"/>` +
         `<path d="M410 500Q410 470 436 468" stroke="#fff" stroke-width="5" fill="none" opacity=".5" stroke-linecap="round"/>` +
@@ -205,39 +216,38 @@
       }
       const [ex0, ey0] = pt(-A, R), [ex1, ey1] = pt(A, R);
       const FAN = `M${P[0]} ${P[1]}L${f(ex0)} ${f(ey0)}A${R} ${R} 0 0 1 ${f(ex1)} ${f(ey1)}Z`;
-      const eye = (cx, cy, flip) =>
-        `<g transform="translate(${cx} ${cy})${flip ? ' scale(-1 1)' : ''}">` +
-        `<path d="M-62 6C-40-30 40-34 64-2C40 10-36 16-62 6Z" fill="#fff8f2"/>` +
-        `<clipPath id="ec${flip ? 1 : 0}"><path d="M-62 6C-40-30 40-34 64-2C40 10-36 16-62 6Z"/></clipPath>` +
-        `<g clip-path="url(#ec${flip ? 1 : 0})"><circle cx="${flip ? -6 : 6}" cy="-6" r="26" fill="url(#iris)"/><circle cx="${flip ? -6 : 6}" cy="-6" r="13" fill="#120a08"/><circle cx="${flip ? -14 : 16}" cy="-16" r="7" fill="#fff"/></g>` +
-        `<path d="M-66 8C-44-34 42-40 68-2" fill="none" stroke="#1c1214" stroke-width="10" stroke-linecap="round"/>` +
-        `<path d="M68-2L84-14" stroke="#1c1214" stroke-width="7" stroke-linecap="round"/>` +
-        `<path d="M-50 22C-20 34 30 30 56 12" fill="none" stroke="#c98a72" stroke-width="5" stroke-linecap="round"/>` +
-        `</g>`;
+      const ALM = 'M-64 6C-44-32 40-36 64-4C40 14-40 18-64 6Z';
       return svg(
         rg('bg', [[0, '#3b7a5a'], [0.5, '#163a2b'], [1, '#07130d']], 0.45, 0.3, 0.8) +
-        lg('skin', [[0, '#ffe6d4'], [0.6, '#f7cfb3'], [1, '#d9a184']], 0, 0, 1, 1) +
-        lg('hair', [[0, '#3a2a26'], [0.5, '#1c1414'], [1, '#0c0909']], 0, 0, 1, 1) +
-        rg('iris', [[0, '#8a5a34'], [0.7, '#3e2414'], [1, '#1a0e08']], 0.4, 0.4, 0.6) +
+        lg('skin', [[0, '#ffe8d8'], [0.6, '#f8d2b8'], [1, '#e2ad8e']], 0, 0, 1, 1) +
+        lg('hair', [[0, '#4a3630'], [0.45, '#1e1616'], [1, '#0c0909']], 0, 0, 1, 1) +
+        rg('iris', [[0, '#a8743e'], [0.65, '#4a2a14'], [1, '#1a0e08']], 0.4, 0.4, 0.6) +
         rg('spot', [[0, '#fff', 0.25], [1, '#fff', 0]]) +
-        `<clipPath id="fc"><path d="${FAN}"/></clipPath>`,
+        rg('blush', [[0, '#ff8a8a', 0.45], [1, '#ff8a8a', 0]]) +
+        `<clipPath id="fc"><path d="${FAN}"/></clipPath><clipPath id="ec"><path d="${ALM}"/></clipPath>`,
         `<rect width="1200" height="900" fill="url(#bg)"/>` +
         `<circle cx="420" cy="200" r="420" fill="url(#spot)"/>` +
-        // hair back + bun
-        `<circle cx="600" cy="130" r="70" fill="url(#hair)"/><path d="M500 80L720 150" stroke="#2f8a58" stroke-width="12" stroke-linecap="round"/><circle cx="500" cy="80" r="13" fill="#7fe0a8"/>` +
+        // hair back + bun + hair stick
+        `<circle cx="600" cy="128" r="72" fill="url(#hair)"/><path d="M500 76L722 152" stroke="#2f8a58" stroke-width="12" stroke-linecap="round"/><circle cx="500" cy="76" r="14" fill="#7fe0a8"/>` +
         `<path d="M340 520C300 300 400 150 600 146C800 150 900 300 860 520C870 600 880 680 900 760H300C320 680 330 600 340 520Z" fill="url(#hair)"/>` +
         // face
         `<path d="M600 200C730 200 790 290 790 410C790 520 740 610 670 660C640 680 620 690 600 690C580 690 560 680 530 660C460 610 410 520 410 410C410 290 470 200 600 200Z" fill="url(#skin)"/>` +
-        `<path d="M790 410C790 520 740 610 670 660C640 680 620 690 600 690C680 640 744 540 760 410Z" fill="#c98a6e" opacity=".35"/>` +
-        `<ellipse cx="480" cy="470" rx="54" ry="26" fill="#ff8a8a" opacity=".3"/><ellipse cx="720" cy="470" rx="54" ry="26" fill="#ff8a8a" opacity=".3"/>` +
-        // fringe
+        `<path d="M790 410C790 520 740 610 670 660C640 680 620 690 600 690C680 640 744 540 760 410Z" fill="#c98a6e" opacity=".3"/>` +
+        `<ellipse cx="482" cy="478" rx="70" ry="34" fill="url(#blush)"/><ellipse cx="718" cy="478" rx="70" ry="34" fill="url(#blush)"/>` +
+        // fringe + face-framing locks
         `<path d="M400 420C380 260 470 180 600 176C730 180 820 260 800 420C786 340 760 300 720 280C726 320 714 350 694 368C686 330 662 302 624 288C622 320 604 346 578 360C578 330 566 308 540 300C500 330 420 360 400 420Z" fill="url(#hair)"/>` +
-        `<path d="M490 210C540 186 650 186 710 214" stroke="#5a4640" stroke-width="10" fill="none" stroke-linecap="round" opacity=".6"/>` +
-        // brows (one raised) + eyes
-        `<path d="M432 330C462 296 520 290 556 306" stroke="#1c1214" stroke-width="13" fill="none" stroke-linecap="round"/>` +
-        `<path d="M648 318C684 306 736 310 766 330" stroke="#1c1214" stroke-width="13" fill="none" stroke-linecap="round"/>` +
-        eye(500, 410, false) + eye(700, 410, true) +
-        `<path d="M846 360l8 22 22 8-22 8-8 22-8-22-22-8 22-8Z" fill="#fff8d6"/>` +
+        `<path d="M414 380C404 450 410 520 430 580C440 520 438 450 444 390ZM786 380C796 450 790 520 770 580C760 520 762 450 756 390Z" fill="url(#hair)"/>` +
+        `<path d="M480 214C540 188 660 190 724 220M452 260C470 240 500 226 530 220" stroke="#6a544c" stroke-width="10" fill="none" stroke-linecap="round" opacity=".55"/>` +
+        // brows: raised over the open eye, playful over the wink
+        `<path d="M436 330C466 294 528 290 562 308" stroke="#1c1214" stroke-width="13" fill="none" stroke-linecap="round"/>` +
+        `<path d="M640 322C674 300 730 300 764 324" stroke="#1c1214" stroke-width="13" fill="none" stroke-linecap="round"/>` +
+        // open eye with a glint
+        `<g transform="translate(505 410)"><path d="${ALM}" fill="#fff8f2"/><g clip-path="url(#ec)"><circle cx="8" cy="-6" r="28" fill="url(#iris)"/><circle cx="8" cy="-6" r="13" fill="#120a08"/><circle cx="20" cy="-18" r="8" fill="#fff"/><circle cx="-4" cy="4" r="3.5" fill="#fff"/></g>` +
+        `<path d="M-68 8C-46-36 44-42 70-4" fill="none" stroke="#1c1214" stroke-width="11" stroke-linecap="round"/><path d="M-60 6L-76 0M70-4L86-18" stroke="#1c1214" stroke-width="7" stroke-linecap="round"/>` +
+        `<path d="M-48 22C-20 32 28 28 54 12" fill="none" stroke="#d29a80" stroke-width="5" stroke-linecap="round"/></g>` +
+        // wink
+        `<g transform="translate(695 412)"><path d="M-62 6C-38-30 38-30 62 6C38-10-38-10-62 6Z" fill="#1c1214"/><path d="M62 4L80-6M58-6L72-20" stroke="#1c1214" stroke-width="7" stroke-linecap="round"/><path d="M-44 24C-16 34 24 32 50 18" fill="none" stroke="#d29a80" stroke-width="5" stroke-linecap="round"/></g>` +
+        `<path d="M852 336l9 24 24 9-24 9-9 24-9-24-24-9 24-9Z" fill="#fff8d6"/><path d="M812 300l4 10 10 4-10 4-4 10-4-10-10-4 10-4Z" fill="#fff8d6" opacity=".8"/>` +
         // fan
         `<path d="${FAN}" fill="#000" opacity=".35" transform="translate(16 22)"/>` +
         `<path d="${ribs}" stroke="#7a4e2a" stroke-width="12" stroke-linecap="round"/>` +
@@ -254,6 +264,7 @@
     },
   });
 
+
   // ---- 4. Zidian Is Waiting ---------------------------------------------------------------
   def('end_zidian', {
     title: 'Zidian Is Waiting',
@@ -269,9 +280,17 @@
         return d;
       };
       const zap = (d, k) => `<path d="${d}" stroke="#8a3dff" stroke-width="${36 * k}" opacity=".18"/><path d="${d}" stroke="#c18aff" stroke-width="${12 * k}" opacity=".55"/><path d="${d}" stroke="#fbf6ff" stroke-width="${4 * k}"/>`;
-      const arcs = bolt(500, 560, 330, 640, 6, 30) + bolt(500, 560, 420, 820, 6, 30) + bolt(505, 556, 560, 700, 4, 24);
-      const sky = bolt(470, 140, 300, 0, 5, 30) + bolt(730, 150, 940, 0, 5, 30) + bolt(740, 300, 1000, 380, 6, 40) + bolt(460, 380, 160, 300, 6, 40);
-      const MAN = 'M600 222C622 222 636 238 636 262C636 276 630 290 620 296L626 312C660 318 694 330 704 352L716 470C718 500 714 520 702 528L700 620C708 680 716 740 712 790H664L636 640H564L536 790H488C484 740 492 680 500 620L498 528C486 520 482 500 484 470L496 352C506 330 540 318 574 312L580 296C570 290 564 276 564 262C564 238 578 222 600 222Z';
+      const sky = bolt(470, 140, 300, 0, 5, 30) + bolt(730, 150, 940, 0, 5, 30) + bolt(760, 300, 1020, 380, 6, 40) + bolt(440, 380, 160, 300, 6, 40);
+      // the whip of lightning uncoiling from his fist onto the floor
+      const WHIP = 'M486 574C472 640 432 700 456 760C480 820 620 840 700 812C780 784 730 742 660 752C610 760 590 790 620 806';
+      let sparks = '';
+      for (let i = 0; i < 16; i++) {
+        const t = i / 15, x = 486 + (620 - 486) * t + rr(-80, 120), y = 600 + 200 * Math.sin(t * 3.1) + rr(-20, 20);
+        sparks += bolt(f(x), f(y), f(x + rr(-30, 30)), f(y + rr(-30, 30)), 3, 8);
+      }
+      const MAN =
+        'M600 186C614 186 622 196 622 208C622 214 619 220 614 224C632 232 642 248 642 268C642 290 632 304 620 310L624 322C650 326 676 334 694 346C712 360 718 384 720 410L728 470C732 488 724 500 712 502L702 520C704 600 712 660 730 720L700 728C708 750 712 772 712 790H660L640 726H560L540 790H488C488 772 492 750 500 728L470 720C488 660 496 600 498 520' +
+        'L494 470C492 500 494 540 498 560C500 572 494 584 484 584C472 584 466 574 468 560L474 470C476 420 482 380 500 352C518 336 548 326 576 322L580 310C568 304 558 290 558 268C558 248 568 232 586 224C581 220 578 214 578 208C578 196 586 186 600 186Z';
       return svg(
         rg('room', [[0, '#2a1446'], [0.5, '#120a20'], [1, '#050308']], 0.5, 0.5, 0.8) +
         rg('door', [[0, '#ffffff'], [0.35, '#efdcff'], [0.75, '#b77cff'], [1, '#6a2fd0']], 0.5, 0.45, 0.7) +
@@ -280,27 +299,27 @@
         lg('panel', [[0, '#1a1028'], [1, '#2a1a40']], 0, 0, 1, 0),
         `<rect width="1200" height="900" fill="url(#room)"/>` +
         `<path d="M0 820H1200" stroke="#2a1a40" stroke-width="3"/>` +
-        // light spill on the floor + long shadow
         `<path d="M444 820H756L1100 900H100Z" fill="url(#spill)"/>` +
         `<path d="M560 820H640L700 900H500Z" fill="#050308" opacity=".85"/>` +
-        // door frame, light, open door panel
         `<rect x="420" y="96" width="360" height="728" fill="#0d0816"/>` +
         `<rect x="444" y="120" width="312" height="700" fill="url(#door)"/>` +
         `<circle cx="600" cy="460" r="420" fill="url(#halo)"/>` +
         `<path d="M444 120L330 70V880L444 820Z" fill="url(#panel)"/><circle cx="356" cy="480" r="9" fill="#8a6ab8"/>` +
         `<g fill="none" stroke-linecap="round" stroke-linejoin="round">${zap(sky, 0.7)}</g>` +
-        // the silhouette, rim-lit
-        `<path d="${MAN}" fill="#0b0612" stroke="#e7d2ff" stroke-width="5" stroke-linejoin="round"/>` +
-        `<path d="M704 352L716 470C718 500 714 520 702 528" stroke="#fff" stroke-width="3" fill="none" opacity=".6"/>` +
+        // silhouette with a topknot and long coat, rim-lit
+        `<path d="${MAN}Z" fill="#0b0612" stroke="#e7d2ff" stroke-width="5" stroke-linejoin="round"/>` +
+        `<path d="M600 650V726" stroke="#2a1a40" stroke-width="4"/>` +
+        `<path d="M694 346C712 360 718 384 720 410L728 470" stroke="#fff" stroke-width="3" fill="none" opacity=".6"/>` +
         // phone glowing in his hand (Find My)
-        `<rect x="690" y="470" width="34" height="62" rx="7" fill="#d9f2ff" transform="rotate(10 707 501)"/><circle cx="708" cy="498" r="6" fill="#ff3b30"/>` +
-        // fist crackling
-        `<circle cx="500" cy="556" r="26" fill="#0b0612" stroke="#e7d2ff" stroke-width="4"/><circle cx="500" cy="556" r="10" fill="#b77cff"/>` +
-        `<g fill="none" stroke-linecap="round" stroke-linejoin="round">${zap(arcs, 0.6)}</g>` +
+        `<rect x="708" y="452" width="36" height="64" rx="7" fill="#d9f2ff" transform="rotate(12 726 484)"/><circle cx="727" cy="480" r="6" fill="#ff3b30"/>` +
+        // lightning whip
+        `<g fill="none" stroke-linecap="round" stroke-linejoin="round">${zap(WHIP, 0.8)}<path d="${sparks}" stroke="#e7d2ff" stroke-width="2.5" opacity=".9"/></g>` +
+        `<circle cx="484" cy="574" r="30" fill="#c18aff" opacity=".35"/>` +
         `<path d="${dots(30, 300, 900, 120, 860, 1.5, 4)}" fill="#e7d2ff" opacity=".8"/>`
       , 0.55, 1);
     },
   });
+
 
   // ---- 5. Burned Bridges ------------------------------------------------------------------
   def('end_burned', {
@@ -308,7 +327,7 @@
     w: 1200, h: 900, tags: ['ending', 'chat', 'cold'],
     svg: () => {
       seed(5);
-      const B = 'M330 250H870Q930 250 930 310V470Q930 530 870 530H400Q370 560 320 572Q350 540 340 512Q300 500 300 470V310Q300 250 360 250Z';
+      const B = 'M432 250H768Q828 250 828 310V460Q828 520 768 520H470Q440 550 392 562Q420 532 412 504Q372 492 372 460V310Q372 250 432 250Z';
       return svg(
         lg('bg', [[0, '#070c1c'], [0.55, '#11223e'], [0.8, '#1b3656'], [0.92, '#2c4a66'], [1, '#e8a274']]) +
         lg('bub', [[0, '#9fc2ff', 0.16], [1, '#9fc2ff', 0.04]], 0, 0, 1, 1) +
@@ -320,15 +339,15 @@
         // the empty bubble
         `<path d="${B}" fill="#000" opacity=".25" transform="translate(12 18)"/>` +
         `<path d="${B}" fill="url(#bub)" stroke="#a9c8ff" stroke-width="4" stroke-opacity=".55"/>` +
-        `<path d="M340 300Q340 280 366 280H600" stroke="#fff" stroke-width="5" opacity=".2" stroke-linecap="round" fill="none"/>` +
-        `<g fill="#cfe0ff"><circle cx="560" cy="390" r="16" opacity=".22"/><circle cx="615" cy="390" r="16" opacity=".12"/><circle cx="670" cy="390" r="16" opacity=".05"/></g>` +
-        text(930, 580, 'Read 2:14 AM', { size: 26, fill: '#8fa6c8', anchor: 'end', op: 0.7 }) +
+        `<path d="M404 300Q404 280 430 280H620" stroke="#fff" stroke-width="5" opacity=".2" stroke-linecap="round" fill="none"/>` +
+        `<g fill="#cfe0ff"><circle cx="550" cy="385" r="16" opacity=".22"/><circle cx="600" cy="385" r="16" opacity=".12"/><circle cx="650" cy="385" r="16" opacity=".05"/></g>` +
+        text(800, 566, 'Read 2:14 AM', { size: 24, fill: '#8fa6c8', anchor: 'end', op: 0.7 }) +
         // far horizon at dawn, Gusu hills, a car leaving
         `<ellipse cx="600" cy="800" rx="700" ry="120" fill="url(#dawn)" opacity=".7"/>` +
         `<path d="M0 790C120 760 220 740 330 770C430 720 520 730 620 770C720 730 830 720 930 760C1020 740 1110 750 1200 770V900H0Z" fill="#0d1a2c"/>` +
         `<path d="M0 820C300 800 900 800 1200 820V900H0Z" fill="#081220"/>` +
         `<path d="M600 812L1200 860" stroke="#3a5272" stroke-width="3" opacity=".7"/>` +
-        `<circle cx="760" cy="826" r="4" fill="#fff2c8"/><circle cx="772" cy="827" r="4" fill="#fff2c8"/><path d="M776 827L900 812V842Z" fill="#fff2c8" opacity=".25"/>`
+        `<circle cx="640" cy="823" r="4" fill="#fff2c8"/><circle cx="652" cy="824" r="4" fill="#fff2c8"/><path d="M656 824L770 810V838Z" fill="#fff2c8" opacity=".25"/>`
       , 0.55, 1);
     },
   });
@@ -364,26 +383,32 @@
         `<rect width="1200" height="900" fill="url(#water)"/>` +
         `<path d="${gold}" stroke="#ffcf6a" stroke-width="4" fill="none" opacity=".35" stroke-linecap="round"/>` +
         ripples +
-        // sunken car roof
-        `<g transform="translate(600 640) rotate(-12)">` +
-        `<rect x="-220" y="-120" width="440" height="240" rx="70" fill="#000" opacity=".35" transform="translate(14 20)"/>` +
-        `<rect x="-220" y="-120" width="440" height="240" rx="70" fill="url(#car)"/>` +
-        `<path d="M-200-60Q-170-110-110-112H-60V112H-110Q-170 110-200 60Z" fill="url(#glass)"/><path d="M200-50Q186-100 140-108H110V108H140Q186 100 200 50Z" fill="url(#glass)"/>` +
-        `<rect x="-20" y="-60" width="100" height="120" rx="14" fill="#1a1238"/><path d="M-180-50Q-150-90-100-96" stroke="#fff" stroke-width="6" fill="none" opacity=".35" stroke-linecap="round"/>` +
-        `<path d="M-230 40C-160 70-40 90 60 80S200 40 240 30V140H-230Z" fill="#0a2a36" opacity=".55"/>` +
+        // the car, nose-down in the pond
+        `<g transform="translate(600 650) rotate(-14)">` +
+        `<rect x="-270" y="-118" width="540" height="236" rx="80" fill="#000" opacity=".35" transform="translate(14 20)"/>` +
+        `<rect x="-270" y="-118" width="540" height="236" rx="80" fill="url(#car)"/>` +
+        `<path d="M150-80Q250-60 262 0Q250 60 150 80M-180-80Q-250-60-258 0Q-250 60-180 80" stroke="#8a6ad8" stroke-width="4" fill="none" opacity=".55"/>` +
+        `<path d="M70-100L150-86Q166 0 150 86L70 100Q56 0 70-100Z" fill="url(#glass)"/>` +
+        `<path d="M-150-96L-100-104Q-90 0-100 104L-150 96Q-164 0-150-96Z" fill="url(#glass)"/>` +
+        `<rect x="-84" y="-60" width="136" height="120" rx="18" fill="#3a2a70"/><rect x="-70" y="-46" width="108" height="92" rx="12" fill="url(#glass)" opacity=".85"/>` +
+        `<ellipse cx="92" cy="-128" rx="18" ry="11" fill="#3a2a70"/><ellipse cx="92" cy="128" rx="18" ry="11" fill="#3a2a70"/>` +
+        `<path d="M64-88Q100-98 132-84M-60-36Q-20-44 20-36" stroke="#fff" stroke-width="5" fill="none" opacity=".35" stroke-linecap="round"/>` +
+        `<path d="M150-150Q136-76 152 0Q136 76 150 150H320V-150Z" fill="#0b3542" opacity=".62"/>` +
+        `<circle cx="250" cy="-84" r="40" fill="#ffe9a0" opacity=".3"/><circle cx="250" cy="84" r="40" fill="#ffe9a0" opacity=".3"/>` +
+        `<path d="M150-150Q136-76 152 0Q136 76 150 150" stroke="#bfe6ff" stroke-width="4" fill="none" opacity=".7"/>` +
         `</g>` +
-        // Fairy's paw prints? no — the koi, unbothered
+        // the koi, unbothered
         koi(250, 560, -30, '#fbf7f0', '#e8452c') + koi(940, 720, 160, 'url(#kg)', '') + koi(330, 800, 20, '#ff8a2a', '#fff2e0') + koi(1000, 420, -150, '#fbf7f0', '#151515') + koi(170, 330, 60, 'url(#kg)', '#fff6e6') +
         `<path d="${dots(20, 100, 1100, 300, 880, 3, 7)}" fill="none" stroke="#bfe6ff" stroke-width="2" opacity=".5"/>` +
         // trending card
-        `<g transform="translate(600 170)">` +
-        `<rect x="-330" y="-96" width="660" height="192" rx="36" fill="#000" opacity=".25" transform="translate(0 12)"/>` +
-        `<rect x="-330" y="-96" width="660" height="192" rx="36" fill="url(#card)" stroke="#fff" stroke-opacity=".35" stroke-width="2"/>` +
-        `<circle cx="-246" cy="0" r="56" fill="#fff" opacity=".12"/><path d="${flame}" fill="url(#fl)" transform="translate(-246 0) scale(1.5)"/>` +
-        text(-170, -34, 'TRENDING IN LANLING · #1', { size: 24, fill: '#cfe6f0', ls: 3, weight: 600 }) +
-        text(-172, 30, '#KoiPondGate', { size: 66, fill: '#ffffff', weight: 800 }) +
-        text(-170, 72, '1.2M posts', { size: 24, fill: '#cfe6f0', op: 0.85 }) +
-        `<path d="M-26 64l14-16 14 16" stroke="#7dff9a" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` +
+        `<g transform="translate(600 180)">` +
+        `<rect x="-236" y="-128" width="472" height="256" rx="40" fill="#000" opacity=".25" transform="translate(0 12)"/>` +
+        `<rect x="-236" y="-128" width="472" height="256" rx="40" fill="url(#card)" stroke="#fff" stroke-opacity=".35" stroke-width="2"/>` +
+        `<circle cx="0" cy="-70" r="40" fill="#fff" opacity=".12"/><path d="${flame}" fill="url(#fl)" transform="translate(0 -70) scale(1.15)"/>` +
+        text(0, -6, 'TRENDING IN LANLING · #1', { size: 19, fill: '#cfe6f0', ls: 2, weight: 600, anchor: 'middle' }) +
+        text(0, 54, '#KoiPondGate', { size: 56, fill: '#ffffff', weight: 800, anchor: 'middle' }) +
+        text(-10, 96, '1.2M posts', { size: 22, fill: '#cfe6f0', op: 0.85, anchor: 'middle' }) +
+        `<path d="M58 92l12-14 12 14" stroke="#7dff9a" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` +
         `</g>` +
         // floating reactions
         `<g fill="#ff4a6a"><path d="M1040 260c-12-18-40-6-26 14l26 22 26-22c14-20-14-32-26-14Z" opacity=".9"/><path d="M150 210c-8-12-26-4-17 9l17 15 17-15c9-13-9-21-17-9Z" opacity=".7"/></g>` +
@@ -427,8 +452,12 @@
         `<path d="${rain}" stroke="#c9d6ff" stroke-width="2" opacity=".25"/>` +
         `<ellipse cx="600" cy="760" rx="330" ry="40" fill="#000" opacity=".45"/>` +
         // body (sitting), wet spiky fur
-        `<path d="M300 800${fluff(600, 640, 300, 230, 180, 360, 30, 34, 'L', 0.5)}L900 800Z" fill="url(#fur)"/>` +
+        `<path d="M300 800${fluff(600, 640, 300, 230, 180, 360, 30, 26, 'L', 0.55)}L900 800Z" fill="url(#fur)"/>` +
         `<path d="M380 560C420 600 470 640 520 660M820 560C780 600 730 640 680 660M470 700L480 760M730 700L720 760" stroke="#7f87b0" stroke-width="5" fill="none" stroke-linecap="round" opacity=".55"/>` +
+        // front legs
+        `<path d="M490 600C484 680 486 730 490 768Q528 790 568 768C572 720 572 660 564 600Z" fill="url(#fur)"/><path d="M710 600C716 680 714 730 710 768Q672 790 632 768C628 720 628 660 636 600Z" fill="url(#fur)"/>` +
+        `<path d="M508 764v14M528 768v16M548 764v14M652 764v14M672 768v16M692 764v14" stroke="#4a4e68" stroke-width="4" stroke-linecap="round"/>` +
+        `<path d="M500 640C498 680 500 720 504 752M700 640C702 680 700 720 696 752" stroke="#7f87b0" stroke-width="5" opacity=".5" fill="none" stroke-linecap="round"/>` +
         // drooping wet ears
         `<path d="M420 300C370 300 330 340 320 400C318 440 340 470 360 460C380 420 410 380 450 360Z" fill="url(#fur)"/>` +
         `<path d="M780 300C830 300 870 340 880 400C882 440 860 470 840 460C820 420 790 380 750 360Z" fill="url(#fur)"/>` +
@@ -469,12 +498,12 @@
       for (let i = 0; i < N; i++) {
         const t = i / (N - 1), env = Math.sin(Math.PI * Math.min(1, t * 1.15)) * 0.8 + 0.2;
         prev = prev * 0.45 + rr(0.15, 1) * 0.55;
-        const hgt = 24 + prev * env * 300, x = 150 + i * 14.2;
-        if (t < 0.72) bars += `M${f(x)} ${f(450 - hgt / 2)}V${f(450 + hgt / 2)}`;
+        const hgt = 24 + prev * env * 280, x = 330 + i * 8.6;
+        if (t < 0.6) bars += `M${r1(x)} ${f(440 - hgt / 2)}V${f(440 + hgt / 2)}`;
         else {
-          const k = (t - 0.72) / 0.28;
+          const k = (t - 0.6) / 0.4;
           for (let j = 0; j < 5; j++) {
-            const yy = 450 + rr(-hgt / 2, hgt / 2) - k * rr(40, 260), xx = x + k * rr(10, 120);
+            const yy = 440 + rr(-hgt / 2, hgt / 2) - k * rr(40, 240), xx = x + k * rr(10, 110);
             parts += `M${f(xx)} ${f(yy)}a${r1(4 - k * 2.5)} ${r1(4 - k * 2.5)} 0 1 0 .1 0`;
           }
         }
@@ -482,16 +511,16 @@
       return svg(
         lg('bg', [[0, '#0e0a24'], [0.55, '#2a1c44'], [0.85, '#6a3a5a'], [1, '#f2a46a']], 0, 0, 1, 0) +
         rg('sun', [[0, '#fff3d0', 1], [0.25, '#ffd08a', 0.6], [1, '#ff9a6a', 0]]) +
-        `<linearGradient id="wave" gradientUnits="userSpaceOnUse" x1="150" y1="0" x2="1060" y2="0">${stops([[0, '#6a5a96'], [0.45, '#b49ad6'], [0.75, '#ffe6c0'], [1, '#fff8e8']])}</linearGradient>`,
+        `<linearGradient id="wave" gradientUnits="userSpaceOnUse" x1="330" y1="0" x2="700" y2="0">${stops([[0, '#6a5a96'], [0.5, '#b49ad6'], [0.85, '#ffe6c0'], [1, '#fff8e8']])}</linearGradient>`,
         `<rect width="1200" height="900" fill="url(#bg)"/>` +
-        `<circle cx="1180" cy="440" r="560" fill="url(#sun)"/>` +
-        `<path d="M1180 440L-20 300V580Z" fill="#ffe6c0" opacity=".05"/><path d="M1180 440L-20 140V260Z" fill="#ffe6c0" opacity=".04"/>` +
-        `<path d="M150 450H1060" stroke="#fff" stroke-width="2" opacity=".12"/>` +
-        `<path d="${bars}" stroke="url(#wave)" stroke-width="8.5" stroke-linecap="round"/>` +
+        `<circle cx="1000" cy="420" r="560" fill="url(#sun)"/>` +
+        `<path d="M1000 420L-20 300V560Z" fill="#ffe6c0" opacity=".05"/><path d="M1000 420L-20 120V240Z" fill="#ffe6c0" opacity=".04"/>` +
+        `<path d="M300 440H900" stroke="#fff" stroke-width="2" opacity=".12"/>` +
+        `<path d="${bars}" stroke="url(#wave)" stroke-width="5.5" stroke-linecap="round"/>` +
         `<path d="${parts}" fill="#fff6e0" opacity=".85"/>` +
-        `<path d="M430 220V680" stroke="#ff6b6b" stroke-width="3" opacity=".85"/><circle cx="430" cy="214" r="9" fill="#ff6b6b"/>` +
-        text(150, 760, 'Untitled 14', { size: 34, fill: '#fff', op: 0.82, weight: 600 }) +
-        text(150, 800, 'Guanyin Temple Rd · 1:12', { size: 24, fill: '#cbb8e8', op: 0.75 })
+        `<path d="M470 240V640" stroke="#ff6b6b" stroke-width="3" opacity=".85"/><circle cx="470" cy="234" r="8" fill="#ff6b6b"/>` +
+        text(600, 730, 'Untitled 14', { size: 34, fill: '#fff', op: 0.85, weight: 600, anchor: 'middle' }) +
+        text(600, 770, 'Guanyin Temple Rd · 1:12', { size: 22, fill: '#cbb8e8', op: 0.75, anchor: 'middle' })
       , 0.5, 0.9);
     },
   });
@@ -568,7 +597,7 @@
       let bamboo = '';
       for (let i = 0; i < 9; i++) {
         const x = 140 + i * 120 + rr(-30, 30);
-        bamboo += `<path d="M${f(x)} 40V520" stroke="#9cbf8a" stroke-width="${f(rr(14, 22))}" opacity=".55"/><path d="M${f(x - 12)} ${f(rr(120, 200))}H${f(x + 12)}M${f(x - 12)} ${f(rr(300, 400))}H${f(x + 12)}" stroke="#86ab76" stroke-width="4" opacity=".6"/>`;
+        bamboo += `<path d="M${f(x)} 40V520" stroke="#435f3e" stroke-width="${f(rr(14, 22))}" opacity=".7"/><path d="M${f(x - 12)} ${f(rr(120, 200))}H${f(x + 12)}M${f(x - 12)} ${f(rr(300, 400))}H${f(x + 12)}" stroke="#34502f" stroke-width="4" opacity=".7"/>`;
       }
       let leaves = '';
       for (let i = 0; i < 16; i++) {
@@ -583,9 +612,13 @@
       // two steam ribbons twining into each other
       const s1 = 'M490 620C470 540 560 500 600 440C640 380 560 330 600 270C630 220 700 200 690 140';
       const s2 = 'M710 620C730 540 640 500 600 440C560 380 640 330 600 270C570 220 500 200 510 140';
-      const soft = (d) => `<path d="${d}" stroke-width="54" opacity=".05"/><path d="${d}" stroke-width="28" opacity=".1"/><path d="${d}" stroke-width="10" opacity=".25"/>`;
+      const soft = (d) => `<path d="${d}" stroke-width="56" opacity=".06"/><path d="${d}" stroke-width="30" opacity=".12"/><path d="${d}" stroke-width="11" opacity=".34"/>`;
+      const peony = (x, y, s) =>
+        `<g transform="translate(${x} ${y}) scale(${s})">` +
+        [[0, -36, 26, 20], [-18, -26, 30, 24], [18, -26, 30, 24], [-30, 0, 36, 28], [30, 0, 36, 28], [0, -10, 44, 30], [0, 6, 40, 22]].map(([cx, cy, rx, ry]) => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="url(#pet)" stroke="#e2cfc8" stroke-width="2"/>`).join('') +
+        `<ellipse cx="0" cy="-14" rx="16" ry="11" fill="#f2c4c4"/><circle cx="0" cy="-14" r="6" fill="#f6d36a"/></g>`;
       return svg(
-        lg('wall', [[0, '#e9efe0'], [1, '#c9d6bc']]) +
+        lg('wall', [[0, '#8ea686'], [1, '#5b7556']]) +
         lg('frame', [[0, '#5a3a26'], [1, '#3a2416']]) +
         lg('wood', [[0, '#5a3828'], [0.4, '#3e2418'], [1, '#22130c']]) +
         lg('cup', [[0, '#ffffff'], [0.6, '#e8efe8'], [1, '#bccbc0']], 0, 0, 1, 0) +
@@ -594,7 +627,7 @@
         lg('pot', [[0, '#9a5a3a'], [1, '#5a2e1a']], 0, 0, 1, 0) +
         lg('pet', [[0, '#ffffff'], [1, '#f6e4e0']], 0, 1, 0, 0),
         `<rect width="1200" height="900" fill="url(#wall)"/>` +
-        bamboo + `<g fill="#86ab76" opacity=".55">${leaves}</g>` +
+        bamboo + `<g fill="#3e5a38" opacity=".7">${leaves}</g>` +
         `<path d="${lattice}" stroke="url(#frame)" stroke-width="10"/>` +
         `<rect x="110" y="30" width="980" height="500" fill="none" stroke="url(#frame)" stroke-width="22"/>` +
         `<path d="M0 0H1200V30H0ZM0 530H1200V560H0Z" fill="#4a2e1e"/>` +
@@ -604,7 +637,7 @@
         // teapot (left edge) and peony (right)
         `<g transform="translate(110 660)"><ellipse cx="10" cy="120" rx="150" ry="24" fill="#000" opacity=".35"/><path d="M-120 20C-130 90-80 124 0 124C80 124 130 90 120 20C110-30 60-50 0-50C-60-50-110-30-120 20Z" fill="url(#pot)"/><path d="M120 30C160 10 180-10 196-40" stroke="#7a4228" stroke-width="20" fill="none" stroke-linecap="round"/><ellipse cy="-50" rx="50" ry="14" fill="#6a3620"/><circle cy="-66" r="12" fill="#6a3620"/></g>` +
         `<g transform="translate(1080 640)"><path d="M-40 140C-50 60-30 20 0 0C30 20 50 60 40 140Z" fill="#dfe8e2"/><path d="M0 0C-10-40-20-60-30-90M0 0C10-30 30-50 50-60" stroke="#5a8a4a" stroke-width="6" fill="none"/>` +
-        lotus(-28, -96, 0.5, 'url(#pet)', '#e2c8c4') + `<circle cx="-28" cy="-150" r="10" fill="#f6d36a"/></g>` +
+        peony(-34, -96, 1.15) + peony(46, -60, 0.7) + `</g>` +
         cup(490, 660) + cup(710, 660) +
         `<g fill="none" stroke="#fff" stroke-linecap="round">${soft(s1)}${soft(s2)}</g>`
       , 0.45, 0.85);
@@ -683,7 +716,7 @@
       const thumb = `<path d="M-30 18C-32 2-30-10-20-18C-14-24-12-32-12-42C-12-52 0-54 4-46C8-38 6-28 2-20H24C34-20 36-10 30-4C38-2 38 8 30 12C36 16 34 26 28 28C32 34 28 42 20 42H-14C-24 42-28 32-30 18Z" fill="#ffc83a" stroke="#c98a14" stroke-width="3"/><rect x="-46" y="-8" width="16" height="50" rx="4" fill="#ffc83a" stroke="#c98a14" stroke-width="3"/>`;
       let rain = '', conf = '';
       const falls = [[90, 120, 0.9, -18], [300, 60, 0.7, 12], [520, 200, 0.6, -6], [1100, 90, 0.9, 20], [880, 230, 0.7, -14], [160, 520, 0.8, 16], [1040, 540, 1, -20], [420, 760, 0.7, 8], [780, 800, 0.8, -10], [980, 380, 0.55, 30], [250, 330, 0.55, -30], [640, 60, 0.5, 4], [60, 760, 0.7, 24], [1150, 780, 0.6, -8]];
-      for (const [x, y, s, r] of falls) rain += `<path d="M${x} ${y - 70 * s}v-${f(90 * s)}" stroke="#fff" stroke-width="4" opacity=".25" stroke-linecap="round"/><use href="#${(x + y) % 3 ? 'dog' : 'fairy'}" transform="translate(${x} ${y}) rotate(${r}) scale(${s})"/>`;
+      for (const [x, y, s, r] of falls) rain += `<path d="M${f(x - 24 * s)} ${f(y - 76 * s)}v-${f(34 * s)}M${f(x + 24 * s)} ${f(y - 80 * s)}v-${f(48 * s)}M${x} ${f(y - 84 * s)}v-${f(26 * s)}" stroke="#fff" stroke-width="${r1(5 * s)}" opacity=".3" stroke-linecap="round"/><use href="#${(x + y) % 3 ? 'dog' : 'fairy'}" transform="translate(${x} ${y}) rotate(${r}) scale(${s})"/>`;
       const cc = ['#ffd84a', '#ff6aa8', '#7dd8ff', '#b79cff', '#7dff9a'];
       for (let i = 0; i < 46; i++) conf += `<rect x="${f(rr(0, 1200))}" y="${f(rr(0, 900))}" width="${f(rr(8, 16))}" height="${f(rr(14, 26))}" rx="3" fill="${cc[i % 5]}" transform="rotate(${f(rr(0, 180))} ${f(rr(0, 1200))} ${f(rr(0, 900))})" opacity=".85"/>`;
       return svg(

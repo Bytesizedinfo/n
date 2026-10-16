@@ -8,16 +8,24 @@
 
   const F = (s) => s.flags || {};
   const night = (s) => !F(s).night_done;
-  const waitFor = (k, next, self) => [
+  // One scene with choices per thread at a time: poll until the thread is free, then hold it.
+  // Night scenes give up quietly once the night is over (an 'off' node is added automatically).
+  const waitFor = (k, next, self, anytime) => [
+    ...(anytime ? [] : [{ if: (s) => !!F(s).night_done, go: 'off' }]),
     { if: (s) => !F(s)['busy_' + k], go: next },
     { wait: 6 },
     { go: self || 'start' },
   ];
+  const usesOff = (nodes) => Object.keys(nodes).some((n) => (nodes[n] || []).some((st) => st && st.go === 'off'));
+  const scene = (def) => {
+    if (def.nodes && !def.nodes.off && usesOff(def.nodes)) def.nodes.off = [{ end: true }];
+    return S.scene(def);
+  };
   const lock = (k) => ({ fx: { set: { ['busy_' + k]: true } } });
   const free = (k) => ({ fx: { set: { ['busy_' + k]: false } } });
 
   // ── 1. 400 kg of lotus root (~00:15) ─────────────────────────────
-  S.scene({
+  scene({
     id: 'ops_lotus',
     thread: 'ops',
     trigger: { on: 'unlock', delay: 430 },
@@ -28,7 +36,7 @@
         lock('ops'),
         { m: "Good evening all. Re: Old Huang's message above:", from: 'liu' },
         { m: '• Delivered: 400 kg of lotus root (Honghu Cooperative)', from: 'liu' },
-        { m: '• Ordered: 40 kg', from: 'liu' },
+        { m: '• Ordered: 40 kg (canteen soup week)', from: 'liu' },
         { m: '• Cold room: full. Decision needed before the 06:00 shift', from: 'liu' },
         { m: '', from: 'huang', voice: { dur: 14, text: 'Boss. Huang here. I am standing in the lotus root. It comes up to my knee. I am sixty-three years old. Okay. Bye.' } },
         { m: 'The Lotus Root. 👍', from: 'huang', img: 'p_ops_lotusroots' },
@@ -123,8 +131,8 @@
       soup: [
         { m: 'Boss!!! 👍👍👍👍', from: 'huang' },
         { m: '', from: 'huang', voice: { dur: 11, text: 'Boss. Auntie Chen in the canteen says she can make three hundred bowls. She is crying. Happy crying. Okay. Bye.' } },
-        { m: '• Lotus Root Soup Monday ✔', from: 'liu' },
-        { m: '• 340 staff', from: 'liu' },
+        { m: '• Soup week → soup for the whole company ✔', from: 'liu' },
+        { m: '• 340 staff, Monday to Friday', from: 'liu' },
         { m: '• Remaining ~150 kg → farm shop', from: 'liu' },
         { m: 'boss can i help peel 🙇', from: 'bai' },
         { m: "Noted. I'll tell the board it's a wellness initiative.", from: 'ea' },
@@ -141,7 +149,7 @@
   });
 
   // ── 2. Bring Your Dog to Work Friday ─────────────────────────────
-  S.scene({
+  scene({
     id: 'ops_dogfriday',
     thread: 'ops',
     trigger: { on: 'scene', scene: 'ops_lotus', delay: 150 },
@@ -199,7 +207,7 @@
   });
 
   // ── 3. Towing Sandu through Old Huang's cousin ───────────────────
-  S.scene({
+  scene({
     id: 'ops_tow',
     thread: 'ops',
     trigger: { on: 'flag', flag: 'tow_huang', delay: 25 },
@@ -247,7 +255,7 @@
   });
 
   // ── 4. Minutes, and goodnight (~01:45) ───────────────────────────
-  S.scene({
+  scene({
     id: 'ops_goodnight',
     thread: 'ops',
     trigger: { on: 'unlock', delay: 1880 },
@@ -259,7 +267,7 @@
         { m: "Summary of tonight, for Monday's minutes:", from: 'liu' },
         { if: (s) => F(s).ops_soup, go: 's_soup', else: 's_nosoup' },
       ],
-      s_soup: [{ m: '• Lotus Root Soup Monday (approved, 340 bowls)', from: 'liu' }, { go: 's_dog' }],
+      s_soup: [{ m: '• Lotus root soup for the whole company (approved, 340 bowls a day)', from: 'liu' }, { go: 's_dog' }],
       s_nosoup: [{ m: '• 400 kg of lotus root (situation ongoing)', from: 'liu' }, { go: 's_dog' }],
       s_dog: [
         { if: (s) => !!F(s).dog_friday, go: 's_dog_yes' },
@@ -287,7 +295,7 @@
           ] },
       ],
       good: [
-        { m: '', from: 'huang', voice: { dur: 23, text: 'Boss said good work. Boss said good work! I have worked at Lotus Pier for forty-one years. I am telling my wife. I am telling her right now. Okay. Bye. Good work, Boss.' } },
+        { m: '', from: 'huang', voice: { dur: 23, text: 'Boss said good work. Boss said good work! I have worked at Lotus Pier for thirty-one years. Your father hired me. I am telling my wife. I am telling her right now. Okay. Bye. Good work, Boss.' } },
         { m: 'thank you boss 🙇', from: 'bai' },
         { m: '• Noted, with gratitude', from: 'liu' },
         { m: 'Noted. Framing it.', from: 'ea' },

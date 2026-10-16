@@ -137,13 +137,14 @@
     g += `<path d="M24-80C64-112 102-84 90-40C84-16 80 8 86 40C64 20 58-14 48-40Z" fill="${HAIR}"/>`;
     g += `<path d="M-54-6C-62-70-22-98 4-96C40-96 64-72 56-6C54 12 50 24 46 32H-46C-50 22-54 8-54-6Z" fill="${HAIR}"/>`;
     g += `<path d="M-15 38L-14 80H14L15 38Z" fill="${SKIN_S}"/>`;
+    g += `<path d="M-15 40Q0 60 15 40V54Q0 70-15 54Z" fill="#b8866a" opacity=".55"/>`;
     g += `<ellipse cx="-47" cy="0" rx="8" ry="12" fill="${SKIN}"/><ellipse cx="47" cy="0" rx="8" ry="12" fill="${SKIN}"/>`;
     g += `<path d="M-46-26C-46-66 46-66 46-26C46 12 34 44 0 56C-34 44-46 12-46-26Z" fill="${SKIN}"/>`;
     g += `<path d="M30 30C40 10 44-10 46-26C46 12 34 44 0 56C14 50 24 42 30 30Z" fill="${SKIN_S}" opacity=".5"/>`;
     // centre-parted bangs (leave the forehead mark visible)
     g += `<path d="M-54-4C-62-62-30-96 0-96L-4-64C-10-52-16-44-22-38C-24-46-27-51-30-55C-34-42-42-32-47-26C-49-34-51-42-51-46Z" fill="${HAIR}"/>`;
     g += `<path d="M54-4C62-62 30-96 0-96L4-64C10-52 16-44 22-38C24-46 27-51 30-55C34-42 42-32 47-26C49-34 51-42 51-46Z" fill="${HAIR}"/>`;
-    g += `<path d="M-30-84Q-10-94 10-90" stroke="#4a3a34" stroke-width="3" fill="none" opacity=".7"/>`;
+    g += `<path d="M-30-84Q-10-94 10-90M24-88Q38-84 44-72" stroke="#5a4a44" stroke-width="3" fill="none" opacity=".55" stroke-linecap="round"/>`;
     g += `<rect x="38" y="-96" width="16" height="10" rx="3" fill="#e0b040" transform="rotate(40 46 -91)"/>`;
     g += `<circle cx="0" cy="-40" r="3.8" fill="#d0202e"/>`;
     const eye = (x, open) =>
@@ -166,7 +167,7 @@
       proud: `<path d="M-14 26Q0 40 14 26Q0 31-14 26Z" fill="#7a2e2a"/><path d="M-11 27Q0 30 11 27L10 29Q0 32-10 29Z" fill="#fff"/>`,
       scowl: `<path d="M-11 31Q0 27 11 31" stroke="#9a5446" stroke-width="3.2" fill="none" stroke-linecap="round"/>`,
     }[mood];
-    g += `<ellipse cx="-28" cy="14" rx="9" ry="5" fill="#f08a8a" opacity=".25"/><ellipse cx="28" cy="14" rx="9" ry="5" fill="#f08a8a" opacity=".25"/>`;
+    g += `<ellipse cx="-28" cy="14" rx="9" ry="5" fill="#f08a8a" opacity=".16"/><ellipse cx="28" cy="14" rx="9" ry="5" fill="#f08a8a" opacity=".16"/>`;
     return g;
   };
 
@@ -387,10 +388,20 @@
       for (const [x, y] of [[300, 660], [700, 700], [1000, 650]]) b += `<path d="M${x} ${y}V${y - 34}" stroke="#4f7a4a" stroke-width="3"/><ellipse cx="${x}" cy="${y - 42}" rx="10" ry="13" fill="#f29ab0"/>`;
       // shore + kids
       b += `<path d="M0 900V760Q160 730 360 770Q420 790 460 900Z" fill="#7a9a5a"/><path d="M0 800Q180 770 380 800" stroke="#5a7a3a" stroke-width="4" fill="none"/>`;
-      const kid = (x, y, s, c, pony) => `<g transform="translate(${x} ${y}) scale(${s})"><circle cx="0" cy="-92" r="13" fill="#2a1a14"/>${pony ? '<path d="M8-100Q24-104 22-86Q20-76 26-70Q12-80 10-92Z" fill="#2a1a14"/><path d="M8-102q6-4 12 0" stroke="#d0202a" stroke-width="4" fill="none"/>' : ''}<path d="M-14-78H14L16-36H-16Z" fill="${c}"/><path d="M-12-36H-2V0H-12ZM2-36H12V0H2Z" fill="#3a3a4a"/><path d="M12-74L34-110" stroke="${c}" stroke-width="8" stroke-linecap="round"/></g>`;
-      b += kid(180, 800, 1.4, '#7a4aa8', false) + kid(250, 790, 1.4, '#e8e4dc', true) + `<g transform="translate(110 790) scale(1.5)"><circle cx="0" cy="-96" r="12" fill="#2a1a14"/><path d="M-16-82H16L26 0H-26Z" fill="#c87aa0"/></g>`;
+      // three kids seen from behind: A-Jie (dress), Jiang Cheng (purple), Wei Wuxian (ponytail, red ribbon)
+      const SK = '#e8c0a0';
+      const kid = (x, y, s, c, pony) => `<g transform="translate(${x} ${y}) scale(${s})">` +
+        `<rect x="-11" y="-36" width="9" height="34" rx="4" fill="${SK}"/><rect x="2" y="-36" width="9" height="34" rx="4" fill="${SK}"/><path d="M-12-2h11v4h-11zM1-2h11v4H1z" fill="#3a2a20"/>` +
+        `<path d="M-17-44H17L16-28H-16Z" fill="#3a4a6a"/>` +
+        `<path d="M-6-82H6V-74H-6Z" fill="${SK}"/><path d="M-18-72Q-19-78-10-79H10Q19-78 18-72L18-42H-18Z" fill="${c}"/>` +
+        `<path d="M-16-72Q-24-60-24-44" stroke="${c}" stroke-width="9" stroke-linecap="round" fill="none"/><circle cx="-24" cy="-42" r="5" fill="${SK}"/>` +
+        `<path d="M15-72Q28-88 36-110" stroke="${c}" stroke-width="9" stroke-linecap="round" fill="none"/><circle cx="37" cy="-113" r="5.5" fill="${SK}"/>` +
+        `<ellipse cx="0" cy="-94" rx="13" ry="14" fill="#2a1a14"/>` +
+        (pony ? '<path d="M4-104Q22-108 20-90Q18-78 24-70Q10-80 8-94Z" fill="#2a1a14"/><path d="M5-106q7-5 13 0" stroke="#d0202a" stroke-width="4" fill="none" stroke-linecap="round"/>' : '') + `</g>`;
+      b += `<g transform="translate(108 796) scale(1.5)"><path d="M-11 0V-22H-3V0ZM3 0V-22H11V0Z" fill="${SK}"/><path d="M-12-86H12L24-20H-24Z" fill="#d88aa8"/><path d="M-12-86Q-20-70-22-50" stroke="#d88aa8" stroke-width="8" stroke-linecap="round" fill="none"/><path d="M12-86Q22-70 26-50" stroke="#d88aa8" stroke-width="8" stroke-linecap="round" fill="none"/><path d="M-5-94H5V-86H-5Z" fill="${SK}"/><ellipse cx="0" cy="-104" rx="12" ry="13" fill="#2a1a14"/><path d="M-12-104Q-14-80-10-70H10Q14-80 12-104Z" fill="#2a1a14"/></g>`;
+      b += kid(186, 800, 1.35, '#7a4aa8', false) + kid(262, 792, 1.35, '#f2eee6', true);
       // kite strings
-      b += `<path d="M228 646Q500 500 620 250M298 636Q600 520 880 330M120 650Q200 420 330 300" stroke="#fff" stroke-width="1.6" fill="none" opacity=".8"/>`;
+      b += `<path d="M236 648Q500 500 620 250M312 640Q600 520 880 330M147 652Q200 430 330 300" stroke="#fff" stroke-width="1.6" fill="none" opacity=".8"/>`;
       // kites
       b += `<g transform="translate(620 250) rotate(-10)"><path d="M0-80L56 0L0 110L-56 0Z" fill="#7a4aa8"/><path d="M0-80L0 110M-56 0H56" stroke="#4a2a70" stroke-width="3"/><path d="M0 110q-20 30 0 50t0 50q20 30 0 50" stroke="#e8b84a" stroke-width="4" fill="none"/><path d="M-10 160l20-10M-10 210l20-10" stroke="#e8406a" stroke-width="6"/></g>`;
       b += `<g transform="translate(880 330) rotate(12)"><path d="M0-30Q40-60 100-40Q60-20 40 0Q60 30 90 70Q40 50 0 20Q-40 50-90 70Q-60 30-40 0Q-60-20-100-40Q-40-60 0-30Z" fill="#2a3a6a"/><path d="M-60-34Q0-10 60-34" stroke="#f2f0e8" stroke-width="5" fill="none"/><circle cx="0" cy="-14" r="8" fill="#d0202a"/></g>`;

@@ -8,11 +8,18 @@
   const F = (s) => s.flags || {};
   const night = (s) => !F(s).night_done;
   // One scene with choices per thread at a time: poll until the thread is free, then hold it.
-  const waitFor = (k, next, self) => [
+  // Night scenes give up quietly once the night is over (an 'off' node is added automatically).
+  const waitFor = (k, next, self, anytime) => [
+    ...(anytime ? [] : [{ if: (s) => !!F(s).night_done, go: 'off' }]),
     { if: (s) => !F(s)['busy_' + k], go: next },
     { wait: 6 },
     { go: self || 'start' },
   ];
+  const usesOff = (nodes) => Object.keys(nodes).some((n) => (nodes[n] || []).some((st) => st && st.go === 'off'));
+  const scene = (def) => {
+    if (def.nodes && !def.nodes.off && usesOff(def.nodes)) def.nodes.off = [{ end: true }];
+    return S.scene(def);
+  };
   const lock = (k) => ({ fx: { set: { ['busy_' + k]: true } } });
   const free = (k) => ({ fx: { set: { ['busy_' + k]: false } } });
   const isMemo = (p) => !!p && p.id === 'memo14';
@@ -35,10 +42,9 @@
         { typing: 8 },
         { wait: 3 },
         { typing: 5 },
-        { m: 'who told u', d: 2 },
-        { m: '…wen ning' },
-        { m: "it was wen ning wasn't it. i'm going to kill him. gently. he's my favorite" },
+        { m: 'oh', d: 2 },
         { m: 'jiang cheng' },
+        { m: "i told u two years ago. u don't owe me anything. u never answered so i thought maybe u were mad" },
         { m: "i didn't do it so u'd say thank you" },
         { m: "i did it because ur my brother. that's it. that's the whole reason" },
         { m: "and u never have to say it again. ok? i heard it. i'm keeping it" },
@@ -73,7 +79,7 @@
   }
 
   // ── 1. Sunday ────────────────────────────────────────────────────
-  S.scene({
+  scene({
     id: 'wwx_sunday',
     thread: 'wwx',
     trigger: { on: 'unlock', delay: 12 },
@@ -85,7 +91,8 @@
         { m: 'ok' },
         { m: 'i know ur awake' },
         { m: 'u always read everything at midnight and then pretend u were asleep' },
-        { m: "i'm going to be serious for ONE (1) message. don't interrupt" },
+        { m: 'last week i asked and then i said forget i asked and then i said dont forget i asked' },
+        { m: "so. asking properly. i'm going to be serious for ONE (1) message. don't interrupt" },
         { typing: 7 },
         { wait: 2 },
         { m: 'can i come home on sunday', d: 3 },
@@ -137,7 +144,7 @@
 
       why: [
         { m: 'why??', d: 0.8 },
-        { m: "because it's a-ling's 18th and i missed his 1st through his 14th" },
+        { m: "because it's a-ling's 18th and i missed his 2nd through his 14th" },
         { m: "because it's been thirteen years" },
         { m: 'because shijie would have made the soup and somebody has to' },
         { typing: 4 },
@@ -152,8 +159,8 @@
       burn: [
         { m: 'i burned the first four', img: 'p_soup_fail' },
         { m: 'the smoke alarm in the jingshi knows my name now' },
-        { m: 'number five was good tho', img: 'p_lotus_root_soup' },
-        { m: 'lan zhan had two bowls. lan zhan has never had two bowls of anything in his life' },
+        { m: 'number five was edible tho', img: 'p_lotus_root_soup' },
+        { m: 'lan zhan said "the fire is wrong" and then had two bowls. lan zhan has never had two bowls of anything in his life' },
         { choice: [
             { t: 'Then bring number five.', fx: { set: { wwx_invited: true }, aff: { wwx: 2 } }, go: 'yes_soft' },
             { t: 'A-Jie never burned it.', go: 'never_burned' },
@@ -162,8 +169,8 @@
       ],
       never_burned: [
         { m: 'she did once' },
-        { m: '2007. u were at summer school. she made me swear never to tell u' },
-        { m: 'she laughed so hard she had to sit on the kitchen floor. then she made it again' },
+        { m: 'winter 2006. u had the flu and she was making it for u. she made me swear never to tell u' },
+        { m: 'she laughed so hard she had to sit on the kitchen floor. then she made it again. u said it was the best one' },
         { m: "so. now u know. she'd want u to know" },
         { m: "she'd want me to bring it" },
         { choice: [
@@ -204,7 +211,7 @@
         { typing: 3 },
         { m: '…' },
         { m: "that's the nicest thing u've said to me since 2023" },
-        { m: 'including at my wedding. u said "the food is fine" and left before the cake' },
+        { m: 'including at my wedding. u said "the food is fine" and left before the toasts' },
         { go: 'pot' },
       ],
 
@@ -310,7 +317,7 @@
   });
 
   // Burned Bridges: the fallout, then the ending.
-  S.scene({
+  scene({
     id: 'wwx_burned',
     thread: 'lwj',
     trigger: { on: 'manual' },
@@ -349,7 +356,7 @@
   });
 
   // ── 2. He comes back to it (only if Sunday is still open) ────────
-  S.scene({
+  scene({
     id: 'wwx_followup',
     thread: 'wwx',
     trigger: { on: 'scene', scene: 'wwx_sunday', delay: 360 },
@@ -364,7 +371,7 @@
         { m: "the lotus root goes in after the ribs. i remember her saying that. i don't remember much from 2009 but i remember that" },
         { m: 'and something about the fire. i forget the fire part' },
         { choice: [
-            { t: "Low fire. Two hours. Don't rush it.", fx: { aff: { wwx: 2 } }, go: 'recipe' },
+            { t: "Low fire. Two hours. Don't rush it.", fx: { aff: { wwx: 2 }, set: { told_recipe: true } }, go: 'recipe' },
             { t: 'Go to sleep, Wei Wuxian.', go: 'sleep' },
             { t: 'Thank you.', if: canThank, go: 'thanks' },
             { t: 'Omg that looks amazing!! 😍', fx: { sus: { wwx: 3 } }, go: 'gush' },
@@ -376,13 +383,14 @@
         { m: "that's exactly what she said" },
         { m: 'word for word. how do u remember that' },
         { choice: [
-            { t: 'I wrote it down.', fx: { aff: { wwx: 1 } }, go: 'wrote' },
-            { t: 'Someone had to.', fx: { aff: { wwx: 1 } }, go: 'wrote' },
+            { t: 'She texted it to me. In 2008.', fx: { aff: { wwx: 1 } }, go: 'wrote' },
+            { t: 'Someone had to remember.', fx: { aff: { wwx: 1 } }, go: 'wrote' },
           ] },
       ],
       wrote: [
-        { m: 'of course u did' },
-        { m: 'of course u wrote it down' },
+        { m: 'of course' },
+        { m: 'of course u kept it' },
+        { m: 'lan zhan. LAN ZHAN. it was the fire. she told jiang cheng and jiang cheng KEPT it' },
         { m: 'jiang cheng. can i come home on sunday' },
         { choice: [
             { t: 'Six-thirty. Bring the soup.', fx: { set: { wwx_invited: true }, aff: { wwx: 2 } }, go: 'yes' },
@@ -418,7 +426,7 @@
   });
 
   // ── 3. Goodnight (last chance, ~01:30) ───────────────────────────
-  S.scene({
+  scene({
     id: 'wwx_goodnight',
     thread: 'wwx',
     trigger: { on: 'unlock', delay: 1650 },
@@ -436,7 +444,7 @@
         { m: 'see u sunday!!! 6:29 outside the gate!!!' },
         { choice: [
             { t: 'Six-thirty. Not six twenty-nine.', fx: { aff: { wwx: 1 } }, go: 'gn_end' },
-            { t: 'Goodnight, Wei Wuxian.', fx: { aff: { wwx: 1 } }, go: 'gn_end' },
+            { t: 'Goodnight.', label: '[Send him the puppies]', silent: true, fx: { aff: { wwx: 1 } }, go: 'gn_puppies' },
             { t: 'Thank you.', if: canThank, go: 'thanks' },
             { t: 'Night night 🥰', fx: { sus: { wwx: 3 } }, go: 'gn_weird' },
           ] },
@@ -463,6 +471,16 @@
         { fx: { set: { wwx_done: true } } },
         free('wwx'),
       ],
+      gn_puppies: [
+        { me: 'Goodnight.', img: 'p_puppies' },
+        { m: 'JIANG CHENG' },
+        { m: 'NOT THE PUPPIES' },
+        { m: "it's 2am. i have to look at them in the DARK" },
+        { m: '…ok the middle one is a little bit cute' },
+        { m: "goodnight u monster. six thirty ❤️" },
+        { fx: { set: { wwx_done: true } } },
+        free('wwx'),
+      ],
       gn_weird: [
         { m: 'night night??' },
         { m: 'ok now i KNOW lan xichen broke ur brain' },
@@ -478,7 +496,7 @@
 
   // ── 4. Untitled 14 ───────────────────────────────────────────────
   // The flag is set whenever it is played (also in the morning).
-  S.scene({
+  scene({
     id: 'memo_heard_flag',
     thread: 'wwx',
     trigger: { on: 'act', act: 'memo_play', match: isMemo },
@@ -486,7 +504,7 @@
   });
 
   // The quiet beat after the player listens to it.
-  S.scene({
+  scene({
     id: 'memo_listen',
     thread: 'wwx',
     trigger: { on: 'act', act: 'memo_play', match: isMemo, delay: 25 },
@@ -523,7 +541,7 @@
   });
 
   // The climax: the memo reaches him.
-  S.scene({
+  scene({
     id: 'memo_to_wwx',
     thread: 'wwx',
     trigger: { on: 'act', act: 'memo_share', match: (p) => isMemo(p) && target(p) === 'wwx' },
@@ -543,7 +561,7 @@
         { m: 'Thank you.', th: 'lwj', from: 'lwj' },
         { go: 'q' },
       ],
-      q: waitFor('wwx', 'talk', 'q'),
+      q: waitFor('wwx', 'talk', 'q', true),
       talk: [
         lock('wwx'),
         { choice: [
@@ -577,8 +595,8 @@
       ],
       after: [
         { m: "i'd do it again" },
-        { m: "i'd do it a hundred times. u know that right" },
-        { m: "don't answer that. i know u won't" },
+        { m: "i typed that to u two years ago and unsent it. i'm not unsending it now" },
+        { m: "i'd do it a hundred times. don't answer that. i know u won't" },
         { m: 'lan zhan is listening to it again. he\'s on 4. he says ur voice is "very loud for a thank you"' },
         { if: (s) => F(s).wwx_invited, go: 'end_inv' },
         { m: '…so' },
@@ -607,7 +625,7 @@
   });
 
   // Shared to the family group instead: Jin Ling finds out about the liver.
-  S.scene({
+  scene({
     id: 'memo_to_fam',
     thread: 'fam',
     trigger: { on: 'act', act: 'memo_share', match: (p) => isMemo(p) && target(p) === 'fam' },
@@ -635,7 +653,7 @@
         { m: "ok i'm going to cry at my own birthday and it's both of ur faults", from: 'jl' },
         { go: 'q' },
       ],
-      q: waitFor('fam', 'talk', 'q'),
+      q: waitFor('fam', 'talk', 'q', true),
       talk: [
         lock('fam'),
         { choice: [
@@ -665,7 +683,7 @@
   });
 
   // Shared to Lan Wangji: he plays it for Wei Ying.
-  S.scene({
+  scene({
     id: 'memo_to_lwj',
     thread: 'lwj',
     trigger: { on: 'act', act: 'memo_share', match: (p) => isMemo(p) && target(p) === 'lwj' },
@@ -688,7 +706,7 @@
   });
 
   // Sent to the wrong people.
-  S.scene({
+  scene({
     id: 'memo_to_jl',
     thread: 'jl',
     trigger: { on: 'act', act: 'memo_share', match: (p) => isMemo(p) && target(p) === 'jl' },
@@ -711,7 +729,7 @@
       ],
     },
   });
-  S.scene({
+  scene({
     id: 'memo_to_nhs',
     thread: 'nhs',
     trigger: { on: 'act', act: 'memo_share', match: (p) => isMemo(p) && target(p) === 'nhs' },
@@ -726,7 +744,7 @@
       ],
     },
   });
-  S.scene({
+  scene({
     id: 'memo_to_lxc',
     thread: 'lxc',
     trigger: { on: 'act', act: 'memo_share', match: (p) => isMemo(p) && target(p) === 'lxc' },
@@ -742,7 +760,7 @@
   });
 
   // ── 5. The family group reacts ───────────────────────────────────
-  S.scene({
+  scene({
     id: 'fam_car',
     thread: 'fam',
     trigger: { on: 'flag', flag: 'car_known', delay: 50 },
@@ -796,7 +814,7 @@
   });
 
   // If Wei Wuxian is invited, Jin Ling hears about it.
-  S.scene({
+  scene({
     id: 'fam_invited',
     thread: 'fam',
     trigger: { on: 'flag', flag: 'wwx_invited', delay: 45 },
@@ -822,11 +840,29 @@
         { m: 'I will bring the good bowls.', from: 'lwj' },
         { m: 'we have good bowls??', from: 'wwx' },
         { m: 'We have five.', from: 'lwj' },
+        { sys: 'Wei Wuxian named the conversation “Lotus Pier Family 🪷🍲 SUNDAY!!!”.' },
+        { rename: 'Lotus Pier Family 🪷🍲 SUNDAY!!!' },
         { choice: [
             { t: "Don't make it a thing.", go: 'thing' },
             { t: 'Six-thirty. Not a minute early.', go: 'time' },
-            { t: '[Say nothing]', silent: true, go: 'end' },
+            { t: 'Family.', label: '[Rename it “Family.”]', silent: true, go: 'family' },
+            { t: 'Stand.', label: '[Let the new name stand]', silent: true, fx: { aff: { wwx: 1 } }, go: 'stand' },
           ] },
+      ],
+      family: [
+        { sys: 'You named the conversation “Family.”.' },
+        { rename: 'Family.' },
+        { m: 'classic', from: 'wwx' },
+        { m: 'worth it', from: 'wwx' },
+        { go: 'end' },
+      ],
+      stand: [
+        { wait: 20 },
+        { m: 'wait', from: 'jl' },
+        { m: "he didn't change it back", from: 'jl' },
+        { m: 'HE LET IT STAND. LAN ZHAN SCREENSHOT THIS', from: 'wwx' },
+        { m: 'Done.', from: 'lwj' },
+        { go: 'end' },
       ],
       thing: [
         { m: "it's a thing!!!", from: 'wwx' },
@@ -845,7 +881,7 @@
 
   // ── 6. A-Jie ─────────────────────────────────────────────────────
   // Everything sent here fails ("Not Delivered"); the thread itself does that.
-  S.scene({
+  scene({
     id: 'ajie_open',
     thread: 'ajie',
     trigger: { on: 'open', thread: 'ajie' },
@@ -863,7 +899,7 @@
       closed: [{ end: true }],
     },
   });
-  S.scene({
+  scene({
     id: 'ajie_write',
     thread: 'ajie',
     trigger: { on: 'act', act: 'send', match: (p) => !!p && p.thread === 'ajie' },
@@ -871,7 +907,7 @@
   });
 
   // ── 7. Total suspicion ≥ 25: they compare notes → Zidian ─────────
-  S.scene({
+  scene({
     id: 'caught_total',
     thread: 'fam',
     trigger: { on: 'manual' },

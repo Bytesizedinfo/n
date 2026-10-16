@@ -205,7 +205,7 @@
         const a = rr(1.6, 4.7), r = rr(30, 280);
         pepper += `M${f(cx + Math.cos(a) * r * 0.95)} ${f(cy + Math.sin(a) * r)}a5 5 0 1 0 .1 0`;
       }
-      for (let i = 0; i < 34; i++) {
+      for (let i = 0; i < 28; i++) {
         const a = rr(0, 6.28), r = rr(20, 285), x = cx + Math.cos(a) * r, y = cy + Math.sin(a) * r, s = rr(5, 16);
         const c = `M${f(x + s)} ${f(y)}a${r1(s)} ${r1(s)} 0 1 0 .1 0`;
         if (x < cx + 70 * Math.sin((Math.PI * (y - cy)) / R)) bubR += c; else bubW += c;
@@ -213,13 +213,13 @@
       for (let i = 0; i < 8; i++) {
         const x = (i % 4) * 70 - 105, y = i < 4 ? -34 : 36;
         let m = '';
-        for (let j = 0; j < 3; j++) {
-          const yy = rr(-18, 18), xx = rr(-30, -10);
-          m += `M${f(xx)} ${f(yy)}q${f(rr(10, 20))} ${f(rr(-10, 10))} ${f(rr(30, 50))} ${f(rr(-6, 6))}`;
+        for (let j = 0; j < 4; j++) {
+          const yy = rr(-20, 20), xx = rr(-34, 0);
+          m += `M${f(xx)} ${f(yy)}q${f(rr(6, 14))} ${f(rr(-8, 8))} ${f(rr(14, 30))} ${f(rr(-5, 5))}`;
         }
-        beef += `<g transform="translate(${x} ${y}) rotate(${f(rr(-12, 12))})"><ellipse rx="42" ry="30" fill="#000" opacity=".15" transform="translate(4 6)"/><ellipse rx="42" ry="30" fill="url(#beef)"/>` +
-          `<path d="M-34-10C-20-22 8-24 32-14" stroke="#8e1f2c" stroke-width="4" fill="none" opacity=".6" stroke-linecap="round"/>` +
-          `<path d="${m}" stroke="#fbe3df" stroke-width="3.5" fill="none" opacity=".85" stroke-linecap="round"/></g>`;
+        beef += `<g transform="translate(${x} ${y}) rotate(${f(rr(-12, 12))})"><path d="${blob(0, 0, 42, 29, 7, 0.08)}" fill="url(#beef)"/>` +
+          `<path d="M24-24C40-14 42 12 26 24" stroke="#7a1424" stroke-width="5" fill="none" opacity=".7" stroke-linecap="round"/>` +
+          `<path d="${m}" stroke="#ffe6e2" stroke-width="2.5" fill="none" opacity=".8" stroke-linecap="round"/></g>`;
       }
       for (let i = 0; i < 24; i++) {
         const y0 = rr(-26, 26), a = rr(-0.18, 0.18), L = rr(140, 180), x1 = -80 + L * Math.cos(a), y1 = y0 + L * Math.sin(a);
@@ -235,7 +235,7 @@
         rg('slate', [[0, '#3a383e'], [1, '#1b1a1e']], 0.4, 0.4, 0.8) +
         lg('plate', [[0, '#ffffff'], [1, '#d9d6d1']], 0, 0, 1, 1) +
         lg('sesame', [[0, '#d9a868'], [1, '#b07a3a']]) +
-        rg('beef', [[0, '#d65563'], [1, '#a32a3a']], 0.45, 0.4, 0.6) +
+        rg('beef', [[0, '#cf4655'], [0.7, '#a8263a'], [1, '#7e1828']], 0.45, 0.4, 0.6) +
         rg('ball', [[0, '#ffffff'], [1, '#e3dccd']], 0.35, 0.3, 0.7) +
         chopDef('#c49a6c', '#8a6038') +
         `<clipPath id="pot"><circle cx="${cx}" cy="${cy}" r="${R}"/></clipPath>`,

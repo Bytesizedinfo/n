@@ -95,10 +95,14 @@
     const body = fluff(0, -82, 52, 74, 18, fa, sd, 0.5);
     const head = fluff(0, -160, 46, 41, 20, fa * 0.8, sd + 1, 0.4);
     const hL = fluff(-40, -36, 34, 34, 10, fa * 0.7, sd + 2, 0.5), hR = fluff(40, -36, 34, 34, 10, fa * 0.7, sd + 3, 0.5);
-    if (rim) g += `<g fill="${rim}" opacity="${o.rimOp || 0.8}" transform="translate(${o.rimX || -4} ${o.rimY || -4})"><path d="${body}"/><path d="${head}"/><path d="${hL}"/><path d="${hR}"/></g>`;
-    g += `<path d="${hL}" fill="${c3}"/><path d="${hR}" fill="${c3}"/>`;
+    const P = (k, d) => (rim ? `<use href="#d${sd}${k}"` : `<path d="${d}"`);
+    if (rim) {
+      g += `<defs><path id="d${sd}b" d="${body}"/><path id="d${sd}h" d="${head}"/><path id="d${sd}l" d="${hL}"/><path id="d${sd}r" d="${hR}"/></defs>`;
+      g += `<g fill="${rim}" opacity="${o.rimOp || 0.8}" transform="translate(${o.rimX || -4} ${o.rimY || -4})"><use href="#d${sd}b"/><use href="#d${sd}h"/><use href="#d${sd}l"/><use href="#d${sd}r"/></g>`;
+    }
+    g += `${P('l', hL)} fill="${c3}"/>${P('r', hR)} fill="${c3}"/>`;
     g += `<ellipse cx="-60" cy="-6" rx="20" ry="9" fill="${c1}"/><ellipse cx="60" cy="-6" rx="20" ry="9" fill="${c1}"/>`;
-    g += `<path d="${body}" fill="${c1}"/>`;
+    g += `${P('b', body)} fill="${c1}"/>`;
     if (o.chest) g += `<path d="${fluff(0, -96, 22, 36, 10, fa * 0.6, sd + 4, 0.5)}" fill="${o.chest}"/>`;
     g += `<path d="M-30-74h22v66h-22zM8-74h22v66h-22z" fill="${c1}"/><path d="M-10-70v62M10-70v62" stroke="${c3}" stroke-width="3" opacity=".6"/>`;
     g += `<ellipse cx="-19" cy="-7" rx="16" ry="9" fill="${o.paw || c1}"/><ellipse cx="19" cy="-7" rx="16" ry="9" fill="${o.paw || c1}"/>`;
@@ -115,7 +119,7 @@
           ? `M${sx * 20}-192Q${sx * 50}-206${sx * 52}-178Q${sx * 46}-170${sx * 36}-176Z`
           : `M${sx * 30}-192Q${sx * 64}-196${sx * 62}-150Q${sx * 60}-118${sx * 44}-122Q${sx * 32}-140${sx * 28}-176Z`;
     if (ear === 'up') hd += `<path d="${earPath(-1)}" fill="${c3}"/><path d="${earPath(1)}" fill="${c3}"/><path d="M-22-190L-38-212L-40-182ZM22-190L38-212L40-182Z" fill="${o.earIn || '#e8a0a8'}" opacity=".7"/>`;
-    hd += `<path d="${head}" fill="${c1}"/>`;
+    hd += `${P('h', head)} fill="${c1}"/>`;
     if (o.blaze) hd += `<path d="M-6-196Q0-200 6-196L12-150H-12Z" fill="${o.blaze}"/>`;
     hd += `<ellipse cx="0" cy="-140" rx="24" ry="17" fill="${o.muzzle || c2}"/>`;
     if (ear === 'flop' && fa > 8) {
@@ -169,13 +173,13 @@
      ===================================================================== */
   const koiTower = (cx, base, R) => {
     // tiered tower with flared, gold-lit eaves; runs off the top of the frame
-    let t = '', win = '';
+    let t = '', win = '', win2 = '';
     let y = base, wd = 400;
     for (let i = 0; i < 9 && y > -120; i++) {
       const fh = 74 - i * 3;
       t += `<rect x="${cx - wd / 2 + 18}" y="${y - fh}" width="${wd - 36}" height="${fh}" fill="#1a1230"/>`;
       for (let k = 0; k < Math.floor((wd - 60) / 26); k++) {
-        if (R() < 0.85) win += `<rect x="${r0(cx - wd / 2 + 34 + k * 26)}" y="${r0(y - fh + 18)}" width="14" height="${r0(fh - 34)}" rx="2" opacity="${f1(0.55 + R() * 0.45)}"/>`;
+        if (R() < 0.85) (R() < 0.5 ? (win += `M${r0(cx - wd / 2 + 34 + k * 26)} ${r0(y - fh + 18)}h14v${r0(fh - 34)}h-14z`) : (win2 += `M${r0(cx - wd / 2 + 34 + k * 26)} ${r0(y - fh + 18)}h14v${r0(fh - 34)}h-14z`));
       }
       const e = wd / 2 + 34, ey = y - fh;
       t += `<path d="M${cx - e} ${ey - 6}Q${cx - e + 30} ${ey + 2} ${cx - wd / 2 + 10} ${ey + 4}H${cx + wd / 2 - 10}Q${cx + e - 30} ${ey + 2} ${cx + e} ${ey - 6}Q${cx + e - 26} ${ey - 10} ${cx + wd / 2 - 20} ${ey - 22}H${cx - wd / 2 + 20}Q${cx - e + 26} ${ey - 10} ${cx - e} ${ey - 6}Z" fill="#241739"/>`;
@@ -183,7 +187,7 @@
       y = ey - 22;
       wd -= 34;
     }
-    return t + `<g fill="#ffc861">${win}</g>`;
+    return t + `<path d="${win}" fill="#ffc861"/><path d="${win2}" fill="#ffc861" opacity=".65"/>`;
   };
 
   def('p_fairy_roof', {
@@ -328,13 +332,14 @@
     g += `<path d="M24-80C64-112 102-84 90-40C84-16 80 8 86 40C64 20 58-14 48-40Z" fill="${HAIR}"/>`;
     g += `<path d="M-54-6C-62-70-22-98 4-96C40-96 64-72 56-6C54 12 50 24 46 32H-46C-50 22-54 8-54-6Z" fill="${HAIR}"/>`;
     g += `<path d="M-15 38L-14 80H14L15 38Z" fill="${SKIN_S}"/>`;
+    g += `<path d="M-15 40Q0 60 15 40V54Q0 70-15 54Z" fill="#b8866a" opacity=".55"/>`;
     g += `<ellipse cx="-47" cy="0" rx="8" ry="12" fill="${SKIN}"/><ellipse cx="47" cy="0" rx="8" ry="12" fill="${SKIN}"/>`;
     g += `<path d="M-46-26C-46-66 46-66 46-26C46 12 34 44 0 56C-34 44-46 12-46-26Z" fill="${SKIN}"/>`;
     g += `<path d="M30 30C40 10 44-10 46-26C46 12 34 44 0 56C14 50 24 42 30 30Z" fill="${SKIN_S}" opacity=".5"/>`;
     // centre-parted bangs (leave the forehead mark visible)
     g += `<path d="M-54-4C-62-62-30-96 0-96L-4-64C-10-52-16-44-22-38C-24-46-27-51-30-55C-34-42-42-32-47-26C-49-34-51-42-51-46Z" fill="${HAIR}"/>`;
     g += `<path d="M54-4C62-62 30-96 0-96L4-64C10-52 16-44 22-38C24-46 27-51 30-55C34-42 42-32 47-26C49-34 51-42 51-46Z" fill="${HAIR}"/>`;
-    g += `<path d="M-30-84Q-10-94 10-90" stroke="#4a3a34" stroke-width="3" fill="none" opacity=".7"/>`;
+    g += `<path d="M-30-84Q-10-94 10-90M24-88Q38-84 44-72" stroke="#5a4a44" stroke-width="3" fill="none" opacity=".55" stroke-linecap="round"/>`;
     g += `<rect x="38" y="-96" width="16" height="10" rx="3" fill="#e0b040" transform="rotate(40 46 -91)"/>`;
     g += `<circle cx="0" cy="-40" r="3.8" fill="#d0202e"/>`;
     const eye = (x, open) =>
@@ -357,7 +362,7 @@
       proud: `<path d="M-14 26Q0 40 14 26Q0 31-14 26Z" fill="#7a2e2a"/><path d="M-11 27Q0 30 11 27L10 29Q0 32-10 29Z" fill="#fff"/>`,
       scowl: `<path d="M-11 31Q0 27 11 31" stroke="#9a5446" stroke-width="3.2" fill="none" stroke-linecap="round"/>`,
     }[mood];
-    g += `<ellipse cx="-28" cy="14" rx="9" ry="5" fill="#f08a8a" opacity=".25"/><ellipse cx="28" cy="14" rx="9" ry="5" fill="#f08a8a" opacity=".25"/>`;
+    g += `<ellipse cx="-28" cy="14" rx="9" ry="5" fill="#f08a8a" opacity=".16"/><ellipse cx="28" cy="14" rx="9" ry="5" fill="#f08a8a" opacity=".16"/>`;
     return g;
   };
   // round-ish peony bloom (side view) for arrangements; bloomDefs() registers 4 palettes as symbols
@@ -878,7 +883,7 @@
       b += `<path d="M0 0H60V900H0Z" fill="#141418"/><path d="M0 0H1200V60H0Z" fill="#101014"/>`;
       // front seat back + headrest (right)
       b += `<path d="M900 900C890 700 900 470 960 380Q1000 340 1080 336H1200V900Z" fill="url(#seat)"/>`;
-      b += `<path d="M990 336Q980 230 1040 210H1150Q1200 214 1200 260V336Z" fill="url(#seat)"/><path d="M1010 336v40M1120 336v40" stroke="#9a9aa4" stroke-width="8" stroke-linecap="round"/>`;
+      b += `<path d="M1010 290v56M1120 290v56" stroke="#9a9aa4" stroke-width="8" stroke-linecap="round"/><path d="M990 296Q980 190 1040 170H1150Q1200 174 1200 220V296Z" fill="url(#seat)"/>`;
       b += `<path d="M960 520Q1080 500 1200 510" stroke="#2a2a32" stroke-width="4" fill="none"/><path d="M940 700Q1080 690 1200 700" stroke="#2a2a32" stroke-width="4" fill="none"/>`;
       b += `<circle cx="1180" cy="120" r="140" fill="url(#dash)"/>`;
       // passing street-light streak across the cabin

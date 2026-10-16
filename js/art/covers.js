@@ -20,7 +20,7 @@
     `<feColorMatrix in="n" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -.9 0 0 0 .4" result="d"/>` +
     `<feMerge><feMergeNode in="l"/><feMergeNode in="d"/></feMerge></filter>`;
   const svg = (defs, body, g = 0.55) =>
-    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs>${GRAIN}${defs}</defs>${body}<rect width="1000" height="1000" filter="url(#grain)" opacity="${g}"/></svg>`;
+    `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000"><defs>${GRAIN}${defs}</defs>${body}<rect width="1000" height="1000" filter="url(#grain)" opacity="${g}"/></svg>`;
 
   const SERIF = `Didot, 'Bodoni 72', 'Bodoni MT', Baskerville, 'Times New Roman', serif`;
   const SANS = `-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif`;
@@ -205,8 +205,8 @@
         `<ellipse cx="-82" cy="-6" rx="20" ry="11" fill="#f39ab0" opacity=".7"/><ellipse cx="88" cy="-10" rx="20" ry="11" fill="#f39ab0" opacity=".7"/>` +
         `</g>` +
         // type
-        `<text font-family="${HEAVY}" font-size="88" font-weight="900" letter-spacing="3" text-anchor="middle" fill="#d83a2e" transform="translate(6 6)"><textPath href="#arc" startOffset="50%">YILING LAOZU</textPath></text>` +
-        `<text font-family="${HEAVY}" font-size="88" font-weight="900" letter-spacing="3" text-anchor="middle" fill="#151515"><textPath href="#arc" startOffset="50%">YILING LAOZU</textPath></text>` +
+        `<text font-family="${HEAVY}" font-size="88" font-weight="900" letter-spacing="3" text-anchor="middle" fill="#d83a2e" transform="translate(6 6)"><textPath href="#arc" xlink:href="#arc" startOffset="50%">YILING LAOZU</textPath></text>` +
+        `<text font-family="${HEAVY}" font-size="88" font-weight="900" letter-spacing="3" text-anchor="middle" fill="#151515"><textPath href="#arc" xlink:href="#arc" startOffset="50%">YILING LAOZU</textPath></text>` +
         `<path d="M150 850L200 820L800 820L850 850L800 880H200Z" fill="#151515" transform="translate(0 30)"/>` +
         `<path d="M110 850L180 810H820L890 850L820 890H180Z" fill="#d83a2e" stroke="#151515" stroke-width="7" stroke-linejoin="round"/>` +
         text(500, 872, '&amp; THE RADISHES', { font: HEAVY, size: 56, weight: 900, fill: '#fbf3df', ls: 5, anchor: 'middle' })
@@ -247,7 +247,7 @@
         text(612, 660, 'GYM', { font: HEAVY, size: 330, weight: 900, fill: 'url(#txt)', ls: -6, anchor: 'middle', extra: ' stroke="#3b0f6e" stroke-width="10" paint-order="stroke"' }) +
         `</g>` +
         `<path d="M300 700L700 700" stroke="#b77cff" stroke-width="4" opacity=".6"/>` +
-        text(500, 770, 'NO EXCUSES', { font: HEAVY, size: 40, weight: 900, fill: '#d9b8ff', ls: 22, anchor: 'middle' }) +
+        text(500, 768, 'DO NOT TALK TO ME', { font: HEAVY, size: 34, weight: 900, fill: '#d9b8ff', ls: 10, anchor: 'middle' }) +
         `<path d="M486 820L470 860H496L482 900L530 846H504L518 820Z" fill="#fbf6ff"/>`
       , 0.6);
     },
@@ -453,7 +453,7 @@
         `<path d="${drips}" stroke="#dbeeff" stroke-width="5" opacity=".35" fill="none" stroke-linecap="round"/>` +
         drops +
         text(64, 912, 'rain', { size: 132, weight: 200, fill: '#e6f0ff', ls: 8, op: 0.92 }) +
-        text(70, 956, 'SOUNDS FOR 3 A.M.', { size: 22, fill: '#9fb6d6', ls: 8 })
+        text(70, 956, 'SOUNDS FOR 4 A.M.', { size: 22, fill: '#9fb6d6', ls: 8 })
       , 0.6);
     },
   });

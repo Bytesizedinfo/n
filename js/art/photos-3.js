@@ -358,7 +358,7 @@
         lin('wall', '0 0 0 1', '#d8cfc0 0|#bfb3a0 1') +
         lin('ctr', '0 0 0 1', '#4a4a50 0|#2a2a30 1') +
         lin('pot', '0 0 1 0', '#3a3a40 0|#8a8a94 .35|#5a5a64 .7|#24242a 1') +
-        rad('fire', '.5 .8 .7', '#fff0a0 0|#ff9a2a .5|#e0401a .85|#e0401a 1 0') +
+        rad('fire', '.5 .5 .5', '#fff0a0 0 .9|#ff9a2a .35 .6|#e0401a .7 .2|#e0401a 1 0') +
         rad('smk', '.45 .4 .6', '#8a8a90 0 .85|#6a6a72 .7 .6|#6a6a72 1 0') +
         rad('smk2', '.45 .4 .6', '#c8c8cc 0 .8|#a8a8b0 .7 .5|#a8a8b0 1 0') +
         vig('vg', 0.55) + grainDef('gr', 0.9);
@@ -372,7 +372,7 @@
       for (let i = 0; i < 9; i++) b += `<path d="M90 ${40 + i * 30}q${i % 2 ? 30 : -30} 6 ${i % 2 ? 46 : -46} 34q${i % 2 ? -26 : 26}-4 ${i % 2 ? -46 : 46}-26z" fill="#c8202a"/>`;
       // counter + stove
       b += `<path d="M0 600H1200V900H0Z" fill="url(#ctr)"/><path d="M0 600H1200" stroke="#6a6a72" stroke-width="5"/>`;
-      b += `<ellipse cx="600" cy="680" rx="200" ry="34" fill="#1a1a1e"/><circle cx="600" cy="690" r="150" fill="url(#fire)" opacity=".8"/>`;
+      b += `<ellipse cx="600" cy="680" rx="200" ry="34" fill="#1a1a1e"/><ellipse cx="600" cy="676" rx="260" ry="90" fill="url(#fire)"/>`;
       for (let i = 0; i < 10; i++) b += `<path d="M${520 + i * 18} 690q-10-30 6-60q6 30 10 60z" fill="#ffb030" opacity=".9"/>`;
       // pot with black char boiling over
       b += `<path d="M420 430Q410 640 470 670H730Q790 640 780 430Z" fill="url(#pot)"/>`;
@@ -380,7 +380,7 @@
       b += `<path d="M418 440Q430 500 446 520Q456 470 470 520Q484 560 500 470Q520 540 540 600Q556 480 580 520Q600 560 616 470Q636 540 660 580Q676 480 700 520Q716 470 740 560Q760 500 782 440Z" fill="#141210"/>`;
       b += `<path d="M420 420Q500 380 600 400T780 420Q790 440 770 446H430Q410 440 420 420Z" fill="#1a1612"/>`;
       for (let i = 0; i < 8; i++) b += `<circle cx="${r0(450 + R() * 300)}" cy="${r0(398 + R() * 20)}" r="${r0(6 + R() * 10)}" fill="#2a2420" stroke="#3a3430" stroke-width="2"/>`;
-      b += `<path d="M380 470q-40 0-40 24t40 24M820 470q40 0 40 24t-40 24" stroke="#3a3a40" stroke-width="16" fill="none"/>`;
+      b += `<path d="M418 466q-40 0-40 26t40 26M782 466q40 0 40 26t-40 26" stroke="#3a3a40" stroke-width="16" fill="none"/>`;
       // wooden spoon stuck upright in the sludge
       b += `<path d="M640 410L700 160" stroke="#b07a40" stroke-width="16" stroke-linecap="round"/><ellipse cx="704" cy="140" rx="22" ry="34" fill="#b07a40" transform="rotate(14 704 140)"/><path d="M690 120q12 10 4 40" stroke="#2a2420" stroke-width="6" fill="none"/>`;
       // smoke clouds billowing up
@@ -551,9 +551,220 @@
       for (const [x, y] of [[680, 560], [740, 640], [700, 720], [790, 590]]) b += `<ellipse cx="${x}" cy="${y}" rx="22" ry="10" fill="#c89a6a"/><ellipse cx="${x + 30}" cy="${y + 20}" rx="10" ry="10" fill="#d8302a" opacity=".8"/>`;
       // hands with chopsticks reaching in
       const hand = (x, y, a, sleeve) => `<g transform="translate(${x} ${y}) rotate(${a})"><path d="M0 0L-240 30" stroke="#2a1a10" stroke-width="7" stroke-linecap="round"/><path d="M0 14L-236 46" stroke="#2a1a10" stroke-width="7" stroke-linecap="round"/><path d="M-20-20Q30-36 70-18L80 40Q30 58-20 40Q-36 20-20-20Z" fill="#f0c8a8"/><path d="M-20-6q-20 4-26 14q10 6 26 2" fill="#f0c8a8"/><path d="M70-30L200-40V70L80 50Z" fill="${sleeve}"/></g>`;
-      b += hand(1020, 300, 210, '#2a3a6a') + hand(140, 330, -30, '#5a2d82') + hand(980, 860, 140, '#2f9e44') + hand(220, 880, 30, '#e8e4dc');
+      b += hand(210, 430, -152, '#5a2d82') + hand(990, 430, -28, '#2a3a6a') + hand(240, 860, 148, '#e8e4dc') + hand(960, 860, 32, '#2f9e44');
       for (const [x, d] of [[480, 'M0 0C-30-60 30-110 0-180'], [620, 'M0 0C30-50-30-120 10-190'], [760, 'M0 0C-20-60 30-100 0-170']]) b += `<path d="${d}" transform="translate(${x} 520)" stroke="url(#steam)" stroke-width="34" fill="none" stroke-linecap="round" opacity=".5"/>`;
       b += `<rect width="${w}" height="${h}" fill="url(#vg)"/>` + grain('gr', w, h, 0.08);
+      return wrap(w, h, defs, b);
+    },
+  });
+
+  /* =====================================================================
+     p_flute — black flute with a red tassel on a table
+     ===================================================================== */
+  def('p_flute', {
+    title: 'The black flute', w: 1200, h: 900, tags: ['flute', 'wwx', 'chenqing', 'music'],
+    svg: (w, h) => {
+      const R = rng(1031);
+      const defs =
+        lin('tbl', '0 0 1 1', '#3a2418 0|#5a3a26 .5|#2a1a10 1') +
+        lin('beam', '0 0 1 1', '#fff2d0 0 .0|#fff2d0 .45 .32|#fff2d0 .6 .0') +
+        lin('fl', '0 0 0 1', '#3a3a44 0|#0c0c10 .25|#22222a .45|#060608 .75|#14141a 1') +
+        lin('band', '0 0 0 1', '#5a5a64 0|#c8c8d0 .3|#3a3a44 1') +
+        lin('paper', '0 0 1 1', '#f4ecd8 0|#e2d6b8 1') +
+        lin('red', '0 0 1 0', '#8a0a14 0|#d8202a .5|#8a0a14 1') +
+        vig('vg', 0.6) + grainDef('gr', 0.9);
+      let b = `<rect width="${w}" height="${h}" fill="url(#tbl)"/>`;
+      let gl = '';
+      for (let i = 0; i < 22; i++) { const y = R() * 1000 - 50; gl += `M-20 ${r0(y)}C400 ${r0(y + (R() - 0.5) * 40)} 800 ${r0(y - 120 + (R() - 0.5) * 40)} 1220 ${r0(y - 220)}`; }
+      b += `<path d="${gl}" stroke="#1a0e08" stroke-width="2.5" fill="none" opacity=".5"/>`;
+      // sheet music
+      let sheet = `<g transform="translate(700 560) rotate(-8)"><rect x="-10" y="0" width="480" height="380" fill="#000" opacity=".3" transform="translate(10 12)"/><rect x="-10" y="0" width="480" height="380" fill="url(#paper)"/>`;
+      for (let s = 0; s < 4; s++) {
+        const y0 = 50 + s * 80;
+        let st = '';
+        for (let k = 0; k < 5; k++) st += `M20 ${y0 + k * 9}H440`;
+        sheet += `<path d="${st}" stroke="#8a7a60" stroke-width="1.5"/>`;
+        for (let n = 0; n < 12; n++) { const x = 50 + n * 32 + R() * 6, y = y0 + 4 + Math.floor(R() * 8) * 4.5; sheet += `<ellipse cx="${r0(x)}" cy="${f1(y)}" rx="5" ry="3.6" fill="#3a3024" transform="rotate(-20 ${r0(x)} ${f1(y)})"/><path d="M${r0(x + 4)} ${f1(y)}v-26" stroke="#3a3024" stroke-width="1.6"/>`; }
+      }
+      b += sheet + `</g>`;
+      // tea cup (back right)
+      b += `<g transform="translate(1040 180)"><ellipse cx="0" cy="56" rx="70" ry="16" fill="#000" opacity=".35"/><path d="M-60 0Q-54 56 0 60Q54 56 60 0Z" fill="#e8ece6"/><ellipse cx="0" cy="0" rx="60" ry="15" fill="#d8dcd4"/><ellipse cx="0" cy="2" rx="50" ry="11" fill="#c8a050"/></g>`;
+      // sunbeam
+      b += `<path d="M0 120L520 0H760L0 520Z" fill="url(#beam)"/>`;
+      // the flute (horizontal in local space, rotated)
+      let f = `<g transform="translate(600 470) rotate(-22)">`;
+      f += `<rect x="-480" y="-14" width="960" height="52" rx="26" fill="#000" opacity=".45" transform="translate(10 26)"/>`;
+      f += `<rect x="-480" y="-26" width="960" height="52" rx="26" fill="url(#fl)"/>`;
+      for (const x of [-440, -300, -180, 140, 300, 440]) f += `<rect x="${x - 5}" y="-26" width="10" height="52" fill="url(#band)"/>`;
+      f += `<ellipse cx="-360" cy="-4" rx="14" ry="9" fill="#000"/><ellipse cx="-240" cy="-4" rx="9" ry="6" fill="#000"/><circle cx="-240" cy="-4" r="11" fill="none" stroke="#e8e0d0" stroke-width="2" opacity=".5"/>`;
+      for (const x of [-60, 0, 60, 160, 220, 280]) f += `<ellipse cx="${x}" cy="-4" rx="11" ry="7.5" fill="#000"/><path d="M${x - 10}-10q10-6 20 0" stroke="#5a5a66" stroke-width="2" fill="none"/>`;
+      f += `<path d="M-460-16H460" stroke="#fff" stroke-width="4" opacity=".22" stroke-linecap="round"/>`;
+      f += `<rect x="-492" y="-24" width="26" height="48" rx="12" fill="#1a1a20"/><rect x="466" y="-24" width="26" height="48" rx="12" fill="#1a1a20"/>`;
+      f += `</g>`;
+      b += f;
+      // red tassel from the right end
+      b += `<path d="M1040 290Q1080 330 1070 390" stroke="url(#red)" stroke-width="8" fill="none"/><circle cx="1068" cy="398" r="16" fill="#e8f0e0"/><circle cx="1063" cy="393" r="5" fill="#fff" opacity=".8"/>`;
+      b += `<path d="M1056 412h26l-4 18h-18z" fill="#b0141e"/>`;
+      let tas = '';
+      for (let i = 0; i < 18; i++) tas += `M${1058 + i * 1.4} 430Q${1050 + i * 2} ${520 + (i % 4) * 6} ${1030 + i * 4} ${600 + (i % 3) * 10}`;
+      b += `<path d="${tas}" stroke="#c8141e" stroke-width="3.2" fill="none"/><path d="${tas}" stroke="#ff6a6a" stroke-width="1" fill="none" opacity=".5"/>`;
+      b += `<rect width="${w}" height="${h}" fill="url(#vg)"/>` + grain('gr', w, h, 0.08);
+      return wrap(w, h, defs, b);
+    },
+  });
+
+  /* =====================================================================
+     p_ops_lotusroots — 400 kg of lotus root in the warehouse
+     ===================================================================== */
+  def('p_ops_lotusroots', {
+    title: '400 kg of lotus root', w: 1200, h: 900, tags: ['ops', 'lotus-root', 'warehouse', 'huang', 'bai', 'funny'],
+    svg: (w, h) => {
+      const R = rng(400);
+      const defs =
+        lin('wall', '0 0 0 1', '#6a7a8a 0|#4a5866 1') +
+        lin('floor', '0 0 0 1', '#8a8a86 0|#5a5a58 1') +
+        lin('shaft', '0 0 1 1', '#fff8e0 0 .38|#fff8e0 1 0') +
+        lin('seg', '0 0 0 1', '#f2dcc4 0|#d8b494 .6|#b8906c 1') +
+        `<g id="lr"><path d="M-60-15Q-62 0-60 15Q-30 20-6 12Q0 6 6 12Q30 20 58 15Q62 0 58-15Q30-20 6-12Q0-6-6-12Q-30-20-60-15Z" fill="url(#seg)"/><path d="M-6-12Q0-4-6 12M6-12Q0-4 6 12" stroke="#a07a58" stroke-width="2.5" fill="none"/><path d="M-50-10q20-4 40 0M14-10q20-4 36 0" stroke="#fff4e4" stroke-width="3" fill="none" opacity=".6"/></g>` +
+        `<g id="lc"><ellipse rx="18" ry="16" fill="#c8a07c"/><ellipse rx="16" ry="14" fill="#f4e4d0"/><circle cx="-7" cy="-4" r="3" fill="#b08a64"/><circle cx="6" cy="-6" r="3" fill="#b08a64"/><circle cx="8" cy="5" r="3" fill="#b08a64"/><circle cx="-5" cy="7" r="3" fill="#b08a64"/><circle cx="0" cy="0" r="2.4" fill="#b08a64"/></g>` +
+        vig('vg', 0.5) + grainDef('gr', 0.9);
+      let b = `<rect width="${w}" height="${h}" fill="url(#wall)"/>`;
+      let cor = '';
+      for (let x = 0; x < w; x += 18) cor += `M${x} 0V560`;
+      b += `<path d="${cor}" stroke="#3a4652" stroke-width="3" opacity=".5"/>`;
+      // high windows + trusses + light shafts
+      for (let x = 60; x < w; x += 220) b += `<rect x="${x}" y="40" width="160" height="70" fill="#e8f0f4"/><path d="M${x + 80} 40V110M${x} 75H${x + 160}" stroke="#4a5866" stroke-width="5"/>`;
+      let tr = 'M0 20H1200M0 0L60 20L120 0L180 20L240 0L300 20L360 0L420 20L480 0L540 20L600 0L660 20L720 0L780 20L840 0L900 20L960 0L1020 20L1080 0L1140 20L1200 0';
+      b += `<path d="${tr}" stroke="#2a323a" stroke-width="6" fill="none"/>`;
+      for (const x of [60, 500, 940]) b += `<path d="M${x} 110L${x + 160} 110L${x + 420} 900L${x + 120} 900Z" fill="url(#shaft)"/>`;
+      // racks on both sides
+      const rack = (x0, x1, flip) => {
+        let r = '';
+        for (const y of [200, 330, 460]) {
+          r += `<rect x="${x0}" y="${y}" width="${x1 - x0}" height="12" fill="#e8742a"/>`;
+          for (let x = x0 + 8; x < x1 - 50; x += 64) r += `<rect x="${x}" y="${y - 70}" width="56" height="70" fill="${R() < 0.5 ? '#c89a62' : '#b8884e'}"/><path d="M${x} ${y - 52}H${x + 56}" stroke="#d8b07a" stroke-width="5"/>`;
+        }
+        r += `<rect x="${x0}" y="120" width="12" height="440" fill="#2a5aa8"/><rect x="${x1 - 12}" y="120" width="12" height="440" fill="#2a5aa8"/>`;
+        return r;
+      };
+      b += rack(0, 240) + rack(960, 1200);
+      b += `<path d="M0 560H1200V900H0Z" fill="url(#floor)"/><path d="M0 760H1200" stroke="#e8c020" stroke-width="10" stroke-dasharray="60 30" opacity=".7"/>`;
+      // the mountain of lotus root: segments stacked into a mound
+      b += `<path d="M230 816Q330 540 600 300Q870 540 970 816Q600 840 230 816Z" fill="#b08a66"/>`;
+      const items = [];
+      for (let i = 0; i < 150; i++) {
+        const y = 300 + Math.pow(R(), 0.8) * 520;
+        const t = (y - 290) / 530;
+        const half = 50 + t * 380;
+        const x = 600 + (R() * 2 - 1) * half;
+        items.push([y, x, R() < 0.16]);
+      }
+      items.sort((a, c) => a[0] - c[0]);
+      for (const [y, x, cut] of items) b += cut ? `<use href="#lc" transform="translate(${r0(x)} ${r0(y)}) scale(${f1(0.9 + R() * 0.5)})"/>` : `<use href="#lr" transform="translate(${r0(x)} ${r0(y)}) rotate(${r0((R() - 0.5) * 70)}) scale(${f1(0.8 + R() * 0.5)})"/>`;
+      // forklift with a pallet
+      b += `<g transform="translate(1030 760)"><rect x="-90" y="-150" width="130" height="110" rx="10" fill="#f2b81a"/><path d="M-80-150V-250H20V-150" stroke="#2a2a30" stroke-width="8" fill="none"/><rect x="40" y="-230" width="10" height="200" fill="#2a2a30"/><rect x="40" y="-40" width="110" height="10" fill="#3a3a40"/><circle cx="-60" cy="-30" r="30" fill="#1a1a1e"/><circle cx="20" cy="-30" r="26" fill="#1a1a1e"/><rect x="-70" y="-140" width="40" height="40" fill="#9ab8d0" opacity=".7"/></g>`;
+      // Old Huang, thumbs up, for scale
+      b += `<g transform="translate(150 820)"><path d="M-26 0L-22-90H22L26 0Z" fill="#1e2a48"/><path d="M-24-90Q-30-150 0-152Q30-150 24-90Z" fill="#26345a"/><circle cx="0" cy="-172" r="20" fill="#f0c8a8"/><path d="M-22-178Q0-206 22-178L26-182Q0-212-26-182Z" fill="#1e2a48"/><path d="M-26-184H30V-176H-26Z" fill="#141c34"/><path d="M-6-164q6 4 12 0" stroke="#7a4a3a" stroke-width="2.5" fill="none"/><circle cx="-7" cy="-174" r="2.2"/><circle cx="7" cy="-174" r="2.2"/><path d="M22-130Q50-136 54-160" stroke="#26345a" stroke-width="16" fill="none" stroke-linecap="round"/><rect x="44" y="-178" width="20" height="18" rx="6" fill="#f0c8a8"/><rect x="50" y="-196" width="8" height="20" rx="4" fill="#f0c8a8"/><path d="M-10-120h20" stroke="#e8c020" stroke-width="4"/></g>`;
+      b += `<rect width="${w}" height="${h}" fill="url(#vg)"/>` + grain('gr', w, h, 0.09);
+      return wrap(w, h, defs, b);
+    },
+  });
+
+  /* =====================================================================
+     p_ops_meeting — whiteboard "Q4 TARGETS" with a dog doodle
+     ===================================================================== */
+  def('p_ops_meeting', {
+    title: 'Q4 targets', w: 1200, h: 900, tags: ['ops', 'meeting', 'whiteboard', 'dog', 'ymj'],
+    svg: (w, h) => {
+      const R = rng(4);
+      const HAND = `'Marker Felt', 'Chalkboard SE', ${FONT}`;
+      const defs =
+        lin('wall', '0 0 0 1', '#d8dce0 0|#c4c8ce 1') +
+        lin('board', '0 0 1 1', '#ffffff 0|#f2f4f6 .6|#e4e8ec 1') +
+        lin('frame', '0 0 0 1', '#c8ccd2 0|#8a9098 1') +
+        lin('tbl', '0 0 0 1', '#4a3a30 0|#2a201a 1') +
+        rad('glare', '.75 .2 .5', '#fff 0 .7|#fff 1 0') +
+        vig('vg', 0.4) + grainDef('gr', 0.85);
+      let b = `<rect width="${w}" height="${h}" fill="url(#wall)"/>`;
+      b += `<rect x="70" y="50" width="1060" height="640" rx="10" fill="url(#frame)"/><rect x="86" y="64" width="1028" height="612" rx="4" fill="url(#board)"/>`;
+      b += `<rect x="86" y="64" width="1028" height="612" fill="url(#glare)"/>`;
+      // ghost of an old erased diagram
+      b += `<path d="M700 120q80 40 160 0t160 20" stroke="#b8c4d0" stroke-width="10" fill="none" opacity=".35"/>`;
+      // title
+      b += `<text x="130" y="150" font-family="${HAND}" font-size="76" font-weight="700" fill="#1f5fbf" transform="rotate(-2 130 150)">Q4 TARGETS</text>`;
+      b += `<path d="M126 172Q300 160 520 166" stroke="#1f5fbf" stroke-width="6" fill="none" stroke-linecap="round"/>`;
+      // bullet points (scribbled handwriting)
+      const scrib = (x, y, n) => { let d = `M${x} ${y}`; for (let i = 0; i < n; i++) d += `q5-${f1(8 + R() * 10)} 10 0t10 0`; return d; };
+      for (let i = 0; i < 4; i++) {
+        const y = 240 + i * 80;
+        b += `<circle cx="144" cy="${y}" r="7" fill="#222"/><path d="${scrib(170, y + 6, 10 + Math.floor(R() * 8))}" stroke="#222" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+      }
+      b += `<path d="M560 236l14 16 30-34" stroke="#1a9a4a" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+      b += `<ellipse cx="300" cy="402" rx="190" ry="40" fill="none" stroke="#d8302a" stroke-width="5" transform="rotate(-3 300 402)"/>`;
+      // bar chart with an arrow
+      b += `<path d="M680 520V250M680 520H1000" stroke="#222" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+      for (const [x, hgt, c] of [[710, 80, '#1f5fbf'], [770, 130, '#1f5fbf'], [830, 110, '#1f5fbf'], [890, 190, '#1a9a4a'], [950, 240, '#1a9a4a']]) b += `<path d="M${x} 520V${520 - hgt}H${x + 40}V520" stroke="${c}" stroke-width="5" fill="none" stroke-linejoin="round"/><path d="M${x + 6} 516l28-${hgt - 10}" stroke="${c}" stroke-width="3" opacity=".5"/>`;
+      b += `<path d="M700 470Q840 420 980 250" stroke="#d8302a" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M950 254l32-8 0 32" stroke="#d8302a" stroke-width="6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+      // dog doodle
+      b += `<g transform="translate(320 560)" fill="none" stroke="#d8302a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">` +
+        `<path d="M-60 0C-64-56 64-56 60 0C58 38 30 58 0 58C-30 58-58 38-60 0Z"/><path d="M-54-26C-90-24-96 30-70 40C-62 20-58 0-54-26ZM54-26C90-24 96 30 70 40C62 20 58 0 54-26Z"/>` +
+        `<circle cx="-22" cy="-6" r="5" fill="#d8302a"/><circle cx="22" cy="-6" r="5" fill="#d8302a"/><path d="M-10 14Q0 8 10 14Q4 22 0 22Q-4 22-10 14Z" fill="#d8302a"/><path d="M0 22V30M-14 30Q0 40 14 30"/><path d="M2 32q2 20 12 22q8-4 2-24"/>` +
+        `<path d="M86-40q10-14 22-4q10-12 20 2q4 16-22 30q-26-14-20-28z"/></g>`;
+      b += `<path d="M420 600q30-10 50 6M430 630q30-6 46 10" stroke="#d8302a" stroke-width="4" fill="none" opacity=".7" stroke-linecap="round"/>`;
+      // marker tray
+      b += `<rect x="300" y="690" width="600" height="20" rx="6" fill="#a8aeb6"/>`;
+      for (const [x, c] of [[360, '#1f5fbf'], [450, '#222'], [540, '#d8302a'], [630, '#1a9a4a']]) b += `<rect x="${x}" y="676" width="80" height="18" rx="8" fill="#f4f4f4"/><rect x="${x + 60}" y="676" width="24" height="18" rx="6" fill="${c}"/>`;
+      b += `<rect x="740" y="666" width="110" height="30" rx="6" fill="#2a2a30"/><rect x="740" y="686" width="110" height="10" fill="#c8b4a0"/>`;
+      // meeting table edge, cups, laptop (soft)
+      b += `<path d="M0 780H1200V900H0Z" fill="url(#tbl)"/><path d="M0 780H1200" stroke="#6a5444" stroke-width="5"/>`;
+      b += `<g opacity=".85"><path d="M180 780L200 700H460L480 780Z" fill="#9aa0a8"/><rect x="214" y="712" width="232" height="58" fill="#3a4250"/></g>`;
+      b += `<g transform="translate(860 790)"><path d="M-34-70H34L28 0H-28Z" fill="#f4f0e8"/><path d="M34-56q24 0 24 20t-24 20" stroke="#f4f0e8" stroke-width="8" fill="none"/><ellipse cx="0" cy="-70" rx="34" ry="8" fill="#5a3a24"/></g>`;
+      b += `<rect width="${w}" height="${h}" fill="url(#vg)"/>` + grain('gr', w, h, 0.05);
+      return wrap(w, h, defs, b);
+    },
+  });
+
+  /* =====================================================================
+     p_dogfriday_poster — hand-drawn "BRING YOUR DOG TO WORK FRIDAY"
+     ===================================================================== */
+  def('p_dogfriday_poster', {
+    title: 'Dog Friday poster', w: 1200, h: 900, tags: ['ops', 'poster', 'dog', 'dog-friday', 'liu'],
+    svg: (w, h) => {
+      const R = rng(55);
+      const HAND = `'Marker Felt', 'Chalkboard SE', 'Comic Sans MS', ${FONT}`;
+      const defs =
+        lin('wall', '0 0 1 1', '#cfd8de 0|#b8c4cc 1') +
+        lin('paper', '0 0 0 1', '#fffdf8 0|#f4f0e6 1') +
+        lin('tape', '0 0 1 0', '#f2e6c0 0 .85|#e8d8a8 1 .85') +
+        rad('lt', '.3 .2 .9', '#fff 0 .35|#fff 1 0') +
+        vig('vg', 0.4) + grainDef('gr', 0.75);
+      let b = `<rect width="${w}" height="${h}" fill="url(#wall)"/>`;
+      b += `<path d="M1080 0V900" stroke="#9aa6ae" stroke-width="30"/><rect x="1110" y="380" width="40" height="70" rx="6" fill="#eef2f4"/>`;
+      // poster
+      let p = `<g transform="translate(600 456) rotate(-2.5)">`;
+      p += `<rect x="-390" y="-400" width="780" height="820" fill="#000" opacity=".22" transform="translate(10 14)"/><rect x="-390" y="-400" width="780" height="820" fill="url(#paper)"/>`;
+      p += `<rect x="-360" y="-370" width="720" height="760" fill="none" stroke="#f2a03a" stroke-width="5" stroke-dasharray="18 12" rx="14"/>`;
+      const T = (y, s, c, txt, rot, len) => `<text x="0" y="${y}" font-family="${HAND}" font-size="${s}" font-weight="800" fill="${c}" text-anchor="middle" stroke="#1a1a1a" stroke-width="2.5" paint-order="stroke" transform="rotate(${rot} 0 ${y})" textLength="${len}" lengthAdjust="spacingAndGlyphs">${txt}</text>`;
+      p += T(-250, 88, '#e8402a', 'BRING YOUR DOG', -2, 640) + T(-150, 84, '#1f7ad8', 'TO WORK', 1.5, 380) + T(-30, 118, '#8a3ad8', 'FRIDAY!', -1.5, 440);
+      p += `<path d="M-200 0Q0 20 200 -4" stroke="#f2c230" stroke-width="12" fill="none" stroke-linecap="round" opacity=".8"/>`;
+      // the dog drawing
+      p += `<g transform="translate(-20 230)" stroke="#1a1a1a" stroke-width="5" stroke-linejoin="round" stroke-linecap="round">` +
+        `<path d="M-120 120Q-140 20-90-10Q-20-40 40-20Q120 0 130 110Z" fill="#f2c27a"/>` +
+        `<path d="M-90-40C-96-120 60-130 70-50C76 0 30 30-10 30C-50 30-86 0-90-40Z" fill="#f2c27a"/>` +
+        `<path d="M-84-70C-130-70-140 0-104 10C-96-14-90-40-84-70ZM62-76C110-82 120-6 84 8C76-20 70-50 62-76Z" fill="#a86a2a"/>` +
+        `<circle cx="-40" cy="-46" r="9" fill="#1a1a1a"/><circle cx="20" cy="-48" r="9" fill="#1a1a1a"/><circle cx="-37" cy="-50" r="3" fill="#fff" stroke="none"/><circle cx="23" cy="-52" r="3" fill="#fff" stroke="none"/>` +
+        `<path d="M-20-22Q-8-30 4-22Q-2-12-8-12Q-14-12-20-22Z" fill="#1a1a1a"/><path d="M-8-12V0M-30 0Q-8 14 14 0"/><path d="M-6 4q0 30 14 34q14-6 6-36" fill="#f27a9a"/>` +
+        `<path d="M130 60q40-20 50-70" fill="none"/><path d="M-60 40h-4M60 50h4" /></g>`;
+      // paws, bone, stars
+      const paw = (x, y, a, c) => `<g transform="translate(${x} ${y}) rotate(${a})" fill="${c}"><ellipse cx="0" cy="6" rx="16" ry="13"/><circle cx="-16" cy="-12" r="6.5"/><circle cx="-5" cy="-19" r="6.5"/><circle cx="7" cy="-19" r="6.5"/><circle cx="17" cy="-11" r="6.5"/></g>`;
+      p += paw(-300, 120, -20, '#f2a03a') + paw(-250, 210, -10, '#f2a03a') + paw(290, 140, 20, '#1f7ad8') + paw(250, 230, 14, '#1f7ad8') + paw(-300, 330, -30, '#8a3ad8') + paw(300, 340, 26, '#e8402a');
+      p += `<g transform="translate(220 40) rotate(-20)"><path d="M-50-8H50A14 14 0 1 1 56 8A14 14 0 1 1 50 8H-50A14 14 0 1 1-56 8A14 14 0 1 1-50-8Z" transform="translate(0 0)" fill="#fff" stroke="#1a1a1a" stroke-width="4"/></g>`;
+      const star = (x, y, s, c) => `<path d="M${x} ${y - s}L${x + s * 0.3} ${y - s * 0.3}L${x + s} ${y}L${x + s * 0.3} ${y + s * 0.3}L${x} ${y + s}L${x - s * 0.3} ${y + s * 0.3}L${x - s} ${y}L${x - s * 0.3} ${y - s * 0.3}Z" fill="${c}"/>`;
+      p += star(-320, -330, 22, '#f2c230') + star(330, -320, 18, '#f2c230') + star(-310, -60, 16, '#e8402a') + star(320, -80, 20, '#1f7ad8');
+      // tape
+      for (const [x, y, a] of [[-380, -390, -35], [380, -390, 35], [-380, 410, 35], [380, 410, -35]]) p += `<rect x="${x - 50}" y="${y - 16}" width="100" height="32" fill="url(#tape)" transform="rotate(${a} ${x} ${y})"/>`;
+      b += p + `</g>`;
+      b += `<rect width="${w}" height="${h}" fill="url(#lt)"/><rect width="${w}" height="${h}" fill="url(#vg)"/>` + grain('gr', w, h, 0.05);
       return wrap(w, h, defs, b);
     },
   });
