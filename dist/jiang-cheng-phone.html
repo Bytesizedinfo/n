@@ -63025,7 +63025,7 @@ textarea.sw-field { min-height: 92px; resize: none; }
     ],
     jc: [
       'When Jiang Cheng got his phone back, he read the balcony thread from the bottom up, then from the top down. Then he took the train he had always been going to take.',
-      'On the train he opened the locked note called "Private", the one that had said only "Xichen —" for three weeks, and finished it. He never sent it. Somewhere around the fourth cup, he read it out loud instead.',
+      { if: (s) => !!s.flags.xichen_draft_sent, t: 'On the train he opened the locked note called "Private", the one that had said only "Xichen —" for three weeks, and found it had already been sent, in the middle of the night, by somebody braver than him. Somewhere around the fourth cup, he said it again out loud, so that it would count.', else: 'On the train he opened the locked note called "Private", the one that had said only "Xichen —" for three weeks, and finished it. He never sent it. Somewhere around the fourth cup, he read it out loud instead.' },
       'Lan Xichen did not answer for a long moment. Then he reached across the table and put his hand over Jiang Cheng\'s, and left it there, and that was the answer.',
       'Nie Huaisang knew within the hour. Nobody knows how. Nobody ever does.',
     ],
