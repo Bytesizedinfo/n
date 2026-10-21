@@ -44,10 +44,10 @@
       (edge ? S(`M${r0(cx - a - w * 0.06)} ${r0(y - h * 0.32)}Q${r0(cx - a * 0.7)} ${r0(y + h * 0.05)} ${r0(cx - a * 0.3)} ${r0(y - h * 0.55)}M${r0(cx + a + w * 0.06)} ${r0(y - h * 0.32)}Q${r0(cx + a * 0.7)} ${r0(y + h * 0.05)} ${r0(cx + a * 0.3)} ${r0(y - h * 0.55)}`, edge, Math.max(1.5, h * 0.06)) : '');
   };
   // Liyue hall roof, front view: eave line at y, width w, height h, flared corners
-  const hall = (cx, y, w, h, fill, edge) => {
+  const hall = (cx, y, w, h, fill, edge, noRib) => {
     const a = w / 2, X = (k) => r0(cx + a * k), Y = (k) => r0(y - h * k);
     return P(`M${X(-1)} ${Y(0.24)}Q${X(-0.82)} ${Y(0)} ${X(-0.62)} ${Y(0)}H${X(0.62)}Q${X(0.82)} ${Y(0)} ${X(1)} ${Y(0.24)}Q${X(0.72)} ${Y(0.3)} ${X(0.52)} ${Y(0.8)}L${X(0.46)} ${Y(1)}H${X(-0.46)}L${X(-0.52)} ${Y(0.8)}Q${X(-0.72)} ${Y(0.3)} ${X(-1)} ${Y(0.24)}Z`, fill) +
-      S(`M${X(-0.5)} ${Y(0.42)}Q${cx} ${Y(0.46)} ${X(0.5)} ${Y(0.42)}`, '#000', r0(h * 0.62), ' stroke-linecap="butt" stroke-dasharray="1.6 5.5" opacity=".18"') +
+      (noRib ? '' : S(`M${X(-0.5)} ${Y(0.42)}Q${cx} ${Y(0.46)} ${X(0.5)} ${Y(0.42)}`, '#000', r0(h * 0.62), ' stroke-linecap="butt" stroke-dasharray="1.6 5.5" opacity=".18"')) +
       (edge ? S(`M${X(-1)} ${Y(0.24)}Q${X(-0.82)} ${Y(0)} ${X(-0.62)} ${Y(0)}H${X(0.62)}Q${X(0.82)} ${Y(0)} ${X(1)} ${Y(0.24)}`, edge, Math.max(1.5, h * 0.07)) +
         S(`M${X(-0.5)} ${Y(1)}H${X(0.5)}`, edge, Math.max(2, h * 0.09)) +
         P(`M${X(-0.5)} ${Y(1)}q${r0(-a * 0.06)} ${r0(-h * 0.2)} ${r0(a * 0.04)} ${r0(-h * 0.24)}l${r0(a * 0.02)} ${r0(h * 0.24)}ZM${X(0.5)} ${Y(1)}q${r0(a * 0.06)} ${r0(-h * 0.2)} ${r0(-a * 0.04)} ${r0(-h * 0.24)}l${r0(-a * 0.02)} ${r0(h * 0.24)}Z`, edge) : '');
@@ -678,8 +678,10 @@
         P('M318 676C334 704 380 706 398 690L486 486L438 456C400 540 350 610 318 676Z', 'url(#slv)') +
         S('M330 668C370 600 410 530 446 466', '#ffd79a', 3, ' opacity=".35"') + S('M324 684C344 700 376 702 394 690', '#000', 3, ' opacity=".35"') +
         P('M434 452L490 476L478 504L422 482Z', Z.coatD) + S('M436 456L488 478M428 472L480 494', Z.trim, 3) +
-        P('M474 470C470 440 482 410 506 396C526 386 552 392 556 410C560 430 548 452 528 468C512 480 490 482 474 470Z', Z.glove) +
-        S('M494 410Q512 400 534 404M488 428Q506 418 530 424M486 446Q502 438 522 444', '#4a4244', 2.2, ' opacity=".6"') +
+        P('M472 474C462 448 468 420 488 404C504 392 524 386 540 390C556 394 560 410 552 424L544 444C552 452 550 466 538 472C520 484 492 488 472 474Z', Z.glove) +
+        P('M526 392C540 386 556 392 556 404C556 414 546 420 534 418Z', '#262022') + P('M536 420C550 416 560 426 556 438C552 446 542 448 534 444Z', '#201b1c') +
+        P('M532 446C544 444 552 452 548 462C544 470 534 472 526 468Z', '#1c1718') +
+        S('M480 466C500 470 520 468 536 460', '#4a4244', 2.2, ' opacity=".7"') + S('M490 418Q508 404 528 400', '#6a6164', 2.5, ' opacity=".55"') +
         S('M484 414C496 398 516 390 534 392', '#7a7072', 2.5, ' opacity=".5"') +
         // tea: cup with steam, teapot, osmanthus cakes
         ell(1060, 676, 120, 26, '#000', ' opacity=".4"') + P('M968 650C962 580 1150 580 1146 650C1140 690 974 690 968 650Z', 'url(#clay)') +
@@ -871,6 +873,276 @@
         lg('shine', [[0, '#fff', 0], [0.42, '#fff', 0], [0.5, '#fff', 0.14], [0.58, '#fff', 0], [1, '#fff', 0]], 0, 0, 1, 1) +
         vigDef(0.35) + grainDef(1.2),
         body + vig(w, h) + grain(w, h, 0.07));
+    },
+  });
+
+  /* =================================================================================== */
+  /* 9. Glaze lilies, macro, morning dew                                                  */
+  /* =================================================================================== */
+  // lanceolate petal from base b to tip t with half-width wd
+  const petal = (bx, by, tx, ty, wd, fill, ex = '') => {
+    const dx = tx - bx, dy = ty - by, L = Math.hypot(dx, dy), nx = -dy / L, ny = dx / L;
+    const c = (k, n) => `${r0(bx + dx * k + nx * n)} ${r0(by + dy * k + ny * n)}`;
+    return P(`M${r0(bx)} ${r0(by)}C${c(0.35, wd)} ${c(0.8, wd * 0.9)} ${r0(tx)} ${r0(ty)}C${c(0.8, -wd * 0.7)} ${c(0.35, -wd)} ${r0(bx)} ${r0(by)}Z`, fill, ex);
+  };
+  const lily = (x, y, s, op = 1) => `<g transform="translate(${x} ${y}) scale(${s})" opacity="${op}">` +
+    disc(0, 30, 120, 'url(#lglow)') +
+    petal(0, -96, -72, 40, 30, 'url(#pB)') + petal(0, -96, 0, 52, 34, 'url(#pB)') + petal(0, -96, 74, 38, 30, 'url(#pB)') +
+    S('M-2 -40L-22 112M0 -40L2 124M2 -40L22 110', '#e6eefa', 1.6) + ell(-22, 114, 4, 7, '#f2d27a') + ell(2, 126, 4, 7, '#f2d27a') + ell(22, 112, 4, 7, '#f2d27a') +
+    petal(0, -98, -100, 54, 34, 'url(#pF)') + petal(0, -98, 104, 50, 32, 'url(#pF)') + petal(0, -98, -34, 82, 36, 'url(#pF)') + petal(0, -98, 42, 84, 36, 'url(#pF)') +
+    S('M-100 54q-14 4 -18 -8M104 50q14 4 18 -8M-34 82q-8 10 -18 4M42 84q8 10 18 4', '#d9e7fb', 4) +
+    S('M0 -90C-20 -40 -30 20 -32 74M0 -90C14 -40 26 20 40 76M-4 -90C-40 -40 -70 10 -96 50M4 -90C40 -40 74 10 100 46', '#7f9fd0', 1.5, ' opacity=".55"') +
+    P('M-14 -96C-12 -112 12 -112 14 -96C10 -88 -10 -88 -14 -96Z', '#6f9a6a') + '</g>';
+  const dew = (x, y, r) => disc(x, y, r, 'url(#dw)') + `<circle cx="${x}" cy="${y}" r="${r}" fill="none" stroke="#3a5a8a" stroke-width="1" opacity=".35"/>` +
+    disc(x - r * 0.35, y - r * 0.4, r * 0.28, '#fff') + P(`M${r0(x - r * 0.6)} ${r0(y + r * 0.4)}Q${x} ${r0(y + r * 0.9)} ${r0(x + r * 0.6)} ${r0(y + r * 0.4)}`, 'none', ' stroke="#fff" stroke-width="1.5" opacity=".7"');
+  def('p_glaze_lily', {
+    title: 'Glaze lilies, morning',
+    w: 1200, h: 900, tags: ['glaze lily', 'flowers', 'zhongli', 'guizhong', 'mountains'],
+    svg: (w, h) => {
+      const R = rng(318);
+      let bk = '';
+      for (let i = 0; i < 14; i++) bk += disc(R() * 1200, R() * 600, 20 + R() * 50, 'url(#bk)', 0.2 + R() * 0.4);
+      const blob = (x, y, rx, ry, c) => ell(x, y, rx, ry, c);
+      const body =
+        `<rect width="1200" height="900" fill="url(#sky)"/>` + disc(260, 140, 420, 'url(#sun)') +
+        // out-of-focus mountains
+        blob(160, 640, 300, 240, 'url(#m1)') + blob(460, 600, 260, 300, 'url(#m1)') + blob(780, 660, 320, 230, 'url(#m1)') + blob(1080, 590, 260, 320, 'url(#m1)') +
+        blob(300, 820, 420, 200, 'url(#m2)') + blob(900, 840, 480, 220, 'url(#m2)') +
+        `<rect y="520" width="1200" height="140" fill="url(#mist)"/>` + bk +
+        // a blurred leaf and bud in the foreground
+        P('M1200 380C1120 470 1040 640 1010 900H1090C1100 700 1140 540 1200 470Z', 'url(#blur)') + P('M0 640C80 700 150 800 170 900H90C80 820 50 740 0 700Z', 'url(#blur)') +
+        lily(330, 330, 0.9, 0.55) + lily(950, 210, 0.7, 0.4) +
+        // stem arching over, leaves
+        S('M520 900C530 700 540 420 590 280C612 220 650 214 676 240C690 254 690 266 684 276', '#4f7f52', 9) +
+        S('M590 300C560 260 470 240 380 250', '#4f7f52', 6, ' opacity=".7"') + S('M640 230C700 180 820 160 920 170', '#4f7f52', 5, ' opacity=".5"') +
+        P('M520 900C500 760 430 640 330 560C430 610 520 700 560 900Z', 'url(#leaf)') + P('M560 900C590 740 660 640 760 590C680 660 610 760 600 900Z', 'url(#leaf)') +
+        S('M520 880C496 760 440 660 360 584', '#a8d4a0', 2, ' opacity=".5"') +
+        // the lily in focus
+        lily(684, 380, 1.55) +
+        dew(612, 404, 9) + dew(742, 440, 7) + dew(700, 470, 11) + dew(560, 462, 6) + dew(796, 404, 6) + dew(640, 506, 8) + dew(470, 700, 10) + dew(540, 760, 7) +
+        disc(686, 586, 9, 'url(#dw)') + S('M686 566V577', '#e6eefa', 1.2, ' opacity=".7"');
+      return wrap(w, h,
+        lg('sky', [[0, '#b9d0ea'], [0.5, '#e6eef4'], [1, '#f3efe6']]) + glowDef('sun', '#fff6dc', 0.9) +
+        rg('m1', [[0, '#8fa2c8', 0.9], [0.6, '#9aaccd', 0.55], [1, '#a9b8d4', 0]]) +
+        rg('m2', [[0, '#5f7896', 0.9], [0.6, '#6f86a2', 0.5], [1, '#7a90aa', 0]]) +
+        lg('mist', [[0, '#f4f2ee', 0], [0.5, '#f4f2ee', 0.6], [1, '#f4f2ee', 0]]) + bokehDef('bk', '#ffffff') +
+        lg('pF', [[0, '#c7d9f4'], [0.45, '#f4f8ff'], [1, '#ffffff']], 0, 0, 0, 1) +
+        lg('pB', [[0, '#93afd8'], [1, '#c9daf2']], 0, 0, 0, 1) +
+        rg('lglow', [[0, '#e8f2ff', 0.7], [1, '#e8f2ff', 0]]) +
+        lg('leaf', [[0, '#7fb07a'], [1, '#2f6a4a']], 0, 0, 1, 1) + lg('blur', [[0, '#3f7a5a', 0], [0.4, '#3f7a5a', 0.45], [1, '#2a5a44', 0.6]], 0, 0, 0, 1) +
+        rg('dw', [[0, '#ffffff', 0.25], [0.7, '#cfe0f5', 0.35], [1, '#ffffff', 0.85]], 0.4, 0.35, 0.6) +
+        vigDef(0.3) + grainDef(),
+        body + vig(w, h) + grain(w, h, 0.07));
+    },
+  });
+
+  /* =================================================================================== */
+  /* 10. Liyue Harbor by day, from a high terrace                                         */
+  /* =================================================================================== */
+  const junk = (x, y, s, sail = '#f3e6cc', hull = '#6a3a24') => `<g transform="translate(${x} ${y}) scale(${s})">` +
+    P('M-60 0H64L52 16H-48Z', hull) + P('M-60 0L-70 -10H-54ZM64 0L74 -12H58Z', hull) +
+    P('M-30 -2V-96Q-6 -80 0 -4Z', sail) + P('M6 -2V-120Q34 -100 40 -4Z', sail) + P('M-52 -2V-56Q-40 -46 -36 -4Z', sail) +
+    (s >= 0.4 ? S('M-30 -80H-4M-30 -60H-2M-30 -40H0M6 -100H32M6 -76H36M6 -52H38M6 -28H40', '#b8a080', 2, ' opacity=".6"') : '') + '</g>';
+  def('p_harbor_day', {
+    title: 'Liyue Harbor from the terrace',
+    w: 1200, h: 900, tags: ['liyue', 'harbor', 'day', 'boats', 'city'],
+    svg: (w, h) => {
+      const R = rng(2026);
+      const HZ = 340;
+      // rooftops in tiers, back to front
+      let city = `<rect y="630" width="1200" height="200" fill="#6a2a1e"/>`;
+      [[640, 92, 0.5], [690, 130, 0.75], [770, 190, 1.1]].forEach(([y, ww, k], row) => {
+        let walls = '';
+        for (let x = -30 + R() * 50 + row * 40; x < 1260; x += ww * (1 + R() * 0.3)) {
+          const wv = ww * (0.85 + R() * 0.3), hv = wv * 0.3;
+          walls += `M${r0(x - wv * 0.36)} ${y - 2}h${r0(wv * 0.72)}v${r0(70 * k + 30)}h${r0(-wv * 0.72)}Z`;
+          city += `<path d="${walls}" fill="${row % 2 ? '#a5382a' : '#b84a34'}"/>` + hall(x, y, wv, hv, R() < 0.78 ? 'url(#gold)' : 'url(#jade)', row ? '#fff0b8' : 0, row < 2);
+          walls = '';
+        }
+      });
+      let crowd = '', heads = '', crates = '';
+      for (let i = 0; i < 44; i++) {
+        const x = r0(40 + R() * 1120), y = r0(620 - x * 0.05 + R() * 14 - 7);
+        crowd += `M${x} ${y - 8}h3v7h-3Z`; heads += `M${x} ${y - 12}h3v3h-3Z`;
+      }
+      for (let i = 0; i < 4; i++) {
+        let d = '';
+        for (let j = 0; j < 6; j++) { const x = r0(60 + R() * 1100), y = r0(608 - x * 0.05 + R() * 6); d += `M${x} ${y}h${r0(10 + R() * 14)}v${r0(8 + R() * 6)}h-${r0(10 + R() * 14)}Z`; }
+        crates += `<path d="${d}" fill="${['#c98a3a', '#3a6a8a', '#7a9a4a', '#a8442a'][i]}"/>`;
+      }
+      crowd = `<path d="${crowd}" fill="#2a3048"/><path d="${heads}" fill="#e8c8a8"/>`;
+      let piers = '', boats = '';
+      [120, 330, 540, 760, 980].forEach((x, i) => {
+        const y = 616 - x * 0.05;
+        piers += P(`M${x} ${y}L${x + 14} ${y - 60}H${x + 46}L${x + 40} ${y}Z`, '#8a6a4a') + S(`M${x + 6} ${y - 20}H${x + 42}M${x + 10} ${y - 40}H${x + 44}`, '#5a3a22', 2);
+        boats += junk(x + 76, y - 24, 0.3 + (i % 2) * 0.06, i % 2 ? '#e8d4b0' : '#f3e6cc');
+      });
+      let waves = '';
+      for (let i = 0; i < 32; i++) { const y = HZ + 8 + R() * 260; waves += `M${r0(R() * 1200)} ${r0(y)}h${r0(8 + (y - HZ) * 0.15)}`; }
+      const body =
+        `<rect width="1200" height="${HZ + 2}" fill="url(#sky)"/>` +
+        cloud(220, 120, 1.4, 'url(#cw)') + cloud(560, 70, 1.1, 'url(#cw)', 0.9) + cloud(760, 200, 0.9, 'url(#cw)', 0.85) + cloud(120, 250, 0.7, 'url(#cw)', 0.8) +
+        // far islands, sea
+        P(`M0 ${HZ}Q40 ${HZ - 18} 90 ${HZ - 10}Q130 ${HZ - 26} 170 ${HZ}Z`, '#8aa6b0') + P(`M300 ${HZ}Q330 ${HZ - 10} 370 ${HZ}Z`, '#97b0b8') +
+        `<rect y="${HZ}" width="1200" height="320" fill="url(#sea)"/>` + `<path d="${waves}" stroke="#e8fbff" stroke-width="2" opacity=".45"/>` +
+        // great cliffs on the right
+        karst(880, 460, 150, 300, '#93a3a4') + karst(1000, 470, 190, 420, '#8a9c9a', '#6f8f6a') + karst(1130, 480, 170, 360, '#7f938e', '#5f8a5a') +
+        S('M960 170v260M1010 120v320M1060 160v260M1110 200v240M1160 220v220', '#bfcac6', 4, ' opacity=".3"') +
+        karst(1180, 560, 160, 240, '#6c8078', '#4f7a4a') +
+        P('M840 470Q1000 440 1200 470V560Q1000 540 840 520Z', '#5f7f6a', ' opacity=".6"') +
+        // ships out at sea
+        junk(420, 440, 0.9, '#c8402c', '#4a2a1a') + junk(640, 400, 0.45) + junk(250, 392, 0.35) + junk(780, 380, 0.3) + junk(150, 470, 0.5) +
+        // quay, piers, boats, crowd
+        piers + boats +
+        P('M-10 626L1210 566V600L-10 666Z', '#b9a98e') + P('M-10 626L1210 566V572L-10 632Z', '#e2d6bd') + crates + crowd +
+        // cargo crane
+        S('M700 590L712 500L770 470M712 500L700 470', '#5a3a24', 4) + S('M770 470V520', '#3a2a1a', 1.5) + `<rect x="762" y="520" width="16" height="10" fill="#c98a3a"/>` +
+        city +
+        // foreground: terrace parapet, red pillar, eave with lantern
+        P('M0 820H1200V900H0Z', 'url(#par)') + `<rect y="812" width="1200" height="14" fill="#f3e6c8"/>` +
+        [60, 260, 460, 660, 860, 1060].map((x) => `<rect x="${x}" y="826" width="70" height="74" fill="#8a2a1e" opacity=".55"/><path d="M${x + 10} 846h50M${x + 10} 880h50" stroke="#d9b25b" stroke-width="2"/>`).join('') +
+        `<rect x="0" y="0" width="96" height="900" fill="url(#pil)"/><rect x="0" y="120" width="96" height="22" fill="#d9b25b"/><rect x="0" y="700" width="96" height="22" fill="#d9b25b"/>` +
+        P('M0 0H560L520 26Q300 40 0 70Z', '#3a2016') + P('M0 70Q300 40 520 26L540 34Q300 52 0 82Z', '#d9b25b') +
+        S('M300 44V110', '#2a1a10', 3) + P('M272 110H328L338 150Q300 196 262 150Z', 'url(#lan)') + S('M276 120Q300 112 324 120M268 140Q300 132 332 140', '#8a1a12', 2) +
+        `<rect x="290" y="166" width="20" height="8" fill="#d9b25b"/>` + S('M300 174V220', '#c42d22', 4) +
+        `<rect width="1200" height="900" fill="url(#air)"/>`;
+      return wrap(w, h,
+        lg('sky', [[0, '#5f9ad6'], [0.6, '#a8cdea'], [1, '#e0eef4']]) +
+        lg('cw', [[0, '#ffffff'], [0.7, '#f2f6fa'], [1, '#c9d6e2']]) +
+        lg('sea', [[0, '#7cb8c0'], [0.3, '#3f9aa6'], [1, '#2a7a88']]) +
+        lg('gold', [[0, '#ffe38e'], [0.5, '#e4aa3a'], [1, '#a8641c']]) + lg('jade', [[0, '#9fe0c0'], [0.5, '#3fa080'], [1, '#1f6a52']]) +
+        lg('par', [[0, '#c9473a'], [1, '#7e1e16']]) + lg('pil', [[0, '#7e1e16'], [0.5, '#c9473a'], [1, '#8a2418']], 0, 0, 1, 0) +
+        rg('lan', [[0, '#ff9a5a'], [0.6, '#e0402c'], [1, '#a01e14']], 0.4, 0.4, 0.7) +
+        lg('air', [[0, '#fff', 0], [0.5, '#e8f2f8', 0.12], [1, '#fff', 0]]) +
+        vigDef(0.35) + grainDef(),
+        body + vig(w, h) + grain(w, h, 0.07));
+    },
+  });
+
+  /* =================================================================================== */
+  /* 11. Yujing Terrace: white lanterns lit for the Rite of Parting                       */
+  /* =================================================================================== */
+  // mourner in white, feet at x,y, height hh; c = rim colour
+  const mourner = (x, y, hh, flip, face, c = '#ffe2b0') => {
+    const k = hh / 160, f = flip ? -1 : 1;
+    return `<g transform="translate(${r0(x)} ${r0(y)}) scale(${(k * f).toFixed(3)} ${k.toFixed(3)})">` +
+      ell(0, 0, 34, 6, '#000', ' opacity=".3"') +
+      P('M-26 0C-24 -50 -20 -100 -16 -122C-8 -130 8 -130 16 -122C22 -100 26 -50 28 0Z', 'url(#robe)') +
+      P('M-16 -122C-30 -110 -36 -80 -34 -56L-24 -54C-24 -80 -20 -100 -12 -112Z', '#dfe3ec') +
+      S('M16 -122C22 -100 26 -50 28 0', c, 3, ' opacity=".7"') +
+      disc(0, -140, 15, '#2a2226') + (face ? P('M2 -154C14 -152 20 -142 18 -132C16 -126 8 -124 2 -126Z', '#e9c6ae') : '') + P('M-15 -146Q0 -160 15 -146V-140H-15Z', '#f4f4f6') + S('M12 -144L22 -120', '#f4f4f6', 4) + '</g>';
+  };
+  def('p_yujing_lanterns', {
+    title: 'Lanterns on Yujing Terrace',
+    w: 1200, h: 900, tags: ['yujing', 'lanterns', 'rite', 'evening', 'funeral'],
+    svg: (w, h) => {
+      const R = rng(1018);
+      const VX = 600, VY = 450;
+      const Z = [1.15, 1.6, 2.2, 3.1, 4.4, 6.2, 8.8, 12.5];
+      let stars = '';
+      for (let i = 0; i < 40; i++) stars += disc(R() * 1200, R() * 260, 0.8 + R() * 1.4, '#fff', 0.3 + R() * 0.6);
+      let tiles = '';
+      for (let i = -10; i <= 10; i++) tiles += `M${VX} ${VY}L${VX + i * 150} 900`;
+      Z.forEach((z) => (tiles += `M${r0(VX - 700 / z)} ${r0(VY + 450 / z)}H${r0(VX + 700 / z)}`));
+      // lantern posts both sides; a few on the right not lit yet
+      let posts = '', glows = '';
+      Z.slice().reverse().forEach((z, i) => {
+        [-1, 1].forEach((side) => {
+          const x = VX + side * 600 / z, by = VY + 450 / z, ph = 340 / z, r = 34 / z;
+          const lit = !(side === 1 && z < 2);
+          const lx = x - side * 26 / z, ly = by - ph + 40 / z;
+          posts += `<rect x="${r0(x - 5 / z)}" y="${r0(by - ph)}" width="${Math.max(1, r0(10 / z))}" height="${r0(ph)}" fill="#1c1a24"/>` +
+            S(`M${r0(x)} ${r0(by - ph + 4 / z)}H${r0(lx)}V${r0(ly - r * 1.1)}`, '#1c1a24', Math.max(1, 4 / z));
+          if (lit) glows += disc(lx, ly, r * 4, 'url(#lg)') + ell(lx, by + 8 / z, r * 3, r * 0.6, 'url(#fl)');
+          posts += ell(lx, ly, r * 0.9, r, lit ? 'url(#lit)' : '#d8dce6') +
+            `<ellipse cx="${r0(lx)}" cy="${r0(ly)}" rx="${(r * 0.45).toFixed(1)}" ry="${r0(r)}" fill="none" stroke="${lit ? '#e0b070' : '#aab0c0'}" stroke-width="${Math.max(0.6, 1.6 / z).toFixed(1)}" opacity=".7"/>` +
+            `<rect x="${r0(lx - r * 0.4)}" y="${r0(ly - r * 1.1)}" width="${r0(r * 0.8)}" height="${Math.max(1, r0(r * 0.2))}" fill="#2a2630"/>` +
+            `<rect x="${r0(lx - r * 0.4)}" y="${r0(ly + r * 0.92)}" width="${r0(r * 0.8)}" height="${Math.max(1, r0(r * 0.2))}" fill="#2a2630"/>` +
+            S(`M${r0(lx)} ${r0(ly + r * 1.1)}V${r0(ly + r * 1.9)}`, '#f2f2f4', Math.max(1, 3 / z), ' opacity=".8"');
+        });
+      });
+      const body =
+        `<rect width="1200" height="${VY + 4}" fill="url(#sky)"/>` + stars +
+        // distant hills, the sea, the hall at the far end
+        P(`M0 ${VY}V330C80 300 140 320 200 290C260 260 320 300 380 330L460 ${VY}Z`, '#2a2a48') +
+        P(`M740 ${VY}L820 340C880 300 940 270 1000 290C1060 310 1120 280 1200 300V${VY}Z`, '#2a2a48') +
+        `<rect x="520" y="${VY - 40}" width="160" height="44" fill="#3a2a3a"/>` + hall(600, VY - 38, 230, 56, 'url(#gold)', '#ffd98a') +
+        `<rect x="560" y="${VY - 34}" width="80" height="30" fill="#ffc870" opacity=".55"/>` +
+        P(`M0 ${VY}H1200V900H0Z`, 'url(#floor)') + `<path d="${tiles}" stroke="#8a90a8" stroke-width="1.5" opacity=".35"/>` +
+        glows + posts +
+        // mourners in white, and the lamplighter with his taper
+        mourner(460, 560, 64) + mourner(486, 566, 62, true) + mourner(720, 548, 52, true) + mourner(760, 540, 44) + mourner(560, 500, 26) + mourner(640, 496, 24, true) + mourner(674, 494, 22) +
+        mourner(390, 640, 108, true) + mourner(880, 610, 92) +
+        mourner(262, 790, 160, true, true) + S('M262 676L184 560', '#4a3a2a', 4) + disc(184, 556, 7, '#ffcf70') + disc(184, 556, 18, 'url(#lg)') +
+        `<rect width="1200" height="900" fill="url(#dusk)"/>`;
+      return wrap(w, h,
+        lg('sky', [[0, '#141a3a'], [0.55, '#3a3a6a'], [0.85, '#a8607a'], [1, '#e89a7a']]) +
+        lg('floor', [[0, '#3e4262'], [0.4, '#55597a'], [1, '#7a7e98']]) +
+        lg('gold', [[0, '#e8c070'], [1, '#8a5a2a']]) +
+        rg('lit', [[0, '#fffbea'], [0.6, '#fff0c8'], [1, '#f0c890']], 0.45, 0.4, 0.6) +
+        glowDef('lg', '#ffe6b0', 0.55) + rg('fl', [[0, '#ffe6b0', 0.4], [1, '#ffe6b0', 0]]) +
+        lg('robe', [[0, '#c9cede'], [0.5, '#f4f5f8'], [1, '#ffffff']], 0, 0, 1, 0) +
+        lg('dusk', [[0, '#1a1840', 0], [0.6, '#1a1840', 0], [1, '#1a1840', 0.35]]) +
+        vigDef(0.55) + grainDef(),
+        body + vig(w, h) + grain(w, h, 0.09));
+    },
+  });
+
+  /* =================================================================================== */
+  /* 12. The Jade Chamber above the harbor at sunset                                      */
+  /* =================================================================================== */
+  def('p_jade_chamber', {
+    title: 'The Jade Chamber at sunset',
+    w: 1200, h: 900, tags: ['liyue', 'jade chamber', 'ningguang', 'sunset', 'harbor'],
+    svg: (w, h) => {
+      const R = rng(9);
+      const HZ = 650;
+      const J = { wall: '#2f8a6a', dark: '#123a2c', stone: '#e8e2cf' };
+      let l1 = '', l2 = '', refl = '', wins = '';
+      for (let x = 0; x < 1200; x += 6 + R() * 14) {
+        const d = `M${r0(x)} ${r0(HZ + 8 + R() * 10)}h3v3h-3Z`;
+        if (R() < 0.6) l1 += d; else l2 += d;
+        if (R() < 0.3) refl += `M${r0(x)} ${HZ + 20}h2v${r0(20 + R() * 40)}h-2Z`;
+      }
+      const lights = `<path d="${l1}" fill="#ffd27a"/><path d="${l2}" fill="#ff8a4a"/>`;
+      refl = `<path d="${refl}" fill="#ffb060" opacity=".35"/>`;
+      for (let i = 0; i < 30; i++) wins += `M${r0(400 + R() * 320)} ${r0(250 + R() * 110)}h4v6h-4Z`;
+      let sunRefl = '';
+      for (let i = 0; i < 20; i++) { const y = HZ + 24 + i * 9, ww = 30 + i * 10; sunRefl += `<rect x="${r0(900 - ww / 2 + (R() - 0.5) * 30)}" y="${y}" width="${r0(ww)}" height="3" rx="1.5" fill="#ffc87a" opacity="${(0.7 - i * 0.03).toFixed(2)}"/>`; }
+      const body =
+        `<rect width="1200" height="${HZ + 2}" fill="url(#sky)"/>` +
+        disc(900, 600, 460, 'url(#sun)') + disc(900, 606, 46, '#fff0c8') +
+        streak(200, 120, 640, 40, 'url(#cl)', 0.85) + streak(960, 170, 560, 34, 'url(#cl)', 0.8) + streak(600, 470, 900, 26, 'url(#cl2)', 0.7) + streak(1000, 520, 420, 18, 'url(#cl2)', 0.7) +
+        // karst cliffs and the shore
+        karst(70, HZ, 140, 330, '#3a2a48', '#2a2038') + karst(190, HZ, 110, 240, '#43304f') + karst(1110, HZ, 150, 300, '#3e2c4a', '#2a2038') + karst(1010, HZ, 90, 190, '#4a3456') +
+        `<rect y="${HZ}" width="1200" height="${900 - HZ}" fill="url(#sea)"/>` + sunRefl + refl +
+        P(`M0 ${HZ + 20}L120 ${HZ}H1200V${HZ + 14}L900 ${HZ + 22}L600 ${HZ + 16}L300 ${HZ + 26}Z`, '#1e1628') + lights +
+        // the floating rock
+        P('M286 372C296 420 350 456 410 480C466 504 520 540 556 580C590 540 636 510 696 486C756 460 822 424 834 372Z', 'url(#rock)') +
+        S('M560 574C594 538 640 508 700 484C760 458 820 424 830 380', '#ff9a5a', 5, ' opacity=".55"') +
+        S('M340 410C380 440 420 456 450 476M480 500C500 520 520 540 540 562M620 506C640 490 680 470 720 450M400 396C440 406 470 420 500 440', '#2a1e2e', 3, ' opacity=".5"') +
+        S('M330 380C330 420 336 450 330 480M420 384C424 430 420 470 426 500M710 386C712 420 706 450 712 470M780 384C782 410 778 430 782 450', '#3f7a4a', 4, ' opacity=".8"') +
+        cloud(330, 520, 1.1, 'url(#cl2)', 0.75) + cloud(780, 500, 0.9, 'url(#cl2)', 0.7) + cloud(560, 560, 0.9, 'url(#cl2)', 0.65) +
+        // terrace and halls of jade and gold
+        `<rect x="290" y="352" width="540" height="24" fill="#efe8d4"/>` + S('M296 352H824', '#fff6dc', 3) +
+        `<path d="M300 352V340M330 352V340M360 352V340M760 352V340M790 352V340M820 352V340M300 341H372M748 341H824" stroke="#efe8d4" stroke-width="3"/>` +
+        palace(380, 352, 170, J) + palace(740, 352, 170, J) +
+        palace(560, 354, 300, J) + palace(560, 238, 200, J) + `<rect x="530" y="118" width="60" height="46" fill="#2f8a6a"/>` + hall(560, 126, 110, 44, 'url(#gold)', '#fff2c0', 1) +
+        S('M560 70V50', '#ffd98a', 4) + disc(560, 46, 6, '#9fe8c8') +
+        `<path d="${wins}" fill="#ffe2a0" opacity=".7"/>` +
+        S('M650 340C680 300 690 250 680 200M700 340L712 240', '#ffb06a', 3, ' opacity=".35"') +
+        disc(560, 300, 340, 'url(#halo)') +
+        // birds crossing
+        S('M190 300q10 -10 20 0q10 -10 20 0M240 330q7 -7 14 0q7 -7 14 0', '#2a2038', 2.5);
+      return wrap(w, h,
+        lg('sky', [[0, '#2e2f68'], [0.35, '#7a4a7e'], [0.62, '#d8706a'], [0.85, '#f6a45a'], [1, '#ffd08a']]) +
+        glowDef('sun', '#ffcf86', 0.85) + glowDef('halo', '#ffe0a0', 0.18) +
+        lg('cl', [[0, '#4a3a6a'], [0.6, '#a0587a'], [1, '#f49a7a']]) + lg('cl2', [[0, '#e88a7a'], [1, '#ffd0a0']]) +
+        lg('sea', [[0, '#7a5070'], [0.2, '#4a3a62'], [1, '#1c1c38']]) +
+        lg('rock', [[0, '#6a5060'], [0.5, '#3e2e40'], [1, '#22182a']], 0, 0, 1, 1) +
+        lg('gold', [[0, '#ffe8a0'], [0.5, '#f0b048'], [1, '#b86a22']]) +
+        vigDef(0.5) + grainDef(),
+        body + vig(w, h) + grain(w, h, 0.08));
     },
   });
 })();

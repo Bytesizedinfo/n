@@ -107,6 +107,18 @@
   // dried chili pod (rotated)
   const chili = (x, y, a, l, c) =>
     `<g transform="translate(${r0(x)} ${r0(y)}) rotate(${r0(a)})"><path d="M${-l} 0Q0 ${-l * 0.36} ${l} -2Q${f1(l * 0.2)} ${f1(l * 0.42)} ${-l} 0Z" fill="${c || '#a3150c'}"/><path d="M${f1(-l * 0.6)} -3Q0 ${f1(-l * 0.22)} ${f1(l * 0.7)} -4" stroke="#ff8a6a" stroke-width="2" fill="none" opacity=".5"/><path d="M${l} -2l${f1(l * 0.3)} -4" stroke="#6b5a2a" stroke-width="4"/></g>`;
+  // many dried chilies as three paths (pods, sheen, stems)
+  const chilis = (list, c) => {
+    let pod = '', hi = '', st = '';
+    for (const [x, y, a, l] of list) {
+      const ca = Math.cos(a * Math.PI / 180), sa = Math.sin(a * Math.PI / 180);
+      const P = (u, v) => `${r0(x + u * ca - v * sa)} ${r0(y + u * sa + v * ca)}`;
+      pod += `M${P(-l, 0)}Q${P(0, -l * 0.42)} ${P(l, -2)}Q${P(l * 0.2, l * 0.48)} ${P(-l, 0)}Z`;
+      hi += `M${P(-l * 0.55, -4)}Q${P(0, -l * 0.26)} ${P(l * 0.6, -5)}`;
+      st += `M${P(l, -2)}L${P(l * 1.3, -7)}`;
+    }
+    return `<path d="${pod}" fill="${c || '#a3150c'}"/><path d="${hi}" stroke="#ff8a6a" stroke-width="2.5" fill="none" opacity=".5"/><path d="${st}" stroke="#6b5a2a" stroke-width="4.5"/>`;
+  };
   // Wanmin Go logo
   const logo = (x, y, r) => `<g transform="translate(${x} ${y})"><circle r="${r}" fill="#d8392b"/><path d="M${f1(-r * 0.55)} ${f1(-r * 0.2)}Q0 ${f1(r * 0.8)} ${f1(r * 0.55)} ${f1(-r * 0.2)}" stroke="#fff" stroke-width="${f1(r * 0.22)}" fill="none"/><path d="M${f1(-r * 0.2)} ${f1(-r * 0.7)}q${f1(r * 0.2)} ${f1(r * 0.2)} 0 ${f1(r * 0.45)}M${f1(r * 0.2)} ${f1(-r * 0.7)}q${f1(r * 0.2)} ${f1(r * 0.2)} 0 ${f1(r * 0.45)}" stroke="#fff" stroke-width="${f1(r * 0.13)}" fill="none"/></g>`;
 
