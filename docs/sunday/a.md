@@ -12,12 +12,15 @@ console warning if it is missing, so the static check passes while scenes are st
 2. `wwx_wenning` (100 s after `wwx_invited`). He asks: can Wen Ning drive us, and can he come in? This is cross-storyline beat 1.
 3. `wwx_followup` (only if he isn't invited yet). A practice batch at midnight. He knows about the 400 kg of lotus root: `ops_keep` gives "Honghu root", which he heard about in an Old Huang voice message; `ops_soup` gives Auntie Chen's canteen soup. This is cross-storyline beat 2. You can tell him the recipe here, and he asks again.
 4. `wwx_practice` (~01:05, if he is invited or a maybe). Batch six or seven, and Lan Wangji says "closer". Possible answers: "Salt at the end." or "It'll be yours." (`soup_practiced`), or "Low fire. Two hours." (`told_recipe`).
+   - If Jin Ling got his mother's recipe (`jl_recipe`, writer B), A-Ling has already texted it to Wei Wuxian at 1 a.m. ("from mom. don't make it a thing"). This sets `told_recipe` and `soup_practiced`. `wwx_followup` has the same beat (`soup_aling`).
 5. `wwx_goodnight` (~01:30). Before the last choice he passes on what he has heard from the other storylines:
    - Lan Xichen's tea (via Lan Wangji), or `lxc_sunday`
    - the bell (via Sizhui)
    - Fairy coming inside ("I'll sit next to her")
    - Wen Ning ironing his one shirt
-   - the party possibly moving to Koi Tower
+   - Old Huang's voice message, "This time I open the gate before you knock" (`huang_wwx`, writer B)
+   - Nie Huaisang asking what to wear (`nhs_ally`)
+   - the party possibly moving to Koi Tower (unfixed `scandal` or `party_moved`)
 6. The memo "Untitled 14":
    - `memo_to_wwx` is the climax.
    - `memo_to_fam` now ends with Jin Ling demanding a straight answer about Sunday.
@@ -30,7 +33,7 @@ console warning if it is missing, so the static check passes while scenes are st
 **Consequence `burned_after` (lwj thread).**
 - Lan Wangji's message. You can answer "I didn't mean it." or "Tell him I'm sorry." (both set `burned_regret`).
 - Jin Ling asks what you did.
-- ~150 s later: "He came down. He is making the soup anyway… he will leave it at the gate." You can answer "The gate will be open." (`burned_gate`).
+- ~150 s later: "He came down. He is making the soup anyway… he will leave it at the gate." With `huang_wwx`, he listened four times to Old Huang's voice message about the gate. You can answer "The gate will be open." (`burned_gate`).
 - It sets `wwx_done` so the night can settle. **Nothing here sets `burned_mended`.**
 - After `burned`, every Wei Wuxian reaction goes quiet; Lan Wangji answers her photos and the recipe comment.
 - Calling him reaches Lan Wangji (`call_wwx_burned`).
@@ -136,6 +139,7 @@ Kept from the old edition: `wwx_done`, `wwx_hurt`, `wwx_saw_face`, `memo_climax`
 - `ops_keep`, `ops_soup`, `car_known`, `car_cover`, `wn_asked`
 - `scandal_fixed`, `bday_planned`, `gift_bell`, `fairy_taken`, `fairy_inside`, `fairy_ok`
 - `tea_yes`, `lxc_sunday`, `night_done`
+- `jl_recipe`, `huang_wwx`, `nhs_ally`, `party_moved`
 
 ## FINALE notes for Writer C (dinner beats)
 
@@ -162,7 +166,7 @@ Kept from the old edition: `wwx_done`, `wwx_hurt`, `wwx_saw_face`, `memo_climax`
 
 | soup | what happened | taste |
 |---|---|---|
-| `right` (`told_recipe`) | "Low fire. Two hours. Don't rush it." are A-Jie's exact words from her 2008 text. Wei Wuxian learned them from Jiang Cheng's phone (or from "jiang.cheng" on a recipe site). Jiang Cheng knows his own secret was given away. | It tastes like hers. |
+| `right` (`told_recipe`) | "Low fire. Two hours. Don't rush it." are A-Jie's exact words from her 2008 text. Wei Wuxian learned them from Jiang Cheng's phone, from "jiang.cheng" on a recipe site, or from A-Ling (`jl_recipe`: "from mom"). Jiang Cheng knows his own secret was given away. | It tastes like hers. |
 | `close` (`soup_practiced`) | He learned to salt at the end, like her ("she always tasted it last, right before the lid"), or saw her low flame in the 2008 photo, or was told "it'll be yours". | Lan Wangji said "closer". |
 | `almost` | Batch five, "edible". | The fire is wrong. Lan Wangji has two bowls anyway. |
 
@@ -189,6 +193,7 @@ Kept from the old edition: `wwx_done`, `wwx_hurt`, `wwx_saw_face`, `memo_climax`
    - `r_koigate` sets `scandal`/`koi` and starts `scandal_breaks`.
    - `fam_scandal` (fam thread, 120 s after `scandal`) has Jin Ling say the board wants to move his birthday, so please don't repeat that beat in `fam`.
    - `jl_car` must keep calling `call_wn`.
+   - Done: `jl_recipe` now reaches Wei Wuxian in `wwx_practice` and `wwx_followup`. It sets `told_recipe` (his soup is "right": he has her exact words) and `soup_practiced`.
 6. **Lead (STORY.md "Facts added"),** please add:
    - Wen Ning owns one shirt.
    - Lan Wangji orders a sixth good bowl from a Gusu potter for Sunday.

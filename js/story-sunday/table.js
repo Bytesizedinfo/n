@@ -51,7 +51,7 @@
     else if (f.tea_yes) seats.lxc = { state: 'late', why: 'Tea went well enough. He comes with the white peony, after dinner.' };
     else seats.lxc = { state: 'no' };
     // Wen Ning: first dinner at Lotus Pier since 2008
-    seats.wn = { state: f.wn_invited || f.wn_accomplice ? 'yes' : f.wn_towed ? 'drives' : 'no' };
+    seats.wn = { state: f.wn_invited || f.wn_accomplice ? 'yes' : f.wn_towed || f.wn_drives ? 'drives' : 'no' };
     // the kids
     seats.sz = { state: f.bday_planned ? 'yes' : 'no' };
     seats.jy = { state: f.bday_planned ? 'yes' : 'no' };
@@ -59,7 +59,7 @@
     seats.nhs = { state: f.nhs_leak ? 'no' : f.nhs_ally ? 'yes' : 'no' };
     seats.huang = { state: 'gate', list: !!f.huang_list };
     seats.fairy = { state: f.dog_friday || f.fairy_inside || f.fairy_taken ? 'in' : 'garden' };
-    seats.ajie = { state: 'bowl', honoured: !!(f.ajie_wrote || f.memo_sent || f.wwx_thanked) };
+    seats.ajie = { state: 'bowl', honoured: !!(f.ajie_wrote || f.ajie_shared || f.memo_sent || f.wwx_thanked) };
     // You
     let you;
     if (f.zidian) you = 'photos';

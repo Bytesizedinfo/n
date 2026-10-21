@@ -395,6 +395,14 @@
         { m: 'He came down.' },
         { m: 'He is making the soup anyway. Batch six. He did not burn it.' },
         { m: 'He says he will bring it on Sunday and leave it at the gate. He will not come in. He will not be asked.' },
+        { if: (s) => !!F(s).huang_wwx, go: 'huang' },
+        { if: (s) => !!F(s).burned_regret, go: 'told' },
+        { go: 'gate_q' },
+      ],
+      // Old Huang was told to let him in (writer B: huang_wwx), before or after: it does not mend anything
+      huang: [
+        { m: 'Old Huang sent him a voice message. About the gate.' },
+        { m: 'He listened to it four times. He did not say anything.' },
         { if: (s) => !!F(s).burned_regret, go: 'told' },
         { go: 'gate_q' },
       ],
@@ -533,6 +541,7 @@
       ribs: [
         { m: "the lotus root goes in after the ribs. i remember her saying that. i don't remember much from 2009 but i remember that" },
         { if: (s) => !!F(s).told_recipe, go: 'soup_known' },
+        { if: (s) => !!F(s).jl_recipe, go: 'soup_aling' },
         { m: 'and something about the fire. i forget the fire part' },
         { choice: [
             { t: "Low fire. Two hours. Don't rush it.", fx: { aff: { wwx: 2 }, set: { told_recipe: true } }, go: 'recipe' },
@@ -551,6 +560,25 @@
             { t: "We'll see.", fx: { set: { wwx_maybe: true } }, go: 'see' },
             { t: 'Thank you.', if: canThank, go: 'thanks' },
           ] },
+      ],
+      // Jin Ling asked for his mother's recipe (writer B: jl_recipe) and passed it straight on
+      soup_aling: [
+        { m: "and the fire. a-ling texted me twenty minutes ago. 'two hours. low fire. don't rush it.' and then 'from mom. don't make it a thing'" },
+        { m: "where did HE get that. he was one. jiang cheng where did he get that" },
+        { fx: { set: { told_recipe: true, soup_practiced: true } } },
+        { log: 'A-Ling passed his mother’s recipe to Wei Wuxian: two hours, low fire', once: 'wwx:recipe' },
+        { hint: 'The soup will taste like hers.' },
+        { m: 'jiang cheng. can i come home on sunday' },
+        { choice: [
+            { t: 'Six-thirty. Bring the soup.', fx: { set: { wwx_invited: true }, aff: { wwx: 1 } }, go: 'yes' },
+            { t: 'Ask A-Ling. It is his birthday.', fx: { set: { wwx_maybe: true } }, go: 'aling' },
+            { t: "We'll see.", fx: { set: { wwx_maybe: true } }, go: 'see' },
+          ] },
+      ],
+      aling: [
+        { m: "i DID ask a-ling. he said 'obviously' and then 'don't tell jiujiu i said obviously'" },
+        { m: "so that's a yes from the birthday boy and a not no from u. i'm counting it" },
+        free('wwx'),
       ],
       recipe: [
         { typing: 4 },
@@ -644,12 +672,24 @@
         { m: 'lan zhan tasted it. he said "closer"' },
         { m: 'CLOSER. closer to WHAT. he won\'t say. he just looks at the pot like it owes him money' },
         { if: (s) => !!F(s).told_recipe, go: 'known' },
+        { if: (s) => !!F(s).jl_recipe, go: 'aling' },
         { choice: [
             { t: "Low fire. Two hours. Don't rush it.", fx: { set: { told_recipe: true, soup_practiced: true }, aff: { wwx: 2 } }, go: 'fire' },
             { t: 'Salt at the end. Not the start.', fx: { set: { soup_practiced: true }, aff: { wwx: 1 } }, go: 'salt' },
             { t: 'Go to sleep, Wei Wuxian.', go: 'sleep' },
             { t: 'Yum!! Save me some 😋', fx: { sus: { wwx: 3 } }, go: 'yum' },
           ], timeout: 120, onTimeout: 'quiet' },
+      ],
+      // Jin Ling asked for his mother's recipe (writer B: jl_recipe) and texted it straight to him
+      aling: [
+        { m: 'and THEN' },
+        { m: "a-ling texted me at 1am. 'two hours. low fire. don't rush it.' and then 'from mom. don't make it a thing'" },
+        { m: "he asked u for it didn't he. he asked u for her recipe and u GAVE it to him" },
+        { m: "lan zhan turned the fire down without being asked. we're doing two hours. nobody is rushing anything" },
+        { fx: { set: { told_recipe: true, soup_practiced: true } } },
+        { log: 'A-Ling passed his mother’s recipe to Wei Wuxian: two hours, low fire', once: 'wwx:recipe' },
+        { hint: 'The soup will taste like hers.' },
+        { go: 'known' },
       ],
       known: [
         { m: "the fire's right now. low. two hours. i've been staring at it for an hour and forty minutes" },
@@ -704,7 +744,9 @@
     { if: (s) => !!F(s).gift_bell && !!F(s).wwx_invited, lines: [{ m: "sizhui told me about the bell. shijie's bell. for a-ling" }, { m: "ok i have to stop reading my phone in bed, i'm crying on lan zhan" }] },
     { if: (s) => !!(F(s).fairy_taken || F(s).dog_friday || F(s).fairy_inside) && !!F(s).wwx_invited, lines: [{ m: 'wait. is fairy going to be at dinner. INSIDE' }, { m: "i said i'd sit next to her. i'm a man of my word. lan zhan will sit between us" }] },
     { if: (s) => !!F(s).wn_invited, lines: [{ m: 'wen ning is ironing a shirt for sunday. right now. he has ONE shirt' }] },
-    { if: (s) => !!F(s).scandal && !F(s).scandal_fixed, lines: [{ m: "and if the jin board moves a-ling's party to koi tower i'm bringing the soup THERE. in her pot. past the press" }] },
+    { if: (s) => !!F(s).huang_wwx, lines: [{ m: "also old huang sent me a voice message. forty seconds of wind and then 'Mr. Wei. This time I open the gate before you knock. 👍'" }, { m: 'jiang cheng. did u TELL him. about 2024' }, { m: "…don't answer. i'm going to sleep. i'm not going to sleep" }] },
+    { if: (s) => !!F(s).nhs_ally && !!F(s).wwx_invited, lines: [{ m: "and huaisang asked me what he should wear on sunday?? HUAISANG is coming?? what is happening at lotus pier" }] },
+    { if: (s) => (!!F(s).scandal && !F(s).scandal_fixed) || !!F(s).party_moved, lines: [{ m: "and if the jin board moves a-ling's party to koi tower i'm bringing the soup THERE. in her pot. past the press" }] },
   ];
   scene({
     id: 'wwx_goodnight',

@@ -37,12 +37,12 @@ anywhere else: read `JC.sunday.table(s)` (conditions get `s`; use `JC.sunday.tab
 | `wwx` Wei Wuxian | yes · outside · no | `outside` if `burned` and not `burned_mended`; `yes` if `wwx_invited` (or `wwx_maybe` and trust ≥ 2) |
 | `lwj` Lan Wangji | follows `wwx` | |
 | `lxc` Lan Xichen | yes · late · no | `yes` if `lxc_sunday`, or `tea_yes` and aff lxc ≥ 3; `late` (after dinner, with the peony) if only `tea_yes` |
-| `wn` Wen Ning | yes · drives · no | `yes` if `wn_invited` or `wn_accomplice`; `drives` (drops the Lans, won't come in) if only `wn_towed` |
+| `wn` Wen Ning | yes · drives · no | `yes` if `wn_invited` or `wn_accomplice`; `drives` (drops the Lans, won't come in) if only `wn_towed` or `wn_drives` |
 | `sz`, `jy` the kids | yes · no | `bday_planned` |
 | `nhs` Nie Huaisang | yes · no | `yes` if `nhs_ally` and not `nhs_leak` |
 | `huang` Old Huang | gate | `huang_list` (he was given the guest list) makes the gate beat warmer |
 | `fairy` | in · garden | `in` if `dog_friday` / `fairy_inside` / `fairy_taken` |
-| `ajie` A-Jie's bowl | bowl (honoured?) | honoured if `ajie_wrote`, `memo_sent` or `wwx_thanked` |
+| `ajie` A-Jie's bowl | bowl (honoured?) | honoured if `ajie_wrote`, `ajie_shared`, `memo_sent` or `wwx_thanked` |
 | `you` | table · thanks · photos · none | `photos` if `zidian`; `table` if `you_invited`, or `told_truth` and trust ≥ 5, or `jl_knows` and `told_truth`; `thanks` if only `told_truth` |
 
 **Dishes:**
