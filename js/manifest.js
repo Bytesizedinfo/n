@@ -46,6 +46,7 @@ window.JC_MANIFEST = {
   "js/core/notify.js",
   "js/core/os.js",
   "js/core/story.js",
+  "js/core/bank.js",
   "js/data/contacts.js",
   "js/art/avatars.js",
   "js/art/covers.js",

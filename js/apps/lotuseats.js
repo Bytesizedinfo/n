@@ -540,11 +540,16 @@
           const H = JC.time.date().getHours();
           if (H >= 2 && H < 8) { JC.ui.alert({ title: 'Alcohol Not Available', message: 'Alcohol can’t be delivered between 2 and 8 a.m.', buttons: [{ text: 'OK' }] }); return; }
         }
+        // Wallet confirms (Face ID / passcode); the money moves through JC.bank — one balance for every app
         const pay = JC.wallet && JC.wallet.pay
-          ? JC.wallet.pay({ merchant: 'Lotus Eats', sub: r.name, amount: T.total, card: S.card, cat: 'food', place: r.place, note: restName(r) + ' → ' + a.label, sms: 'LOTUS EATS' })
+          ? JC.wallet.pay({ merchant: 'Lotus Eats', sub: r.name, amount: T.total, card: S.card, cat: 'food', place: r.place, note: restName(r) + ' → ' + a.label, sms: 'LOTUS EATS', app: 'lotuseats', record: false })
           : JC.ui.alert({ title: 'Confirm Order', message: yen(T.total) + ' will be charged to ' + cardOf(S.card).name + '.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Pay', style: 'default' }] }).then((x) => ({ ok: x.index === 1, card: S.card }));
+        const declined = (reason) => JC.ui.alert({ title: reason === 'frozen' ? 'Card Frozen' : 'Payment Declined', message: JC.bank.reasonText(reason) + ' Your order wasn’t placed.', buttons: [{ text: 'OK' }] });
         pay.then((res) => {
+          if (res && !res.ok && res.reason) { declined(res.reason); return; }
           if (!res || !res.ok) return;
+          const paid = JC.bank.charge({ amount: T.total, merchant: 'Lotus Eats', app: 'lotuseats', cat: 'food', card: res.card || S.card, place: r.place, note: restName(r) + ' → ' + a.label, sms: 'LOTUS EATS' });
+          if (!paid.ok) { declined(paid.reason); return; }
           const rider = D().RIDERS[Math.floor(Math.random() * D().RIDERS.length)];
           const o = JC.store.add('orders', {
             rest: r.id, to: a.id, toLabel: addrName(a), toLine: a.line, t: JC.time.now(), status: ck.when ? 'scheduled' : 'active', phase: ck.when ? 'scheduled' : 'placed', sched: ck.when || null,
