@@ -55,27 +55,8 @@
     `${defs}${[...NEED].map((k) => GR[k]()).join('')}</defs>${body}` +
     `<rect width="1200" height="900" fill="url(#vig)" opacity="${v}"/><rect width="1200" height="900" filter="url(#grain)" opacity="${g}"/></svg>`);
 
-  // Many circles in one path
-  const dots = (k, x0, x1, y0, y1, r0, r2) => {
-    let d = '';
-    for (let i = 0; i < k; i++) {
-      const r = rr(r0, r2), x = rr(x0, x1), y = rr(y0, y1);
-      d += `M${f(x + r)} ${f(y)}a${n(r)} ${n(r)} 0 1 0 .1 0`;
-    }
-    return d;
-  };
   // Dots as zero-length round-capped strokes (half the bytes of arcs): use with ST(sd(...), colour, diameter)
   const sd = (k, x0, x1, y0, y1) => { let d = ''; for (let i = 0; i < k; i++) d += `M${f(rr(x0, x1))} ${f(rr(y0, y1))}h0`; return d; };
-  // Smooth path through points (Catmull-Rom → cubic Bézier)
-  function crv(p, closed) {
-    const N = p.length, g = (i) => p[closed ? (i + N) % N : Math.max(0, Math.min(N - 1, i))];
-    let d = `M${f(p[0][0])} ${f(p[0][1])}`;
-    for (let i = 0; i < (closed ? N : N - 1); i++) {
-      const a = g(i - 1), b = g(i), c = g(i + 1), e = g(i + 2);
-      d += `C${f(b[0] + (c[0] - a[0]) / 6)} ${f(b[1] + (c[1] - a[1]) / 6)} ${f(c[0] - (e[0] - b[0]) / 6)} ${f(c[1] - (e[1] - b[1]) / 6)} ${f(c[0])} ${f(c[1])}`;
-    }
-    return d + (closed ? 'Z' : '');
-  }
   // Sample a Catmull-Rom spline
   function samp(p, k) {
     const out = [], N = p.length, g = (i) => p[Math.max(0, Math.min(N - 1, i))];
@@ -101,7 +82,6 @@
     const pl = (a) => a.map((q) => `${f(q[0])} ${f(q[1])}`).join('L');
     return { d: `M${pl(L)}L${pl(R.slice().reverse())}Z`, L, R, pts };
   }
-  const poly = (a) => 'M' + a.map((q) => `${f(q[0])} ${f(q[1])}`).join('L');
   // Fluffy cloud edge along an ellipse arc (deg; 0 = right, 90 = down)
   function fluff(cx, cy, rx, ry, a0, a1, k, amp, cmd) {
     const Pt = (a, r) => [cx + (rx + r) * Math.cos((a * Math.PI) / 180), cy + (ry + r) * Math.sin((a * Math.PI) / 180)];
@@ -369,7 +349,6 @@
   // Back torso: shoulders seen from behind (cut at yb)
   const backT = (w, yb, fill) => P(`M-16 40C-36 46-${w - 4} 54-${w} 84L-${w + 4} ${yb}H${w + 4}L${w} 84C${w - 4} 54 36 46 16 40Z`, fill);
 
-  JC.art._a7 = { CH, face, HAIR, lantern, setSkin, reset: () => { NEED = new Set(); } };
   const who = (name, x, y, s, o = {}) => G(x, y, s, CH[name](o), o.flip ? -s : null);
 
   // ---- 2. The Toy Factory ----------------------------------------------------------------------
@@ -766,6 +745,265 @@
     }),
   });
 
+  // Sir Fang, Teucer's plush ice wolf (lying on its side)
+  const sirFang = () =>
+    `<ellipse cx="0" cy="34" rx="78" ry="12" fill="#000" opacity=".35"/>` +
+    P('M-60 10C-60-20-20-30 20-24C50-20 66 0 60 22C40 34-40 34-60 10Z', '#dbe6f2') + P('M58 8C80 0 92-14 96-30C100-12 90 10 64 22Z', '#c4d4e6') +
+    ST('M-30 26v8M10 28v8', '#c4d4e6', 12) +
+    `<g transform="translate(-62 -6) rotate(-14)">${P('M-16-20L-22-46L-4-26ZM10-24L14-50L22-22Z', '#a8bcd6')}<circle r="28" fill="#e6eef8"/>${P('M-26 2C-44 4-50 14-40 20C-30 24-14 20-8 12Z', '#f4f8fc')}` +
+    `<circle cx="-8" cy="-6" r="4" fill="#1e2a40"/><ellipse cx="-44" cy="10" rx="6" ry="4" fill="#1e2a40"/>${ST('M-12 18q8 4 14-2', '#7a8aa0', 2)}</g>` +
+    P('M-30-10Q-10 4 14-8L14 2Q-10 14-30 0Z', '#3a8ae0');
+
+  // ---- 4. Pulcinella's Guests ---------------------------------------------------------------------
+  def('end_leverage', {
+    title: "Pulcinella's Guests", w: 1200, h: 900, tags: ['ending', 'family', 'fatui', 'hotel', 'night'],
+    svg: pic(4, () => {
+      const VX = 600, VY = 400;
+      const L = (x0, y0, t) => [f(x0 + (VX - x0) * t), f(y0 + (VY - y0) * t)];
+      // carpet lattice in perspective
+      let lat = '', doors = '', sconce = '';
+      for (const t of [0.12, 0.3, 0.46, 0.6, 0.72, 0.82]) { const [ax, ay] = L(260, 900, t), [bx] = L(940, 900, t); lat += `M${ax} ${ay}H${bx}`; }
+      for (const x0 of [380, 500, 600, 700, 820]) { const [ex, ey] = L(x0, 900, 0.86); lat += `M${x0} 900L${ex} ${ey}`; }
+      for (const [t0, t1] of [[0.06, 0.28], [0.42, 0.56], [0.66, 0.74]]) {
+        for (const sd0 of [-1, 1]) {
+          const x0 = sd0 < 0 ? 0 : 1200, xa = x0 + (VX - x0) * t0, xb = x0 + (VX - x0) * t1;
+          const ya = 900 + (VY - 900) * t0, yb = 900 + (VY - 900) * t1, ta = 0 + VY * t0, tb = VY * t1;
+          const top = (x, tt) => f(tt + (1 - (tt / VY)) * 220 * 0 + (900 - tt) * 0.28);
+          doors += `M${f(xa)} ${f(ya)}V${f(ta + (ya - ta) * 0.3)}L${f(xb)} ${f(tb + (yb - tb) * 0.3)}V${f(yb)}Z`;
+          const sx = xa - (xa - xb) * 1.3, st = VY * (t1 + 0.07);
+          if (t0 < 0.6) sconce += `<circle cx="${f(sx)}" cy="${f(st + (900 - st) * 0.38)}" r="${f(60 * (1 - t1))}" fill="url(#sc)"/><rect x="${f(sx - 6 * (1 - t1))}" y="${f(st + (900 - st) * 0.38 - 10 * (1 - t1))}" width="${f(12 * (1 - t1))}" height="${f(22 * (1 - t1))}" rx="3" fill="#ffe2a0"/>`;
+        }
+      }
+      // the old man at the end of the hall, and his long shadow
+      const man = P('M-14-110C-26-108-30-96-26-86C-34-80-36-60-34-30L-30 0H-6L-4-30L2 0H24L22-40C24-70 18-86 8-92C12-100 4-112-14-110Z', '#0c0a0e') +
+        P('M-36-118H12L8-124H-30Z', '#0c0a0e') + P('M-28-124Q-12-150 6-124Z', '#0c0a0e') + ST('M28-60L40 0', '#0c0a0e', 4) + ST('M22-64Q34-66 30-56', '#0c0a0e', 4);
+      const suitcase = (c, c2, tilt, sticker) => `<g transform="rotate(${tilt})">` +
+        `<rect x="-62" y="-150" width="124" height="150" rx="16" fill="${c}"/><rect x="-62" y="-150" width="124" height="150" rx="16" fill="url(#sh)"/>` +
+        ST('M-30-148V-2M30-148V-2', c2, 4, op(0.6)) + ST('M-18-150V-196H18V-150', '#5a5a64', 6) + sticker +
+        `<circle cx="-46" cy="4" r="9" fill="#1a1a20"/><circle cx="46" cy="4" r="9" fill="#1a1a20"/></g>`;
+      return svg(
+        lg('wallL', [[0, '#4a1c24'], [1, '#2a0e14']], 0, 0, 1, 0) + lg('wallR', [[0, '#2a0e14'], [1, '#4a1c24']], 0, 0, 1, 0) +
+        lg('carpet', [[0, '#3a0c12'], [1, '#7a1a22']]) + lg('ceil', [[0, '#1a1416'], [1, '#2e2224']]) +
+        rg('sc', [[0, '#ffd890', 0.7], [0.3, '#ffb060', 0.3], [1, '#ff9040', 0]]) +
+        lg('win', [[0, '#9ab8c8'], [1, '#4a6878']]) + rg('cold', [[0, '#b8d8e8', 0.6], [1, '#6a90a8', 0]]) +
+        lg('sh', [[0, '#fff', 0.25], [0.4, '#fff', 0], [1, '#000', 0.3]], 0, 0, 1, 0.3) + lg('shad', [[0, '#000', 0.85], [1, '#000', 0.5]]),
+        P('M0 0H1200L700 330H500Z', 'url(#ceil)') + P('M0 0L500 330V470L0 900Z', 'url(#wallL)') + P('M1200 0L700 330V470L1200 900Z', 'url(#wallR)') +
+        P('M0 900L500 470H700L1200 900Z', '#2a0a10') + P('M260 900L548 470H652L940 900Z', 'url(#carpet)') + ST(lat, '#c89a4a', 2.4, op(0.35)) +
+        ST('M260 900L548 470M940 900L652 470', '#d8aa52', 4, op(0.6)) +
+        ST('M0 640L500 420M1200 640L700 420', '#7a5a3a', 6, op(0.6)) + ST('M150 120L450 300M1050 120L750 300M600 40V300', '#ffe6b0', 4, op(0.12)) +
+        P(doors, '#1e0a0e') + ST(doors, '#8a6a3a', 3, op(0.6)) + sconce +
+        // end of the hall: a tall window
+        `<rect x="500" y="330" width="200" height="140" fill="#1a0a10"/><rect x="552" y="340" width="96" height="128" fill="url(#win)"/>` + ST('M600 340V468M552 400H648', '#2a1a20', 4) +
+        `<circle cx="600" cy="400" r="150" fill="url(#cold)"/>` +
+        G(604, 470, 0.95, man) +
+        P('M590 472L612 472L688 676Q704 716 652 728L644 754Q684 796 604 812Q524 800 562 756L552 728Q500 716 516 676Z', 'url(#shad)') + `<ellipse cx="604" cy="808" rx="72" ry="12" fill="#000" opacity=".6"/>` + ST('M640 472L748 780', '#000', 7, op(0.55)) +
+        // brass sign
+        `<g transform="matrix(.82 .52 0 1 46 150)"><rect width="250" height="72" rx="6" fill="#2a1a12" stroke="#c89a4a" stroke-width="3"/>` +
+        txt(125, 32, 'LIYUE HARBOR GRAND', { size: 17, weight: 700, anchor: 'middle', fill: '#e8c070', font: SERIF, ls: 1 }) + txt(125, 58, 'FLOOR 11 · 1101–1124', { size: 13, anchor: 'middle', fill: '#c89a4a', font: SERIF }) + '</g>' +
+        // what was left on the carpet
+        G(430, 800, 1, suitcase('#3a7ad0', '#2a5aa0', -4, P('M-38-110q18-14 36 0q-18 14-36 0Zm36 0l10-8v16Z', '#f2c14e') + `<circle cx="24" cy="-50" r="14" fill="#fff"/>` + txt(24, -45, '★', { size: 16, anchor: 'middle', fill: '#e04848' }) +
+          `<rect x="40" y="-170" width="26" height="36" rx="4" fill="#f4ead0" transform="rotate(18 40 -170)"/>`) + ST('M-18-196l-10 30', '#8a7a5a', 2)) +
+        `<g transform="translate(668 806) rotate(-90)">${suitcase('#d8607a', '#b04860', 0, `<circle cx="-20" cy="-90" r="16" fill="#fff4a8"/><circle cx="24" cy="-40" r="12" fill="#9ad8f0"/>`)}</g>` +
+        G(800, 832, 0.95, sirFang()) +
+        `<ellipse cx="600" cy="840" rx="380" ry="90" fill="url(#sc)" opacity=".5"/>` +
+        `<rect width="1200" height="900" fill="#1a3a30" opacity=".22" style="mix-blend-mode:multiply"/>`
+      , 0.45, 0.85);
+    }),
+  });
+
+  // ---- 7. Night Vigil -----------------------------------------------------------------------------
+  def('end_vigil', {
+    title: 'Night Vigil', w: 1200, h: 900, tags: ['ending', 'fatui', 'night', 'millelith', 'yelan'],
+    svg: pic(7, () => {
+      setSkin(['#f2d6c6', '#dcb2a0', '#b88878', '#946460']);
+      let steps = '';
+      for (let i = 0; i < 12; i++) {
+        const t = Math.pow(i / 11, 0.7), y = f(900 - t * 400), xl = f(220 + t * 300), xr = f(1100 - t * 280);
+        steps += `M${xl} ${y}H${xr}`;
+      }
+      const soldier = (sp) =>
+        backT(52, 230, '#4a2a22') + ST('M-50 90Q-56 150-54 230M50 90Q56 150 54 230', '#c9a24a', 3, op(0.7)) + neck(10, 50) +
+        P('M-40 10C-46-40-26-62 0-62C26-62 46-40 40 10C30 20-30 20-40 10Z', '#6a4a2a') + P('M-44 6H44L40 18H-40Z', '#3a2418') + ST('M-36-30Q0-46 36-30', '#c9a24a', 3) +
+        P('M0-62C-10-90 10-110 30-120C14-100 20-80 6-62Z', '#c8323c') +
+        (sp ? ST('M70 260V-170', '#3a2a20', 6) + P('M70-170l-8-10 8-36 8 36Z', '#c8ccd4') : ST('M-60 120Q-70 160-62 190', '#4a2a22', 22) + ST('M-62 196V226', '#2a1a14', 2) + lantern(-62, 250, 0.6));
+      const childe =
+        ST('M-22 250L-26 330L-30 360M20 250L30 310L34 330', '#23262d', 30) + P('M-48 352H-14V368H-50ZM18 322H52V338H16Z', '#14161c') +
+        backT(60, 262, '#5a5f6a') + ST('M0 66V262M-60 84C-40 70 40 70 60 84M-34 110Q-20 124-6 112M34 110Q20 124 6 112', '#7c818c', 3, op(0.7)) +
+        ST('M-46 100Q-50 150-24 176M46 100Q50 150 24 176', '#5a5f6a', 26) + `<circle cx="-14" cy="180" r="11" fill="${SKIN[1]}"/><circle cx="14" cy="180" r="11" fill="${SKIN[1]}"/>` +
+        `<rect x="-28" y="170" width="20" height="12" rx="5" fill="none" stroke="#c8ccd4" stroke-width="4"/><rect x="8" y="170" width="20" height="12" rx="5" fill="none" stroke="#c8ccd4" stroke-width="4"/>` + ST('M-8 176H8', '#c8ccd4', 3) +
+        neck() + P('M-26 40C-14 54 14 54 26 40L32 60C14 74-14 74-32 60Z', u('sC')) + P('M-14 62C-24 90-18 140-28 190H-48C-36 140-44 92-30 58Z', u('sC')) +
+        `<g transform="translate(-10 4) rotate(-12)">${CH.childe({ body: false, t: -0.75, mo: 'soft', ex: 'soft' })}</g>`;
+      const dice = (x, y, r) => `<g transform="translate(${x} ${y}) rotate(${r})"><rect x="-13" y="-13" width="26" height="26" rx="5" fill="#f4f6fa" stroke="#9aa8c0" stroke-width="2"/>${ST('M-6-6h0M6 6h0M0 0h0', '#2a4a8a', 5)}</g>`;
+      return svg(
+        lg('sky', [[0, '#060a1a'], [0.6, '#16224a'], [1, '#2a3460']]) + lg('sea', [[0, '#1a2848'], [1, '#08101e']]) +
+        lg('stone', [[0, '#3a3a4a'], [1, '#5a5a6a']]) + lg('pil', [[0, '#6a1a1a'], [0.4, '#b8302a'], [1, '#5a1414']], 0, 0, 1, 0) +
+        rg('lg2', [[0, '#ffc070', 0.5], [1, '#ff9040', 0]]) + lg('yj', [[0, '#8c96ac'], [0.55, '#e8eaf0'], [1, '#fdfdff']], 0, 0, 1, 0) + rg('moon', [[0, '#e8f0ff', 0.5], [1, '#8090c0', 0]]),
+        `<rect width="1200" height="900" fill="url(#sky)"/>` + ST(sd(50, 0, 1200, 0, 380), '#fff', 2, op(0.6)) +
+        `<circle cx="980" cy="120" r="160" fill="url(#moon)"/><circle cx="980" cy="120" r="30" fill="#f4f6ff"/>` +
+        P('M0 470L120 430L260 452L420 410L600 446L760 420L900 450L1060 416L1200 440V500H0Z', '#141c36') + ST(sd(30, 0, 1200, 430, 470), '#ffc070', 3, op(0.7)) +
+        `<rect y="490" width="1200" height="100" fill="url(#sea)"/>` + ST('M600 560h0', '#ffc070', 12, op(0)) +
+        // patrol boat waiting at the bottom of the steps
+        P('M560 520H700L680 548H580Z', '#1a1418') + ST('M630 520V490', '#1a1418', 3) + lantern(630, 500, 0.4) + ST('M600 556h60', '#ffc070', 4, op(0.4)) +
+        // the harbor steps
+        P('M220 900L520 500H820L1100 900Z', 'url(#stone)') + ST(steps, '#20202c', 4, op(0.8)) + ST(steps, '#8a8aa0', 1.5, 'transform="translate(0 3)" opacity=".35"') +
+        P('M150 900L470 500H520L220 900ZM1100 900L820 500H870L1180 900Z', '#2a2a36') +
+        ST('M470 500V470M870 500V470M360 640V600M980 640V600', '#2a2a36', 12) + lantern(360, 570, 0.7) + lantern(980, 570, 0.7) +
+        `<circle cx="360" cy="580" r="120" fill="url(#lg2)"/><circle cx="980" cy="580" r="120" fill="url(#lg2)"/>` +
+        // the escort
+        G(520, 470, 0.66, soldier(1)) + G(780, 486, 0.68, soldier(0)) +
+        G(650, 540, 0.95, childe) +
+        // Yelan, leaning on a vermilion pillar
+        `<rect x="0" y="0" width="150" height="900" fill="url(#pil)"/>` + P('M-10 0H170V40H-10Z', '#3a1a14') + ST('M0 60H150', '#e0b050', 4, op(0.7)) +
+        `<g transform="translate(262 352) rotate(-7) scale(1.45)">` + P('M-62 210H62L66 400H-66Z', '#1a2240') + torso(54, 214, 'url(#yj)') + P('M-14 52L0 120L14 52Z', '#1e2a4a') + ST('M-56 206H56', '#1e2a4a', 10) +
+        ST('M-50 86Q-80 170-60 250', 'url(#yj)', 24) + ST('M-62 236l2 18', '#d8d2c8', 28) + hand(-60, 262, 10) +
+        CH.yelan({ t: 0.45, ex: 'soft', mo: 'smirk' }) +
+        ST('M50 86Q100 160 80 104', '#f6f6f8', 24) + ST('M84 118l-4-14', '#d8d2c8', 28) + hand(78, 96, 10) + '</g>' +
+        dice(420, 380, 20) + dice(392, 310, -25) + ST('M400 410q-10-30 0-60M430 400q20-60-20-90', '#cfd8ff', 2, op(0.35)) +
+        `<rect width="1200" height="900" fill="#1a2550" opacity=".18" style="mix-blend-mode:multiply"/>`
+      , 0.4, 0.7);
+    }),
+  });
+
+  // Full-figure grunt: bust plus legs; arms given as stroke paths (canonical bust coords)
+  const gruntFig = (o, arms, extra = '') =>
+    ST('M-34 190L-40 330M34 190L42 330', '#262a34', 40) + P('M-64 322H-20V346H-68ZM20 322H66V346H18Z', '#16181e') +
+    CH.grunt(o) + P('M-88 186H88V204H-88Z', '#2a2018') + ST(arms, u('gr'), 32) + extra;
+  const pelmeniBox = (x, y, r = 0) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M-30-24H30L26 18H-26Z" fill="#fbf6ea" stroke="#c8b898" stroke-width="2"/><path d="M-30-24H30V-14H-30Z" fill="#c8323c"/>${txt(0, 6, 'PELMENI', { size: 10, weight: 900, anchor: 'middle', fill: '#c8323c' })}</g>`;
+
+  // ---- 9. Comrade Tartaglia ---------------------------------------------------------------------
+  def('end_comrades', {
+    title: 'Comrade Tartaglia', w: 1200, h: 900, tags: ['ending', 'fatui', 'friends', 'dawn', 'osial'],
+    svg: pic(9, () => {
+      setSkin(['#ffe4d0', '#f2c0a0', '#d0947a', '#a86e5a']);
+      let sparks = '';
+      for (let i = 0; i < 14; i++) { const a = rr(0, Math.PI * 2), r0 = rr(10, 30), r1 = r0 + rr(20, 70); sparks += `M${f(820 + Math.cos(a) * r0)} ${f(330 + Math.sin(a) * r0)}L${f(820 + Math.cos(a) * r1)} ${f(330 + Math.sin(a) * r1)}`; }
+      const resonator =
+        `<ellipse cx="0" cy="250" rx="150" ry="22" fill="#000" opacity=".3"/>` +
+        P('M-90 250L-70 120H70L90 250Z', '#3a404c') + P('M-70 120H70L60 100H-60Z', '#5a6070') +
+        P('M-40 100V-120H40V100Z', '#4a5060') + P('M-40-120H40L30-150H-30Z', '#6a7080') +
+        `<ellipse cy="-20" rx="80" ry="22" fill="none" stroke="#7a8090" stroke-width="12"/><ellipse cy="40" rx="96" ry="26" fill="none" stroke="#6a7080" stroke-width="12"/>` +
+        P('M-60-20L-30 50L10-10L60 40', 'none', 'stroke="#2a2e36" stroke-width="5"') +
+        `<circle cy="-60" r="26" fill="#1e4a6a"/><circle cy="-60" r="16" fill="#3a8ab8" opacity=".5"/>` + ST('M-16-74L6-50M8-78L-4-56', '#0e1a24', 3) +
+        `<g transform="translate(0 170)" fill="none" stroke="#c8d0dc" stroke-width="5">${ST('M0-26V26M-22-13L22 13M-22 13L22-13', '#c8d0dc', 5)}</g>` +
+        ST('M30-100L120-160', '#8a8a8a', 12) + P('M110-176L140-150L126-140L100-166Z', '#9a9a9a') +
+        ST('M-40 0Q-120 60-160 220M40 30Q130 100 150 240', '#1a1a20', 6);
+      return svg(
+        lg('sky', [[0, '#7aa6d0'], [0.45, '#f2c8a8'], [0.62, '#ffd49a'], [0.7, '#ffe0b0']]) + lg('sea', [[0, '#f0c8a0'], [0.1, '#6a98b0'], [1, '#2a5a78']]) +
+        lg('rock', [[0, '#7a7068'], [1, '#3a342e']]) + rg('spark', [[0, '#fffbe0', 0.95], [0.3, '#ffe070', 0.5], [1, '#ffb030', 0]]) + rg('sun', [[0, '#fff6d8', 0.9], [1, '#ffd090', 0]]),
+        `<rect width="1200" height="900" fill="url(#sky)"/>` + `<circle cx="300" cy="560" r="300" fill="url(#sun)"/>` +
+        P(cloud(900, 200, 200, 30, 20) + cloud(300, 140, 160, 24, 16), '#fff', op(0.5)) +
+        P('M40 600L60 380L90 340L110 400L120 600ZM160 600L180 440L210 420L224 600ZM1000 600L1030 360L1060 320L1084 600ZM1110 600L1130 460L1160 430L1176 600Z', '#8a8aa0', op(0.6)) +
+        `<rect y="590" width="1200" height="310" fill="url(#sea)"/>` + ST(sd(30, 100, 600, 600, 700), '#fff6d8', 4, op(0.7)) +
+        // sea-stone ledge
+        P('M0 900V700Q200 640 420 660Q640 620 860 650Q1040 630 1200 670V900Z', 'url(#rock)') + ST('M0 704Q200 644 420 664Q640 624 860 654Q1040 634 1200 674', '#a89a88', 4, op(0.7)) +
+        ST('M200 760l40 20M600 720l50 10M900 780l30 30', '#2a2420', 4, op(0.5)) +
+        G(820, 410, 1, resonator) + `<circle cx="820" cy="330" r="120" fill="url(#spark)"/>` + ST(sparks, '#fff4b0', 4) + ST(sparks, '#ffd040', 10, op(0.35)) +
+        ST('M820 250h0M812 220h0M808 190h0M818 160h0M830 130h0M822 100h0M812 70h0M830 40h0M846 10h0', '#6a6a76', 64, op(0.09)) + ST('M826 230h0M814 180h0M826 120h0M824 60h0', '#6a6a76', 90, op(0.07)) +
+        // pelmeni boxes
+        `<g transform="translate(330 300) rotate(-4)"><rect x="-90" y="-36" width="180" height="70" fill="#e8d4a8"/>${txt(0, 12, 'UNION!!', { size: 38, weight: 900, anchor: 'middle', fill: '#c8323c', font: '"Comic Sans MS", ' + SANS })}</g>` + ST('M250 336V520M410 330V520', '#6a5040', 6) +
+        // comrades
+        G(150, 470, 0.95, gruntFig({ hat: 'ushanka', t: 0.3, mo: 'laugh' }, 'M-74 96Q-130 40-110-60M74 96Q130 40 110-60', hand(-110, -70, 13) + hand(110, -70, 13))) +
+        G(340, 500, 0.95, gruntFig({ hat: 'ushanka', t: 0.4, ex: 'closed', mo: 'laugh' }, 'M-74 96Q-110 150-70 180M74 96Q140 120 160 60', hand(-66, 182, 13) + hand(162, 54, 13))) +
+        G(1050, 480, 0.95, gruntFig({ hat: 'ushanka', t: -0.4, mo: 'grin' }, 'M-74 96Q-120 160-80 210M74 96Q110 30 90-50', hand(-80, 214, 13) + hand(88, -60, 13) + pelmeniBox(88, -86, 12))) +
+        // the one crying with joy
+        G(560, 560, 1.15, gruntFig({ hat: 'none', mask: false, ex: 'closed', mo: 'laugh', t: 0.1 }, 'M-74 96Q-110 40-60-10M74 96Q110 40 60-10',
+          hand(-56, -16, 13) + hand(56, -16, 13) + ST('M-22 12Q-26 40-30 70M24 12Q28 40 32 70', '#8ad8ff', 5, op(0.9)) + ST('M-36 0q-6 10 0 16M38 0q6 10 0 16', '#8ad8ff', 4) +
+          P('M-40-40C-30-30-20-26-10-30L-16-48Q-30-60-46-52Z', '#cdd6de'))) +
+        pelmeniBox(760, 820, -6) + pelmeniBox(826, 826, 4) + pelmeniBox(792, 784, -2) + pelmeniBox(300, 850, 8) + ST('M842 760l10-30M850 762l16-26', '#c8a060', 3) +
+        `<rect width="1200" height="900" fill="#ffb060" opacity=".08" style="mix-blend-mode:screen"/>`
+      , 0.3, 0.45);
+    }),
+  });
+
+  // ---- 10. Brother, Sister ----------------------------------------------------------------------
+  def('end_twins', {
+    title: 'Brother, Sister', w: 1200, h: 900, tags: ['ending', 'friends', 'abyss', 'lumine', 'paimon'],
+    svg: pic(10, () => {
+      setSkin(['#f8e0d4', '#e8c2b2', '#c89a8c', '#a07670']);
+      const lumine =
+        P('M-36 150L-74 300H74L36 150Z', '#ece8de') + ST('M-60 260Q0 280 60 260', '#d4a63c', 4) + P('M-36 150L-74 300H-40L-20 150Z', '#c8c0d8', op(0.35)) +
+        backT(42, 156, '#f4f2ec') + ST('M-40 150H40', '#d4a63c', 7) +
+        P('M-20 44Q0 60 20 44L24 62Q0 80-24 62Z', '#d4a63c') + neck(9, 50) +
+        P('M-38 4C-46 12-44 26-34 26ZM38 4C46 12 44 26 34 26Z', SKIN[2]) +
+        P(jag([[-38, 30], [-46, 0], [-42, -30], [-26, -52], [2, -58], [30, -52], [44, -28], [46, 0], [38, 30], [26, 22], [14, 34], [0, 24], [-14, 34], [-26, 22], [-38, 30]], 0.1) + 'Z', u('hL')) +
+        ST('M-20-48Q-30-10-22 20M10-52Q14-10 8 26', '#c89a3a', 2, op(0.4)) +
+        `<g transform="translate(-38 -26)"><circle r="8" fill="#fff"/><circle cx="-6" cy="6" r="7" fill="#f4f4f4"/><circle cx="6" cy="8" r="7" fill="#eee"/><circle cx="-1" cy="3" r="3.5" fill="#9ad0f0"/></g>` +
+        ST('M42 92Q56 140 56 190M-42 92Q-56 140-56 190', '#f2efe8', 18) + hand(56, 196, 8) + hand(-56, 196, 8) + ST('M44 100Q54 140 54 170', '#c8a0ff', 3, op(0.5));
+      const aether = `<g opacity=".8">` + `<circle cx="0" cy="-50" r="110" fill="url(#aura)"/>` +
+        ST('M10-100Q30-60 24 0', '#f4d47a', 7) +
+        P('M-12-96C-18-110-8-122 4-120C16-118 18-104 12-94Q24-80 26-40L22 40H-22L-26-40Q-24-80-12-96Z', '#f0e8d8') +
+        P('M-14-110C-14-128 16-128 16-110L18-90Q10-84 6-96L4-104L-2-96Q-10-86-18-92Z', '#f4d47a') +
+        P('M-26-60H26L22 0H-22Z', '#2a2a44') + ST('M-24-60L24-60', '#d4a63c', 3) + ST('M-12 40V90M12 40V90', '#2a2a44', 10) + '</g>';
+      return svg(
+        lg('sky', [[0, '#05040e'], [0.5, '#140e2a'], [1, '#2a1a46']]) + rg('void', [[0, '#e8b04a', 0.55], [0.25, '#7a3aa8', 0.45], [0.6, '#2a1250', 0.6], [1, '#0a0618', 0]]) +
+        lg('cliff', [[0, '#3a3048'], [1, '#120e1a']]) + lg('far', [[0, '#2a2240'], [1, '#100c18']]) + rg('aura', [[0, '#ffe6a0', 0.7], [0.5, '#ffd060', 0.2], [1, '#ffc040', 0]]) +
+        rg('pglow', [[0, '#c8b0ff', 0.4], [1, '#c8b0ff', 0]]),
+        `<rect width="1200" height="900" fill="url(#sky)"/>` + ST(sd(90, 0, 1200, 0, 420), '#fff', 2, op(0.7)) + ST(sd(24, 0, 1200, 0, 400), '#e8e0ff', 3.6, op(0.9)) +
+        `<ellipse cx="820" cy="200" rx="420" ry="160" fill="url(#pglow)" opacity=".6"/>` +
+        // far rim of the chasm, Aether on it
+        P('M0 470L120 440L240 456L420 430L600 446L760 424L900 440L1040 420L1200 436V520H0Z', 'url(#far)') +
+        G(860, 440, 1.3, aether) +
+        // the starry chasm
+        `<ellipse cx="600" cy="660" rx="760" ry="230" fill="#08061a"/><ellipse cx="640" cy="700" rx="560" ry="200" fill="url(#void)"/>` +
+        ST(sd(70, 80, 1150, 520, 860), '#fff', 2.4, op(0.75)) + ST(sd(20, 200, 1000, 560, 820), '#ffe6a0', 4, op(0.8)) +
+        P('M300 600l40-16 30 10-10 22-46 4ZM860 560l50-10 20 16-30 18ZM980 700l30-12 26 14-20 16ZM180 720l34-8 16 14-28 10Z', '#2a2040') +
+        ST('M300 600l40-16 30 10M860 560l50-10 20 16', '#c8a0ff', 2, op(0.6)) +
+        // the near edge, Lumine and Paimon
+        P('M0 900V760Q120 740 260 770Q380 790 480 760Q560 740 640 780L700 900Z', 'url(#cliff)') + ST('M0 762Q120 742 260 772Q380 792 480 762Q560 742 640 782', '#8a7ab0', 3, op(0.6)) +
+        G(440, 560, 1.4, lumine) +
+        `<circle cx="580" cy="650" r="80" fill="url(#pglow)"/>` +
+        G(580, 640, 0.52, CH.paimon({ t: -0.55, ex: 'open', mo: 'o', eye: '#8a5ad0' })) + ST('M566 676Q540 690 518 700', '#f6f4ef', 9) + hand(514, 702, 7)
+      , 0.35, 0.6);
+    }),
+  });
+
+  // ---- 11. Fish Fry -----------------------------------------------------------------------------
+  def('end_fishfry', {
+    title: 'Fish Fry', w: 1200, h: 900, tags: ['ending', 'friends', 'teucer', 'pier', 'afternoon'],
+    svg: pic(11, () => {
+      setSkin(['#fff0e0', '#f9d0b0', '#e2a482', '#c48264']);
+      OVR = { hG: 'url(#hC)' };
+      let glit = '', flags = '';
+      for (let i = 0; i < 40; i++) glit += `M${f(rr(600, 1200))} ${f(rr(420, 640))}h${f(rr(8, 26))}`;
+      const fc = ['#e04848', '#f2c14e', '#3a8ae0', '#4ab070'];
+      for (let i = 0; i < 9; i++) { const x = 30 + i * 60, y = f(110 + Math.sin(i / 8 * Math.PI) * 50); flags += `<path d="M${x} ${y}l30 2-14 30Z" fill="${fc[i % 4]}"/>`; }
+      const fish = (x, y, r, c = '#c8843a') => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M-30 0C-20-14 14-14 26 0C14 14-20 14-30 0ZM24 0L40-12V12Z" fill="${c}"/><circle cx="-18" cy="-2" r="2.4" fill="#2a1a1c"/>${ST('M-8-8v16M2-8v16', '#8a4a1a', 2, op(0.6))}</g>`;
+      // the two of them on the pier edge, seen from behind; faces turned to each other
+      const childe = backT(60, 126, '#6c717c') + ST('M0 66V126M-60 84C-40 70 40 70 60 84', '#7c818c', 3, op(0.6)) + neck() +
+        P('M-26 40C-14 54 14 54 26 40L32 60C14 74-14 74-32 60Z', u('sC')) + P('M14 62C24 90 18 100 28 126H48C36 100 44 92 30 58Z', u('sC')) +
+        `<g transform="translate(-6 0) rotate(-10)">${CH.childe({ body: false, t: -0.75, ex: 'happy', mo: 'laugh' })}</g>`;
+      const teucer = backT(46, 124, '#3b6fb8') + ST('M0 66V124', '#2c62ad', 3, op(0.6)) + neck(9, 50) + `<g transform="translate(6 0) rotate(12)">${CH.teucer({ body: false, t: 0.75, ex: 'happy', mo: 'laugh' })}</g>`;
+      return svg(
+        lg('sky', [[0, '#6aaee0'], [0.6, '#bfe0f0'], [1, '#ffe8c0']]) + lg('sea', [[0, '#7ac0d0'], [1, '#2a7a98']]) +
+        lg('deck', [[0, '#c08a5a'], [1, '#7a4e2e']]) + rg('sun', [[0, '#fffbe8'], [0.15, '#fff2c0', 0.8], [1, '#ffe0a0', 0]]) +
+        lg('smoke', [[0, '#fff', 0], [1, '#fff', 0.5]]),
+        `<rect width="1200" height="900" fill="url(#sky)"/>` + `<circle cx="980" cy="160" r="260" fill="url(#sun)"/><circle cx="980" cy="160" r="50" fill="#fffdf0"/>` +
+        P(cloud(300, 220, 180, 30, 22) + cloud(700, 140, 140, 24, 18), '#fff', op(0.85)) +
+        P('M0 420L80 380L160 400L260 360L360 400L420 420Z', '#8ab0a8', op(0.6)) +
+        `<rect y="418" width="1200" height="482" fill="url(#sea)"/>` + ST(glit, '#fff', 3, op(0.8)) +
+        ST('M560 260q12-10 24 0q12-10 24 0M640 220q8-7 16 0q8-7 16 0', '#4a5a6a', 3, op(0.7)) +
+        // pier
+        P('M0 560H640V690H1200V900H0Z', 'url(#deck)') + ST('M0 600H640M0 650H640M0 740H1200M0 830H1200', '#6a4026', 3, op(0.5)) + P('M0 556H644V572H0ZM640 556H656V700H640ZM640 686H1200V700H640Z', '#5a3a22') + ST('M650 556V700', '#3a2414', 14) +
+        ST('M0 90Q270 200 540 90', '#5a4a3a', 2) + flags +
+        // grill crew
+        P('M140 520h160l-10 60h-140Z', '#2a2a30') + ST('M160 580l-14 90M280 580l14 90', '#2a2a30', 8) + ST('M140 520H300', '#5a5a64', 6) +
+        fish(190, 512, -6) + fish(250, 512, 8, '#d89a4a') + ST('M180 500q-30-80 10-160M240 500q30-90-10-180M270 500q-10-60 20-120', 'url(#smoke)', 26, op(0.6)) +
+        G(110, 420, 0.8, gruntFig({ hat: 'ushanka', t: 0.5, ex: 'closed', mo: 'laugh' }, 'M-74 96Q-110 160-60 200M74 96Q130 80 160 40', hand(-58, 202, 13) + hand(164, 34, 13) + ST('M166 30L200-10', '#8a8a90', 6) + P('M196-26h26v16h-26Z', '#8a8a90'))) +
+        fish(300, 300, 30) + ST('M290 330q-20 30-60 40', '#fff', 2, op(0.6)) +
+        G(380, 450, 0.78, gruntFig({ hat: 'ushanka', t: 0.4, mo: 'laugh' }, 'M-74 96Q-100 150-40 160M74 96Q110 150 40 160', hand(-36, 160, 13) + hand(36, 160, 13) + `<ellipse cy="150" rx="70" ry="14" fill="#f4f2ec" stroke="#c8c0b0" stroke-width="2"/>` + fish(0, 140, 0, '#d89a4a'))) +
+        // cooler
+        `<g transform="translate(520 720)"><rect x="-80" y="-70" width="160" height="90" rx="10" fill="#d8403a"/><rect x="-84" y="-82" width="168" height="22" rx="8" fill="#f4f2ec"/><rect x="-24" y="-90" width="48" height="10" rx="4" fill="#c8c0b0"/>${txt(0, -8, 'FISH', { size: 22, weight: 900, anchor: 'middle', fill: '#fff' })}</g>` +
+        // rods and lines
+        ST('M800 690L990 330M930 690L1170 260', '#2a2420', 5) + ST('M990 330Q1010 440 1000 560M1170 260Q1190 420 1160 560', '#fff', 1.4, op(0.8)) +
+        `<circle cx="1000" cy="560" r="5" fill="#e04848"/><circle cx="1160" cy="560" r="5" fill="#e04848"/>` + ST('M980 564q20-8 40 0M1140 564q20-8 40 0', '#fff', 2, op(0.6)) +
+        G(790, 560, 1.13, teucer) + G(944, 528, 1.35, childe) +
+        // bucket of today's catch
+        `<g transform="translate(1100 790)"><path d="M-46-50H46L38 30H-38Z" fill="#7a8a9a"/><ellipse cy="-50" rx="46" ry="12" fill="#5a6a7a"/>${fish(-10, -58, -30, '#9ab8c8')}${fish(14, -62, 20, '#c8843a')}</g>` +
+        `<rect width="1200" height="900" fill="#ffc060" opacity=".1" style="mix-blend-mode:soft-light"/>`
+      , 0.3, 0.4);
+    }),
+  });
+
   // ---- 12. Ajax (true ending) ------------------------------------------------------------------
   def('end_true', {
     title: 'Ajax', w: 1200, h: 900, tags: ['ending', 'pier', 'family', 'golden'],
@@ -841,17 +1079,4 @@
     }),
   });
 
-  // ---- dev sheet (temporary) -------------------------------------------------------------------
-  def('zz_sheet', {
-    title: 'sheet', w: 1200, h: 900, tags: [],
-    svg: pic(1, () => svg('', `<rect width="1200" height="900" fill="#cfd6dd"/>` +
-      who('childe', 110, 140, 1.4) + who('childe', 320, 140, 1.4, { t: 0.4, ex: 'happy', mo: 'laugh' }) +
-      who('zhongli', 530, 140, 1.4) + who('zhongli', 740, 140, 1.4, { t: -0.4, ex: 'soft', mo: 'soft' }) +
-      who('teucer', 950, 140, 1.4) + who('tonia', 1120, 140, 1.2, { t: -0.3 }) +
-      who('anthon', 90, 470, 1.1) + who('mama', 260, 470, 1.1) + who('papa', 430, 470, 1.1, { mo: 'laugh', ex: 'happy' }) + who('hutao', 600, 470, 1.1) +
-      who('lumine', 770, 470, 1.1) + who('ekat', 940, 470, 1.1) + who('yelan', 1110, 470, 1.1) +
-      who('grunt', 120, 760, 0.9, { hat: 'elf' }) + who('grunt', 330, 760, 0.9) + who('grunt', 540, 760, 0.9, { hat: 'none', mask: false, ex: 'closed', mo: 'laugh' }) +
-      who('childe', 720, 780, 0.6, { t: 0.3 }) + who('zhongli', 800, 780, 0.6, { t: -0.3 }) + who('teucer', 880, 780, 0.6) + who('mama', 960, 780, 0.6) + who('hutao', 1040, 780, 0.6) + who('lumine', 1120, 780, 0.6)
-    , 0, 0)),
-  });
 })();
