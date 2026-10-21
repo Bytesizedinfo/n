@@ -319,6 +319,22 @@
 
   // ── ROOT ─────────────────────────────────────────────────────────
   const SPEEDS = [[0.7, 'Relaxed', 'More time to read and think'], [1, 'Normal'], [1.6, 'Fast', 'For your second (or tenth) night']];
+  const SCALES = [[1, '1×', 'Real time'], [2, '2×'], [4, '4×'], [8, '8×', 'Fastest, for replays']];
+  const TIME_PICK = { core: 'timeScale', options: SCALES, set: (v) => JC.story.setTimeScale(v), header: 'Clock speed', footer: 'Speeds up the in-game clock, typing, calls and timed choices together. Tap the hare in Control Center or press ] and [ on a keyboard to change it any time.' };
+  /** chapter rows (only when the story has chapters) */
+  function chapterRows() {
+    const st = JC.story;
+    if (!st || !st.chapters || !st.chapters().length) return [];
+    const cur = st.currentChapter();
+    const nx = st.nextChapter();
+    return [
+      { t: cur ? (cur.n ? 'Chapter ' + cur.n + ' · ' : '') + (cur.title || cur.id) : 'Chapter', s: cur ? cur.day + ', ' + U.fmtTime(JC.time.now()) : 'Starts when you unlock the phone', icon: ['book.fill', 'var(--indigo)'] },
+      nx ? { t: 'Skip to Next Chapter', s: nx.label || nx.title || '', icon: ['moon.zzz.fill', '#5e5ce6'], tap: () => {
+        if (st.canLater()) { st.later(); return; }
+        K.alert({ title: 'Not Yet', message: 'Someone is still waiting on you (a reply with a timer, or a call). Deal with it first, then skip ahead.' });
+      } } : null,
+    ].filter(Boolean);
+  }
   function rootRender(K2, a, page) {
     const q = (page && page._q) || '';
     if (q) return searchResults(q);
@@ -335,7 +351,11 @@
           JC.ui.alert({ title: 'Rewind to Last Choice?', message: 'The story goes back to just before your last choice. Endings you found stay unlocked.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Rewind', style: 'default', onTap: () => setTimeout(() => JC.story.rewind(), 250) }] });
         } },
         { t: 'Restart Story', icon: ['arrow.clockwise', 'var(--red)'], tap: () => JC.os.confirmRestart() },
-        { t: 'Message Speed', icon: ['hare', 'var(--teal)'], pick: { core: 'speed', options: SPEEDS, footer: 'How quickly people type and reply. Relaxed gives you more time; Fast is for replays.', header: 'Typing speed' } },
+        ...chapterRows(),
+        { t: 'Time Speed', icon: ['hare.fill', 'var(--teal)'], pick: TIME_PICK },
+        { t: 'Skip to Next Event', icon: ['forward.end.fill', 'var(--blue)'], tap: () => JC.os.skipNow() },
+        { t: 'Pause Story', icon: ['pause.fill', 'var(--orange)'], core: '__pause', on: () => JC.story.paused(), set: (v) => JC.story.pause(v) },
+        { t: 'Message Speed', icon: ['text.bubble', 'var(--teal)'], pick: { core: 'speed', options: SPEEDS, footer: 'How quickly people type and reply. Relaxed gives you more time; Fast is for replays.', header: 'Typing speed' } },
         { t: 'Show Suspicion Meter', icon: ['eye.fill', 'var(--orange)'], core: 'showSus', rerender: false },
         { t: 'How to Play', icon: ['questionmark.circle', 'var(--blue)'], tap: () => howToPlay(), chev: true },
       ] },
@@ -397,7 +417,7 @@
       (d.idx || []).forEach((t) => out.push({ id, t, path: (d.path ? d.path + ' › ' : '') + title, icon: d.icon }));
     });
     // story & root items
-    [['Endings', 'story-endings'], ['Rewind to Last Choice', 'story-rewind'], ['Restart Story', 'story-restart'], ['Message Speed', 'story-speed'], ['Show Suspicion Meter', 'story-sus'], ['How to Play', 'story-how'], ['Airplane Mode', 'airplane']].forEach(([t, k]) => out.push({ t, path: 'Story', action: k, icon: ['lotus.fill', 'var(--purple)'] }));
+    [['Endings', 'story-endings'], ['Rewind to Last Choice', 'story-rewind'], ['Restart Story', 'story-restart'], ['Message Speed', 'story-speed'], ['Time Speed', 'story-time'], ['Skip to Next Event', 'story-skip'], ['Pause Story', 'story-pause'], ['Show Suspicion Meter', 'story-sus'], ['How to Play', 'story-how'], ['Airplane Mode', 'airplane']].forEach(([t, k]) => out.push({ t, path: 'Story', action: k, icon: [(JC.world && JC.world.brand && JC.world.brand.emblem) || 'book.fill', 'var(--purple)'] }));
     APP_ORDER().forEach((id) => out.push({ id: 'app', arg: id, t: appName(id), path: 'Apps', icon: 'app:' + id }));
     return out;
   }
@@ -421,6 +441,9 @@
       else if (x.action === 'story-rewind') { if (JC.state.canRewind()) JC.story.rewind(); else K.alert({ title: 'Nothing to Rewind', message: 'You haven’t made a choice yet.' }); }
       else if (x.action === 'story-restart') JC.os.confirmRestart();
       else if (x.action === 'story-speed') K.go('__pick', { title: 'Message Speed', core: 'speed', options: SPEEDS });
+      else if (x.action === 'story-time') K.go('__pick', Object.assign({ title: 'Time Speed' }, TIME_PICK));
+      else if (x.action === 'story-skip') JC.os.skipNow();
+      else if (x.action === 'story-pause') { JC.story.pause(!JC.story.paused()); K.toast(JC.story.paused() ? 'Story paused' : 'Story resumed', JC.story.paused() ? 'pause.fill' : 'play.fill'); }
       else if (x.action === 'story-how') howToPlay();
       else { clearSearch(); }
       return;
@@ -463,6 +486,8 @@
       offs.push(JC.bus.on('network', rerender));
       offs.push(JC.bus.on('battery', rerender));
       offs.push(JC.bus.on('story:ending', rerender));
+      offs.push(JC.bus.on('story:time', rerender));
+      offs.push(JC.bus.on('story:chapter', rerender));
       offs.push(JC.bus.on('minute', () => { const t = nav.top(); if (t && t.data && /^(battery|datetime|screentime|about)$/.test(t.data.id)) t.render(); }));
 
       function openPage(id) {

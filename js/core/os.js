@@ -193,13 +193,14 @@
   function buildStatusBar() {
     const sb = els.statusbar;
     sb.innerHTML = '';
-    const left = h('div.sb-left', { onTap: () => openNC() }, h('span.sb-time'), h('span.sb-focus'));
+    const left = h('div.sb-left', { onTap: () => openNC() }, h('span.sb-time'), h('span.sb-focus'), h('span.sb-speed', { hidden: true }));
     const right = h('div.sb-right', { onTap: () => openCC() },
       h('span.sb-cell', svgBars()), h('span.sb-net'), h('span.sb-wifi', JC.icon('wifi', { size: 17, weight: 2.4 })),
       h('span.sb-batt', h('span.sb-batt-body', h('span.sb-batt-fill')), h('span.sb-batt-cap')));
     sb.append(left, right);
     els.sbTime = left.querySelector('.sb-time');
     els.sbFocus = left.querySelector('.sb-focus');
+    els.sbSpeed = left.querySelector('.sb-speed');
     els.sbNet = right.querySelector('.sb-net');
     els.sbWifi = right.querySelector('.sb-wifi');
     els.sbCell = right.querySelector('.sb-cell');
@@ -233,6 +234,7 @@
     els.sbTime.textContent = U.fmtClock(JC.time.now());
     els.sbFocus.innerHTML = '';
     if (s.focus) els.sbFocus.appendChild(JC.icon(s.focus === 'sleep' ? 'bed.double.fill' : s.focus === 'work' ? 'briefcase.fill' : 'moon.fill', { size: 13 }));
+    paintSpeedBadge();
     const air = s.airplane;
     els.sbCell.style.display = air ? 'none' : '';
     els.sbCell.classList.toggle('off', !s.cellular);
@@ -249,6 +251,22 @@
     if (els.lockTime) renderLockClock();
   }
   os.updateStatus = updateStatus;
+  /** "⏩ 4×" while time runs faster, "⏸" while the story is paused */
+  function paintSpeedBadge() {
+    const b = els.sbSpeed;
+    if (!b || !JC.story || !JC.story.timeScale) return;
+    const paused = JC.story.paused();
+    const n = JC.story.timeScale();
+    const key = paused ? 'p' : n > 1 ? 'x' + n : '';
+    if (b._key === key) return;
+    b._key = key;
+    b.hidden = !key;
+    b.innerHTML = '';
+    b.classList.toggle('paused', paused);
+    if (paused) b.append(JC.icon('pause.fill', { size: 11 }));
+    else if (n > 1) b.append(JC.icon('forward.fill', { size: 11 }), h('span.sb-speed-t', n + '×'));
+    b.title = paused ? 'Story paused' : n > 1 ? 'Time ' + n + '× faster' : '';
+  }
   os.setStatus = (style) => { if (active) { active.status = style; updateStatus(); } };
 
   // ── Battery ──────────────────────────────────────────────────────
@@ -379,6 +397,7 @@
     els.lockLost = h('div.lock-lost', { hidden: true });
     els.lockNotifs = h('div.lock-notifs.scroll');
     els.lockHint = h('div.lock-hint', 'Swipe up to open');
+    els.lockLater = h('div.lock-later', { hidden: true, onTap: (e) => { e.stopPropagation(); laterNow(); } });
     const flash = h('div.lock-btn.flash', { onTap: () => { os.setToggle('flashlight', !S().settings.flashlight); flash.classList.toggle('on', !!S().settings.flashlight); } }, JC.icon('flashlight.off.fill', { size: 22 }));
     const cam = h('div.lock-btn.cam', { onTap: () => unlockThen(() => os.open('camera')) }, JC.icon('camera.fill', { size: 22 }));
     els.lockFlash = flash;
@@ -386,14 +405,14 @@
     const clock = h('div.lock-clock', els.lockTime);
     const front = h('div.lock-front', els.lockGlyph, els.lockDate);
     els.lockWidgets.classList.add('lock-wlayer');
-    const content = h('div.lock-content', els.lockWall, clock, els.lockFg, front, els.lockWidgets, els.lockLost, els.lockNotifs, flash, cam, els.lockHint);
+    const content = h('div.lock-content', els.lockWall, clock, els.lockFg, front, els.lockWidgets, els.lockLost, els.lockNotifs, flash, cam, els.lockLater, els.lockHint);
     L.append(content);
     els.lockContent = content;
     buildPasscode();
     // swipe up anywhere on the lock screen
     U.drag(content, {
       axis: 'y',
-      filter: (e) => !e.target.closest('.ncard, .lock-btn, .lock-lost, .lock-notifs .scrolling'),
+      filter: (e) => !e.target.closest('.ncard, .lock-btn, .lock-lost, .lock-later, .lock-notifs .scrolling'),
       start: (e, p) => p.dy < 0,
       move: (e, p) => {
         const y = Math.min(0, p.dy);
@@ -410,6 +429,34 @@
     JC.bus.on('minute', () => { renderLockClock(); renderLockWidgets(); });
     renderLockClock();
     renderLockWidgets();
+    setInterval(() => { if (os.locked) renderLater(); }, 1000);
+  }
+  /** chapters: "Later…" jumps to the next chapter once nothing urgent is pending */
+  function laterInfo() {
+    const st = JC.story;
+    if (!st || !st.canLater || !st.chapters || !st.chapters().length || !st.canLater()) return null;
+    const n = st.nextChapter();
+    return n ? { label: n.label || n.title || 'Next chapter' } : null;
+  }
+  function renderLater() {
+    const el = els.lockLater;
+    if (!el) return;
+    const info = laterInfo();
+    const key = info ? info.label : '';
+    if (el._key !== key) {
+      el._key = key;
+      el.innerHTML = '';
+      if (info) el.append(h('span.ll-ic', JC.icon('moon.zzz.fill', { size: 17 })), h('span.ll-txt', h('b', 'Later…'), h('small', info.label)));
+    }
+    el.hidden = !info;
+    els.lock.classList.toggle('has-later', !!info);
+  }
+  os.renderLater = renderLater;
+  function laterNow() {
+    if (!JC.story || !JC.story.later) return;
+    closeCC();
+    if (!JC.story.later()) JC.ui.toast('Not now — something still needs you', { icon: 'exclamationmark.circle.fill' });
+    renderLater();
   }
 
   function renderLockClock() {
@@ -706,6 +753,7 @@
     expandedKeys();
     renderLockNotifs();
     renderLockWidgets();
+    renderLater();
     updateStatus();
     JC.bus.emit('lock');
   };
@@ -876,8 +924,50 @@
       ccTile({ icon: s.silent ? 'bell.slash.fill' : 'bell.fill', on: s.silent, color: '#ff453a', onTap: () => os.setToggle('silent', !s.silent) }),
       ccTile({ icon: 'moon', on: os.dark, color: '#fff', cls: 'white-on', onTap: () => os.setAppearance(os.dark ? 'light' : 'dark') }),
       ccTile({ icon: 'battery.25', on: s.lowPower, color: '#ffd60a', onTap: () => os.setToggle('lowPower', !s.lowPower) }),
-      ccTile({ icon: 'lock.fill', onTap: () => { closeCC(); setTimeout(() => os.sleep(), 250); } }));
+      ccTile({ icon: 'lock.fill', onTap: () => { closeCC(); setTimeout(() => os.sleep(), 250); } }),
+      speedTile(), laterTile());
   }
+  /** hare tile: tap cycles 1×→2×→4×→8×, long-press skips to the next event; shows the paused state */
+  function speedTile() {
+    if (!JC.story || !JC.story.setTimeScale) return null;
+    const paused = JC.story.paused();
+    const n = JC.story.timeScale();
+    const el = h('div.cc-tile.cc-speed', {
+      class: { on: paused || n > 1, paused },
+      style: { '--on-c': paused ? '#ff9f0a' : '#30b0c7' },
+      attrs: { title: 'Time speed (hold: skip to next)' },
+      onTap: () => {
+        JC.audio.haptic(8);
+        if (JC.story.paused()) { JC.story.pause(false); islandFlash('Story resumed', 'play.fill'); }
+        else { const nx = cycleScale(+1, true); islandFlash('Time ' + nx + '×', 'hare.fill', nx > 1 ? '#64d2ff' : '#fff'); }
+        renderCC();
+      },
+    }, h('div.cc-ic', JC.icon(paused ? 'pause.fill' : n > 1 ? 'hare.fill' : 'hare', { size: 24 })), h('div.cc-speed-n', paused ? 'Paused' : n + '×'));
+    U.longPress(el, () => { skipNow(); renderCC(); });
+    return el;
+  }
+  function laterTile() {
+    const info = laterInfo();
+    if (!info) return null;
+    return h('div.cc-focus.cc-later.span-2x1', { onTap: () => laterNow() }, h('div.ccf-ic', JC.icon('moon.zzz.fill', { size: 20 })), h('div', h('div.ccf-t', 'Later…'), h('div.ccf-s', info.label)));
+  }
+  /** step timeScale up / down through 1, 2, 4, 8 (wrap: tap in Control Center cycles) */
+  function cycleScale(dir, wrap) {
+    const L = [1, 2, 4, 8];
+    let i = L.indexOf(JC.story.timeScale()) + dir;
+    if (wrap) i = (i + L.length) % L.length;
+    i = U.clamp(i, 0, L.length - 1);
+    return JC.story.setTimeScale(L[i]);
+  }
+  function skipNow() {
+    if (!JC.story || !JC.story.skipNext) return;
+    const r = JC.story.skipNext();
+    if (r === 'later') islandFlash('Later…', 'moon.zzz.fill');
+    else if (r) islandFlash('Skipped ahead', 'forward.end.fill');
+    else JC.ui.toast('Nothing scheduled right now', { icon: 'clock' });
+  }
+  os.skipNow = skipNow;
+  os.cycleScale = cycleScale;
   function nowPlayingTile() {
     const np = JC.music && JC.music.nowPlaying ? JC.music.nowPlaying() : null;
     const el = h('div.cc-np.span-2x2');
@@ -911,7 +1001,12 @@
   function closeCC() {
     if (!els.cc.classList.contains('open')) return;
     U.anim(els.cc.querySelector('.cc-grid'), [{ opacity: 1 }, { transform: 'translateY(-30px) scale(.92)', opacity: 0 }], { duration: 240 });
-    U.anim(els.cc.querySelector('.cc-bg'), [{ opacity: 1 }, { opacity: 0 }], { duration: 260 }).then(() => { els.cc.classList.remove('open'); updateStatus(); });
+    U.anim(els.cc.querySelector('.cc-bg'), [{ opacity: 1 }, { opacity: 0 }], { duration: 260 }).then(() => {
+      els.cc.classList.remove('open');
+      // drop the forwards-filled fade-outs so the next open starts visible
+      els.cc.querySelectorAll('.cc-grid, .cc-bg').forEach((x) => x.getAnimations().forEach((a) => a.cancel()));
+      updateStatus();
+    });
   }
   os.openCC = openCC;
   os.closeCC = closeCC;
@@ -1765,6 +1860,18 @@
   os.siri = siri;
 
   function keyboardShortcuts() {
+    // time controls: ] faster, [ slower, \ skip to the next event (ignored while typing)
+    window.addEventListener('keydown', (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || !JC.story || !JC.story.setTimeScale) return;
+      if (e.key !== ']' && e.key !== '[' && e.key !== '\\') return;
+      const ae = document.activeElement;
+      if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable)) return;
+      if (JC.kb.visible || !S().started) return;
+      e.preventDefault();
+      if (e.key === '\\') { skipNow(); return; }
+      const n = cycleScale(e.key === ']' ? +1 : -1, false);
+      islandFlash('Time ' + n + '×', 'hare.fill', n > 1 ? '#64d2ff' : '#fff');
+    });
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         const layer = els['sys-overlays'];
@@ -1863,6 +1970,14 @@
     return body;
   }
 
+  /** "Where everyone ended up": avatar, chat name and outcome line per chat */
+  function aftermathList(list) {
+    return h('div.af-list', list.map((r) => h('div.af-row',
+      r.avatar ? JC.ui.avatar(r.avatar, 44) : h('div.af-av', JC.icon('person.fill', { size: 20 })),
+      h('div.af-m', h('div.af-name', r.name), h('div.af-line', r.line)))));
+  }
+  os.aftermathList = aftermathList;
+
   os.ending = (id, also) => {
     const C = els.cinema;
     C.innerHTML = '';
@@ -1870,15 +1985,39 @@
     JC.time.freeze(true);
     JC.kb.hide();
     const e = JC.story.endingDef(id);
+    const last = JC.story.aftermathLast ? JC.story.aftermathLast() : null;
+    const after = last && last.ending === id && last.list && last.list.length ? last.list : null;
     const wrap = h('div.ending.scroll');
-    const btns = h('div.end-btns',
+    const endBtns = () => h('div.end-btns',
       JC.state.canRewind() ? h('div.end-btn', { onTap: () => { close(); JC.story.rewind(); } }, JC.icon('arrow.counterclockwise', { size: 18 }), h('span', 'Rewind to last choice')) : null,
       h('div.end-btn', { onTap: () => { close(); JC.ui.toast('The story has ended — the phone is yours to explore', { icon: EMBLEM(), ms: 3000 }); } }, JC.icon('iphone', { size: 18 }), h('span', 'Keep exploring the phone')),
       h('div.end-btn', { onTap: () => { close(); os.showEndings(); } }, JC.icon('square.grid.2x2', { size: 18 }), h('span', 'All endings')),
       h('div.end-btn.primary', { onTap: () => { close(); JC.story.restart(); } }, JC.icon('arrow.clockwise', { size: 18 }), h('span', 'Start over')));
-    wrap.append(endingView(e || { id, title: id }, { also }), btns);
+    wrap.append(endingView(e || { id, title: id }, { also }),
+      after ? h('div.end-btn.end-next', { onTap: () => go(1) }, h('span', 'Where everyone ended up'), JC.icon('chevron.right', { size: 16, weight: 2.4 })) : null,
+      endBtns());
     C.appendChild(h('div.end-dim'));
-    C.appendChild(wrap);
+    let pager = null;
+    let dots = null;
+    const go = (n) => {
+      if (!pager) return;
+      pager.classList.toggle('p2', n === 1);
+      dots.querySelectorAll('i').forEach((d, i) => d.classList.toggle('on', i === n));
+      const pg = pager.children[n];
+      if (pg) pg.scrollTop = 0;
+    };
+    if (after) {
+      const def = e || { id, title: id };
+      const page2 = h('div.ending.scroll.end-after',
+        h('div.af-top', h('div.af-back', { onTap: () => go(0) }, JC.icon('chevron.left', { size: 17, weight: 2.6 }), h('span', 'Ending'))),
+        h('div.af-head', h('div.end-tag', 'Aftermath'), h('div.end-title', 'Where everyone ended up'), h('div.af-sub', (def.n ? 'Ending ' + def.n + ' · ' : '') + (def.title || ''))),
+        aftermathList(after),
+        endBtns());
+      pager = h('div.end-pager', wrap, page2);
+      dots = h('div.end-dots', [0, 1].map((i) => h('i', { class: { on: i === 0 }, onTap: () => go(i) })));
+      U.drag(pager, { axis: 'x', end: (ev, p) => { if (p.dx < -70) go(1); else if (p.dx > 70) go(0); } });
+      C.append(pager, dots);
+    } else C.appendChild(wrap);
     U.anim(C.querySelector('.end-dim'), [{ opacity: 0 }, { opacity: 1 }], { duration: 1200 });
     U.anim(wrap, [{ transform: 'translateY(60px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 1100, delay: 500, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'both' });
     JC.audio.play('success');
@@ -1904,12 +2043,32 @@
           },
         }, e.unlocked ? JC.art.el(e.art || 'end_' + e.id, { cls: 'eg-art' }) : h('div.eg-art.locked', JC.icon('lock.fill', { size: 22 })),
         h('div.eg-n', 'Ending ' + e.n), h('div.eg-t', e.unlocked ? e.title : '???'), h('div.eg-h', e.unlocked ? (e.tag || '') : (e.hint || ''))))),
+        aftermathGallery(),
         h('div.eg-actions',
           JC.ui.btn({ text: 'Rewind to last choice', kind: 'gray', disabled: !JC.state.canRewind(), onTap: () => { s.close(); JC.story.rewind(); } }),
           JC.ui.btn({ text: 'Restart story', kind: 'tinted', onTap: () => { s.close(); confirmRestart(); } })),
       ],
     });
   };
+
+  /** Endings gallery: per-chat outcomes found so far ("Zhongli · 2 of 5") */
+  function aftermathGallery() {
+    const chats = JC.story.aftermathFound ? JC.story.aftermathFound() : [];
+    if (!chats.length) return null;
+    const got = chats.reduce((a, c) => a + c.found, 0);
+    const all = chats.reduce((a, c) => a + c.total, 0);
+    return h('div.eg-after',
+      h('div.eg-after-h', h('b', 'Where everyone ended up'), h('span', got + ' of ' + all + ' outcomes')),
+      JC.ui.list([{ rows: chats.map((c) => ({
+        avatar: c.avatar || undefined, avatarSize: 36, icon: c.avatar ? undefined : { glyph: 'person.2.fill', bg: 'var(--gray)' }, title: c.name, detail: c.found + ' of ' + c.total, chevron: true,
+        onTap: () => JC.ui.sheet({ title: c.name, detent: 'medium', system: true, left: { text: 'Back' }, content: () => [
+          JC.ui.list([{ header: c.found + ' of ' + c.total + ' found', footer: 'Each playthrough ends every conversation somewhere. Find them all.', rows: c.outcomes.map((o) => ({
+            icon: { glyph: o.found ? 'checkmark' : 'lock.fill', bg: o.found ? 'var(--green)' : 'var(--gray)' },
+            title: o.found ? o.line : '???',
+          })) }]),
+        ] }),
+      })) }]));
+  }
 
   function confirmRestart() {
     JC.ui.alert({
@@ -1963,6 +2122,12 @@
     JC.bus.on('kb', (k) => {
       screen.classList.toggle('kb-open', k.open);
     });
+    ['story:time', 'story:chapter', 'story:pending', 'story:call', 'story:ending', 'story:reset'].forEach((ev) => JC.bus.on(ev, () => {
+      paintSpeedBadge();
+      renderLater();
+      if (els.cc.classList.contains('open') && ev !== 'story:pending') renderCC();
+    }));
+    JC.bus.on('setting:timeScale', () => { paintSpeedBadge(); });
     renderLost();
     renderLockNotifs();
     updateStatus();

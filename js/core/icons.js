@@ -208,6 +208,13 @@
     'wand.and.stars': '<path d="m4 20 10.5-10.5M13 8l3 3"/><path d="M17 3v3M15.5 4.5h3M20 9v2.5M18.8 10.2h2.5M9 3.5v2M8 4.5h2"/>',
     'crop.rotate': '<path d="M7 3.5v12.5a1 1 0 0 0 1 1h12.5M3.5 7H16a1 1 0 0 1 1 1v12.5"/>',
     'pawprint.fill': `<g ${F}><ellipse cx="6.2" cy="10.2" rx="1.9" ry="2.4"/><ellipse cx="9.8" cy="6.2" rx="1.9" ry="2.5"/><ellipse cx="14.2" cy="6.2" rx="1.9" ry="2.5"/><ellipse cx="17.8" cy="10.2" rx="1.9" ry="2.4"/><path d="M12 11.2c-2.6 0-5.3 3.6-5.3 6 0 1.6 1.2 2.5 2.6 2.5 1.2 0 1.8-.6 2.7-.6s1.5.6 2.7.6c1.4 0 2.6-.9 2.6-2.5 0-2.4-2.7-6-5.3-6z"/></g>`,
+    // story glyphs (the brand emblem is JC.world.brand.emblem)
+    'vision.hydro': '<path d="M12 2.8 18.4 9.6 12 21.2 5.6 9.6z"/><path d="M12 6.6c-1.6 2.2-2.6 4-2.6 5.4a2.6 2.6 0 0 0 5.2 0c0-1.4-1-3.2-2.6-5.4z" fill="currentColor" stroke="none"/><path d="M5.6 9.6h12.8M9.2 9.6 12 2.8l2.8 6.8" stroke-width="1.2" stroke-opacity=".7"/>',
+    hare: '<path d="M5 18c0-3.5 2.4-6.5 6-6.5 2.4 0 4 1 5.4 1 1.6 0 3.6.9 3.6 2.8 0 1.5-1.2 2.7-3 2.7H5z"/><path d="M14 11.8c-.8-2.5-.4-5.6 1.2-6.8 1.5.9 1.4 4.2.4 6.6M16.6 12.6c.5-2.5 1.7-4.6 3.3-5-.2 1.9-1.2 3.9-2.4 5.3"/>',
+    'hare.fill': '<path d="M5 18c0-3.5 2.4-6.5 6-6.5 2.4 0 4 1 5.4 1 1.6 0 3.6.9 3.6 2.8 0 1.5-1.2 2.7-3 2.7H5z" fill="currentColor"/><path d="M14 11.8c-.8-2.5-.4-5.6 1.2-6.8 1.5.9 1.4 4.2.4 6.6M16.6 12.6c.5-2.5 1.7-4.6 3.3-5-.2 1.9-1.2 3.9-2.4 5.3" fill="currentColor"/>',
+    snowflake: '<path d="M12 2.5v19M3.8 7.25l16.4 9.5M3.8 16.75l16.4-9.5M9.5 4 12 6.3 14.5 4M9.5 20 12 17.7 14.5 20M4.2 10.1l3.2-.9-.9-3.2M19.8 13.9l-3.2.9.9 3.2M6.5 17.8l.9-3.2-3.2-.9M17.5 6.2l-.9 3.2 3.2.9"/>',
+    'forward.end.fill': '<path d="M3 6.6c0-.6.7-1 1.2-.6l6.6 5.4c.4.3.4.9 0 1.2l-6.6 5.4c-.5.4-1.2 0-1.2-.6zM10.6 6.6c0-.6.7-1 1.2-.6l6.6 5.4c.4.3.4.9 0 1.2l-6.6 5.4c-.5.4-1.2 0-1.2-.6z" fill="currentColor" stroke="none"/><rect x="18.8" y="5.8" width="2.3" height="12.4" rx=".8" fill="currentColor" stroke="none"/>',
+    'moon.zzz.fill': '<path d="M14.6 5.2A8 8 0 1 0 19 17.3 7 7 0 0 1 14.6 5.2z" fill="currentColor" stroke="none"/><path d="M15.5 3.5h3.2l-3.2 3.6h3.2M19.8 8.6h2.2l-2.2 2.5h2.2" stroke-width="1.5"/>',
     lotus: LOTUS,
     'lotus.fill': `<g ${F}><path d="M12 4.6c-1.7 2.1-2.6 4.4-2.6 6.8 0 2.7 1.2 4.8 2.6 5.9 1.4-1.1 2.6-3.2 2.6-5.9 0-2.4-.9-4.7-2.6-6.8z"/><path d="M3.8 9.2c3 .3 5.6 2 6.6 6.3.2.8.5 1.4.9 1.9-4.7-.4-7.4-3.6-7.5-8.2zM20.2 9.2c-3 .3-5.6 2-6.6 6.3-.2.8-.5 1.4-.9 1.9 4.7-.4 7.4-3.6 7.5-8.2z"/></g><path d="M3.5 18.3c2.6 1.5 5.4 2.1 8.5 2.1s5.9-.6 8.5-2.1"/>`,
     checklist: '<path d="m3.5 6.5 1.5 1.5 3-3M3.5 13.5l1.5 1.5 3-3M11 7h9.5M11 14h9.5M11 19.5h9.5"/>',
@@ -361,6 +368,9 @@
     return el;
   }
   appIcon.has = (id) => !!APP_ICONS[id];
+  /** register an app icon from an app's own file: fn(date) returns a 60×60 SVG string (see APP_ICONS) */
+  appIcon.add = (id, fn) => { if (id && typeof fn === 'function') APP_ICONS[id] = fn; return fn; };
+  appIcon.W = W; // attributes to open an icon svg with: `<svg ${JC.appIcon.W}>…</svg>` (60×60 viewBox)
   appIcon.svg = (id) => (APP_ICONS[id] ? APP_ICONS[id](JC.time ? JC.time.date() : new Date()) : `<svg ${W}><rect width="60" height="60" fill="#8e8e93"/></svg>`);
   appIcon.url = (id) => 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(appIcon.svg(id));
   JC.appIcon = appIcon;
