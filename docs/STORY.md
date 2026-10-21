@@ -1,348 +1,628 @@
-# Jiang Cheng's Phone — Story Bible
+# Childe's Phone — Story Bible
 
-Everything in the phone must agree with this file. If you need a fact that is not here, invent it,
-keep it consistent with MDZS canon translated into a modern AU, and add it to the "Facts added" list at the
-bottom of this file in a single line (`- fact (added by <your area>)`).
+Everything in the phone must agree with this file. If you need a fact that is not here, invent it, keep it consistent
+with Genshin Impact canon translated into a modern AU, and add it to **Facts added** at the bottom (one line,
+`- fact (added by <package>)`). Never contradict a fact in this file. Never reuse names, places or jokes from any other
+story in this repo's history.
 
 ## Premise
 
-Modern AU of *Mo Dao Zu Shi*. **Friday 16 October 2026, 11:47 PM, Lanling.**
-The player slides into the back seat of a Swift Ride taxi outside the **Golden Peony Hotel** and finds a phone in a
-**matte purple case** wedged in the seat. It belongs to **Jiang Cheng** (34), CEO of the **Yunmeng Jiang Group (YMJ)**.
-He took this same taxi from the gala at **Koi Tower** to the hotel 20 minutes earlier and the phone slipped out.
+Modern AU of *Genshin Impact*, with the myth left in. Phones, banks, ride apps and funeral parlors, but gods are real,
+rare and reclusive: Liyue's founder "Rex Lapis" is a six-thousand-year-old legend most people treat as a metaphor.
+Visions (elemental gems) exist; a few people carry one.
 
-The player cracks the passcode and, for one night and the next morning, **everyone who texts or calls believes they
-are talking to Jiang Cheng**. The player decides what "he" says. Out-of-character replies raise **suspicion** with
-that contact. The night's choices decide one of 13 endings.
+**Friday 16 October 2026, 23:47, Liyue Harbor.** The player (unnamed, lives in Chihu Rock, Lane 3) walks the harbor
+promenade and finds on **Pier 7**:
+- an abandoned fishing rod with the line cut;
+- a cup of osmanthus tea, gone cold;
+- a phone in a **matte Hydro-blue case with a red fish charm** and a child's sticker: "WORLD'S BEST BIG BROTHER".
 
-Tone: warm, funny, occasionally heartbreaking. Group chats are chaos. The family material is sincere. Romance is
-slow-burn and tender (PG). Never cruel to the characters; bad endings are sad, not nasty.
+It belongs to **Childe** — Tartaglia, real name **Ajax**, 22, the 11th of the eleven executive "Harbingers" of the
+**Northland Bank Group** (Snezhnaya), officially "Director of Special Collections, Liyue Branch". The Harbingers are
+the Fatui: the bank is the polite face of the Tsaritsa's political machine. Childe's family in **Morepesok** believes he
+sells toys for "Northland Toys".
+
+The player cracks the passcode. From then on **everyone believes they are texting Childe**, and the player decides
+what "he" says. Out-of-character replies raise **suspicion**. The story lasts **four days** (seven chapters) and ends
+on Monday evening at Pier 7, where it began.
 
 ### The passcode puzzle
-- Passcode: **181008** (Jin Ling's birthday, 18 Oct 2008, written DDMMYY).
-- Clues visible on the lock screen before unlocking:
-  - A-Ling 11:02 PM: "jiujiu ur passcode is STILL my birthday. everyone at the gala knows. change it"
-  - A-Ling 11:03 PM: "DDMMYY is not a security system its a birthday card"
-  - Lock-screen calendar widget: "Sun · A-Ling turns 18 🎂"
-- After 2 wrong tries a new A-Ling message arrives: "also i'm literally an adult on sunday so stop calling me a child"
-- After 5 wrong tries: "iPhone Unavailable — try again in 30 seconds", then a narrator hint.
+- Passcode **110720**: his seat at the table, "Eleven", followed by his birthday, **20 July** (MMDD).
+- Clues visible before unlocking:
+  - Lock-screen notification, Scaramouche 23:38: "Your passcode is still your seat at the table followed by your
+    birthday, isn't it. Embarrassing, Eleventh."
+  - Ekaterina 23:41: "Sir, please. The Eleventh must not use 'eleven' in his passcode. Security has asked me to ask
+    you again."
+  - Emergency → **Medical ID** shows "Born 20 July 2004".
+- After 2 wrong tries, Teucer (voice-note preview): "brother i know ur passcode!!! its ur number and ur birthday!! the
+  summer one!!"
+- After 5: "iPhone Unavailable — try again in 30 seconds", then narrator hints, escalating:
+  "Eleven… and a birthday." → "Medical ID says 20 July." → "Try 11 · 07 · 20."
+
+### Why the player keeps the phone (and why the story lasts four days)
+At ~01:30 Friday night Childe calls his own phone from a burner (contact `unknown`):
+> "Whoever has my phone. Don't hang up. If it goes silent, the people looking for me will know I'm running — and my
+> brother and sister land here in six hours. Keep it alive. Answer like me. Until Monday. I'll owe you."
+
+Agree (`deal_childe`), bargain (`deal_childe` + `deal_paid`), or refuse/hang up (`deal_refused` → **short path**: Lost
+Mode at Saturday dawn, an early finale with fewer endings open). On Saturday morning Zhongli's contract gives the
+player a second, binding reason.
+
+## Childe's own voice (what "in character" means)
+The player must imitate this. Suspicion rises when they don't.
+- Cheerful, cocky, restless. Exclamation marks. "heh", "haha", "comrade" (to Lumine), "xiansheng" (to Zhongli,
+  teasing and fond), "Teucer!!" with double marks. Emoji are *in character* (😁🐟💧⚔️🎣❤️), never 🥺 or 🙏.
+- **Never refuses a fight.** Turning down Beidou or Scaramouche's barbs meekly is suspicious.
+- Brags about fishing, loses no fishing argument, knows every fish's name. Beating Teucer's Reel Rush score is in
+  character; losing badly is not.
+- Doting with his siblings, lies to them smoothly about toys. Cold, polite and dangerous with Signora and Dottore.
+  Insults Scaramouche back.
+- Doesn't say "please" to Fatui colleagues, doesn't apologise to Signora, doesn't use semicolons (Zhongli notices).
+- Pays for everything Zhongli wants, complaining loudly and happily.
 
 ## Who is who (contact ids are used everywhere in code)
 
-| id | Name (saved as) | Who | Texting voice |
+| id | Saved as | Who | Texting voice |
 |---|---|---|---|
-| `me` | Jiang Cheng 江澄, courtesy Wanyin | Owner. 34. CEO of YMJ (logistics, shipping and lotus-farm foods, HQ at **Lotus Pier**, Yunmeng). | Correct punctuation. Short. Never emoji. Never "please", rarely "thanks", never "sorry". Threats to break Jin Ling's legs (affectionate). "Get lost." "Tch." "Ridiculous." Calls Wei Wuxian "Wei Wuxian" in full. |
-| `wwx` | **🐶 DO NOT ANSWER** | Wei Wuxian 魏无羡 (Wei Ying), 34. Adopted brother. Married to Lan Wangji (2025). Runs **Yiling Radish Co.** (tiny farm + weekend pop-up) and teaches flute at Gusu Lan Academy. Terrified of dogs. | lowercase bursts, many messages in a row, "jiang cheng!!!", "chengcheng" (to annoy), 🥺🙏😭, typos he doesn't fix. |
-| `jl` | **A-Ling** | Jin Ling 金凌 (courtesy Rulan), 17, turns **18 on Sunday 18 Oct**. Heir of the **Jin Group** (HQ Koi Tower, Lanling). Senior at Lanling International School. Owns **Fairy**, a huge black dog. JC raised him. Has a learner permit. | lowercase, impatient, "jiujiu", "ugh", "wtv", insults that are secretly affectionate, all caps when panicking. |
-| `lxc` | **Zewu-jun** | Lan Xichen 蓝曦臣 (Lan Huan), 37. Chancellor of **Gusu Lan Academy** (campus = Cloud Recesses). Lives in the **Hanshi**, a tea house inside Cloud Recesses. Returned three weeks ago from a year-long "seclusion" (sabbatical) after the Jin Guangyao scandal ("A-Yao"). | Full sentences, gentle, careful, calls JC "Wanyin". Uses exactly one emoji ever: 🙂. |
-| `lwj` | **Lan Wangji** | Lan Wangji 蓝忘机 (Lan Zhan, Hanguang-jun), 34. WWX's husband, Lan Xichen's brother. Music professor. | "Mn." Precise, minimal, full stops. Texts JC only when WWX can't, or to report things about WWX. |
-| `nhs` | **Nie Huaisang** | Nie Huaisang 聂怀桑, 33. Chairman of **Nie Corp** (Qinghe, HQ "the Unclean Realm"). Plays harmless ("I don't know, I don't know!"). Secretly the sharpest person in the phone. Sells hand-painted fans as a hobby brand. Secretly runs the anonymous gossip account **@teaspiller_qh** on Wavelet. | "Brother Jiang!!!", "hehe~", 🙈😭🙏👀🪭, gossip-hungry. He is the most likely to notice something is off. |
-| `wn` | **Wen Ning** | Wen Ning 温宁, 31. Paramedic in Yiling. Drove WWX and LWJ to the gala in his old van. Gentle, terrified of JC. His late sister Dr. Wen Qing performed the 2008 transplant. | "M-Mr. Jiang," formal, apologizes constantly, signs off "— Wen Ning". |
-| `sz` | **Lan Sizhui** | Lan Sizhui 蓝思追 (A-Yuan), 18. Jin Ling's best friend. Polite, kind. | Proper, warm, "Sect Leader Jiang" (old habit) or "Mr. Jiang". |
-| `jy` | **Lan Jingyi** | Lan Jingyi 蓝景仪, 18. Loud, typos, caps. Jin Ling's other friend. | "MR JIANG", no punctuation, 💀. |
-| `mian` | **Mianmian** | Luo Qingyang (Mianmian), 33. Old classmate, architect, married with a daughter. Kind, dry. | Normal adult texting. |
-| `ea` | **Tang Mei (EA)** | Tang Mei, 41. JC's executive assistant for 9 years. Dry humor, unflappable, knows him better than anyone at work. | Efficient. "Noted." "Monday 9:00." Occasionally devastating. |
-| `huang` | **Old Huang** | Old Huang 老黄, 63. Head of Lotus Pier security. Has known JC since JC was a boy. Loves voice messages and 👍. | Old-man texting: "Boss. Received. 👍👍", voice messages, random capitals. |
-| `liu` | **Liu Qian (Ops)** | Liu Qian, 36. YMJ operations manager. Organized, brave enough to propose "Bring Your Dog to Work Friday". | Bullet points, polite but pushy. |
-| `bai` | **A-Bai (Logistics)** | A-Bai, 23. Junior logistics coordinator. Ordered **400 kg** of lotus root instead of 40 by typo. Anxious. | "boss im so sorry", 🙇. |
-| `qr` | **Lan Qiren** | Lan Qiren, 67. Lan elder, chair of the Academy board, disapproves of everyone. | Formal letters by SMS. Signs "— Lan Qiren". Mostly email. |
-| `ajie` | **A-Jie 🪷** | Jiang Yanli 江厌离, JC's older sister. **Died in 2009.** Her number was disconnected; everything JC sends now fails as "Not Delivered". | (2007–2009) warm, gentle, "A-Cheng", soup, worry, ❤️ sometimes. |
-| `mom` | **Mother** | Yu Ziyuan 虞紫鸢 (Madam Yu). **Died in 2008** in the Lotus Pier fire. Stern, proud, loved fiercely. | Commands. "Eat." "Stand up straight." |
-| `dad` | **Father** | Jiang Fengmian. **Died in 2008** with Madam Yu. Gentle. | Few words. |
-| `hq` | **Lotus Pier HQ** | The YMJ main switchboard. In the morning the real Jiang Cheng calls from this line. | — |
-| `swift` | Swift Ride (SMS) | Ride receipts | — |
-| `bank` | 95588 (SMS) | Yunmeng Commercial Bank alerts & codes | — |
-| `eats` | Lotus Eats (SMS) | Food delivery | — |
+| `me` | Childe | Ajax / Tartaglia, 22. Owner. 11th Harbinger. Hydro Vision (worn as a pendant). Apartment: Pier View Residences 2207. | See above. |
+| `zl` | **Xiansheng 🍵** | **Zhongli**, looks ~30, "consultant" at Wangsheng Funeral Parlor. Secretly **Rex Lapis / Morax**, Liyue's founder, who "died" on 1 Oct and is organising his own funeral (the Rite of Parting, Sun 18 Oct). Never carries Mora. Loves tea, birds, opera (Yun Jin), antiques, Glaze Lilies (they remind him of an old friend, Guizhong). Dislikes seafood with tentacles. | Full sentences, perfect punctuation, long paragraphs with historical tangents. Calls him "Childe" (rarely "Ajax", once, at the climax). No emoji, except a single 🙂 he uses on Monday if things go well. |
+| `teucer` | **Teucer 🐟** | Youngest brother, **8**. Believes the toy story completely. Reel Rush high score **2,047**. Loves "Glacier Guardians" action figures and his plush **Sir Fang** (an ice wolf). | Voice notes, typos, ALL CAPS joy, "BROTHER", lots of 🐟🧸⭐. |
+| `tonia` | **Tonia** | Sister, **15**. Sharp, protective, writes long messages. Found a Northland Bank letter at home addressed to "Harbinger Tartaglia". | Proper sentences, ellipses, "Ajax…", Snezhnayan words (*bratik*, *nu*). |
+| `anthon` | **Anthon** | Brother, **12**. Stays home in Morepesok (school exams). Gamer, memes, leaks everything to Mama. | lowercase, "lmaooo", memes, "bro". |
+| `mama` | **Mama ❤️** | Their mother. Warm, worried, voice messages, recipes. | Long voice notes, "my sun", "eat something". |
+| `papa` | **Papa** | Their father, ex-adventurer who sent 14-year-old Ajax to Pulcinella's Fatui academy after "the Abyss incident". Proud, guilty, tells sea stories. | Short, old-fashioned, signs "— Papa". |
+| `ht` | **Hu Tao 👻** | Director of Wangsheng Funeral Parlor, 19. Zhongli's boss. Hiding Childe from Friday ~00:20. | lowercase chaos, ghost jokes, rhyming "poems", "Mr. Harbinger", 👻⚰️🦋. |
+| `lumine` | **Lumine** | Traveler, 19, adventurer-for-hire, searching for her twin **Aether** (with the Abyss Order). Childe's sparring partner and friend. Calls him "Childe". | Dry, concise, lowercase. "paimon says hi (she's eating)". |
+| `paimon` | **Paimon (Emergency Food)** | Lumine's tiny loud companion. | ALL CAPS, third person ("Paimon is STARVING"), food emoji. |
+| `ekat` | **Ekaterina** | Northland Bank Liyue receptionist, 26. Loyal to Childe. Called him at **23:21** to warn him about Signora. | "Sir," formal, careful, worried. |
+| `signora` | **La Signora** | Rosalyne, 8th Harbinger. Running Project Osial; framing Childe. | Cold, perfect grammar, "Tartaglia." Never emoji. |
+| `scara` | **Scaramouche (do NOT)** | The Balladeer, 6th Harbinger. Cruel, bored, the **detective**: most likely to notice the impostor. Birthday 3 Jan. | lowercase, insults, "eleventh", "fishwife". |
+| `dottore` | **Dottore** | Il Dottore, 2nd Harbinger. Creepy scientist. Wants Childe's "Delusion" readings and "a sibling baseline" — Teucer. | Clinical, polite, unsettling. |
+| `pulci` | **Pulcinella** | 5th Harbinger, mayor of Morepesok, Childe's sponsor. Arranged the kids' flight (leverage). | Grandfatherly, "my boy", menace under warmth. |
+| `pantalone` | **Pantalone** | 9th Harbinger, the bank's head. Watches every Mora. | Polite, financial, "dear Tartaglia". |
+| `arle` | **Arlecchino** | 4th Harbinger, "the Knave", runs an orphanage, protective of children; despises Dottore's interest in them. Potential ally for the kids. | Measured, few words, "Tartaglia." |
+| `xl` | **Xiangling 🌶️** | Chef at Wanmin Restaurant (Chihu Rock); owns the Wanmin Go storefront. Guoba is her red panda. | Excited, cooking talk, 🔥🌶️. |
+| `beidou` | **Beidou ⚓** | Captain of the Crux Fleet (Crux Shipping), flagship *The Alcor*. Owes Childe a rematch. Kazuha is aboard. | Loud, "kid", nautical. |
+| `yelan` | **Unknown → Yelan** | Intelligence for the Liyue Qixing (cover: Ministry of Civil Affairs). Suspects an impostor by Saturday; offers deals. | Playful, sharp, dice metaphors. |
+| `ning` | **Ningguang (Jade Chamber)** | The Tianquan of the Qixing. Owns the Jade Chamber. Business relationship with Northland. | Formal, regal, brief. |
+| `xiao` | **(no name saved)** | Xiao, Zhongli's fierce protégé. One threat on Saturday. | One line. |
+| `yunjin` | **Yun Jin** | Opera star at Heyu Tea House. Childe bought box seats for Saturday's matinee as a gift for Zhongli. | Gracious, theatrical. |
+| `skirk` | **—** | Skirk, Childe's master from the Abyss. No number. Messages arrive at **03:00** Saturday and Sunday nights. | Very short. "Ajax." |
+| `unknown` | **Unknown** | The real Childe's burner. Calls once Friday ~01:30; may text once on Sunday. | — |
+| `wangsheng` | **Wangsheng Funeral Parlor** | The parlor's landline. Monday 08:00 the real Childe calls from here. | — |
+| `nbank` | Northland Bank | SMS alerts, codes, fraud checks. | — |
+| `wanmin` | Wanmin Go | Food delivery SMS. | — |
+| `ride` | Harbor Ride | Ride receipts, lost items. | — |
+| `market` | Feiyun Market | Auction and order SMS. | — |
+| `liyueair` | Liyue Air | Flight LA 711 updates. | — |
 
-Fairy (仙子): Jin Ling's enormous black dog. Loves Jiang Cheng. Hates baths. Wears an AirTag on her collar that is shared to JC's Find My.
-
-JC's childhood dogs (canon): **Jasmine, Princess and Love-Love**. His father gave them away when Wei Wuxian arrived because WWX was terrified of dogs. JC still has a photo.
+Group threads:
+- `fam` **"Семья 🐟"**: mama, papa, tonia, anthon, teucer, me.
+- `harb` **"Harbingers 🧊"** (muted): pierro (non-contact display "Pierro"), signora, dottore, scara, pantalone, arle,
+  columbina, sandrone, pulci; Capitano only reacts (never writes). Non-contact members render by name.
+- `ops` **"Liyue Branch 🐟"**: ekat plus grunts **Pyotr** (Pyro agent, panics), **Lyuba** (Cryo Cicin mage, froze the
+  office aquarium), **Big Boris** (heavy, gentle), **Anya** (Electrohammer vanguard, sarcastic), **Kolya** (new
+  recruit, gets lost in the Chasm), **Valentina** (Mirror Maiden, terrifying). Grunts are non-contact members.
+- `crew` **"hotpot crew 🔥"**: lumine, paimon, xl, ht, me (Zhongli was added and "left the group" in July; Hu Tao
+  re-adds him in chapter 3 by accident).
 
 ## Places (place ids used by Maps, Find My, rides, messages)
 
-| id | Name | City | Notes |
-|---|---|---|---|
-| `lotus-pier` | Lotus Pier | Yunmeng | Jiang family estate on the lake and YMJ headquarters. Nine-petal lotus emblem. |
-| `lp-residence` | Lotus Pier Residence | Yunmeng | JC's house on the estate. |
-| `koi-tower` | Koi Tower | Lanling | Jin Group HQ. Tonight's gala venue. Has a famous **koi pond** in the forecourt. |
-| `golden-peony` | Golden Peony Hotel | Lanling | Where JC is staying tonight (Room 1808). Where the player got into the taxi. |
-| `player-home` | Jinxing Road 27 | Lanling | Where the taxi drops the player (the player's apartment). |
-| `cloud-recesses` | Cloud Recesses (Gusu Lan Academy) | Gusu | Misty mountain campus. Wall of 3,000 rules. |
-| `hanshi` | The Hanshi | Gusu | Lan Xichen's tea house/residence inside Cloud Recesses. |
-| `jingshi` | The Jingshi | Gusu | Home of Wei Wuxian and Lan Wangji. |
-| `unclean-realm` | The Unclean Realm | Qinghe | Nie Corp HQ. |
-| `radish-farm` | Yiling Radish Co. | Yiling | WWX's farm on Burial Mounds hill. |
-| `laoma-hotpot` | Laoma Hotpot (老妈火锅) | Gusu | The alumni hotpot place from after their exams (and the 2024 reunion). **Answer to Nie Huaisang's quiz.** |
-| `lanling-intl` | Lanling International School | Lanling | Jin Ling's school. |
-| `guanyin-temple` | Guanyin Temple | Yunmeng outskirts | Where, in 2024, JC learned the truth about the transplant. |
-| `yunmeng-lake` | Yunmeng Lake Pavilion | Yunmeng | Childhood kite spot. |
-| `pet-kingdom` | Pet Kingdom | Lanling | Where JC buys Fairy's food. |
+| id | Name | Notes |
+|---|---|---|
+| `pier7` | Pier 7, Liyue Harbor | Where the phone was found. Childe's night-fishing spot. |
+| `northland` | Northland Bank, Liyue Branch (Harbor Road 1) | Childe's office (top floor). Ekaterina's desk. |
+| `wangsheng` | Wangsheng Funeral Parlor (Feiyun Slope) | Hu Tao, Zhongli. Childe hides in the coffin showroom. |
+| `liuli` | Liuli Pavilion | Friday's dinner, ℳ8,800, Childe paid. |
+| `heyu` | Heyu Tea House | Yun Jin's opera. Saturday 15:00 matinee. |
+| `yujing` | Yujing Terrace | Cliff terrace; Saturday night walk; Sunday's Rite of Parting. |
+| `jade` | The Jade Chamber | Ningguang's tower above the harbor. |
+| `golden-house` | The Golden House | The old mint and vault. The Gnosis handover, Sunday 16:00. |
+| `wanmin-rest` | Wanmin Restaurant (Chihu Rock) | Xiangling. |
+| `xinyue` | Xinyue Kiosk | Upscale dining. |
+| `third-round` | Third-Round Knockout | Teahouse-diner by the docks. |
+| `alcor` | *The Alcor*, Crux Pier | Beidou's flagship; the rematch deck. |
+| `mingyun` | Mingyun Toys & Games | Real toy store (Teucer). |
+| `wanwen` | Wanwen Bookhouse | Bookshop. |
+| `bubu` | Bubu Pharmacy | Pharmacy (Baizhu, Qiqi). |
+| `mingxing` | Mingxing Jewelry | Jeweler. |
+| `apartment` | Pier View Residences 2207 | Childe's flat. Watched by Fatui from Saturday. |
+| `player-home` | Chihu Rock, Lane 3 | The player's flat. |
+| `airport` | Liyue Harbor International (LHI) | Kids land 07:40 Saturday, fly home 13:10 Monday. |
+| `liyue-grand` | Liyue Harbor Grand Hotel | Fatui-owned. Pulcinella's booking for the kids. A trap. |
+| `wangshu` | Wangshu Inn | Inn in the countryside. Safe place for the kids. |
+| `guyun` | Guyun Stone Forest | Offshore stone pillars; Osial sleeps beneath. "Unit 3" resonator. |
+| `chasm` | The Chasm | Abandoned mine. The Abyss. |
+| `qingce` | Qingce Village | Glaze Lily fields. |
+| `millelith` | Millelith Station, Harbor | Police. |
+| `morepesok` | Morepesok, Snezhnaya | The family home, a fishing village. |
+| `zapolyarny` | Zapolyarny Palace, Snezhnaya | Northland Bank Group HQ. |
 
 ## Backstory timeline (modern AU)
-
-- 1992 — Jiang Cheng born (15 May). Wei Wuxian born 1992 (31 Oct). Jiang Yanli born 1988.
-- 2001 — Jiang Fengmian brings orphaned Wei Wuxian (9) home to Lotus Pier. The three puppies are given away.
-- 2007 — Yanli marries Jin Zixuan. Teenage years at Gusu Lan Academy summer school (Cloud Recesses), where JC, WWX, NHS, Mianmian, Wen Ning, LWJ met. Lan Xichen was the senior student who ran the summer program.
-- 2008 — **Wen Corp** hostile takeover; a fire at Lotus Pier kills Jiang Fengmian and Madam Yu. JC (16) is badly hurt; his liver fails. An anonymous living donor saves him. The donor was **Wei Wuxian**; Dr. **Wen Qing** performed the surgery and kept the secret. JC's Medical ID: "Liver transplant recipient (2008)".
-- 18 Oct 2008 — **Jin Ling born.**
-- 2009 — Jin Zixuan dies in a car crash on the Qiongqi Pass road (Wen Ning was driving the other car; not his fault, but JC blamed him for years). Months later **Jiang Yanli dies** during the riot at the Nightless City tower, shielding Wei Wuxian. WWX leaves the country; for 13 years most people believe he is dead. JC raises Jin Ling.
-- 2009–2022 — JC rebuilds YMJ from ashes into a top logistics group. Texts A-Jie's dead number every birthday (12 Feb) and every anniversary (2 Nov). They never deliver.
-- 2023 — WWX comes back, with Lan Wangji. Chaos. JC punches him, mostly figuratively.
-- 2024 — At **Guanyin Temple** (the night the Jin Guangyao scandal broke), Wen Ning tells JC the truth about the liver. JC records a voice memo that night ("Untitled 14") practicing a thank-you. He never sends it.
-- 2025 — WWX marries LWJ. JC attends and leaves early. Lan Xichen goes into seclusion after A-Yao's death in prison. JC texts him anyway, one-sidedly, for a year: short messages about lotus seasons, the weather in Yunmeng.
-- Sept 2026 — Lan Xichen comes out of seclusion: "Wanyin, I read all of your messages. Thank you." They have talked on the phone a few times since (one call lasted 41 minutes).
-- **Tonight** — Jin Group Autumn Charity Gala at Koi Tower. At 10:50 PM on the balcony Lan Xichen told JC: *"While I was away I thought of you more than anyone. I've missed you."* JC panicked and left at 11:15 without answering.
+- 20 Jul 2004 — Ajax born in Morepesok, third of seven children (two older brothers and an older sister, unnamed,
+  grown up; then Tonia 2011, Anthon 2014, Teucer 2018).
+- Winter 2018 — Ajax (14) runs into the frozen woods after a fight, falls into a sea cave and is gone for three days
+  ("three months", he says). Found by the shore, changed. Says a swordswoman, **Skirk**, taught him. He now loves
+  fighting. Papa, frightened, sends him to Pulcinella's Fatui academy.
+- 2020–2024 — rises fast; becomes **11th Harbinger "Tartaglia"** in March 2024 at 19. Hydro Vision; a "Delusion" he
+  is not supposed to overuse (Dottore studies its effects on him).
+- Since 2021 — sends money home every month as "toy commission". Teucer believes he sells toys for "Northland Toys".
+- March 2026 — posted to Liyue.
+- April 2026 — needs a consultant on Liyue customs for a bank gala; Ekaterina finds **Zhongli** through Wangsheng.
+  They have dinner every week since. Childe pays every time. Hu Tao calls them "the funeral and the fisherman".
+- July 2026 — Childe's birthday (20 Jul): Zhongli gives him a Liyue fishing rod (the one left on Pier 7). The
+  hotpot-crew group adds Zhongli, who leaves it within an hour ("I misread a button").
+- August 2026 — Childe pitches **Project Osial** to the Harbingers in a reckless mood: wake what sleeps under Guyun
+  Stone Forest with Northland "resonators" so that Liyue's hidden god must reveal himself. Signora takes it over.
+- 1 Oct 2026 — Liyue announces **Rex Lapis has died**. The Rite of Parting is set for **Sun 18 Oct**, with Wangsheng
+  (and Zhongli) organising. In private, Zhongli signs a contract with Signora: the **Gnosis** will be handed over at
+  the Golden House after the rite, in exchange for Northland writing off Liyue's debts. Childe doesn't know.
+- 9 Oct — Childe tries to pull Osial. Signora: "Your name is already on every document."
+- 14 Oct — Mama: the kids want to visit. Pulcinella "kindly" books and pays the trip (Northland "Executive Travel").
 
 ## Tonight, minute by minute (before the player arrives)
-
-- 19:00 Gala starts. JC seated next to Lan Xichen (Nie Huaisang secretly swapped the seating chart; he emailed JC "hehe I swapped the seats~").
-- 22:47 JC photographs the moon from the balcony; a white sleeve is at the edge of the frame (photo `p_balcony_moon`).
-- 22:50 Health app records heart rate 121 bpm.
-- 23:02–23:03 A-Ling's passcode texts.
-- 23:05 Missed call from A-Ling.
-- 23:12 Three missed calls from Wei Wuxian, and a voicemail ("pick up! …ok voicemail. um. sunday. I'll bring the soup. I mean, if— okay bye").
-- 23:15 JC leaves the gala. 23:21 Swift Ride Koi Tower → Golden Peony Hotel, driver Master Wu Lihua, plate 云A·9X277, ¥64, arrives 23:36. Phone slips into the seat.
-- 23:31 Lan Xichen: "Wanyin, did you get home safely? I'm sorry if I spoke out of turn on the balcony."
-- 23:40 WWX: "u left without saying bye!!! rude." / 23:41 "also. sunday. think about it ok? 🙏" / 23:41 "lan zhan says hi" / 23:42 "lan zhan did not say hi but he thought it"
-- 23:44 Nie Huaisang: "Brother Jiang!!! What happened on the balcony?!?! Everyone saw you two 👀"
-- 23:45 YMJ Ops group, Old Huang: "Boss. Lotus root delivery arrived. 400 KG. We ordered 40. 👍"
+- 20:00 Dinner at **Liuli Pavilion** with Zhongli. ℳ8,800 (Wallet + bank). Zhongli "left his wallet in his other coat".
+- 22:41 Feiyun Market: Zhongli forwards a lot listing "Guizhong-era celadon tea set" (auction ends **00:30 Sat**).
+- 22:58 **Harbor Ride**: Liuli Pavilion → Pier 7, *two passengers* (Childe + "Z."), driver Mr. Fang, ℳ46.
+- 23:12 Zhongli walks home. Last photo on the phone: Zhongli on the pier railing looking at the sea (`p_zl_pier`).
+- 23:20 Signora (to Childe): "Tomorrow we discuss your authorization. Don't make me come to you."
+- **23:21** Ekaterina calls (2 min): Signora has rewritten the Osial file with Childe as sole signatory; agents are coming.
+  He records nothing, but Voice Memos auto-saved "New Recording 31" (00:42 long, mostly wind and her voice) because
+  he pressed the button by accident. That memo is evidence.
+- 23:24 Health: heart rate 168 bpm, **"Hard fall detected"** at Pier 7. Two Fatui agents tried to take him. He fought,
+  went into the water, came out, dumped the phone on the bench so they couldn't track him, and ran.
+- 23:31 Tonia: "Ajax… a woman called the house asking for 'the Eleventh'. Mama is pretending it's normal."
+- 23:33 Teucer voice note: "BROTHER!! WE'RE ON THE PLANE!!! it's a SURPRISE so don't look!!!"
+- 23:38 Scaramouche: the passcode jab. 23:41 Ekaterina: the passcode plea.
+- 23:44 Liyue Branch ops, Lyuba: "comrades. i froze the aquarium again. Sir's fish are inside. do not tell Sir."
+- 23:46 Paimon: "CHILDE!!! Paimon heard you're paying for hotpot tomorrow!!! 🔥🔥🔥"
 - 23:47 The player finds the phone.
 
-Sunday (18 Oct) is **Jin Ling's 18th birthday**. Wei Wuxian wants to bring A-Jie's lotus-root-and-pork-rib soup to a birthday dinner at **Lotus Pier**: he has not set foot there in 13 years. JC has not answered.
+Where Childe really is: ~00:20 he reaches **Wangsheng**, soaked; Hu Tao hides him in the coffin showroom; Zhongli is
+called there at ~01:00. His AirPods are in his pocket (Find My: Wangsheng, last seen 00:22). He calls his own phone at
+~01:30 from a burner.
 
-## The night (live branching scenes)
+## Shared systems (everything is interconnected)
 
-Arcs interleave like a real night of texts. The scenes agent owns the exact dialogue. Required beats:
+### One wallet — Northland Bank
+All money flows through `JC.bank` (one account, one card). Starting state:
+- **Personal Current** ℳ48,260 — card "Northland Black •••• 1111".
+- **Savings: "for the kids"** ℳ312,000 (locked; transfers out need Face ID and trigger a Pantalone message).
+- **Corporate (view only)** — shows the **OSIAL/PH3 ℳ3,000,000 → Sea Lantern Logistics** wire (pending, releases Sun
+  23:00) and "Executive Travel — Office of Pulcinella ℳ21,400 (LA 711 ×2, Liyue Harbor Grand ×3 nights)".
+- Freezing the card (`card_frozen`) blocks the OSIAL release *and* the player's purchases until unfrozen; Signora
+  and Pantalone notice within ~2 minutes of play.
+- Big or odd spending raises **Pantalone's** suspicion (single purchase > ℳ10,000 or > ℳ25,000 in total per day).
 
-1. **Family — Wei Wuxian** (`wwx`, group `fam`)
-   - WWX asks properly about Sunday: can he come home to Lotus Pier for Jin Ling's birthday dinner and bring the soup?
-   - Choices range from terse yes (in character), deflection that opens a deeper talk, sweet out-of-character yes
-     (suspicion), harsh refusal (path toward *Burned Bridges*), or leaving him on read.
-   - The **voice memo "Untitled 14"** (Voice Memos app) is JC's never-sent thank-you about the liver. If the player
-     plays it (`memo_play`) a quiet beat follows; if they send it to WWX (`memo_share`), the emotional climax:
-     long typing… stops… typing; WWX: "you kept this for two years?"; Lan Wangji separately: "Thank you."
-   - A-Jie's thread is read-only in spirit: anything sent there shows "Not Delivered". Writing there sets `ajie_wrote`.
-2. **XiCheng — Lan Xichen** (`lxc`)
-   - Continues "did you get home safely?" → his apology for the balcony → the player can deflect, ask what he meant,
-     or admit JC panicked. → Invitation: tea at the Hanshi tomorrow (Sat) at 3 PM, white peony tea "the one you liked".
-     Accepting adds a calendar event. → Later (~1 AM) he sends a photo of the moon over Gusu.
-   - Lan Xichen is perceptive but too kind to accuse; very sweet replies raise suspicion only a little with him.
-3. **Jin Ling's chaos** (`jl`, group `bday`)
-   - ~00:03 "jiujiu" ×3 → "dont be mad" → he took JC's car **Sandu** (spare key from the coat check) to practice
-     for his driving test and parked it in the **Koi Tower koi pond**. Fairy is sitting on the roof (photo `p_fairy_roof`).
-     The koi are fine. He is fine. He is panicking.
-   - Player can yell (in character — Jin Ling is relieved "ok good ur normal"), ask if he's hurt, be suspiciously sweet,
-     tell him to call Old Huang / Ops, or get Wen Ning (who is still nearby with his van) to tow it.
-     A cover-up option ("Tell no one. Blame the valet.") leads toward *#KoiPondGate*.
-   - Fairy is wet and the Jin staff won't let her inside: "can she stay with u tonight". Agreeing to meet Jin Ling
-     yourself leads toward *Fairy's New Favorite*.
-   - **Birthday group** "A-Ling's 18th 🎂 DO NOT ADD JIN LING" (WWX, LWJ, Sizhui, Jingyi, Wen Ning, NHS, JC):
-     planning cake (lotus seed paste), venue (Lotus Pier vs Koi Tower), gift (the old **Jiang clan silver bell** that was
-     A-Jie's — JC already had it polished). Jingyi accidentally adds Jin Ling. Chaos. Player can remove him, play it
-     off, or tell him the truth ("it's a surprise, idiot"). Jin Ling then DMs, soft: "u guys are planning something?"
-   - Lotus Leap: Jin Ling's high score is **1824**. If the player beats it, Jin Ling: "HOW. jiujiu cant even play phone games??" (suspicion).
-4. **Ops / comedy** (group `ops`)
-   - 400 kg of lotus root. Options: send it back, find out who ordered it (A-Bai confesses: "please don't use Zidian"),
-     or "Make soup for the whole company" (morale).
-   - Towing Sandu out of the koi pond through Old Huang's cousin in Lanling.
-   - Liu Qian: "Re: Bring Your Dog to Work Friday — you said you'd decide tonight." Approve / deny / "only Fairy".
-   - Each fun, decent decision raises the `ops_morale` counter.
-5. **Nie Huaisang — the detective** (`nhs`, group `alumni`)
-   - Gossips about the balcony. Fishes for details.
-   - **Quiz:** "What was the hotpot place we went to after the summer exams? I forgot~" Correct answer
-     **Laoma Hotpot** (discoverable in Photos, Maps saved places, the alumni group history, Wallet transactions).
-     "Why would I remember that." is the in-character dodge (small suspicion). Wrong answers raise suspicion a lot.
-   - Alumni group "Cloud Recesses Summer '07 🎓" (NHS, WWX, LWJ, Mianmian, Wen Ning, JC): NHS posts gala gossip;
-     LWJ replies "Delete this."
-   - Suspicion with NHS ≥ 8 → he calls you out ("Brother Jiang would rather die than use an emoji.") → *I Know Nothing*.
-6. **Wen Ning's call** — Wen Ning phones about towing. Answering is risky (your voice is not Jiang Cheng's).
-   Staying silent / saying "mm" can work. If he realizes, he is too kind and too scared to tell anyone → *Wen Ning Saw Nothing*.
-7. **Night end** — around 02:00 (or once the main arcs settle) the player falls asleep; time skips to **07:38 Saturday**.
-8. **Finale (morning)**
-   - The phone is in **Lost Mode** (set from JC's laptop): lock screen says *"This iPhone has been lost. Please call
-     Lotus Pier HQ. — J.C. Return it. I mean it."*
-   - 07:41 incoming call from **Lotus Pier HQ** — it is the real Jiang Cheng. "You. Whoever has my phone."
-   - Choices: tell the truth (→ ending chosen by flags), pretend to be the taxi driver ("Master Wu is a woman."),
-     hang up (he calls again; ignoring him twice → *Zidian Is Waiting*).
-   - When told the truth he asks: "Did you read my messages?" and the player can confess what "he" did.
+Prices: tea set lot (current bid ℳ11,200 at 23:47; a rival `jade_connoisseur_88` bids up to ℳ11,800; any bid ≥
+ℳ12,000 before 00:30 wins); Glaze Lilies to Wangsheng ℳ1,288; Sir Fang plush XL ℳ680; Glacier Guardians "Frost
+Fortress" set ℳ2,400; Tonia's gift "Snezhnayan fountain pen" ℳ1,150; Yun Jin box seats already paid ℳ3,600; a Wanmin
+Go hotpot set for four ℳ688; Paimon's "everything on the menu" ℳ4,980.
 
-## Suspicion
-- Each contact has a suspicion value (0–10+). In-character replies keep it low; emojis, "please", "sorry",
-  gushing affection, knowing nothing about shared history, voice messages, or beating Jin Ling's score raise it.
-- NHS ≥ 8 → `caught_nhs`. Total suspicion (sum over all contacts) ≥ 25 → Jin Ling and WWX compare notes → *Zidian Is Waiting*.
-- Lan Xichen and Wen Ning never accuse; their branches stay gentle.
+### The gossip network (suspicion spreads)
+`world.gossip` edges (share = fraction of the suspicion passed on, one hop):
+- scara → signora 0.5 · signora → pulci 0.3 · tonia → mama 0.5 · anthon → mama 0.5 · mama → pulci 0.3
+- ht → zl 0.5 · paimon → lumine 0.5 · ekat → ops 0.3 (to group members) · pantalone → signora 0.3
+- Group threads spread half of any suspicion raised in them to each other member.
 
-## Endings (13)
+Characters *mention* what reached them ("Tonia says you sounded weird. Explain." — Mama).
 
-| # | id | Title | How |
-|---|---|---|---|
-| 1 | `honest` | The Honest Stranger | Tell anyone the truth before the finale (any confession that isn't to NHS/Wen Ning), report the lost item in Swift Ride, or tell the truth at the finale with no arc completed. |
-| 2 | `wen_ning` | Wen Ning Saw Nothing | Wen Ning realizes during his call, or you confess to him. He quietly helps return the phone. |
-| 3 | `busted` | I Know Nothing | Nie Huaisang catches you (sus ≥ 8 or confession). He keeps your secret… for a price. |
-| 4 | `zidian` | Zidian Is Waiting | Total suspicion ≥ 25, or hang up on the real JC twice. He tracks you down. |
-| 5 | `burned` | Burned Bridges | Send Wei Wuxian the cruelest reply at the key moment ("You should have stayed gone."). Sad, not hopeless: in the epilogue JC drives to Gusu at dawn. |
-| 6 | `koigate` | #KoiPondGate | The cover-up with Jin Ling + NHS's gossip account leaks it. Trending by morning. Comedy-bad. |
-| 7 | `fairy` | Fairy's New Favorite | Agree to take Fairy and meet Jin Ling yourself. A teenager in a tuxedo hands you a soaking wet dog and realizes you are not his uncle. |
-| 8 | `unsent` | Unsent | Finale: you played the memo but didn't send it, and the family arc didn't resolve. JC finds it marked as played, and sends it himself. Bittersweet. |
-| 9 | `reunited` | Lotus Pier, Reunited | Finale: WWX invited home for Sunday **and** the memo sent (or a real thank-you). Five bowls of soup on Sunday. |
-| 10 | `tea` | Tea at the Hanshi | Finale: tea accepted and Lan Xichen affinity ≥ 3. JC goes. |
-| 11 | `jl_hero` | Jiujiu of the Year | Finale: the car handled well, the birthday planned, Jin Ling affinity ≥ 3. |
-| 12 | `legend` | Group Chat Legend | Finale: `ops_morale` ≥ 3. YMJ staff will speak of this night for years. |
-| 13 | `true` | Good Samaritan, Truly | Secret. Finale: reunited + tea + jl_hero conditions together, total suspicion < 12, and you tell the truth. JC invites you to Sunday dinner. |
+### Suspicion thresholds
+- `scara` ≥ 8 → **The Balladeer's Gossip**.
+- total ≥ 25 → **Fatui Hospitality**.
+- `zl` ≥ 3 by Saturday 09:10 (or at 09:10 regardless) → "You are not Childe." (never a game over).
+- `ht` ≥ 5 → she clocks you → **Wangsheng Is Hiring** unless you've signed Zhongli's contract (then she's in on it).
+- `tonia` ≥ 6 → she phones Mama; family tension.
+- `yelan` ≥ 4 → she knows you're not him and opens a deal.
 
-At the finale every qualifying ending is unlocked; the highest in this order is shown:
-`true > reunited > tea > jl_hero > legend > unsent > honest`.
+### Clues (knowledge flags) — find in one place, use in another
+| Clue | Where | Unlocks |
+|---|---|---|
+| `clue_shared_ride` | Harbor Ride → 22:58 trip (two passengers) | Correct answer to Zhongli's "Did the fish bite after I left?" |
+| `clue_bluefin` | Photos 3 Jan 2026 "Scaramouche the tuna", Childe's private Ripple @ajax.fishes, Notes "Fishing log" | Scaramouche's quiz answer ("A bluefin. I named it after you.") |
+| `clue_intranet` | Notes "wifi + logins" has `nb-liyue / Tsaritsa'sOwn11` | Safari → intranet.northland.sn → `osial_protocol` page |
+| `saw_protocol` | Mail attachment `osial_protocol.pdf` or the intranet page | Leak options (Yelan, Ningguang), "tell Zhongli about Osial" |
+| `saw_wire` | Northland Bank → Corporate → OSIAL/PH3 | Freeze-card logic, Pantalone/Signora confrontation lines |
+| `saw_travel` | Northland Bank → Executive Travel charge, or Mail booking | Realise the trip is leverage; cancel the Grand Hotel; pickup choices |
+| `memo31_heard` | Voice Memos "New Recording 31" (Ekaterina's warning) | Evidence for Yelan's deal; warn Ekaterina |
+| `knows_hideout` | Find My → Childe's AirPods → Play Sound (heard at Wangsheng; Hu Tao texts "WHAT IS BEEPING IN COFFIN 4"), or Hu Tao slips | Promise the kids "you'll see him", leverage with Zhongli |
+| `knows_morax` | Safari Liyue Archives 1926 photo of "Rex Lapis" (looks exactly like Zhongli) **and** (tea set inscription "for Morax — G." visible after winning, or Wangsheng invoice "Rite of Parting — client: Zhongli (self)") | Typing "Rex Lapis." to Zhongli |
+| `clue_dottore` | Calendar "Mon 09:00 — Dottore: blood work (bring T.)" | Cancel it (`dottore_cancelled`), appeal to Arlecchino |
+| `clue_abyss` | Photos: photo of a scribbled map with coordinates; Skirk's 03:00 messages | Lumine's Abyss notes; the Chasm route |
 
-Each ending has: title, a one-line hint (shown while locked in the gallery), 3–6 short paragraphs of what happened,
-and a short "When Jiang Cheng got his phone back…" epilogue from his side.
+## Chapters (the four days)
 
-## Flags (shared names)
-Story-set flags that apps or other scenes may read (scenes agent may add more; list them below):
-`wwx_invited`, `wwx_hurt`, `burned`, `memo_heard`, `memo_sent`, `ajie_read`, `ajie_wrote`, `tea_yes`, `moon_replied`,
-`car_handled`, `car_cover`, `wn_towed`, `fairy_taken`, `bday_planned`, `jl_added_oops`, `ops_soup`, `dog_friday`,
-`ops_morale` (counter), `nhs_quiz_ok`, `night_done`, `lost_mode`, `finale`, `told_truth`, `changed_passcode`, `beat_score`.
+The engine runs chapters in order (`JC.story.chapter`). Each has a narrator card. Scenes declare `ch`, `arc` and
+(when the chapter must wait for them) `required: true`. Timed choices only count down while their thread is open.
 
-## Art ids (illustrations used across apps)
-Wallpapers: `wp_lotus_dusk` (+ `wp_lotus_dusk_fg` foreground for the depth effect), `wp_night_lake`, `wp_fairy`,
-`wp_purple`, `wp_cloud`, `wp_peony`.
+| # | id | Label | `at` | Card (narrator) | maxWait (play s) |
+|---|---|---|---|---|---|
+| 1 | `fri_night` | Friday night | start 23:47 | (the prologue) | 1500 |
+| 2 | `sat_dawn` | Saturday morning | `+1 06:50` | "Saturday, 6:50 AM. You fell asleep on the couch with his phone on your chest. It's buzzing." | 900 |
+| 3 | `sat_noon` | Saturday afternoon | `+1 14:20` | "Saturday afternoon. The harbor smells of rain that hasn't arrived." | 900 |
+| 4 | `sat_night` | Saturday night | `+1 21:30` | "Saturday night. The lanterns along Yujing Terrace are being lit for tomorrow." | 1000 |
+| 5 | `sun_rite` | Sunday | `+2 09:30` | "Sunday, 9:30 AM. All of Liyue is wearing white." | 1000 |
+| 6 | `sun_night` | Sunday night | `+2 21:00` | "Sunday night. Out past Guyun, the sea has gone very still." | 1100 |
+| 7 | `mon` | Monday | `+3 07:55` | "Monday. You didn't sleep much." | 1200 |
 
-Photos & images (4:3 unless noted):
-- `p_fairy_roof` Fairy (huge black dog) sitting on the roof of a dark purple sedan half-sunk in a koi pond at night, Koi Tower's gold lights behind.
-- `p_koi_pond_car` Wider shot of the car in the pond, koi swimming around it.
-- `p_gala_hall` Koi Tower gala hall, gold chandeliers, peony arrangements.
-- `p_balcony_moon` Moon over Lanling city lights from a balcony; a white sleeve at the edge of the frame.
-- `p_gusu_moon` Moon over misty Cloud Recesses rooftops.
-- `p_tea_hanshi` Tea set on a wooden table, white peony tea, steam, bamboo window.
-- `p_lotus_pond_day` Lotus Pier pond in summer, pavilion.
-- `p_lotus_root_soup` Bowl of lotus root & pork rib soup.
-- `p_soup_fail` WWX's burnt soup pot, smoke.
-- `p_radishes` Huge radishes on a farm table.
-- `p_puppies` Three puppies (JC sends these to torment WWX).
-- `p_dog_park` A golden retriever JC met in a park.
-- `p_jl_kid` Jin Ling at 6, gold outfit, birthday cake (old photo).
-- `p_jl_graduation` Jin Ling's middle-school graduation, scowling with flowers.
-- `p_jl_selfie_gala` Jin Ling selfie in a tux with a peony pin (portrait 3:4).
-- `p_jl_learner` Jin Ling holding his learner permit proudly.
-- `p_family_2007` Faded film photo: five silhouettes on the Lotus Pier dock (parents, Yanli, two boys).
-- `p_ajie_soup` 2008 photo: soup pot on a warm-lit stove.
-- `p_ajie_wedding` 2007 wedding, red and gold, bride silhouette.
-- `p_kites` Kids' kites over the lotus lake (old photo).
-- `p_hotpot_alumni` Bubbling hotpot, hands with chopsticks, a red sign "老妈火锅 LAOMA HOTPOT".
-- `p_cloud_recesses` Academy gates in mist.
-- `p_rules_wall` A stone wall covered in rules.
-- `p_childhood_dogs` Old photo: three puppies on a dock (Jasmine, Princess, Love-Love), 1999.
-- `p_lotus_macro` Close-up pink lotus with droplets.
-- `p_ops_lotusroots` A mountain of lotus root in a warehouse.
-- `p_ops_meeting` Whiteboard "Q4 TARGETS" with a dog doodle.
-- `p_dogfriday_poster` Hand-drawn poster "BRING YOUR DOG TO WORK FRIDAY".
-- `p_shot_gossip` Screenshot of a gossip post "#BalconyGate" (portrait 9:19.5).
-- `p_shot_bank` Screenshot of an allowance transfer to Jin Ling (portrait 9:19.5).
-- `p_receipt` Receipt: dog food 20 kg.
-- `p_wn_van` An old van painted "Yiling Radish Co." with a tow rope.
-- `p_taxi_night` Taxi back seat at night, rain on the window.
-- `p_hotel_lobby` Golden Peony Hotel lobby.
-- `p_radish_cake` Radish cake on a plate.
-- `p_flute` Black flute with a red tassel on a table.
-- `p_sunrise_lake` Sunrise over Yunmeng lake.
-- `p_silver_bell` Jiang clan silver bell with lotus engraving on purple velvet.
-- `p_cake_lotus` Lotus-seed-paste birthday cake design sketch.
-- `p_car_keys` Car key with a purple keychain that says "Sandu".
-- `p_moon_street` Moon over a rainy Lanling street (what the player's camera sees at night).
-Avatars (square): `av_jl`, `av_fairy`, `av_lxc`, `av_nhs`, `av_mian`, `av_sz`, `av_jy`, `av_huang`.
-Food (4:3): `food_hotpot`, `food_soup`, `food_baozi`, `food_noodles`, `food_milktea`, `food_dumplings`, `food_lotus_cake`,
-`food_congee`, `food_skewers`, `food_radish_cake`.
-Album covers (square): `cover_lotus_nocturnes`, `cover_cloud_ambient`, `cover_yiling_flute`, `cover_gym`, `cover_aling_mix`,
-`cover_shijie`, `cover_koi_records`, `cover_rain`.
-Ending art (4:3): `end_honest`, `end_wen_ning`, `end_busted`, `end_zidian`, `end_burned`, `end_koigate`, `end_fairy`,
-`end_unsent`, `end_reunited`, `end_tea`, `end_jl_hero`, `end_legend`, `end_true`.
+Short path (`deal_refused`): `fri_night` → card "Saturday, 7:05 AM." → Lost Mode ("This phone belongs to a toy
+salesman. Please return it. Reward: one (1) fish. Call Wangsheng Funeral Parlor.") → Wangsheng call → finale with the
+endings that qualify (usually Return to Sender, or Pulcinella's Guests if the kids were left to the driver).
+
+## Arcs and scene lists (package in brackets)
+
+Scene ids are prefixed by arc. `arc` values: `zl`, `fam`, `osial`, `friends`, `ops`, `side`, `core`.
+
+### Zhongli — the spine [S1]
+Affection `aff.zl` (target 6+ for the best endings), suspicion `sus.zl`, flags below.
+
+**Ch1 Fri night — "The Bill"**
+- `zl_bill` (unlock +60s, required): "Thank you for dinner. I seem to have left my wallet in my other coat." Choices:
+  tease ("Again, xiansheng? That's 41 dinners.") aff+1 · cold ("Fine.") · out-of-character sweet sus+2 · ignore.
+- `zl_auction` (after `zl_bill`): "There is a celadon tea set at Feiyun Market… the glaze is Guizhong-era. If you were to
+  place a modest bid on my behalf, I would of course settle it with you." → bid in **Feiyun Market** (`bought_teaset`
+  on winning; act `bid`/`purchase` id `lot_teaset`), refuse, or counter-bill him ("Add it to the ledger"). Losing the
+  auction → he's gracious, aff unchanged. Winning → aff+1, and he writes a paragraph about Guizhong.
+- `zl_fish` (unlock +600s): "Did the fish bite after I left? You seemed restless." Correct (from `clue_shared_ride`):
+  "Nothing after you left. Rude of them." aff+1 · guess wrong sus+2 · "Who told you that I was restless?" (neutral).
+- `zl_goodnight` (~01:50): a long message about the harbor at night and the age of the sea. Reply warmly in character
+  (aff+1), or deflect.
+
+**Ch2 Sat dawn — "Cranes"**
+- `zl_cranes` (ch start +40s): photo `p_cranes_yujing`. "You once said they look as if they are judging you."
+- `zl_pickup_offer` (after the family flight scene starts): "I am, as it happens, very good with children. And with lying
+  to them gently." Accept → `zl_pickup` (family pickup = Zhongli), aff+1.
+- `zl_knows` (required; at ch start +300s or when `sus.zl` ≥ 3): **"You are not Childe."** He knows Childe is safe (he
+  was at Wangsheng at 01:00) and that Childe asked him to watch whoever has the phone. Choices: deny (sus+3, he
+  waits patiently, then repeats it) · admit (`zl_admitted`).
+- `zl_contract` (after admit): he proposes a **contract** with three clauses — (1) keep his family safe, (2) tell no one
+  what you are, (3) answer Zhongli truthfully when he asks. The player may strike one clause (`clause_struck` =
+  1|2|3) or add "(4) You tell him how you feel" (`clause_four`). Sign (`zl_contract`, Notes + Mail get the contract) or
+  refuse (`zl_guarded`). Signing makes Hu Tao an ally and Zhongli honest.
+
+**Ch3 Sat afternoon — "The Opera"**
+- `zl_opera` (ch start +30s, required): Yun Jin's matinee at 15:00, two box seats in Childe's name (Calendar + Wallet
+  ticket). Options: go in person (Maps directions to `heyu` → narrated in-person scene `zl_opera_live`; he sees your
+  face) · don't go (he live-texts the aria; `zl_opera_texts`) · send tea via Wanmin Go to Heyu (`zl_tea_sent`, aff+1).
+- `zl_what_he_says` : "What does he say about me, when I am not there?" Share the "Ledger" note (`ledger_shared`,
+  aff+2) · play him the "for xiansheng" memo here (`memo_zl_sent` early — climax moved; he goes quiet for a long time)
+  · lie kindly · "Ask him yourself." (aff+1 if contract signed).
+- `zl_guizhong`: the Glaze Lily story. If `bought_teaset`: "There is a mark on the base. Her mark." (`zl_moved`).
+  If `lilies_sent` arrived at Wangsheng: Hu Tao photo of lilies on his desk.
+
+**Ch4 Sat night — "Yujing Terrace"**
+- `zl_walk` (ch start +60s, required): night walk invitation. Go (in person, narrated) or text along.
+- `zl_gnosis`: "I have a contract of my own that ends tomorrow." If `saw_protocol` or Signora's mail: "With Signora?"
+  (`zl_asked_gnosis`). Tell him about Osial (`zl_knows_osial`) — interconnection: his Sunday amendment.
+- `zl_rexlapis`: if `knows_morax`, an option "Rex Lapis." → his confession (`zl_confessed`): long, quiet, the most
+  important message of the route. Choices afterward: keep his secret (`morax_kept`) · promise to tell Childe
+  (`morax_tell`) · threaten to tell Signora (`morax_sold` → broken contract path).
+- `zl_where`: ask where Childe is. "He is safe. He asked me not to say. I keep my word, even when I wish I didn't."
+
+**Ch5 Sun — "The Rite of Parting"**
+- `zl_rite` (required): texts from the funeral. If `zl_confessed`: "It is strange to read one's own eulogy. The prose
+  is adequate." Otherwise solemn, about endings and contracts.
+- `zl_factory_manager` (if the toy-factory tour happens with him): Teucer meets "Mr. Zhongli the factory manager";
+  Zhongli: "He asked whether the toys are made by elves. I said the elves are on strike."
+- `zl_amend` (16:00, Golden House): if `zl_knows_osial`, he amends the Gnosis contract: "A contract may be honored to
+  the letter while its spirit is kept elsewhere." (`zl_amended`).
+- `zl_message`: "Will you carry a message to him tomorrow?" Promise (`zl_message`) or decline.
+
+**Ch6 Sun night — "Osial"**
+- `zl_sea` : if `osial_sent` and `zl_contract` → he stops the sea himself; contract broken (`zl_broken`). If Osial is
+  stopped, he writes about the stillness of the water.
+- `zl_will_he` (02:10): "Will he come back?" — the prompted moment to send **"for xiansheng (don't send)"**
+  (`memo_zl_sent`) or a message of your own (aff+1/2).
+
+**Ch7 Mon — "Northbound"** (with S4's finale)
+- `zl_monday`: "Thank you for keeping your word." Or not. If things went well, his single 🙂.
+- At the pier (finale scene, S4): deliver Zhongli's message, tell Childe about Rex Lapis (`told_childe_morax`), or not.
+
+**Zhongli flags:** `bought_teaset, teaset_lost, zl_ledger_billed, zl_pickup, zl_admitted, zl_contract, zl_guarded,
+clause_struck, clause_four, zl_opera_live, zl_tea_sent, ledger_shared, memo_zl_heard, memo_zl_sent, zl_moved,
+lilies_sent, zl_asked_gnosis, zl_knows_osial, zl_confessed, morax_kept, morax_tell, morax_sold, zl_amended,
+zl_message, zl_broken, told_childe_morax`.
+
+### Family [S1b]
+**Ch1:** `fam_plane` (Teucer's voice note; Mama: "Surprise!! Mr. Pulcinella arranged everything, LA 711, 07:40")
+· `fam_tonia_signora` (Tonia: who is Signora?) — keep the lie / half-truth / tell Tonia (`told_tonia`) ·
+`fam_pickup` (required) — who meets them: Zhongli (`zl_pickup`), Lumine (`lumine_pickup`), Ekaterina (`ekat_pickup`),
+book a Harbor Ride to wait at arrivals with a sign (`ride_kids`; Tonia can handle it if told), or "Mr. Pulcinella's
+driver" (`fatui_pickup`) · `fam_lodging` — where they stay: the Liyue Harbor Grand (Pulcinella's booking — trap,
+`kids_grand`), Childe's apartment (`kids_apartment`, watched), Wangshu Inn (`kids_wangshu`), *The Alcor* (needs Beidou,
+`kids_alcor`), Zhongli's home (needs `zl_pickup`, `kids_zl`).
+**Ch2:** arrival 07:40 (flight Live Activity) · Teucer's FaceTime (camera-off choice; camera on → **Stranger on the
+Screen**) · Teucer wants the "toy factory" · Tonia's questions continue.
+**Ch3:** `fam_factory` — the tour: at the bank with grunts in costume (needs ops morale ≥ 1 and Ekaterina;
+`factory_bank`), at Mingyun Toys with Zhongli as "manager" (`factory_zl`), or cancel (Teucer sad). Buy a toy
+(`gift_teucer`). Reel Rush: Teucer challenges you (beat 2,047 → `beat_teucer`).
+**Ch4:** Teucer's bedtime: send "lullaby for Teucer" memo (`lullaby_sent`) · Tonia late-night talk — the truth, or not.
+**Ch5:** the funeral crowds; Dottore's "bring the boy Monday" — cancel (`dottore_cancelled`) or ask Arlecchino
+(`arle_protects`).
+**Ch6:** Mama's call (voice) — answering is risky; let it ring, then text.
+**Ch7:** the kids fly home 13:10 — goodbye texts; Teucer: "tell the elves thank you".
+**Family flags:** `told_tonia, half_truth, zl_pickup, lumine_pickup, ekat_pickup, ride_kids, fatui_pickup,
+kids_grand, kids_apartment, kids_wangshu, kids_alcor, kids_zl, kids_safe (computed), facetime_cam, factory_bank,
+factory_zl, factory_cancelled, gift_teucer, gift_tonia, beat_teucer, lullaby_sent, dottore_cancelled, arle_protects,
+mama_called`.
+`kids_safe` = ((pickup is zl/lumine/ekat, or `ride_kids` with Tonia told to wait at the desk) ∧ lodging is not
+`kids_grand`/`kids_apartment`) ∨ `yelan_protects_kids` ∨ `kids_rescued`; and never while `fatui_pickup` ∧ !`kids_rescued`.
+`kids_rescued`: after a `fatui_pickup`, Lumine (if `gave_abyss_notes` or asked in ch2) or Beidou (if `beidou_accepted` ∧
+!`beidou_snubbed`) can collect them from the Grand in ch2–3; or Arlecchino if `arle_protects`.
+
+### Fatui / Project Osial [S2]
+**Ch1:** `os_signora_1` (Signora: "Your authorization, Tartaglia. By the time the founder's lanterns go out.") ·
+`harb_chat` group chaos (Scaramouche, Pantalone, Columbina sings, Capitano 👍) · `scara_quiz` (the bluefin) ·
+`dottore_1` ("Your Delusion readings. And bring the boy Monday.").
+**Ch2–3:** clues surface (Mail `osial_protocol.pdf`; wire; Find My "Unit 3" at Guyun) · `ekat_danger` (Ekaterina
+scared; warn her `ekat_warned`) · `yelan_1` (Unknown number: "You type like someone who's never been punched.") ·
+`pantalone_watch` (reacts to spending/freezes) · `pulci_1` ("Your mother seems worried, my boy").
+**Ch4:** `os_pressure` (Signora sets the deadline: Sun 23:00, the wire's release) · `yelan_deal` (hand her evidence:
+`memo31_heard` + `saw_protocol` → `leaked_yelan`; she asks what she gets — protect Childe (`yelan_protects_childe`)
+or not; protect the kids (`yelan_protects_kids`)) · `ning_mail` (mail the protocol to Ningguang → `leaked_ning`).
+**Ch5:** `harb_rite` (the Harbingers watch the funeral; Signora at the Golden House) · `arle_1` (if asked about Dottore).
+**Ch6 (the climax):** `os_deadline` (on time `+2 22:30`, required): Signora demands the code. The code is in the locked
+note "Osial — read once" (`code_seen`). Options: send it (`osial_sent`) · fake code (`osial_fake`) · stall
+(`osial_stalled`) · "No." (`osial_refused`) · if `ops_morale` ≥ 3: "The Liyue Branch has a better idea." (`ops_sabotage`)
+· if `zl_knows_osial`: "Ask the founder." (Zhongli handles it). Freezing the card before 23:00 stops the wire
+(`card_frozen`). Outcome flag `osial_stopped` = !osial_sent && (leaked_yelan || leaked_ning || ops_sabotage ||
+zl_amended || card_frozen).
+**Ch7:** consequences: Signora's last message. `defected` is set in the Monday call when the defector conditions hold and the player urges him to quit. Computed `recalled` = !`defected` ∧ !`zl_amended` (unless he quits, or Zhongli quietly fixed Osial so the failure isn't pinned on him, the Tsaritsa summons Childe north on the 18:00 ferry).
+**Osial flags:** `saw_protocol, saw_wire, saw_travel, code_seen, osial_sent, osial_fake, osial_stalled,
+osial_refused, osial_stopped (computed), ops_sabotage, leaked_yelan, leaked_ning, yelan_protects_childe,
+yelan_protects_kids, ekat_warned, card_frozen, scara_quiz_ok, defected, recalled`.
+
+### Friends [S3]
+- **Lumine & Paimon** (ch1–7): Lumine wants what Childe knows about the Abyss Order (Aether). Send the Abyss notes
+  (`gave_abyss_notes`; better with `clue_abyss`); Lumine helps with the kids (`lumine_pickup`, Sunday guard
+  `lumine_guard`). Paimon: hotpot plans, endless food requests via Wanmin Go; `paimon_fed` counter (+1 per order to
+  her, + amount tracked); ≥ ℳ20,000 total → **Emergency Food**. Paimon gossips to Lumine.
+- **Hu Tao** (ch1–7): Friday 00:40 "is it normal for a client to drip on the coffins" (slip); poems; she hides Childe;
+  she asks you a question only Childe knows ("what did you call my butterfly hat?" → answer in her Ripple comments: "the
+  moth"). Confess to her → **Wangsheng Is Hiring**. If `zl_contract`, she's in on it and covers for you.
+- **Beidou** (ch3–4): rematch Saturday 22:00 on *The Alcor*. Accept + go (Maps directions to `alcor` in ch4) →
+  **Third-Round Knockout**. Accept but don't go → `beidou_snubbed` (the Crux won't carry Childe on Monday). Decline in
+  character ("Next week. I'll still win.") → `beidou_rain_check`. Her ship can take the kids (`kids_alcor`).
+- **Xiangling** (ch1–6): Wanmin Go storefront owner; asks for Mama's pelmeni recipe (Mama can send it → `recipe`),
+  delivers to the ops night shift.
+- **Skirk**: writes at **02:55 Saturday** (only if chapter 1 is still running) and at **03:00 Sunday night** (ch6):
+  "Ajax." / "The sea under the stone forest is waking. You did this." Reply → coordinates (`skirk_answered`,
+  `clue_abyss`). Go (Maps directions to `chasm` during ch6) → **Where the Abyss Looks Back**.
+- **Yun Jin** (ch3): thanks for the box seats; reacts to whether "Childe" came.
+- **Xiao** (ch2): "Stay away from Zhongli-xiansheng." Reply in character (bravado) or meekly (sus+1).
+**Friends flags:** `gave_abyss_notes, lumine_pickup, lumine_guard, paimon_fed, paimon_total, ht_ally, ht_quiz_ok,
+beidou_accepted, beidou_went, beidou_snubbed, beidou_rain_check, recipe, skirk_answered, chasm_went, xiao_replied`.
+
+### Ops — "Liyue Branch 🐟" [S2]
+Every night chapter (1, 4, 6) and the ch3 toy-factory costume caper. The frozen aquarium (save Sir's fish: tell Lyuba
+to use warm tea → +1), Kolya lost in the Chasm (send Lumine or tell Big Boris → +1; ignore → Kolya texts from the dark
+in ch6), the vending-machine war, "Do we really do Osial? some of us have families here." (answer honestly → +1),
+pelmeni for the night shift via Wanmin Go (+1). `ops_morale` counter. ≥ 3 unlocks `ops_sabotage` on Sunday night.
+
+## Endings (24)
+All finale endings are registered with `when(s)` and `priority` (lower shows first) and `arcs` (≥ 2 arcs each).
+`kids_safe`, `osial_stopped`, `recalled` are computed helpers in `js/story/endings.js` (exported as `JC.storyHelpers`), used by scenes too.
+
+**Mid-story endings** (fire immediately):
+
+| # | id | Title | Tag | Trigger |
+|---|---|---|---|---|
+| 1 | `honest` | Return to Sender | Truth | Confess to anyone not covered below; Harbor Ride "report lost item"; short-path default |
+| 2 | `caught_scara` | The Balladeer's Gossip | Caught | `sus.scara` ≥ 8, or fail the bluefin quiz twice |
+| 3 | `caught_fatui` | Fatui Hospitality | Dark | total suspicion ≥ 25, or a Ripple post with location after Saturday noon |
+| 4 | `wangsheng` | Wangsheng Is Hiring | Comedy | Confess to Hu Tao, or `sus.ht` ≥ 5 without `zl_contract` |
+| 5 | `rematch` | Third-Round Knockout | Comedy | `beidou_accepted` and directions to `alcor` in ch4 |
+| 6 | `paimon` | Emergency Food | Comedy | Paimon's orders total ≥ ℳ20,000 |
+| 7 | `facetime` | Stranger on the Screen | Dark-comic | Answer Teucer's FaceTime with the camera on |
+| 8 | `abyss` | Where the Abyss Looks Back | Secret | `skirk_answered` and directions to `chasm` in ch6 |
+
+**Finale endings** (Monday; all qualifying unlock; the lowest priority number is shown):
+
+| Pri | id | Title | Tag | when(s) |
+|---|---|---|---|---|
+| 1 | `true` | Ajax | Secret | (teucer‖tonia) ∧ (contract‖northbound) ∧ (defector‖comrades) ∧ susTotal < 12 ∧ `told_truth` |
+| 2 | `contract` | A Contract Renewed | Zhongli | `memo_zl_sent` ∧ aff.zl ≥ 6 ∧ `zl_contract` ∧ !`zl_broken` ∧ osial_stopped ∧ !recalled |
+| 3 | `northbound` | Northbound | Zhongli | `memo_zl_sent` ∧ `told_childe_morax` ∧ `recalled` ∧ aff.zl ≥ 5 ∧ !`zl_broken` |
+| 4 | `defector` | The Eleventh Resigns | Fatui | (`leaked_yelan` ∧ `yelan_protects_childe` ‖ `leaked_ning`) ∧ `card_frozen` ∧ kids_safe ∧ `ekat_warned` |
+| 5 | `teucer` | The Toy Factory | Family | kids_safe ∧ `gift_teucer` ∧ !`told_tonia` ∧ (`factory_zl`‖`factory_bank`) ∧ sus.teucer < 4 |
+| 6 | `comrades` | Comrade Tartaglia | Friends | `ops_sabotage` ∧ osial_stopped ∧ ops_morale ≥ 3 |
+| 7 | `fulfilled` | Contract Fulfilled | Zhongli | `told_childe_morax` ∧ !`memo_zl_sent` ∧ `zl_confessed` ∧ !`zl_broken` |
+| 8 | `tonia` | What Big Brother Does | Family | `told_tonia` ∧ kids_safe ∧ sus.tonia < 6 |
+| 9 | `twins` | Brother, Sister | Friends | `gave_abyss_notes` ∧ `clue_abyss` ∧ (`lumine_pickup`‖`lumine_guard`) |
+| 10 | `vigil` | Night Vigil | Fatui | `leaked_yelan` ∧ !`yelan_protects_childe` ∧ osial_stopped |
+| 11 | `fishfry` | Fish Fry | Friends | `beat_teucer` ∧ ops_morale ≥ 2 ∧ `lullaby_sent` |
+| 12 | `unspoken` | Unspoken | Zhongli | `memo_zl_heard` ∧ !`memo_zl_sent` ∧ aff.zl ≥ 3 |
+| 13 | `godofcontracts` | The God of Contracts | Zhongli | `zl_broken` ‖ `morax_sold` ‖ (`zl_contract` ∧ `osial_sent`) |
+| 14 | `scapegoat` | The Scapegoat | Fatui | !osial_stopped ∧ !`osial_sent` |
+| 15 | `leverage` | Pulcinella's Guests | Family | `fatui_pickup` ∧ !`kids_rescued` |
+| 16 | `osial` | Osial Rises | Fatui | `osial_sent` |
+| 17 | `honest` | Return to Sender | Truth | always (fallback) |
+
+Every ending has: `title`, `tag`, `hint` (shown while locked), `art` (`end_<id>`), 3–6 paragraphs `text`, and 3–4
+paragraphs `jc` ("When Childe got his phone back…"; the field name `jc` is legacy, keep it).
+
+## Aftermath — "Where everyone ended up" [S4: js/story/aftermath.js]
+One line per chat, first matching outcome wins. Lines are written in second person or as a tiny scene.
+- **Zhongli**: knows everything (`zl_confessed` ∧ `told_childe_morax`) · followed him north (northbound qualifies) ·
+  contract honored (`zl_contract` ∧ !`zl_broken`) · contract broken (`zl_broken`‖`morax_sold`) · never signed.
+- **Teucer**: proud of you (`beat_teucer` ∧ `gift_teucer`) · believes the toy story · saw through it (`facetime_cam`‖
+  sus.teucer ≥ 4) · heartbroken (`leverage` qualifies).
+- **Tonia**: keeps the secret with you (`told_tonia`) · furious (sus.tonia ≥ 6) · reported you (`facetime_cam`) · still
+  suspects.
+- **Mama & Papa**: recipe shared (`recipe`) · worried · relieved.
+- **Signora**: outplayed (osial_stopped ∧ !`osial_sent`) · obeyed (`osial_sent`) · hunting (`osial_fake`‖`osial_stalled`).
+- **Scaramouche**: fooled (`scara_quiz_ok`) · blackmailing you (sus.scara ≥ 5) · bored.
+- **Lumine & Paimon**: allies (`gave_abyss_notes`) · well fed (`paimon_fed` ≥ 3) · lied to.
+- **Hu Tao**: new employee (`wangsheng` qualifies) · co-conspirator (`ht_ally`) · suspicious.
+- **Liyue Branch**: union of comrades (`ops_sabotage`) · loyal (ops_morale ≥ 2) · mutiny (ops_morale ≤ -1) · never answered.
+- **Yelan**: deal kept (`leaked_yelan` ∧ `yelan_protects_childe`) · deal broken · never met.
+- **Beidou**: rematch lost gloriously (`beidou_went`) · rain check (`beidou_rain_check`) · snubbed (`beidou_snubbed`).
+- **Skirk**: followed (`chasm_went`) · answered (`skirk_answered`) · unanswered.
+- **Ekaterina**: safe (`ekat_warned`) · in danger (leaked_* ∧ !`ekat_warned`) · promoted to toy-factory foreman (`factory_bank`).
+
+## Cross-arc links (every row must be a real flag check in a scene)
+| If… | …then |
+|---|---|
+| `zl_pickup` | Family pickup safe; Teucer adores "Mr. Zhongli"; `zl_factory_manager` possible; aff.zl +1 |
+| `fatui_pickup` | Signora gains leverage lines; Osial "No." option costs a hostage threat; Zhongli/Tonia lines darken |
+| ops pelmeni / aquarium saved | ops_morale; enables `ops_sabotage` and `factory_bank` |
+| `leaked_yelan` | Yelan can protect the kids (`yelan_protects_kids` counts toward kids_safe); Signora hunts a mole → Ekaterina in danger unless `ekat_warned` |
+| `zl_knows_osial` | `zl_amend` on Sunday; "Ask the founder." option at the deadline |
+| `zl_broken` / `morax_sold` | Hu Tao stops covering; Childe's hideout leaks to the Fatui on Sunday night |
+| `gave_abyss_notes` | Lumine free on Sunday (`lumine_guard`); Skirk's lines change |
+| Reel Rush loss / Tonia slips | gossip → Mama → Pulcinella ("your mother seems worried") |
+| `beidou_snubbed` | No Crux passage Monday (affects `northbound`/`scapegoat` epilogues) |
+| Paimon overspend | No Mora for the tea set/toy; Pantalone flags the account |
+| `skirk_answered` | Coordinates (`clue_abyss`) for Lumine; the Chasm route |
+| `memo_zl_sent` | Zhongli's ending tier; Monday Childe reacts ("You sent WHAT?" → then quiet) |
+| `card_frozen` | Stops the wire; blocks purchases; Signora and Pantalone react |
+| `dottore_cancelled` / `arle_protects` | Kids safe on Monday; Dottore's final message changes |
+
+## Flags — master list
+Core: `deal_childe, deal_paid, deal_refused, unlocked, told_truth, finale, lost_mode, changed_passcode, reported_lost`.
+Plus every arc's flags above. Counters: `ops_morale, paimon_fed, paimon_total`. Engine-maintained: `card_frozen`.
+
+## Story acts (vocabulary — `world.actVocab`)
+OS `open_app, unlock` · Messages `open_thread, send, tapback` · Voice Memos `memo_play, memo_share, memo_delete` ·
+Photos/Camera `photo_view, photo_fav, photo_delete, photo_taken` · Notes `note_open, note_edit, note_unlock` · Mail
+`mail_open, mail_send, attach_open` · Calendar `event_open, event_add, event_delete` · Reminders `reminder_done` ·
+Clock `alarm_set, sleep` · Safari `visit, search, login` · Maps `place_view, directions, share_loc` · Find My
+`findmy_view, findmy_sound, findmy_share` · Wallet `wallet_view, pass_view` · Bank (core) `charge, decline, transfer,
+card_freeze, account_view, statement_view` · Feiyun `item_view, bid, purchase, auction_won, auction_lost` · Wanmin Go
+`order` (`{ rest, items, total, to }` with `to` a place id or contact) · Harbor Ride `ride_view, ride_book,
+ride_report_lost` · Reel Rush `game_score, game_catch` · Ripple `post, like, comment, dm, story_view` · Phone
+`voicemail_play, call_start, call_end` · FaceTime `facetime_cam` · Health `health_view` · Stocks `stock_view` ·
+Weather `weather_view` · Music `music_play` · Settings `setting`.
+
+Act → story hooks every app must emit and the story must consume (S-packages implement the consumers):
+| Act | Consumer |
+|---|---|
+| `purchase {id:'lot_teaset'}` / `auction_won` | `bought_teaset`; zl lines |
+| `purchase {id:'lilies_wangsheng'}` | `lilies_sent`; Hu Tao photo |
+| `purchase {id:'toy_*'}` | `gift_teucer`; `purchase {id:'pen_tonia'}` → `gift_tonia` |
+| `order {to:'paimon'…}` | paimon_fed/paimon_total |
+| `order {to:'northland'…}` (night) | ops_morale +1 (once per night) |
+| `order {to:'heyu'}` ch3 | `zl_tea_sent` |
+| `ride_view {id:'ride_1016_2258'}` | `clue_shared_ride` |
+| `ride_book {to:'airport'}` | `ride_kids` |
+| `ride_report_lost` | `honest` |
+| `statement_view {id:'osial'}` | `saw_wire` · `{id:'travel'}` → `saw_travel` |
+| `card_freeze {on:true}` | `card_frozen` (engine) + Signora/Pantalone react |
+| `transfer {to:'tonia'|'mama'}` | family lines (Tonia: "why did you send me money at 3 AM") |
+| `visit {url: archives…/1926}` | `knows_morax` (with second clue) |
+| `login {site:'intranet'}` + `visit …/osial` | `saw_protocol` |
+| `attach_open {name:'osial_protocol.pdf'}` | `saw_protocol` |
+| `memo_play {id:'memo31'}` | `memo31_heard` · `{id:'memo_xiansheng'}` → `memo_zl_heard` |
+| `memo_share {id:'memo_xiansheng', to:'zl'}` | `memo_zl_sent` · `{id:'memo_lullaby', to:'teucer'|'fam'}` → `lullaby_sent` · `{id:'memo31', to:'yelan'}` → evidence |
+| `findmy_sound {id:'airpods'}` | `knows_hideout` (Hu Tao reacts) |
+| `findmy_view {id:'unit3'}` | Osial clue |
+| `directions {place:'alcor'}` ch4 | rematch · `{place:'chasm'}` ch6 → abyss · `{place:'heyu'}` ch3 → `zl_opera_live` |
+| `post {loc:true}` after Sat noon | `caught_fatui` |
+| `photo_view {id:'p_bluefin'}` | `clue_bluefin` · `{id:'p_abyss_map'}` → `clue_abyss` |
+| `note_unlock {id:'n_osial'}` | `code_seen` · `note_open {id:'n_ledger'}` → can share ledger |
+| `event_delete {id:'ev_dottore'}` | `dottore_cancelled` |
+| `game_score {score > 2047}` | `beat_teucer` |
+| `facetime_cam {on:true, with:'teucer'}` | `facetime` ending |
+| `mail_send {to:ningguang, attach osial}` | `leaked_ning` |
+
+## Art ids
+Sizes: photos 1200×900 (4:3) unless noted; portraits 900×1200; screenshots 1206×2622; avatars 600×600; wallpapers
+1206×2622 (+ `_fg` depth layer); covers 600×600; endings 1200×900; product shots 900×900. ≤ 25 KB each, hand-written SVG.
+
+Avatars [A1]: `av_zl` (amber eyes, dark hair with gold tips, ponytail), `av_teucer` (ginger, gap tooth, beanie),
+`av_tonia` (ginger braid, scarf), `av_anthon` (ginger, headset), `av_mama` (kind, headscarf), `av_papa` (beard,
+fisherman's cap), `av_ht` (plum-blossom hat, red eyes), `av_lumine` (blonde, white flower), `av_paimon`
+(white hair, star crown), `av_ekat` (dark bob, uniform), `av_signora` (mask, pale blonde), `av_scara` (wide hat,
+purple), `av_dottore` (beak mask), `av_pulci` (old, cane), `av_pantalone` (glasses, smile), `av_arle` (white hair,
+X-pupils), `av_xl` (bun, red panda), `av_beidou` (eyepatch), `av_yelan` (dark bob, dice), `av_ning` (white hair,
+jade), `av_yunjin` (opera headdress), `av_childe` (for "me": ginger hair, red mask on the side, blue eyes).
+Wallpapers [A1]: `wp_harbor_night` (+`_fg`: Liyue Harbor at night, lanterns, the sea), `wp_morepesok_snow`,
+`wp_glaze_lily`, `wp_hydro`, `wp_teucer_drawing` (crayon drawing "MY BROTHER SELLS TOYS"), `wp_guyun_storm`.
+Photos [A2/A3]:
+- tonight: `p_zl_pier` (Zhongli at the railing, sea), `p_liuli_dinner` (dinner spread, two cups), `p_pier7_rod`
+  (the rod on Pier 7), `p_cranes_yujing` (cranes, dawn), `p_teaset` (celadon tea set, listing photo).
+- family: `p_morepesok` (village by the frozen sea), `p_siblings_snow` (four ginger kids in snow, old), `p_teucer_plane`
+  (window seat selfie), `p_teucer_sirfang` (plush wolf), `p_tonia_letter` (the Northland letter), `p_mama_pelmeni`,
+  `p_papa_boat`, `p_teucer_drawing` (portrait; also wallpaper source), `p_family_2019`.
+- fishing: `p_bluefin` (Childe with a huge bluefin, caption "Scaramouche"), `p_catch_1`, `p_catch_2`,
+  `p_rod_gift` (the rod Zhongli gave, ribbon).
+- Zhongli: `p_zl_teahouse` (asleep at a teahouse table), `p_zl_birds`, `p_zl_opera_tickets`, `p_glaze_lily`,
+  `p_ledger` (screenshot of the Ledger note, portrait).
+- Liyue: `p_harbor_day`, `p_yujing_lanterns`, `p_jade_chamber`, `p_wangsheng_door`, `p_wanmin_kitchen`,
+  `p_alcor_deck`, `p_heyu_stage`, `p_golden_house`.
+- Fatui: `p_aquarium_frozen` (ice block with fish), `p_ops_vending`, `p_northland_lobby`, `p_osial_diagram`
+  (screenshot-like protocol diagram, portrait), `p_unit3` (a resonator among stone pillars), `p_abyss_map`
+  (scribbled map with coordinates).
+- misc: `p_hotpot_crew`, `p_paimon_food`, `p_coffin4` (Hu Tao's photo of Coffin 4, ominous), `p_rexlapis_1926`
+  (sepia archive photo: a man identical to Zhongli on a dragon-carved terrace), `p_storm_guyun`.
+Food [A3]: `food_hotpot`, `food_pelmeni`, `food_almond_tofu`, `food_jade_parcels`, `food_mapo`, `food_fish_stew`,
+`food_sweet_flower_chicken`, `food_borscht`, `food_mora_meat`, `food_milk_tea`, `food_crystal_shrimp`, `food_noodles`.
+Market product shots [A3]: `mk_teaset`, `mk_lilies`, `mk_sirfang`, `mk_frost_fortress`, `mk_pen`, `mk_rod`,
+`mk_birdcage`, `mk_tea_tin`, `mk_charger`, `mk_scarf`.
+Covers [A4]: `cover_snezh_folk`, `cover_yunjin_opera`, `cover_lullaby`, `cover_fight_mix`, `cover_harbor_lofi`,
+`cover_fatui_anthem`, `cover_sea_shanties`, `cover_teucer_mix`.
+Endings [A4]: `end_<id>` for all 24 ids.
 
 ## Seed content each app must contain (consistency checklist)
-- **Phone**: favorites A-Ling, Tang Mei (EA), Old Huang, Lotus Pier HQ. Recents incl. 23:05 missed A-Ling, 23:12 ×3 missed
-  🐶 DO NOT ANSWER, a 41-minute outgoing call to Zewu-jun two days ago. Voicemails: WWX tonight (unheard), Mother (2008),
-  A-Jie (2009: "A-Ling said his first word today… okay it was 'ba' but I'm telling everyone it was 'jiujiu'"), Father (2008), Old Huang.
-- **Voice Memos**: "Untitled 14" (1:12, Guanyin Temple Rd, 2024) — the thank-you; "Board talking points"; "A-Ling — 'jiujiu' (2010)".
-  Transcript of Untitled 14: "Wei Wuxian. …I know. About the— I know what you did. Wen Ning told me. Tonight. Why didn't you— Tch.
-  You idiot. You absolute… (long pause) Thank you. That's all. Thank you. Don't make it a thing. …Delete this. I'm not sending this."
-- **Notes**: "Things I will not say to Wei Wuxian", "A-Jie's soup (from memory)", "A-Ling 18th — gift?", "Gala — avoid list",
-  "Board Q4 talking points", "Dog names (if I ever)" (Jasmine, Princess, Love-Love), "Zewu-jun: white peony, 85°C, no sugar",
-  a locked note "Private" (passcode 181008) with an unfinished draft "Xichen —".
-- **Calendar**: Fri 16 "Jin Group Gala" 19:00 at Koi Tower; Sat 17 "Tea? — Hanshi" 15:00 (tentative, with the question mark);
-  Sun 18 "A-Ling turns 18 🎂" all day + "Dinner — Lotus Pier (?)" 18:30; Mon 19 "Board — Q4" 09:00; 12 Feb "A-Jie's birthday";
-  2 Nov "A-Jie"; recurring reminders.
-- **Mail**: Golden Peony reservation (Room 1808), gala seating chart, NHS "hehe I swapped the seats~", Lan Qiren board letter,
-  Tang Mei Monday agenda, Liu Qian dog-Friday proposal, Lanling International parent-teacher conference, Pet Kingdom receipt,
-  Lanling Daily newsletter "Zewu-jun returns", spam, a **draft to Wei Wuxian** with body "I know about" and nothing else.
-- **Photos**: everything above that JC would own; albums Favorites, A-Ling, Dogs, Lotus Pier, Screenshots, Gala 2026, Old Photos.
-- **Wallet**: Swift Ride ¥64 at 23:21, Laoma Hotpot (2024), Pet Kingdom dog food, Cloud Recesses Tea Shop "White Peony" ¥880
-  three weeks ago, allowance transfer to Jin Ling, Golden Peony Hotel room key pass (Room 1808), gala pass.
-- **Safari**: history of telling searches ("how to say thank you to your brother without saying thank you", "liver donor
-  gift etiquette", "white peony tea brewing temperature", "18th birthday gift for someone who has everything",
-  "is it normal to want to strangle your nephew", "what does 'I've missed you' mean after a year apart").
-- **Find My**: people — A-Ling (Koi Tower), Wei Wuxian (Lanling, started sharing 2 days ago); devices — this iPhone,
-  "Jiang Cheng's MacBook Pro" (Golden Peony Hotel), iPad (Lotus Pier Residence); items — "Fairy" AirTag (Koi Tower pond), "Sandu keys".
-- **Health**: heart-rate spike 121 bpm at 22:50; 6.2 km run this morning; sleep average 4h 52m.
-- **Screen Time**: Lotus Leap 1h 20m this week (he secretly plays to beat Jin Ling's score).
-- **Swift Ride**: tonight's ride Koi Tower → Golden Peony Hotel, 23:21–23:36, driver Master Wu Lihua, plate 云A·9X277, ¥64.
-  "Report a lost item" exists (story act `ride_report_lost`).
-- **Wavelet**: JC is @jiangwanyin (private, 3 posts: lotus, a dog, the lake). Jin Ling @rulan_jin, WWX @yiling_radish_king,
-  LWJ @lanwangji (0 posts, follows 1), Lan Xichen @zewujun (tea, mountains), NHS @huaisang_fans (fans) and secretly
-  @teaspiller_qh (anonymous gossip; posts "#BalconyGate" tonight).
+- **Phone**: favorites Teucer, Xiansheng, Ekaterina, Mama. Recents: 23:21 Ekaterina (in, 2:04), 22:12 Liuli Pavilion
+  (out), Thursday 41-minute call with Xiansheng, missed calls from Tonia 23:30 and Paimon 23:46. Voicemails: Mama
+  (Thursday, Snezhnayan lullaby hummed at the end), Beidou ("rematch, kid"), Pulcinella (Wednesday, "lovely news").
+- **Voice Memos**: "for xiansheng (don't send)" (`memo_xiansheng`, 1:48, Liuli Pavilion, recorded 4 Oct after
+  osmanthus wine — transcript below), "lullaby for Teucer" (`memo_lullaby`, 2:10), "New Recording 31" (`memo31`,
+  0:42, Pier 7, Fri 23:21), "fishing spots" (0:31), "Teucer — first fish (2023)" (0:58).
+  Transcript of `memo_xiansheng`: "Xiansheng. Okay. Hi. It's me. I'm a little drunk, so this is— this is a practice
+  one. I'm not sending it. …You never carry money, did you know that? Of course you know. You do it on purpose.
+  And I keep paying, because then you keep coming to dinner. That's— that's the trade. I'd pay for every dinner for
+  the rest of my life. That's the stupidest sentence I've ever said. …I like you. Not like a client. Not like a—
+  I like you. Okay. Delete. Don't send this. Ajax, do not send this."
+- **Notes**: "Ledger — what xiansheng owes me" (locked, passcode 110720; long itemised list; ends "— he's worth it.
+  don't tell him."), "Osial — read once" (locked; contains the authorization code **OSL-0918-ΛΣ** and "if anything
+  happens, Ekaterina knows"), "Things Teucer believes about my job", "Fishing log" (3 Jan: bluefin "Scaramouche"),
+  "wifi + logins" (intranet login), "Gift ideas: T / T / A", "Rematch notes — Beidou", "Liyue phrases xiansheng taught me".
+- **Calendar**: Fri "Dinner — Liuli Pavilion" 20:00; Sat "LA 711 lands 07:40 🐟" + "Yun Jin matinee (2 seats)" 15:00 at
+  Heyu + "Rematch? — Alcor" 22:00 (tentative); Sun "Rite of Parting" 10:00 at Yujing Terrace (all Liyue) + "Golden
+  House — S." 16:00 (no details); Mon "Dottore: blood work (bring T.)" 09:00 (`ev_dottore`) + "Kids fly home" 13:10;
+  20 Jul birthday; 3 Jan "Scaramouche's birthday (send fish)".
+- **Mail**: Signora "Re: Osial — final" with `osial_protocol.pdf`; Northland Executive Travel booking (LA 711, Liyue
+  Harbor Grand ×3); Hu Tao invoice "Rite of Parting — consultancy (client: Zhongli)"; Feiyun Market outbid/lot
+  notices; Yun Jin ticket confirmation; Beidou "rematch?"; Northland HR "Mandatory Delusion check-up"; Liyue Air
+  itinerary; Steambird (Fontaine) newsletter; spam; a **draft to Zhongli** with subject "dinner" and body "I".
+- **Photos**: everything above; albums Favorites, Fish, Family, Xiansheng, Liyue, Screenshots, Recently Deleted (a
+  photo of the Unit 3 resonator he deleted).
+- **Wallet**: Northland Black •••• 1111 (shared with `JC.bank`), Liyue Metro card, Wangsheng "VIP Client — 10% off
+  (Hu Tao)", Wanmin loyalty (9/10 stamps), Yun Jin tickets (Sat 15:00, Box 2), boarding pass *shared from Mama*
+  (LA 711, Tonia + Teucer), Third-Round Knockout punch card.
+- **Safari**: history ("how to tell your siblings what you do for work", "is it normal to want to pay for every
+  dinner", "glaze lily meaning", "Guizhong-era celadon value", "how long can a person stay in a coffin", "Osial
+  myth", "Rex Lapis real photo"), bookmarks: Liyue Archives, Steambird, Northland intranet, Yun Jin fan page.
+- **Find My**: people — Teucer (in flight, from Mama's family sharing, ch1–2), Lumine, Ekaterina (Northland);
+  devices — this iPhone, "Childe's AirPods Pro" (Wangsheng, 00:22), iPad (apartment); items — "Unit 3" (Guyun),
+  "Sir Fang" AirTag (in Teucer's backpack, in flight).
+- **Health**: 168 bpm at 23:24 + "Hard fall" event; 14.2 km run Friday morning; sleep average 5h 10m; Medical ID
+  (born 20 Jul 2004, blood O−, allergies: none, "Vision: Hydro — do not remove", emergency contacts Mama, Ekaterina).
+- **Harbor Ride**: `ride_1016_2258` Liuli Pavilion → Pier 7, 22:58–23:09, 2 passengers, driver Mr. Fang, ℳ46.
+- **Ripple**: @tartaglia (public, bank-polished, 12 posts), @ajax.fishes (private, 40 fish), Hu Tao @wangsheng_hutao,
+  Lumine @traveler.l, Paimon @emergencyfood, Scaramouche @balladeer (0 posts) + burner @kabukimono, Yun Jin
+  @yunjin.opera, Xiangling @wanmin_chef, Beidou @crux.captain, Zhongli has no account (Hu Tao posts him).
+- **Stocks**: NBK (Northland Bank), LYX (Liyue Exchange index), CRUX (Crux Shipping), FCG (Feiyun Commerce), WSF
+  (Wangsheng Holdings, tiny), SNZ (Snezhnaya 50). News reacts to flags (Osial, leaks, freezes).
+- **Weather**: Liyue Harbor (rain later Sunday; storm warning at sea if `osial_sent`), Morepesok (−14°), Zapolyarny,
+  Mondstadt, Fontaine.
+
+## Brand names
+Ripple (social, id `wavelet`), Wanmin Go (food, id `lotuseats`), Harbor Ride (rides, id `swift`), Reel Rush (fishing
+game, id `reelrush`), Northland Bank (id `northland`), Feiyun Market (id `feiyun`). Currency **Mora**, symbol **ℳ**.
+Liyue phone numbers: `(0761) 555 01xx`. Snezhnaya numbers: `+9 812 555 07xx`.
+
+## Package ownership (who writes which file)
+- S1 Zhongli: `js/story/history/zl.js`, `js/story/scenes/zhongli*.js`, `tools/routes/zl_*.js`.
+- S1b Family: `js/story/history/fam.js`, `history/siblings.js`, `scenes/family*.js`, `tools/routes/fam_*.js`.
+- S2 Fatui: `history/fatui.js`, `history/ops.js`, `scenes/osial*.js`, `scenes/ops.js`, `scenes/harbingers.js`.
+- S3 Friends: `history/friends.js`, `scenes/friends*.js`.
+- S4 Core story: `js/story/intro.js`, `chapters.js`, `scenes/calls.js`, `scenes/finale.js`, `scenes/confess.js`,
+  `endings.js`, `aftermath.js`, `history/services.js`.
+- `js/data/contacts.js`, `js/story/flavor.js`, `js/data/world.js`: the lead.
+- Apps and art: see the plan; each app package owns its `js/apps/<id>*.js` and `css/apps/<id>.css`.
+Cross-package needs: write `docs/requests/<package>.md`.
 
 ## Facts added
-- Lotus Pier fire: evening of Sat 23 Aug 2008. Madam Yu's last texts (18:50–18:58) told JC to stay at the Yunmeng Lake Pavilion with Wei Wuxian "until I call" — "Because I said so." (added by history)
-- Liver transplant: Sat 13 Sep 2008 (Dr. Wen Qing). The night before, A-Jie texted that A-Xian "can't come, something about a trip" (he was the donor). (added by history)
-- Jiang Yanli married Jin Zixuan on Sat 6 Oct 2007. After Zixuan's death (summer 2009) she and baby Jin Ling moved back to Lotus Pier with JC. (added by history)
-- A-Jie died Mon 2 Nov 2009. Her last text, 15:10 that day: "A-Cheng, I made soup. Come home early. Bring A-Xian." JC's reply: "He won't come." (added by history)
-- WWX's first text after his return: Sat 4 Mar 2023 (JC's number taken from Lan Wangji's phone). (added by history)
-- Guanyin Temple night: Fri 21 Jun 2024 (Untitled 14 recorded that night). WWX texted at 01:13 on 22 Jun: "wen ning told me he told you" / "jiang cheng" / "you don't owe me anything". JC never replied. (added by history)
-- Sat 29 Jun 2024: WWX stood at the Lotus Pier gate for 20 minutes and left; Old Huang gave him tea. JC told Old Huang "Next time, let him in." Nobody told WWX. (added by history)
-- Alumni reunion at Laoma Hotpot, Gusu: Sat 13 Apr 2024; JC paid the bill (¥1,486). (added by history)
-- Mon 9 Dec 2024: WWX had the flu; JC anonymously sent lotus root & pork rib soup to the Jingshi via Lotus Eats (Auntie Lu's Soup Kitchen, Gusu, ¥168), rider note "Don't say who it's from." He still denies it. (added by history)
-- WWX & LWJ married Tue 20 May 2025 ("520") at Cloud Recesses; JC sat at table 2 and left before the toasts. (added by history)
-- A-Yao died in prison in Aug 2025; Lan Xichen withdrew on Sat 30 Aug 2025. JC's one-sided texts ran 7 Sep 2025 → 25 Sep 2026; LXC replied on Mid-Autumn night, Fri 25 Sep 2026, 21:14. (added by history)
-- That same morning (25 Sep 2026) Tang Mei had a tin of white peony from Cloud Recesses Tea Shop (the ¥880 charge) delivered to the Hanshi, no card. LXC guessed anyway. (added by history)
-- JC's 41-minute call to Zewu-jun: Wed 14 Oct 2026, 22:05–22:46. Afterwards LXC offered tea "Saturday, perhaps three?"; JC replied "I'll see." (hence the tentative calendar event) (added by history)
-- JC drove Sandu to Lanling on Thu 15 Oct (Lanling International parent-teacher conference at 16:00) and has had Room 1808 at the Golden Peony since Thursday. (added by history)
-- Fairy was JC's present for Jin Ling's 10th birthday (Oct 2018). (added by history)
-- Jin Ling moved into Koi Tower Residences for high school (Sep 2024) and comes home to Lotus Pier most weekends. He is on the school archery team; JC gives him bows. Learner permit: Fri 28 Aug 2026. (added by history)
-- Canteen "soup week": on Sat 10 Oct Liu Qian asked A-Bai to order 40 kg of lotus root for Friday delivery; he placed the order (as 400). (added by history)
-- Old Huang has worked at Lotus Pier since 1995 (hired by Jiang Fengmian), calls Jin Ling "young master", has no dog of his own, and has a cousin in Lanling with a tow truck (mentioned Sun 11 Oct). (added by history)
-- JC's Yunmeng Commercial Bank card ends 4417; Jin Ling's supplementary card ends 7781 (Pet Kingdom ¥8,800 dog bed, Jul 2022; Lanling Motors ¥26,800 deposit, refunded, Jan 2025). Allowance ¥3,000 on the 1st of each month; New Year 2026 red envelope ¥8,888 (the p_shot_bank screenshot). (added by history)
-- Recent card charges: Cloud Recesses Tea Shop ¥880 (25 Sep 09:48), Pet Kingdom (Lanling) ¥1,260 dog food (Sun 4 Oct), Golden Peony pre-authorization ¥3,600 (Thu 15 Oct 15:20), Swift Ride ¥64 (tonight 23:21). Past Swift trips: Lanling South Station → Koi Tower Residences ¥38 (23 Sep); Lotus Pier → Yunmeng Station ¥41 (8 Oct). (added by history)
-- Lotus Eats past orders: Grandma Qin's Kitchen → Koi Tower Residences (15 Dec 2025, rider note "Tell him to eat the vegetables."); Night Owl Congee → YMJ Main Office (19 Mar 2026, 01:12); 38 brown sugar milk teas → YMJ Warehouse B (Wed 14 Oct, "From the boss. Don't make it a thing."). (added by history)
-- NHS texted JC "Check your email hehe~" at 18:55 tonight, so the "hehe I swapped the seats~" email arrived before 18:55. (added by history)
-- @teaspiller_qh's "Hottest Single CEOs 2026" list (Jan 2026): #1 Lan Xichen, #2 Nie Huaisang (a clue), #3 Jiang Cheng. (added by history)
-- Mianmian lives in Yunmeng; her daughter Tangtang is 2 (fever tonight; "made" A-Ling a birthday card with a six-legged dog). Mianmian Studio designed the Lotus Pier pavilion railing (2023) and fixed YMJ Warehouse B's roof (2026). (added by history)
-- Wen Qing is buried in Yiling (hill cemetery behind the old clinic, under the camphor tree). JC left flowers there at Qingming (5 Apr 2026); on Sat 10 Oct he thanked Wen Ning for offering a ride home from the gala — the thaw. (added by history)
-- Tang Mei has been JC's EA since Mon 4 Sep 2017; she clears 2 November every year. (added by history)
-- WWX's soup this week (history): attempts 1–4 burned (smoke alarm, Lan Wangji opened every window); attempt 5 was "edible" on Thursday and Lan Wangji told JC "He says the fire is wrong." JC knows the recipe from A-Jie's 2008 text ("Two hours. Low fire. Don't rush it.") but has never told WWX. (added by history)
-- WWX has taught flute at Gusu Lan Academy since Sep 2024 and has shared his location with JC since Wed 14 Oct 20:14. In Apr 2026 Jin Ling showed him the childhood-dogs photo; WWX apologized; JC replied "You were nine." (added by history)
-- "Lotus Pier Family 🪷" renames: "FAMILY!!! 🧧" (New Year 2024) → "jiujiu's angry hour 😡" → JC: "Family." → "the lans + 2 💍" / "the jins + some lans" (May 2025) → JC: "Family." → "Lotus Pier Family 🪷" (New Year 2026), the first name JC let stand. (added by history)
-- Running jokes in history: "lan zhan says hi" / "he didn't" / "he thought it" (since 2023); JC's excuse "It's hot in here." when caught flushed (WWX and Jin Ling, tonight); JC asks "Is he eating." / "Did you eat." about people he loves; JC sends WWX p_puppies (Aug 2023, and at midnight on WWX's 2024 birthday). (added by history)
-- Jin Ling's driving test is next month (Nov 2026). The "chemistry thing" (a lab incident; someone else's eyebrows) came up at Thursday's parent-teacher conference. (added by history)
-- Jin Ling has a small red cinnabar dot on his forehead and a gold ear stud; Lan Xichen wears a silver hair crown with a low ponytail (avatar art). Koi Records (Lanling) was founded in 1998. (added by art)
-- p_shot_bank is the 2026 New Year red envelope (¥8,888, card ···· 4417 → Jin Ling ···· 7781, 17 Feb 09:40); the p_receipt Pet Kingdom receipt (10 Oct 18:42, ¥801.80 incl. 20 kg dog food ¥689) was paid with ···· 4417. The #BalconyGate post went up at 11:21 PM; under it @huaisang_fans replied "I don't know anything!!" (NHS answering his own anonymous account). (added by lead)
-- Zidian 紫电 is Madam Yu's amethyst ring, which Jiang Cheng wears and turns on his finger when furious; at YMJ "Zidian" means the CEO's full fury ("please don't use Zidian"). (added by scenes)
-- Jiang Cheng fled the balcony without his coat; it stayed at the Koi Tower coat check with the spare Sandu key in the pocket, and Jin Ling took it. The Koi Tower forecourt pond has 23 koi. (added by scenes)
-- Wei Wuxian kept A-Jie's big soup pot with the chipped lid; it is the only thing he took when he left in 2009. A-Jie burned the soup once (winter 2006, JC had the flu); WWX swore never to tell. (added by scenes)
-- Old Huang's tow-truck cousin is Huang Er (Lanling); the Sandu tow costs ¥600, "filed under Family". Canteen cook: Auntie Chen. YMJ has 340 staff. (added by scenes)
-- Dog Friday proposal: 47 signatures, 12 dogs, 1 cat (under discussion); if approved, the first Dog Friday is Fri 6 Nov; Fairy's honorary badge title is "Head of Morale". (added by scenes)
-- Jin Ling has refused chocolate since "the fountain incident". Golden Ladle is a hotpot chain that opened in 2019; Hotpot King is a karaoke bar where JC sang once. (added by scenes)
-- Mianmian owes Nie Huaisang 200 yuan if JC and Lan Xichen talk again before Sunday. Lan Wangji owns exactly five "good bowls". (added by scenes)
-- @teaspiller_qh posts live during the night: "#BalconyGate, part two" (post id `post_balconygate2`, art p_gala_hall; the original #BalconyGate is the seeded 23:21 post) and, after a cover-up, #KoiPondGate (`post_koipondgate`, art p_koi_pond_car; the valet is 60, gave Fairy a biscuit, and his granddaughter is in Jin Ling's chemistry class). (added by scenes)
-- Saturday morning: JC read every message on his MacBook at 06:00 in the Golden Peony, set Lost Mode, and calls the phone at 07:41 through the Lotus Pier HQ switchboard (Tang Mei patched him through). From the laptop he texts WWX "Ignore everything this phone sent last night." / "Except Sunday." (if invited) and LXC "Three." (if tea was accepted). Tang Mei collects the phone at ten. (added by scenes)
-- Swift Ride found-item report number: #SR-1016-2347. (added by scenes)
-- New story flags (scenes): `wwx_maybe`, `wwx_thanked` (a real thank-you without the memo), `wwx_done`, `told_recipe`, `wwx_saw_face`, `lxc_invited`, `lxc_first_name`, `lxc_done`, `car_known`, `tow_huang`, `wn_asked`, `wn_declined`, `wn_realized`, `fairy_ok`, `cake_ok`, `venue_lp`, `gift_bell`, `jl_wants_wwx`, `jl_done`, `memo_to_jl`, `ops_who`, `bai_fired`, `ops_done`, `nhs_spilled`, `nhs_done`, `hq_talked`, `hq_truth` (told the truth on the finale call; the engine's `told_truth` is also set by any confession), `hq_ignored1`, `hq_ignored2`, `memo_climax` (a memo-share reaction has played), counter `night_wait`, and thread locks `busy_<thread>` (wwx, lxc, jl, bday, fam, ops, nhs, alumni). `dog_friday` is `true` or `'fairy'`. (added by scenes)
-- Voicemails JC keeps: Father, Sat 28 Jun 2008 06:52 ("The first lotus opened on the east pond…"); Mother, Sat 19 Jul 2008 18:12 ("…stand up straight when you come in. …I'll see you at dinner."); A-Jie, Sat 12 Sep 2009 16:20 (first word "ba"). His custom greeting: "Jiang Cheng. Leave a message." (added by phone)
-- Calls: besides the 41-minute call, JC phoned Zewu-jun on Sun 27 Sep (12 min) and Zewu-jun called him on Sun 4 Oct (24 min); A-Ling FaceTimed him Tue 13 Oct; Wei Wuxian's FaceTime on Sun 11 Oct went unanswered. (added by phone)
-- Numbers: Golden Peony front desk +86 555 0880 1808 (night manager Mr. Liang); Lanling International office +86 555 0418 6600 (homeroom teacher Ms. Su Mei); Pet Kingdom Lanling +86 555 0601 3300; Swift Ride Customer Care +86 555 0101 8888; Jin Group events +86 555 0518 0001; Cloud Recesses Tea Shop +86 555 0512 2000. (added by phone/mail)
-- Gala seating: the official chart put JC at Table 1, Seat 2 between Jin Rulan and Board Treasurer Jin Zixun; NHS's "v2 (real)" moved him to Seat 4, next to Lan Xichen in Seat 5. JC's Mail VIPs are Tang Mei, A-Ling and (secretly) Wei Wuxian; he is subscribed to WWX's "Radish News". (added by mail)
-- Voice Memos: "Untitled 13" was recorded seven minutes before "Untitled 14" at Guanyin Temple Rd ("Wei Wu— …No."); "A-Ling — 'jiujiu'" was recorded Sun 14 Mar 2010 at Lotus Pier, months after A-Jie's death ("A-Jie. He said it."). JC has blocked and unblocked WWX's number 14 times since March 2023. (added by voice memos/contacts)
-- Wavelet: @teaspiller_qh posted a #BalconyGate teaser at 23:20 tonight ("Something happened on a certain balcony… Full tea soon"); A-Ling DM'd it to JC at 23:30 ("is this about u"). The full #BalconyGate post comes later from the story. (added by Wavelet)
-- Wavelet: @jiangwanyin (private, 2,318 followers) follows 4 accounts: rulan_jin, yiling_radish_king, zewujun, lotuspier_ymj. His 3 posts: "July." (lotus, Jul 2023 — WWX: "JIANG CHENG HAS AN ACCOUNT??"), "Not mine." (a golden retriever, 15 May 2024), Yunmeng lake at sunrise (2 Nov 2025, no caption; Lan Xichen commented 🙂). (added by Wavelet)
-- Wavelet: three weeks ago @zewujun posted the white peony tin "without a card. Thank you, whoever you are. 🙂"; @huaisang_fans sells a purple nine-petal "Lotus Pier fan". JC once blocked WWX's old account @radish.dad (Mar 2023). (added by Wavelet)
-- Swift Ride tonight: Master Wu Lihua drives a grey electric sedan; receipt SR-1016-2321 (fare ¥58 + night ¥6, 6.8 km). Past trips: Cloud Recesses → Gusu North Station (Tue 20 May 2025 15:08, ¥86, "Left before the toasts."); Guanyin Temple → Lotus Pier Residence (Fri 21 Jun 2024 23:44, ¥92); Laoma Hotpot → Cloud Recesses Guesthouse (Sat 13 Apr 2024 22:46, ¥58). A found-item report on tonight's ride gets reference SR-1016-2347. (added by apps)
-- Wallet Cash ¥1,288.00: JC sent Wei Wuxian ¥5,200 "For the wedding." (20 May 2025); WWX sent ¥5.20 "thank u for the soup that u definitely didn't send 🍲" (10 Dec 2024); Nie Huaisang sent ¥88 "for the hotpot hehe~ 🙈" (14 Apr 2024); JC sent A-Ling ¥200 "Learner permit. Don't crash anything." (28 Aug 2026). (added by apps)
-- Card ···· 4417 is a credit card (statement ¥38,214.60, due 25 Oct, auto-pay). It also shows Silver Lotus Jewelers ¥680 "restoration & polish · antique silver bell" (28 Sep 2026), Thursday's drive (fuel ¥486, toll ¥95) and rail Yunmeng → Lanling South (23 Sep, 8 Oct). YMJ Corporate card ends 1992. (added by apps)
-- Sandu was parked Fri 18:41 at the Koi Tower car park and unlocked with the spare key at 23:52. Golden Peony: Peony Suite, ¥1,200/night, check-out Sun 18 Oct 12:00. Pet Kingdom Platinum Paw member since Oct 2018. Lanling Metro card ¥86.40. (added by apps)
-- Lotus Eats: the 2024 soup for WWX was the Large pot (¥168 incl. tip, rider Lan Qiu). Yiling Radish Co. runs a weekend pop-up at Lanling Night Market from 18:00 — closed tonight because WWX is at the gala. (added by apps)
