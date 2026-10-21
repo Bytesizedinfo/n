@@ -46,13 +46,13 @@
   border-radius: 74px;
   background:
     radial-gradient(120% 60% at 20% 0%, rgba(255, 255, 255, .10), transparent 60%),
-    linear-gradient(150deg, #5a4688 0%, #3d2d63 38%, #2c2049 70%, #3a2a5c 100%);
+    linear-gradient(150deg, var(--device-1, #5a4688) 0%, var(--device-2, #3d2d63) 38%, var(--device-3, #2c2049) 70%, var(--device-4, #3a2a5c) 100%);
   box-shadow:
-    0 0 0 1px rgba(10, 4, 24, .55),
+    0 0 0 1px var(--device-edge, rgba(10, 4, 24, .55)),
     inset 0 0 0 1.5px rgba(255, 255, 255, .10),
     inset 0 2px 3px rgba(255, 255, 255, .12),
     inset 0 -3px 8px rgba(0, 0, 0, .35),
-    0 50px 90px -20px rgba(24, 10, 52, .55),
+    0 50px 90px -20px var(--device-shadow, rgba(24, 10, 52, .55)),
     0 18px 36px rgba(10, 4, 24, .3);
 }
 #device::before {
@@ -67,7 +67,7 @@
   position: absolute;
   width: 7px;
   border-radius: 3px;
-  background: linear-gradient(90deg, #2b1f45, #5a4785 55%, #3c2c62);
+  background: linear-gradient(90deg, var(--device-3, #2b1f45), var(--device-1, #5a4785) 55%, var(--device-2, #3c2c62));
   box-shadow: 0 0 0 1px rgba(0, 0, 0, .35);
   cursor: pointer;
   z-index: 0;
@@ -79,7 +79,7 @@
 .hw-volup { left: -5px; top: 222px; height: 64px; --press: 1.5px; }
 .hw-voldown { left: -5px; top: 300px; height: 64px; --press: 1.5px; }
 .hw-side { right: -5px; top: 252px; height: 104px; --press: -1.5px; }
-.hw-camctl { right: -5px; top: 596px; height: 58px; --press: -1.5px; background: linear-gradient(90deg, #3c2c62, #6d5aa0 50%, #2b1f45); }
+.hw-camctl { right: -5px; top: 596px; height: 58px; --press: -1.5px; background: linear-gradient(90deg, var(--device-2, #3c2c62), var(--device-hi, #6d5aa0) 50%, var(--device-3, #2b1f45)); }
 
 #screen {
   position: relative;

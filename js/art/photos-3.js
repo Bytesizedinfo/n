@@ -677,8 +677,8 @@
         T(520, 242, 34, 'the Chasm', 'transform="rotate(-6 520 242)"') +
         T(676, 650, 38, '23.71N / 112.04E', 'font-weight="600" transform="rotate(-2 676 650)"') +
         T(424, 774, 40, 'she said 3 AM', 'font-weight="600"') +
-        T(806, 560, 26, 'down. keep going', 'transform="rotate(-3 806 560)"') + T(310, 156, 22, 'harbor') + T(392, 714, 24, 'pier 7?') + `</g>`;
-      s += `<path d="M770 500q20 26 30 40M792 528l8 14 6-16" fill="none" stroke="${ink}" stroke-width="2.6"/>`;
+        T(752, 562, 26, 'down. keep going', 'transform="rotate(-3 752 562)"') + T(310, 156, 22, 'harbor') + T(392, 714, 24, 'pier 7?') + `</g>`;
+      s += `<path d="M748 498q14 20 18 36M758 522l8 14 6-16" fill="none" stroke="${ink}" stroke-width="2.6"/>`;
       // coffee ring
       s += `<circle cx="880" cy="250" r="96" fill="url(#cff)"/><circle cx="880" cy="250" r="96" fill="url(#cf)"/><circle cx="868" cy="262" r="92" fill="url(#cf)" opacity=".45"/><path d="M960 300q14 20 4 40q-10 6-10-8" fill="#8a5428" opacity=".35"/></g>`;
       // pen

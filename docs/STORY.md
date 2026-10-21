@@ -647,3 +647,4 @@ Cross-package needs: write `docs/requests/<package>.md`.
 ## Facts added
 - Music: "Songs of the Frozen Sea" is by the Morepesok Fishermen's Choir. Brands: Tonia's pen is from SNEZHNAYA Atelier (est. 1801); Zhongli's tea tin is "Jueyun Premium Oolong"; the rod's reel is HYDRO·CARBON. (added by A5)
 - The family home is **4 Pristan Lane, Morepesok**. The snow photo is date-stamped "12 01 '19". The plane headrests read "LIYUE AIR". (added by A3)
+- Ledger screenshot: dated 16 Oct 2026 22:31, total ℳ81,505, "paid back so far: ℳ0". Osial protocol: resonators on pillars G-4, G-9, G-17 ("Unit 3"); countersignature "removed, rev. 4"; stamp "APPROVED · Office of the Eighth". Office vending machine brand FROSTFIZZ (error E-11). Wangsheng runs an "Autumn sale: 2nd coffin half price". Paimon's receipt: ×38. (added by A4)

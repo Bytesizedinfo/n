@@ -1,12 +1,12 @@
-/* Page shell around the phone. Layout: phone centred on a dusk-violet "desk"; caption panel to the right on wide screens. */
+/* Page shell around the phone. Layout: phone centred on a sea-blue "desk"; caption panel to the right on wide screens. */
 :root {
-  --page-bg: #e7e2ee;
-  --page-bg2: #d6cde3;
-  --page-glow: rgba(146, 110, 210, .28);
-  --page-fg: #251d2e;
-  --page-sub: #6a5f78;
-  --page-accent: #6b4fb3;
-  --page-line: rgba(37, 29, 46, .12);
+  --page-bg: #e2ebf1;
+  --page-bg2: #cbdbe6;
+  --page-glow: rgba(58, 160, 230, .26);
+  --page-fg: #13202b;
+  --page-sub: #5a6b79;
+  --page-accent: #1d6fb8;
+  --page-line: rgba(19, 32, 43, .12);
   --page-chip: rgba(255, 255, 255, .55);
   --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
   --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
@@ -15,43 +15,51 @@
   --font-brush: "Ma Shan Zheng", "Noto Serif SC", "Kaiti SC", serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
   /* story palette used inside the phone (css/os.css reads these; endings, time-skip cards, endings widget) */
-  --cap-glyph: "江澄";
-  --story-hi: #cfb4ff;
-  --story-hi-soft: #d4bcff;
-  --story-btn: #7a4fd6;
-  --story-card: rgba(160, 120, 240, .16);
-  --story-card-line: rgba(200, 170, 255, .25);
-  --story-dim: rgba(10, 5, 20, .88);
-  --story-night1: #2c1f4f;
-  --story-night2: #0a0716;
-  --story-lost: rgba(20, 12, 34, .55);
-  --story-wg-bg1: #3b2a63;
-  --story-wg-bg2: #1d1433;
-  --story-wg-hole: #251a40;
-  --story-wg-fg: #d6b8ff;
-  --story-ring: #c9a7ff;
+  --cap-glyph: "公子";
+  --story-hi: #9fd4ff;
+  --story-hi-soft: #b8defc;
+  --story-btn: #1f7fd0;
+  --story-card: rgba(80, 160, 230, .16);
+  --story-card-line: rgba(150, 205, 255, .25);
+  --story-dim: rgba(4, 10, 18, .88);
+  --story-night1: #12304a;
+  --story-night2: #050b14;
+  --story-lost: rgba(8, 18, 30, .55);
+  --story-wg-bg1: #173a5c;
+  --story-wg-bg2: #0b1d30;
+  --story-wg-hole: #0f2740;
+  --story-wg-fg: #a8d8ff;
+  --story-ring: #7cc4ff;
+  /* device finish: Deep Blue titanium */
+  --device-1: #3f5f86;
+  --device-2: #26405f;
+  --device-3: #182b42;
+  --device-4: #2a4566;
+  --device-hi: #5b80ab;
+  --device-edge: rgba(4, 12, 24, .55);
+  --device-shadow: rgba(8, 24, 48, .55);
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --page-bg: #110c17;
-    --page-bg2: #1c1426;
-    --page-glow: rgba(120, 80, 200, .22);
-    --page-fg: #ece6f3;
-    --page-sub: #a296b2;
-    --page-accent: #b9a0f0;
-    --page-line: rgba(236, 230, 243, .12);
+    --page-bg: #091118;
+    --page-bg2: #0f1c27;
+    --page-glow: rgba(40, 120, 200, .22);
+    --page-fg: #e5eef5;
+    --page-sub: #92a5b5;
+    --page-accent: #6db7f0;
+    --page-line: rgba(229, 238, 245, .12);
     --page-chip: rgba(255, 255, 255, .06);
     color-scheme: dark;
   }
 }
 :root[data-theme="dark"] {
-  --page-bg: #110c17;
-  --page-bg2: #1c1426;
-  --page-glow: rgba(120, 80, 200, .22);
-  --page-fg: #ece6f3;
-  --page-sub: #a296b2;
-  --page-accent: #b9a0f0;
-  --page-line: rgba(236, 230, 243, .12);
+  --page-bg: #091118;
+  --page-bg2: #0f1c27;
+  --page-glow: rgba(40, 120, 200, .22);
+  --page-fg: #e5eef5;
+  --page-sub: #92a5b5;
+  --page-accent: #6db7f0;
+  --page-line: rgba(229, 238, 245, .12);
   --page-chip: rgba(255, 255, 255, .06);
   color-scheme: dark;
 }

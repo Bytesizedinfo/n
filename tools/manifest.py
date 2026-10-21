@@ -31,12 +31,13 @@ def manifest():
     js += listdir('js/art', '.js')
     js += listdir('js/apps', '.js')
     js += listdir('js/story/history', '.js')
-    for f in ['js/story/flavor.js', 'js/story/intro.js']:
+    for f in ['js/story/flavor.js', 'js/story/intro.js', 'js/story/chapters.js']:
         if os.path.exists(os.path.join(ROOT, f)):
             js.append(f)
     js += listdir('js/story/scenes', '.js')
-    if os.path.exists(os.path.join(ROOT, 'js/story/endings.js')):
-        js.append('js/story/endings.js')
+    for f in ['js/story/endings.js', 'js/story/aftermath.js']:
+        if os.path.exists(os.path.join(ROOT, f)):
+            js.append(f)
     js.append('js/core/boot.js')
     css = [f for f in css if os.path.exists(os.path.join(ROOT, f))]
     js = [f for f in js if os.path.exists(os.path.join(ROOT, f))]
