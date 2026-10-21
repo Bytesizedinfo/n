@@ -262,7 +262,7 @@
           ] },
       ],
       where: [
-        { say: "Stay there. Someone will come for it at ten. Don't touch anything else." },
+        { say: (s) => (F(s).wn_pickup || F(s).wn_accomplice ? "Stay there. Wen Ning says he's collecting it at half past eight. Let him. Don't touch anything else." : "Stay there. Someone will come for it at ten. Don't touch anything else.") },
         { say: '…' },
         { say: 'Did you read my messages?' },
         { choice: [
@@ -332,6 +332,7 @@
       // A-Ling
       jl: [
         { if: scandalOpen, go: 'jl_scandal' },
+        { if: (s) => !!F(s).party_moved, go: 'jl_moved' },
         { if: (s) => F(s).car_handled, go: 'jl_car' },
         { if: (s) => F(s).car_known, go: 'jl_pond' },
         { go: 'jl_kids' },
@@ -349,15 +350,29 @@
             { t: '"Let them have the afternoon. He can come home after."', go: 'jl_split' },
           ] },
       ],
+      jl_moved: [
+        { say: "And A-Ling's birthday is at Koi Tower now. Sizhui's spreadsheet says so. In a cell coloured gold." },
+        { say: 'Dinner at Lotus Pier after. If he escapes.' },
+        { choice: [
+            { t: '"Move it back. Lotus Pier. Six-thirty."', go: 'jl_back' },
+            { t: '"Leave it. He comes home after."', go: 'jl_split' },
+          ] },
+      ],
+      jl_back: [
+        { fx: { set: { party_moved: false, venue_lp: true, venue_kt: false }, log: 'Had Jiang Cheng move the birthday back to Lotus Pier', once: 'hq_back' } },
+        { say: "…The Jin board will say I'm stealing him." },
+        { say: "I raised him. They can say what they like." },
+        { go: 'jl_kids' },
+      ],
       jl_fix: [
-        { fx: { set: { scandal_fixed: true, scandal_fixed_by: 'call' }, log: 'Talked Jiang Cheng into calling the Jin board', once: 'hq_board' } },
+        { fx: { set: { scandal_fixed: true, scandal_fixed_by: 'call', party_moved: false, venue_lp: true }, log: 'Talked Jiang Cheng into calling the Jin board', once: 'hq_board' } },
         { say: '…Jin Zixun is going to cry.' },
         { say: 'Good.' },
         { say: 'Lotus Pier. Six-thirty. No wall.' },
         { go: 'jl_kids' },
       ],
       jl_fix_valet: [
-        { fx: { set: { scandal_fixed: true, scandal_fixed_by: 'valet' }, log: 'Sent Jin Ling to apologise to the valet in person', once: 'hq_board' } },
+        { fx: { set: { scandal_fixed: true, scandal_fixed_by: 'valet', party_moved: false, venue_lp: true }, log: 'Sent Jin Ling to apologise to the valet in person', once: 'hq_board' } },
         { say: 'With his own mouth. In a tie.' },
         { say: "…Fine. Then there's nothing left to put on a wall." },
         { go: 'jl_kids' },
@@ -369,7 +384,7 @@
         { go: 'jl_kids' },
       ],
       jl_lxc: [
-        { fx: { set: { scandal_fixed: true, scandal_fixed_by: 'lxc' } } },
+        { fx: { set: { scandal_fixed: true, scandal_fixed_by: 'lxc', party_moved: false, venue_lp: true } } },
         { say: 'Xichen called Jin Zixun at eight this morning. Apparently he asked very politely.' },
         { say: 'The press wall has been withdrawn. Nobody has ever withdrawn anything for me.' },
         { say: "…Don't say anything." },
@@ -434,6 +449,8 @@
         { say: '(For a long time there is nothing on the line. Somewhere behind him a hotel door closes.)', from: 'sys' },
         { say: "From my phone. In my words. I've thought them. I have never once said them." },
         { say: "Lan Wangji texted me at five. One word." },
+        { say: (s) => (F(s).burned_gate ? 'He also says someone promised him the gate would be open. …That was you, too.' : F(s).burned_regret ? "And you told Lan Wangji you didn't mean it. In my voice. He says it still sounded like me." : null) },
+        { say: (s) => (F(s).memo_sent ? 'He played the memo twice. On the roof. Lan Wangji says that was the only time he stopped crying.' : null) },
         { choice: [
             { t: '"Go to Gusu. Now. Before he decides you meant it."', go: 'wwx_go' },
             { t: `"Tell him it wasn't you."`, go: 'wwx_tell' },
@@ -456,8 +473,15 @@
       wwx_time: [
         { say: 'Time.' },
         { say: 'He had thirteen years of time.' },
+        { if: (s) => !!(F(s).burned_gate || F(s).burned_regret || F(s).memo_sent), go: 'wwx_time_no' },
         { say: '…Fine.' },
         { go: 'memo' },
+      ],
+      // something from the night already reached him; Jiang Cheng won't let it be the last word
+      wwx_time_no: [
+        { say: '…No.' },
+        { say: "Somebody already told him something better than what I said. I'm not leaving it to somebody." },
+        { go: 'wwx_go' },
       ],
       wwx_yes: [
         { say: 'You told Wei Wuxian yes.' },
@@ -901,7 +925,7 @@
       start: [
         { if: (s) => !!(s.done.early_return || (s.done.zidian_fall && F(s).zidian)), go: 'off' },
         { wait: 4 },
-        { if: (s) => F(s).wn_accomplice, go: 'wn' },
+        { if: (s) => F(s).wn_accomplice || F(s).wn_pickup, go: 'wn' },
         { m: 'Mr. Jiang has finished his call. He says it was "fine".' },
         { if: (s) => F(s).you_invited, go: 'inv' },
         { m: 'I will be at your door at ten. Please have the phone charged. He will check.' },
@@ -915,8 +939,16 @@
         DINNER,
       ],
       wn: [
-        { m: 'Mr. Jiang has finished his call. Wen Ning will collect the phone at ten. He insisted. I am coming with him, because otherwise he will apologise to your door.' },
-        { time: '10:00', card: 'At ten an old van with “Yiling Radish Co.” on the side pulls up outside. Wen Ning holds out both hands for the phone as if it might break, says sorry three times and, once, very quietly, thank you. Tang Mei, in the passenger seat, says nothing. She nods. From her, it is a medal.' },
+        { m: 'Mr. Jiang has finished his call. Wen Ning will collect the phone at half past eight, as he arranged. He insisted. He will hand it to me at ten. I am told he has already apologised to the van.' },
+        { if: (s) => F(s).you_invited, go: 'wn_inv' },
+        { go: 'wn_go' },
+      ],
+      wn_inv: [
+        { m: 'Mr. Jiang has also asked me to add a place to Sunday for "the person with my phone". In nine years he has never asked me to add a place.' },
+        { go: 'wn_go' },
+      ],
+      wn_go: [
+        { time: '08:30', card: 'At half past eight an old van with “Yiling Radish Co.” on the side pulls up outside. Wen Ning holds out both hands for the phone as if it might break, says sorry three times and, once, very quietly, thank you. “You were kind to them all night,” he says. “I’ll tell him that. It’s true.”' },
         DINNER,
       ],
       ten: [
@@ -932,6 +964,10 @@
   // ═════════════════════════════════════════════════════════════════
   // Who you told, from the confession scenes (confess.js / calls.js); the person who takes the phone.
   const confidant = (s) => {
+    const to = F(s).told_to;
+    if (to === 'jl' || to === 'lxc' || to === 'huang') return to;
+    if (to === 'wwx' || to === 'lwj') return 'wwx';
+    if (to) return 'ea'; // Tang Mei, HQ, a group chat: Tang Mei sends the car
     const d = s.done || {};
     if (d.confess_jl) return 'jl';
     if (d.confess_wwx || d.wwx_honest_end || d.confess_lwj) return 'wwx';
@@ -960,10 +996,12 @@
         { if: (s) => how(s) === 'fairy', go: 'fairy' },
         { if: (s) => how(s) === 'desk', go: 'desk' },
         { if: (s) => how(s) === 'swift', go: 'swift' },
-        { if: (s) => how(s) === 'selfie', go: 'selfie' },
         { if: (s) => confidant(s) === 'jl', go: 'c_jl' },
         { if: (s) => confidant(s) === 'wwx', go: 'c_wwx' },
         { if: (s) => confidant(s) === 'lxc', go: 'c_lxc' },
+        { if: (s) => confidant(s) === 'huang', go: 'c_huang' },
+        // a selfie come-clean in a group chat (told_to: 'fam', 'bday', …) or with nobody named
+        { if: (s) => how(s) === 'selfie' && (!F(s).told_to || F(s).told_to === 'fam'), go: 'selfie' },
         { go: 'c_ea' },
       ],
       // Jin Ling took it: he keeps your secret till morning and wants you at his birthday
@@ -977,7 +1015,19 @@
           } catch (e) { /* notes not ready */ }
         } },
         { wait: 3 },
+        { if: (s) => F(s).fairy_where === 'gate', go: 'fairy_gate' },
         { time: '+20m', card: 'He takes the phone. Fairy takes your sofa. Jin Ling stands in your doorway in a wet tuxedo, scowling at the two of you, and says, “I’m not telling him who you are till morning. He’d drive here.” Then, at the door: “Sunday. Six-thirty. I’m inviting you. It’s my birthday, so it counts.”' },
+        DINNER,
+      ],
+      fairy_gate: [
+        { time: '+20m', card: 'He takes the phone. Fairy takes you: she leans her whole wet weight against your legs under the east gate’s lamp and refuses to move. “Traitor,” Jin Ling tells her. Then, to you, scowling: “I’m not telling him who you are till morning. He’d drive here. Sunday. Six-thirty. I’m inviting you. It’s my birthday, so it counts.”' },
+        DINNER,
+      ],
+      c_huang: [
+        { wait: 2 },
+        { m: '', d: 3, voice: { dur: 12, text: 'Okay. Okay. Not Boss. I understand. I call Tang Mei. She is awake, she is always awake. You stay. Somebody come. Thank you, ah. 👍' }, th: 'huang', from: 'huang' },
+        { m: '👍👍', th: 'huang', from: 'huang' },
+        { time: '+25m', card: 'Huang Er’s tow truck pulls up outside Jinxing Road 27, lights flashing for no reason, sent by a cousin in Yunmeng who does not trust taxis. He takes the phone in both hands, gives you a thumbs-up exactly like Old Huang’s, and drives it to the Golden Peony at forty kilometres an hour.' },
         DINNER,
       ],
       desk: [
@@ -1010,10 +1060,17 @@
       ],
       c_wwx: [
         { wait: 2 },
+        { if: (s) => F(s).returned_how === 'facetime' || F(s).wwx_saw_face, go: 'c_wwx_face' },
         { m: 'ok. ok ok ok', th: 'wwx', from: 'wwx' },
         { m: "lan zhan is getting the car keys. we're in lanling still. 15 min", th: 'wwx', from: 'wwx' },
         { m: "don't let him yell at u. he yells at everyone he likes", th: 'wwx', from: 'wwx' },
         { time: '+15m', card: 'Wei Wuxian takes the phone out of your hands as if it might be hot, and then hugs you, briefly and without asking. Lan Wangji, behind him, says “Thank you,” and means it. They drive it to the Golden Peony together and wake up the night manager.' },
+        DINNER,
+      ],
+      c_wwx_face: [
+        { m: 'ok. stranger with the face', th: 'wwx', from: 'wwx' },
+        { m: "lan zhan is getting the car keys. we're still in lanling. 15 min. don't move", th: 'wwx', from: 'wwx' },
+        { time: '+15m', card: 'Wei Wuxian recognises you before the car has stopped. He takes the phone out of your hands as if it might be hot, then hugs you, briefly and without asking. “You have a very honest face,” he says. “It’s really annoying.” Lan Wangji, behind him, says “Thank you,” and means it.' },
         DINNER,
       ],
       c_lxc: [

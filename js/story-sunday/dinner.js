@@ -18,6 +18,13 @@
     const t = (Array.isArray(text) ? text : [text]).filter(Boolean);
     return t.length ? { kicker, text: t, art: img ? art(img) : undefined } : null;
   };
+  // cards are told in clock order: the minute after Saturday/Sunday noon in the kicker ("Monday" goes last)
+  const when = (k) => {
+    const m = /(\d{1,2}):(\d{2}) (a|p)\.m\./.exec(k || '');
+    if (!m) return /Monday/.test(k || '') ? 5000 : 0;
+    return ((+m[1] % 12) + (m[3] === 'p' ? 12 : 0)) * 60 + +m[2];
+  };
+  const byClock = (cards) => cards.map((c, i) => ({ c, i })).sort((a, b) => (when(a.c.kicker) - when(b.c.kicker)) || (a.i - b.i)).map((x) => x.c);
   const list = (xs) => (xs.length <= 1 ? xs.join('') : xs.slice(0, -1).join(', ') + ' and ' + xs[xs.length - 1]);
   const trace = () => { try { return JC.story.trace() || []; } catch (e) { return []; } };
 
@@ -84,23 +91,30 @@
     const f = c.f;
     if (!f.scandal && !f.party_moved) return null;
     const koi = f.scandal_kind !== 'balcony';
+    if (!f.scandal) {
+      // Sizhui's venue vote went to Koi Tower (party_moved, Writer B) and nobody moved it back
+      return card('Saturday, 4:10 p.m. · Koi Tower', [
+        'As decided in Sizhui’s spreadsheet, in a cell coloured gold, the young master’s eighteenth will begin at Koi Tower: the board, a string quartet and a press call at five.',
+        c.lans ? 'Jin Ling texts his uncle one line: “ill escape. save me soup.”' : 'Jin Ling texts his uncle one line: “ill escape. save me cake.”',
+      ], 'p_gala_hall');
+    }
     if (f.scandal_fixed && !f.party_moved) {
-      if (f.lxc_board) {
+      if (f.scandal_fixed_by === 'lxc') {
         return card('Saturday, 8:02 a.m. · Koi Tower', [
           'Lan Xichen telephones Jin Zixun before breakfast and asks, very politely, whether the board would really like to explain a press wall to the Lanling Charity Trust, of which he is chair.',
           'The press wall is withdrawn by nine. Nobody has ever withdrawn anything for Jiang Cheng before. He doesn’t know where to put it.',
         ], 'p_gala_hall');
       }
+      if (f.scandal_fixed_by === 'call') {
+        return card('Saturday, 9:00 a.m. · A car to Yunmeng', 'Jiang Cheng calls Jin Zixun from the back seat and says eleven words. Jin Zixun repeats none of them to anyone. The press wall is cancelled by ten. The birthday stays at Lotus Pier, where it was always going to be.');
+      }
       if (koi) {
         return card('Saturday, 11:30 a.m. · Lanling', [
-          'Jin Ling goes to the valet’s house in a tie, with a box of pastries and a face like a funeral, and apologises with his own mouth. The valet gives Fairy a biscuit. His granddaughter takes a photo for the chemistry class.',
-          'There is nothing left to put on a press wall. The Jin board finds something else to be outraged about by lunch. The koi get a plaque.',
+          'Jin Ling goes to Uncle Gao’s house in a tie, with a box of pastries and a face like a funeral, and apologises with his own mouth. Uncle Gao gives Fairy a biscuit, and by lunchtime he follows Jin Ling on Wavelet.',
+          'There is nothing left to put on a press wall. The Jin board finds something else to be outraged about. The koi get a plaque.',
         ], 'p_koi_pond_car');
       }
-      return card('Saturday, 11:00 a.m. · Wavelet', [
-        '@teaspiller_qh posts a correction. “Sources say a certain CEO simply needed some air. Sources apologise to the air. 🪭”',
-        'Nobody believes it. Nobody needs to. The Jin board drops the idea of a press party, and Lan Xichen likes the post, which is somehow worse.',
-      ]);
+      return card('Saturday, 9:00 a.m. · The lake road', 'Tang Mei informs the Jin board treasurer that Lotus Pier has a gate, and Old Huang. Old Huang closes the lake road himself and stands at the end of it all day with a stick. The press party is quietly forgotten.' + (f.sunday_held ? ' The family chat had been told on Friday night: Sunday is at Lotus Pier. It was.' : ''));
     }
     return card('Saturday, 4:10 p.m. · Koi Tower', [
       koi
@@ -126,6 +140,7 @@
   }
   function satSoup(c) {
     if (c.soup === 'none') return null;
+    if (c.gate) return card('Saturday, 9:40 p.m. · The Jingshi kitchen', 'He makes it anyway. Batch six. Low and slow, the way he has seen in an old photo of her stove. He does not burn it. Nobody has told him he is welcome; he makes enough for five.');
     const root = c.root === 'honghu' ? ' The lotus root came in an Ops van at noon, twenty kilos of it, with a note from Old Huang: 👍.' : '';
     if (c.soup === 'right') return card('Saturday, 9:40 p.m. · The Jingshi kitchen', 'Attempt six. Low fire. Two hours. Wei Wuxian sits on the floor in front of the stove and does not touch the knob once, and Lan Wangji does not have to open a single window.' + root);
     if (c.soup === 'close') return card('Saturday, 9:40 p.m. · The Jingshi kitchen', 'Attempt six is close. Attempt seven is closer. Lan Wangji opens only two windows, which in that kitchen counts as a triumph.' + root);
@@ -145,16 +160,15 @@
     const k = 'Sunday, 6:29 p.m. · The gate';
     const van = c.wn === 'yes' || c.wn === 'drives' ? ' Behind him, Wen Ning’s van ticks as it cools.' : '';
     if (c.wwx) {
-      return card(k, [
-        'Wei Wuxian stands outside the gate at Lotus Pier holding a pot with a chipped lid, because he promised himself he would wait one minute so he wouldn’t be early.' + van,
-        f.huang_list
-          ? 'He doesn’t get the minute. Old Huang opens the gate with a laminated guest list in his other hand, and Wei Wuxian’s name is at the top of it, in the Boss’s handwriting. “Boss said,” the old man tells him. “Next time, let him in.”'
-          : 'He doesn’t get the minute. Old Huang opens the gate before he can knock. “Boss said,” the old man tells him, “next time, let him in.” Jiang Cheng said it two years ago. Nobody ever told Wei Wuxian. Now somebody has.',
-      ], 'end_reunited');
+      let p2;
+      if (f.huang_wwx) p2 = 'He doesn’t get the minute. Old Huang opens the gate before he can knock, with a cup of tea and two eggs, as if 2024 were last week. “Boss said,” the old man tells him. “Next time, let him in.” Jiang Cheng said it two years ago. Nobody ever told Wei Wuxian. Now somebody has.';
+      else if (f.huang_list) p2 = 'He doesn’t get the minute. Every name is chalked on the guardhouse board in letters a hand high, and Old Huang reads his out loud as he opens the gate. “Boss said,” he adds. “Next time, let him in.”';
+      else p2 = 'He doesn’t get the minute. Old Huang opens the gate, looks him up and down and asks, as he asks everyone tonight, “Boss knows you?” Then he sees the pot, and stands aside without waiting for an answer.';
+      return card(k, ['Wei Wuxian stands outside the gate at Lotus Pier holding a pot with a chipped lid, because he promised himself he would wait one minute so he wouldn’t be early.' + van, p2], 'end_reunited');
     }
     if (c.gate) {
       return card(k, [
-        'Wei Wuxian is standing outside the gate with the pot with the chipped lid, and Lan Wangji beside him, holding the good bowls. He told himself one minute. It has been eleven.',
+        'Wei Wuxian is standing outside the gate with the pot with the chipped lid, and Lan Wangji beside him, holding the good bowls. Batch six. He did not burn it. He told himself one minute. It has been eleven.',
         'Nobody told Old Huang to open it. So he does what he did in 2024: he brings out tea, and stands with them on the wrong side of the gate, and says nothing at all.',
       ], 'end_burned');
     }
@@ -162,7 +176,8 @@
       return card(k, 'At 6:29 Old Huang opens the gate for nobody. The young master is in Lanling, under a press wall, smiling for cameras with his jaw set exactly like his uncle’s.' + (f.huang_list ? ' The laminated guest list in Old Huang’s pocket is very short tonight.' : ''));
     }
     const kids = c.kids ? ' Sizhui and Jingyi spill out of the back seat; Jingyi is already filming.' : '';
-    return card(k, 'At 6:29 Old Huang opens the gate for the young master, who is two minutes late and sulking about it from the passenger seat of a car he is no longer allowed to drive.' + kids + (f.huang_list ? ' Old Huang ticks them off a laminated list, one by one. 👍' : ''));
+    const lake = f.scandal_kind === 'balcony' && f.scandal_fixed ? ' The lake road is closed. Old Huang has a stick.' : '';
+    return card(k, 'At 6:29 Old Huang opens the gate for the young master, who is two minutes late and sulking about it from the passenger seat of a car he is no longer allowed to drive.' + kids + (f.huang_list ? ' Every name is chalked on the guardhouse board in letters a hand high; Old Huang greets each one out loud. 👍' : ' Old Huang asks Jingyi, who he has known for ten years, “Boss knows you?”') + lake);
   }
   function waiting(c) {
     const f = c.f;
@@ -183,10 +198,12 @@
   function bowls(c) {
     const k = '6:40 p.m. · The table';
     if (c.wwx) {
-      const extra = c.n > 4;
-      const p = ['Lan Wangji brought the good bowls. He owns exactly five. Four of them are for the people at the table, and the fifth goes at the end, where nobody sits.'];
+      const extra = c.n > (c.wn === 'yes' ? 5 : 4);
+      const p = [c.wn === 'yes'
+        ? 'Lan Wangji brought the good bowls. He owned exactly five until Friday; the sixth is new, from a potter in Gusu, and it goes in front of Wen Ning. The fifth goes at the end, where nobody sits.'
+        : 'Lan Wangji brought the good bowls. He owns exactly five. Four of them are for the people at the table, and the fifth goes at the end, where nobody sits.'];
       if (extra) p.push(c.atTable
-        ? 'Tonight there are ' + word(c.n) + ' people, so Old Huang brings more from the back of the cupboard, mismatched, the ones that survived the fire. There are six bowls on one side of the table now. One of them is yours.'
+        ? 'Tonight there are ' + word(c.n) + ' people, so Old Huang brings more from the back of the cupboard, mismatched, the ones that survived the fire. One of them is yours.'
         : 'Tonight there are ' + word(c.n) + ' people, so Old Huang brings more from the back of the cupboard, mismatched, the ones that survived the fire.');
       return card(k, p);
     }
@@ -195,11 +212,11 @@
   }
   function soup(c) {
     const k = '6:52 p.m. · The soup';
-    const root = c.root === 'honghu' ? ' The lotus root is from the four hundred kilos. Old Huang tells everyone, twice.' : c.root === 'canteen' ? ' The lotus root is from the canteen’s soup week. Auntie Chen sent it with instructions.' : '';
+    const root = c.root === 'honghu' ? ' The lotus root came out of a box marked SUNDAY in Old Huang’s handwriting: the long ones, nine holes. He tells everyone, twice.' : c.root === 'canteen' ? ' The lotus root is from the canteen’s soup week. Auntie Chen sent it with instructions.' : '';
     const jl = c.jl;
     if (c.soup === 'right') {
       return card(k, [
-        'There is soup. Two hours, low fire, and nobody rushed it.' + (jl ? ' Jin Ling has never tasted his mother’s soup before. He eats three bowls and blames the steam for his eyes.' : '') + root,
+        'There is soup. Two hours, low fire, and nobody rushed it. It tastes like hers.' + (jl ? (c.f.jl_recipe ? ' Jin Ling, who texted Wei Wuxian the fire at one in the morning and won’t say where he got it, eats three bowls and blames the steam for his eyes.' : ' Jin Ling has never tasted his mother’s soup before. He eats three bowls and blames the steam for his eyes.') : '') + root,
         'Somewhere in the middle Jiang Cheng says, without looking up, “It’s fine. The soup. It’s fine.” Wei Wuxian has to leave the table for a minute. Everybody lets him.',
       ], 'p_lotus_root_soup');
     }
@@ -217,12 +234,15 @@
     const f = c.f;
     if (!c.fairy) {
       if (!c.jl && !c.jlLate) return null;
-      return card('7:05 p.m. · The garden', 'Fairy is in the garden, barking at the koi in the east pond, because nobody told Old Huang she was allowed in. ' + (c.jl ? 'Jin Ling passes her a rib through the window when he thinks nobody is looking. Everybody is looking.' : 'Old Huang sits on the step with her and shares his duck.'));
+      return card('7:05 p.m. · The garden', 'Fairy is in the garden, barking at the koi in the east pond, because nobody told Old Huang she was allowed in. ' + (c.jl ? 'Jin Ling goes out and sits on the step with her for ten minutes in his good jacket, and comes back with mud on it, and doesn’t care.' : 'Old Huang sits on the step with her and shares his duck.'));
     }
     const badge = f.dog_friday ? ' She is wearing her new badge. It says Head of Morale.' : '';
     let p = 'Fairy is not allowed inside, and is inside.' + badge;
-    if (c.wwx) p += ' She lies across Wei Wuxian’s feet for two hours. He does not move. He says it’s fine. Lan Wangji feeds her rib bones under the table and believes nobody can see.';
+    if (c.wwx && f.fairy_inside) p += ' Wei Wuxian promised he would sit next to her. Lan Wangji sits between them instead, and feeds her rib bones under the table, and believes nobody can see.';
+    else if (c.wwx) p += ' She lies across Wei Wuxian’s feet for two hours. He does not move. He says it’s fine. Lan Wangji feeds her rib bones under the table and believes nobody can see.';
     else p += ' She eats a rib bone she was not given and leans her whole weight against Jiang Cheng’s leg until he gives her another.';
+    if (f.fairy_taken && c.atTable) p += ' When you come in, she leaves him without a backward glance.';
+    else if (f.fairy_taken) p += ' Every time the door opens she looks up for somebody who isn’t coming.';
     return card('7:05 p.m. · Under the table', p);
   }
   function xichen(c) {
@@ -235,7 +255,7 @@
       ]);
     }
     if (c.lxc === 'late') {
-      return card('8:40 p.m. · The door', 'Halfway between the soup and the cake there is a knock. Lan Xichen, with a tin of white peony, apologising for the hour. Jiang Cheng gets up to put the kettle on himself, eighty-five degrees, no sugar, and nobody says a word.' + qr);
+      return card('7:50 p.m. · The door', 'Halfway between the soup and the cake there is a knock. Lan Xichen, with a tin of white peony, apologising for the hour. Jiang Cheng gets up to put the kettle on himself, eighty-five degrees, no sugar, and nobody says a word.' + qr);
     }
     if (f.lxc_invited) return card('8:00 p.m. · A courier', 'A courier brings a tin of white peony, no card. Jiang Cheng knows anyway. He puts it on the shelf next to the other one and doesn’t open it.');
     return null;
@@ -244,22 +264,22 @@
     const f = c.f;
     if (c.wn === 'yes') {
       return card('7:30 p.m. · The end of the table', [
-        'Wen Ning sits at the very end of the table, as if he might be asked to leave, and apologises to the soup. It is his first dinner at Lotus Pier since 2008.',
-        'When the pot comes round, Jiang Cheng fills his bowl himself. “Eat,” he says. Wen Ning eats.' + (f.wn_accomplice ? ' He has not said one word about Friday night. He saw nothing. He will always have seen nothing.' : ''),
+        'Wen Ning parked inside the gate, in his one shirt, ironed at two in the morning, with a thermos of tea “for after”. He sits at the very end of the table, as if he might be asked to leave, and apologises to the soup. It is his first dinner at Lotus Pier since 2008.',
+        'When the pot comes round, Jiang Cheng fills his bowl himself. “Eat,” he says. Wen Ning eats.' + (f.wn_accomplice ? ' About Friday night he has said only one thing: that whoever had the phone was kind to this family all night.' : ''),
       ]);
     }
     if (c.wn === 'drives') {
-      if (c.lans) return card('7:30 p.m. · The van', 'Wen Ning drove the Lans and won’t come in. He sits in the van outside the gate with the engine off, the way he always does. At eight Jin Ling takes him a bowl through the window. At nine Jiang Cheng walks out himself, stands by the van and says, “Next time, come in.”', 'p_wn_van');
-      return card('5:10 p.m. · The van', 'Wen Ning brings Sandu home from the garage before dinner, washed, smelling only slightly of koi, and leaves before anyone can thank him. Jiang Cheng stands in the drive for a while, looking at the road.', 'p_wn_van');
+      if (c.lans) return card('7:30 p.m. · The van', 'Wen Ning drove the Lans and won’t come in. He sits in the van outside the gate with the engine off, the way he always does. Old Huang takes him tea; at eight Jin Ling takes him a bowl through the window. At nine Jiang Cheng walks out himself, stands by the van and says, “Next time, come in.”', 'p_wn_van');
+      return card('Sunday, 5:10 p.m. · The van', 'Wen Ning brings Sandu home from the garage before dinner, washed, smelling only slightly of koi, and leaves before anyone can thank him. Jiang Cheng stands in the drive for a while, looking at the road.', 'p_wn_van');
     }
     return null;
   }
   function huaisang(c) {
     const f = c.f;
     if (c.nhs) {
-      return card('7:45 p.m. · The fan', 'Nie Huaisang arrives late with a purple fan for Jin Ling, nine lotus petals, hand-painted, and does not take a single photo all night. He just watches, with the face of a man reading the best gossip of his life and keeping every word of it.' + (c.atTable && f.nhs_knows ? ' Once, passing you, he raises the fan and whispers, “I know nothing.”' : ''));
+      return card('7:45 p.m. · The fan', 'Nie Huaisang arrives late with the purple nine-petal Lotus Pier fan for Jin Ling, keeps his phone in his sleeve, and does not take a single photo all night. He just watches, with the face of a man reading the best gossip of his life and keeping every word of it.' + (c.atTable && f.nhs_knows ? ' Once, passing you, he raises the fan, winks, and whispers, “I know nothing.”' : ''));
     }
-    if (f.nhs_leak) return card('7:45 p.m. · Qinghe', 'In Qinghe, @teaspiller_qh posts a blurry photo of the Lotus Pier gate: “A certain birthday tonight 👀🪭”. Old Huang closes the gate. Jiang Cheng doesn’t look at his phone once.');
+    if (f.nhs_leak) return card('7:45 p.m. · Qinghe', 'In Qinghe, @teaspiller_qh posts a blurry photo of the Lotus Pier gate: “A certain birthday tonight 👀🪭”. Old Huang closes the gate. Jiang Cheng doesn’t look at his phone once. Under the post, @zewujun leaves a single 🙂, which nobody in Qinghe can interpret.');
     return null;
   }
   function gift(c) {
@@ -285,7 +305,9 @@
     const f = c.f;
     if (!c.jl && !c.jlLate) return null;
     const k = c.jlLate ? '10:40 p.m. · The toast' : '8:30 p.m. · The toast';
-    const p = ['Jiang Cheng does not make toasts. He stands up anyway, with his tea.'];
+    const cake = c.cake === 'lotus seed' ? 'The cake is lotus seed paste. Jin Ling says he hates lotus seed paste. He has two slices.' + (f.r_cake_seed ? ' There is a second one, a lotus mousse, which he saved in his own fridge since Friday.' : '') + ' '
+      : c.cake === 'chocolate' ? 'The cake is chocolate. Jin Ling stares at it like it owes him money (the fountain incident). ' : '';
+    const p = [cake + 'Jiang Cheng does not make toasts. He stands up anyway, with his tea.'];
     if (f.toast_edited) p.push('He reads it off his phone. Somebody finished the first sentence for him in the middle of Friday night. He reads all of it anyway, in his flat board-meeting voice, and doesn’t say who wrote it, and has to stop once.');
     else if (c.wwx) p.push('“Eighteen years ago your mother—” he says, and stops. “—would have made soup,” Wei Wuxian says quietly. “She did,” says Jiang Cheng, and sits down, and that is the toast.');
     else p.push('“Eighteen years ago your mother—” he says, and stops. “I know, jiujiu,” Jin Ling says. That is the toast.');
@@ -297,10 +319,12 @@
     const k = '9:00 p.m. · The last bowl';
     if (c.honoured) {
       const p = ['There is a bowl at the end of the table that nobody sits at. When the soup came round, Jiang Cheng filled it first.'];
-      if (f.memo_sent) p.push('Nobody mentions it. Wei Wuxian keeps looking at it, and then at his brother, as if a voice memo from a temple road were still playing somewhere in the room.');
+      if (f.memo_sent && c.wwx) p.push('“I’m putting a bowl out for her,” Wei Wuxian said on Friday night. “Don’t argue.” Nobody argued. He keeps looking at it, and then at his brother, as if a voice memo from a temple road were still playing somewhere in the room.');
+      else if (f.memo_sent) p.push('Nobody mentions it. Somewhere a voice memo from a temple road has been played, finally, by the person it was for.');
       else if (f.ajie_wrote) p.push('On his phone, in a thread that never delivers, there is a message from Friday night that he didn’t write. He has read it eleven times. He hasn’t deleted it.');
       else if (f.wwx_thanked) p.push('Nobody mentions it. Wei Wuxian sits next to it all night, and once, when he thinks nobody sees, he moves the spoon so it’s straight.');
-      return card(k, p);
+      if (f.ajie_shared) p.push('Propped against it is a faded print: five silhouettes on the Lotus Pier dock, 2007. Wei Wuxian brought it. He didn’t say anything about it either.');
+      return card(k, p.slice(0, 2));
     }
     return card(k, 'There is a bowl at the end of the table that nobody sits at. Nobody fills it. Nobody moves it, either.' + (f.memo_deleted ? ' On his phone, in Recently Deleted, there is a voice memo with twenty-nine days left on it.' : ''));
   }
@@ -309,8 +333,9 @@
     if (c.atTable) {
       const p1 = 'And you. Old Huang took your coat at the gate and called you “young master” by accident.' +
         (c.fairy ? ' Fairy knocked you over and has decided you are hers.' : '') +
+        (c.wwx && f.wwx_saw_face ? ' Wei Wuxian recognised you first, from a FaceTime at one in the morning, and hugged you before anyone could explain.' : '') +
         (c.wwx ? ' Lan Wangji said “Mn” in a way you understood, somehow, to mean welcome.' : '') +
-        (f.jl_knows ? ' Jin Ling kept your secret until Saturday morning, and then told everyone, and saved you the seat next to the dog.' : '');
+        (f.jl_knows ? ' Jin Ling invited you himself (“it’s MY birthday and i’m an adult and i decide”), kept your secret until Saturday morning, and saved you the seat next to the dog.' : '');
       const line = f.told_recipe && c.soup === 'right' ? '“You were right about the fire.”' : f.car_handled ? '“The car. Fine.”' : '“Did you eat.”';
       return card('9:15 p.m. · You', [p1, 'Jiang Cheng hasn’t said a word to you all night. Then, passing the pot, he says, ' + line + ' And that is how you know.']);
     }
@@ -329,7 +354,7 @@
       case 'five':
         return card('11:10 p.m. · The kitchen', 'After everyone has gone, he washes the pot himself and puts it back on the kitchen shelf where it used to live. It is still there.', ART.five);
       case 'gate':
-        return card('9:40 p.m. · The gate', 'At 9:40 Jiang Cheng walks down to the gate with two bowls from his own pot. He opens it. He doesn’t say anything; neither does Wei Wuxian. They sit on the step outside and eat cold soup that isn’t hers, shoulder to shoulder. It isn’t fixed. But the gate is open.', ART.gate);
+        return card('9:40 p.m. · The gate', (f.burned_gate ? 'Someone promised Wei Wuxian on Friday night that the gate would be open. ' : '') + 'At 9:40 Jiang Cheng walks down to the gate with two bowls from his own pot. He opens it. He doesn’t say anything; neither does Wei Wuxian. They sit on the step outside and eat cold soup that isn’t hers, shoulder to shoulder. It isn’t fixed. But the gate is open.', ART.gate);
       case 'two_parties':
         return card('11:30 p.m. · The sofa', 'Jin Ling falls asleep on the sofa in his tuxedo, with the press badge still round his neck and Fairy across his feet. Two parties. He went to the one that counted last, and stayed the longest.', 'end_jl_hero');
       case 'tea':
@@ -367,6 +392,7 @@
     else if (c.gate) cap = '“wei wuxian is outside the gate. jiujiu keeps looking at the window. nobody is allowed to say anything”';
     else cap = '“jiujiu made soup from a NOTE on his phone. its bad. im having two”';
     cards.push(card(K('7:02 p.m.'), ['A photo of the table from above, slightly crooked. You count ' + word(bowlsN) + ' bowls.', cap], c.soup !== 'none' ? 'p_lotus_root_soup' : undefined));
+    if (c.wwx) cards.push(card(K('7:08 p.m.'), ['Wei Wuxian and Jiang Cheng at the stove, not looking at each other, both holding the same ladle.', '“theyre not fighting. its so weird. lan zhan is filming too”']));
     if (c.fairy) cards.push(card(K('7:15 p.m.'), ['A photo of Fairy under the table, chewing something she wasn’t given.', f.dog_friday ? '“head of morale. on duty”' : '“she got in. nobody knows how. (i know how)”']));
     const people = [];
     if (c.lxc === 'yes' || c.lxc === 'late') people.push('“lan xichen came' + (c.lxc === 'late' ? ' after dinner' : '') + '. jiujiu made him TEA. himself. with a thermometer”');
@@ -374,6 +400,7 @@
     if (c.nhs) people.push('“huaisang hasnt posted anything all night. suspicious”');
     if (people.length) cards.push(card(K('7:40 p.m.'), ['A blurry photo of people laughing at something just out of frame.'].concat(people.slice(0, 2))));
     if (c.bell !== 'none') cards.push(card(K('8:12 p.m.'), ['A photo of a silver bell, slightly out of focus, on ' + (c.bell === 'given' ? 'purple velvet' : 'a gold box lid') + '.', '“it was my moms”', '“dont text back im not crying”'], 'p_silver_bell'));
+    if (c.cake !== 'none') cards.push(card(K('8:30 p.m.'), [c.cake === 'lotus seed' ? 'A cake, lotus seed paste, eighteen candles, one of them already falling over.' : 'A chocolate cake, eighteen candles, and Jin Ling’s thumb over half the lens.', '“he did a toast. HE DID A TOAST. im not sending u the video. its mine”']));
     cards.push(card(K('9:01 p.m.'), ['A photo of the end of the table: one bowl, nobody behind it.', c.honoured ? '“its for my mom. he never says that but it is. this year he filled it first”' : '“its for my mom. he never says that but it is. nobody touches it”']));
     cards.push(card(K('11:02 p.m.'), [
       'Last photo: Jiang Cheng asleep in a chair with the dog’s head on his knee.',
@@ -386,8 +413,12 @@
   function build(s, t) {
     const c = ctx(s, t);
     if (c.photos) return photoCards(c).filter(Boolean);
-    const sat = [satGusu(c), satScandal(c), satTea(c), satSoup(c), satBell(c)].filter(Boolean).slice(0, 3);
-    const sun = [gate(c), waiting(c), bowls(c), soup(c), fairy(c), xichen(c), wenning(c), huaisang(c), gift(c), toast(c), emptyBowl(c), you(c), last(c)].filter(Boolean);
+    const sat = byClock([satGusu(c), satScandal(c), satTea(c), satSoup(c), satBell(c)].filter(Boolean).slice(0, 3));
+    // the last image always closes the night, whatever its clock says
+    // (a stranger who was only thanked hears about it on Monday: that card comes after the night)
+    const y = you(c);
+    const monday = c.you === 'thanks';
+    const sun = byClock([gate(c), waiting(c), bowls(c), soup(c), fairy(c), xichen(c), wenning(c), huaisang(c), gift(c), toast(c), emptyBowl(c), monday ? null : y].filter(Boolean)).concat([last(c), monday ? y : null].filter(Boolean));
     // at most 14 cards: drop the least essential Sunday beats first
     let cards = sat.concat(sun);
     const DROP = [fairy, huaisang, waiting, wenning];
@@ -440,7 +471,11 @@
     hint: 'Every night ends at the same table. Who sits there is up to you.',
     get art() { const o = lastOutcome(); return (o && ART[o]) || 'end_reunited'; },
     text: [
-      (s) => SUMMARY[T(s).outcome] || SUMMARY.empty,
+      (s) => {
+        const t = T(s);
+        const x = SUMMARY[t.outcome] || SUMMARY.empty;
+        return t.seats.you.state === 'photos' && t.outcome !== 'photos' ? x + ' You saw it in photos, from Jin Ling.' : x;
+      },
       (s) => whoSat(s),
       (s) => {
         const f = F(s);
@@ -461,7 +496,7 @@
         if (f.returned_how === 'desk' || f.phone_at_desk) return 'When Jiang Cheng got his phone back, it was in an envelope at the Golden Peony’s front desk with “Room 1808” on it. He read every message from the night before, twice, standing in the lobby in yesterday’s suit.';
         if (f.returned_how === 'swift') return 'When Jiang Cheng got his phone back, it came with a Swift Ride found-item number, #SR-1016-2347, and a very small rating for himself. He read every message in the back of Master Wu’s car.';
         if (f.returned_early) return 'When Jiang Cheng got his phone back, in the middle of the night, he read every message twice in a hotel bathrobe. Most of them were people asking if he was all right.';
-        if (f.wn_accomplice) return 'When Jiang Cheng got his phone back, Wen Ning brought it at ten, with Tang Mei in the passenger seat of the van, and apologised for having seen nothing.';
+        if (f.wn_accomplice) return 'When Jiang Cheng got his phone back, Wen Ning brought it to him at half past eight, apologised for having seen nothing, and said only that whoever had it had been kind to his family all night.';
         return 'When Jiang Cheng got his phone back, at ten on Saturday, from Tang Mei, he had already read everything on his laptop. He read it all again anyway.';
       },
       (s) => {
@@ -475,7 +510,7 @@
       (s) => {
         const f = F(s);
         const t = T(s);
-        if (t.seats.you.state === 'table') return 'On Monday he finally changed his passcode, to the night a stranger found his phone in a taxi: 161026. “Six bowls,” he told Tang Mei, when she asked how Sunday went. “Don’t make it a thing.”';
+        if (t.seats.you.state === 'table') return 'On Monday he finally changed his passcode, to the night a stranger found his phone in a taxi: 161026. “' + (t.outcome === 'full' ? 'Every chair' : 'Six bowls') + ',” he told Tang Mei, when she asked how Sunday went. “Don’t make it a thing.”';
         if (f.renamed_wwx && !f.renamed_wwx_cold) return 'Wei Wuxian is still saved as “' + f.renamed_wwx + '” in his phone. “Leave it,” he told Jin Ling. “It’s fine.” It is the second time that weekend he has said it and meant something else entirely.';
         if (t.outcome === 'gate') return '“It isn’t fixed,” he told Tang Mei on Monday. Then, after a while: “He came anyway.”';
         if (t.outcome === 'empty') return '“It was fine,” he told Tang Mei on Monday. She cleared his Thursday without being asked.';
