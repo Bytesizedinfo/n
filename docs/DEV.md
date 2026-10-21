@@ -1,10 +1,12 @@
-# Jiang Cheng's Phone — Developer Guide
+# Childe's Phone — Developer Guide
 
 Vanilla HTML/CSS/JS, no build step, no frameworks. Every file is a classic script that attaches to the global
 namespace `window.JC`. Files load in the order listed in `index.html`. Story/content files only *register* data at load
 time; nothing runs until `JC.boot()` at the end.
 
-Read `docs/STORY.md` for every fact about the characters and the world.
+Read `docs/STORY.md` for every fact about the characters and the world. Everything story-specific that the engine
+needs (names, passcode, app names, jokes, the bank, start time…) lives in **`js/data/world.js`** (`JC.world`, see
+"World config" below); core files never hard-code story values.
 
 ## Golden rules
 1. **No dead UI.** Every element that looks tappable must do something real: navigate, open a sheet, toggle, edit data,
@@ -29,6 +31,7 @@ css/os.css             frame, lock, home, status bar, island, CC, notification U
 css/ui.css             kit components: nav bars, lists, controls, sheets, alerts, menus        (core)
 css/apps/<app>.css     one stylesheet per app (owned by that app's author)
 js/core/util.js        JC.h, JC.util
+js/data/world.js       JC.world  (every story-specific value core reads; loads right after util.js)
 js/core/state.js       JC.state  (persistence, rewind)
 js/core/time.js        JC.time   (in-game clock)
 js/core/store.js       JC.store  (app data collections)
@@ -39,14 +42,17 @@ js/core/keyboard.js    JC.kb     (on-screen iOS keyboard)
 js/core/ui.js          JC.ui     (component kit)
 js/core/notify.js      JC.notify (banners, notification center, badges)
 js/core/os.js          JC.os     (springboard, lock screen, gestures, control center, app windows)
-js/core/story.js       JC.story  (branching engine)
+js/core/story.js       JC.story  (branching engine, chapters, time controls, aftermath)
+js/core/bank.js        JC.bank   (the one bank balance every app charges)
 js/core/boot.js        JC.boot
 js/data/contacts.js    JC.contacts
 js/art/*.js            illustrations
 js/apps/<app>.js       one file per app
 js/story/history/*.js  pre-existing message threads
 js/story/scenes/*.js   live branching scenes, calls, endings
+tools/storytest.js     story validator + playthroughs (routes in tools/routes/*.js)
 ```
+Core load order is fixed in `tools/manifest.py` (`CORE`); everything else is picked up by folder.
 
 ## DOM helper — `JC.h(selector, props?, ...children)`
 ```js
@@ -63,10 +69,14 @@ h('button.btn#save', { onTap, disabled: false, data: { id: 3 } }, [icon, 'Save']
   fmtDate(ms, style), fmtRelative(ms), fmtDur(sec), longPress(el, fn), drag(el, handlers)`.
 
 ## In-game time — `JC.time`
-- The night starts **Fri 16 Oct 2026 23:47**. `JC.time.now()` → ms (in-game), `JC.time.date()` → Date.
-- `JC.time.parse(str)` accepts `'-3 21:04'` (3 days before 16 Oct at 21:04), `'+0 23:12'` (16 Oct), `'+1 07:40'`
-  (Sat 17 Oct), `'2009-02-12 18:30'` (absolute), `'23:12'` (16 Oct).
-- Events on `JC.bus`: `tick` (each second), `minute`.
+- The clock starts at **`JC.world.start`** (`'YYYY-MM-DD HH:MM'`); day 0 is that date. `JC.time.now()` → ms (in-game),
+  `JC.time.date()` → Date, `JC.time.START` (ms), `JC.time.BASE` (day 0 at 00:00).
+- `JC.time.parse(str)` accepts `'-3 21:04'` (3 days before day 0 at 21:04), `'+0 23:12'` (day 0), `'+1 07:40'`
+  (day 1), `'2009-02-12 18:30'` (absolute), `'23:12'` (day 0).
+- `JC.time.set(ms)` / `advance(ms)` jump the clock (no cap). `JC.time.freeze(on)` (counted) stops it.
+- Pace: the clock advances `JC.time.rate()` in-game ms per real ms = `timeScale × the current chapter's clockRate`
+  (both 1 by default), and never runs past `JC.time.cap()` (the current chapter's `until`) on its own.
+- Events on `JC.bus`: `tick` (each second the clock shows), `minute`.
 
 ## Event bus — `JC.bus.on(name, fn)` / `off` / `emit` / `once`
 
@@ -84,7 +94,7 @@ JC.store.on('notes', fn)         // fn(collection) after any change; returns uns
 ```
 ### Collection schemas (owners must honour these; the story writes them)
 - `notes` `{id, folder:'notes'|'personal'|'work', title, body, t, created, pinned, locked}` (body plain text; lines
-  `- [ ] x` / `- [x] x` render as checklist; a locked note asks for the passcode 181008).
+  `- [ ] x` / `- [x] x` render as checklist; a locked note asks for the iPhone passcode, `JC.world.passcode.code` unless the player changed it).
 - `photos` `{id, art, t, albums:[], fav, people:[], place, caption, kind:'photo'|'screenshot'|'live'|'video', dur}`
 - `albums` `{id, title, cover}`
 - `events` `{id, cal:'work'|'home'|'family'|'birthdays', title, start, end, allDay, location, notes, tentative}`
@@ -94,7 +104,7 @@ JC.store.on('notes', fn)         // fn(collection) after any change; returns uns
 - `voicemails` `{id, contact, num, t, dur, text, heard}`
 - `memos` `{id, title, t, dur, text, place, fav}`
 - `posts` `{id, by, t, art, text, likes, liked, comments:[{by, text, t}]}` (`by` = Wavelet handle)
-- `tx` `{id, card, merchant, amount, t, cat, note}`
+- `tx` `{id, card, merchant, amount (+ charge, − credit), t, cat, note, place, pending, contact, app}` (JC.bank writes these)
 - `orders` `{id, rest, items:[{name, qty, price}], total, t, status, to}`
 - `rides` `{id, from, to, t, end, price, driver:{name, car, plate, rating}, status}`
 - `places` `{id, name, city, x, y, cat, addr, phone, hours, rating, desc}` (Maps owns; ids from STORY.md)
@@ -130,6 +140,14 @@ SF-Symbol-like outline/filled glyphs, `currentColor`. Names: see `JC.icon.names(
 `person.fill`, `person.crop.circle`, `location.fill`, `paperplane.fill`, `arrow.up`, `square.and.arrow.up`, `folder`,
 `bell.fill`, `moon.fill`, `wifi`, `airplane`, `bolt.fill`, `lock.fill`, `flag.fill`, `clock`, `calendar`, `map`, `house.fill` …).
 Apps may add icons with `JC.icon.add({ name: '<svg path markup in a 24×24 box>' })` from their own file.
+Story glyphs: `vision.hydro` (water-drop gem), `hare` / `hare.fill`, `snowflake`, `forward.end.fill`, `moon.zzz.fill`;
+the story's emblem is `JC.world.brand.emblem` (core never hard-codes one).
+
+**App icons** are 60×60 SVG strings rendered as images. Register one from the app's own file:
+```js
+JC.appIcon.add('northland', (date) => `<svg ${JC.appIcon.W}><rect width="60" height="60" fill="#0b2a4a"/>…</svg>`);
+JC.appIcon(id, size) // element;  JC.appIcon.url(id), JC.appIcon.has(id)
+```
 
 ## Sounds — `JC.audio.play(name)`
 `tap, key, key.delete, key.space, send, receive, notify, lock, unlock, shutter, ring, ring.stop, alert, error, swoosh,
@@ -205,7 +223,7 @@ JC.ui.share({ title, subtitle, art, text, kind: 'photo'|'link'|'text'|'memo', pa
 ## App registration — `JC.app(def)`
 ```js
 JC.app({
-  id: 'notes', name: 'Notes',
+  id: 'notes', name: 'Notes',     // the home screen shows JC.world.apps.names[id] when set
   status: 'dark',                 // status bar text colour on this app: 'dark' (black text) | 'light' | 'auto' (follows appearance)
   launch(win, intent) {           // called once when the app is first opened (or after it was killed)
     // win.body  : element to render into (full screen, under status bar)
@@ -222,7 +240,9 @@ JC.os.open('messages', { thread: 'wwx' })   // open an app (with optional intent
 JC.os.home()
 JC.os.setWallpaper(id) / JC.os.setAppearance('light'|'dark'|'auto') / JC.os.dark (bool)
 JC.os.toggles (wifi, bt, airplane, focus, silent, flashlight, lowPower, rotationLock) / JC.os.setToggle(key, on)
-JC.os.lostMode({ message, phone })   // finale
+JC.os.lostMode({ message, phone, contact })   // Lost Mode panel; "Call" dials contact (default JC.world.contacts.ownerLine)
+JC.os.appName(id), JC.os.appIds()     // display name (JC.world.apps.names first); every known app id
+JC.os.timeSkip({ to, text, lock })    // the full-screen "time passes" card → Promise
 JC.os.battery()                       // percent
 ```
 Badges: `JC.notify.badge(appId, n)`. Notifications: `JC.notify.push({ app, title, subtitle, body, avatar, art,
@@ -279,19 +299,35 @@ JC.story.scene({
   },
 });
 ```
-**Triggers**: `{ on: 'unlock', delay }` (seconds after the phone is first unlocked), `{ on: 'scene', scene, delay }`
-(after another scene finishes), `{ on: 'flag', flag, delay }` (when a flag becomes truthy),
-`{ on: 'act', act: 'memo_play', match: (p) => p.id === 'memo14', delay }`, `{ on: 'open', thread: 'ajie' }` or
-`{ on: 'open', app: 'voicememos' }`, `{ on: 'time', at: '01:10' }` (in-game time), `{ on: 'manual' }` (started by a
-`start` step). Delays are in seconds of play time.
+Scene keys besides `id`, `thread`, `trigger`, `when`, `nodes`: `retry: true` (a failed `when` is checked again every
+tick instead of skipping the scene), `arc: 'zl'` (which story arc owns the scene; used by the interconnection lint),
+`ch: 'chapterId'`, `required: true`, `expire: 'nodeName' | true` (see Chapters).
+
+**Triggers** (`trigger` is one object, or an **array = any of them**; the earliest due time wins):
+
+| trigger | fires |
+|---|---|
+| `{ on: 'unlock', delay }` | `delay` s after the phone is first unlocked |
+| `{ on: 'scene', scene, delay }` | after another scene finishes |
+| `{ on: 'flag', flag, delay }` | when a flag becomes truthy |
+| `{ on: 'act', act: 'memo_play' \| ['a', 'b'], match: (p, s) => bool, delay }` | when an app reports the act (any of the list) |
+| `{ on: 'open', thread: 'ajie' }` / `{ on: 'open', app: 'voicememos' }` | when that thread / app is opened |
+| `{ on: 'time', at: '+1 06:55' }` | when the in-game clock reaches `at` (`'+N HH:MM'`, `'YYYY-MM-DD HH:MM'`, or `'HH:MM'` = day 0, or day 1 before noon). Fires correctly with a fast chapter clock. |
+| `{ on: 'chapter', ch: 'sat_am', delay }` | `delay` s of play time after that chapter began |
+| `{ on: 'sus', who: 'tonia' \| 'total', at: 6, delay }` | when suspicion of `who` (or the sum) reaches `at` |
+| `{ on: 'manual' }` | only by a `start` step / `JC.story.start(id)` / an onAct rule |
+
+Delays are seconds of **play time** (they shrink with `timeScale`). A scene with `ch` only arms while its chapter is
+current, and is marked `'expired'` when the chapter ends.
 
 **Steps** (a node is an array of steps, executed in order):
+
 | step | meaning |
 |---|---|
 | `{ m: 'text', from, d, img, voice, link, loc, effect, th }` | Message from a contact (typing indicator first; `d` = typing seconds, default from length). `from` required in groups. `th` sends to another thread. |
 | `{ me: 'text', img, th }` | Message sent automatically as the player. |
-| `{ choice: [opt…], timeout, onTimeout }` | Wait for the player. Option: `{ t, label, go, fx, silent, send:[…extra bubbles], if: s => bool }`. `t` is the text sent; `label` (optional) is shown on the button instead; `silent: true` sends nothing. Timeout seconds start when the player has the thread open. |
-| `{ fx: { set: {flag: v}, sus: {id: n}, aff: {id: n}, inc: {counter: n} } }` | Effects (options may carry `fx` too). |
+| `{ choice: [opt…], timeout, onTimeout }` | Wait for the player. Option: `{ t, label, go, fx, silent, send:[…extra bubbles], if: s => bool }`. `t` is the text sent; `label` (optional) is shown on the button instead; `silent: true` sends nothing. Timeout seconds (play time) count only while the player has the thread open. |
+| `{ fx: { set: {flag: v}, sus: {id: n}, aff: {id: n}, inc: {counter: n} } }` | Effects (options may carry `fx` too). Suspicion spreads (see Gossip). |
 | `{ go: 'node' }` | Jump. |
 | `{ if: (s) => bool, go: 'a', else: 'b' }` | Branch (`else` optional = continue). |
 | `{ start: 'sceneId', delay }` | Start another scene. |
@@ -299,17 +335,22 @@ JC.story.scene({
 | `{ typing: seconds, from }` | Typing indicator that stops without a message. |
 | `{ react: 'haha'\|'love'\|'like'\|'dislike'\|'emph'\|'q', from, on: 'me'\|'them' }` | Tapback on the last message (default the player's). |
 | `{ unsend: true, from }` | The contact unsends their last message. |
-| `{ sys: 'text' }` | System line in the thread ("Lan Jingyi added Jin Ling to the conversation."). |
+| `{ sys: 'text' }` | System line in the thread. |
+| `{ addMember: cid }` / `{ removeMember: cid }` / `{ rename: 'Group name' }` | Change the thread. |
 | `{ add: { to: 'notes'\|'mail'\|'events'\|…, item: {...}, notify: true } }` | Add app data. |
 | `{ notify: { app, title, body, open } }` | A notification from any app. |
 | `{ call: 'callId', delay }` | Incoming call (see calls). |
-| `{ time: '+20m' \| '07:38', card: 'Optional narrator line' }` | Move the in-game clock (with `card` a full-screen "time passes" moment). |
-| `{ run: (api) => {} }` | Escape hatch (api = `{ state, os, store, story, notify }`). |
-| `{ ending: 'id' }` / `{ endings: ['id', …] }` | Finish the game with an ending (the first id is shown; all are unlocked). |
+| `{ time: '+20m' \| '07:38' \| '+1 06:50', card: 'Optional narrator line' }` | Move the in-game clock (with `card` a full-screen "time passes" moment). |
+| `{ run: (api) => {} }` | Escape hatch (api = `{ state, os, store, story, notify, time, contacts, ui }`). |
+| `{ ending: 'id' }` / `{ endings: ['id', …] }` / `{ endings: (s) => ids }` | Finish the game with an ending (the first id is shown; all are unlocked). |
+| `{ endings: 'finale' }` | Finish with the rule-based finale endings: shows the top `JC.story.qualifying()` ending, unlocks all qualifying. |
 | `{ end: true }` | End the scene now. |
 
-`s` (in `when`, `if`, `opt.if`) is the live state: `s.flags`, `s.sus`, `s.aff`, `s.done` (scene ids started),
-plus helpers `s.susTotal()`.
+`s` (in `when`, `if`, `opt.if`, `match`, ending/aftermath `when`) is the live state: `s.flags`, `s.sus`, `s.aff`,
+`s.done` (scene id → 1 started | 'skipped' | 'expired'), `s.fin` (finished), `s.endings`, `s.now` (clock ms), `s.eng`
+(play ms), `s.chapter` (current chapter id), helpers `s.flag(n)`, `s.count(n)`, `s.susTotal()`,
+**`s.acted(name)`** (how many times the act was reported this playthrough) and `s.balance()` (bank balance).
+Flags the engine sets itself: `told_truth` (any confession), `card_frozen` (JC.bank).
 
 ### Authoring: calls
 ```js
@@ -327,61 +368,246 @@ JC.story.dialScript('jl', 'call_jl_out', (s) => s.flags.car_handled);   // what 
 ```
 Call steps: `say` (line from the caller, shown as live captions), `choice` (player options; spoken lines in quotes,
 actions in parentheses), `hangup` (they hang up), plus every normal step. Unscripted outgoing calls get a sensible
-default (rings, then voicemail or "Jiang Cheng? Hello?" with options to hang up, stay silent, or tell the truth).
+default (rings, then voicemail, or the contact's `hello` / `JC.world.contacts.hello` with options to hang up, stay
+silent, or tell the truth; telling the truth ends the game with `JC.world.confess.endings[cid]` or `.fallback`). Dialling
+`JC.world.contacts.ownerLine` without a dialScript plays `JC.world.contacts.ownerLineCall`. Ringing, captions and the
+outgoing ring time all scale with `timeScale`.
 
 ### Authoring: endings & intro
 ```js
 JC.story.ending({ id: 'reunited', n: 9, title: 'Lotus Pier, Reunited', tag: 'Family', art: 'end_reunited',
   hint: 'Some invitations are thirteen years late. Send them anyway.',
-  text: ['paragraph', '…'], jc: ['When Jiang Cheng got his phone back…', '…'] });
-JC.story.intro = ['11:47 PM. Lanling.', 'The taxi smells like rain…', …];   // prologue lines, one per screen
-JC.story.lockNotifs = [ { app: 'phone', title: 'Missed Call', body: '🐶 DO NOT ANSWER (3)', t: '+0 23:12' } ];
-JC.story.onSuspicion('nhs', 8, 'caught_nhs');   // start scene when suspicion reaches a threshold
+  text: ['paragraph', '…'], jc: ['When he got his phone back…', '…'] });
+JC.story.intro = ['11:47 PM. Liyue Harbor.', '…'];   // prologue lines, one per screen (fallback: JC.world.introFallback)
+JC.story.lockNotifs = [ { app: 'phone', title: 'Missed Call', body: 'Tonia (3)', t: '+0 23:12' } ];
+JC.story.onSuspicion('tonia', 8, 'caught_tonia');   // start scene when suspicion reaches a threshold
 JC.story.onTotalSuspicion(25, 'caught_total');
 ```
-Contact flavour used by the engine for unscripted messages lives on the contact (`idle`, `confused`, `voiceReact`,
-`imgReact`, `dogReact`, `confess`) — set them in `js/story/flavor.js`.
+`jc` is the epilogue block; its heading is `JC.world.brand.epilogue`.
+
+**Rule-based (finale) endings.** Give an ending `finale: true` and a condition; the finale step picks for you:
+```js
+JC.story.ending({ id: 'contract_renewed', n: 3, title: 'A Contract Renewed', finale: true,
+  priority: 1,                    // lower = shown first when several qualify
+  arcs: ['zl', 'osial'],          // documentation for the lint (it measures what `when` actually reads)
+  when: (s) => s.flags.zl_contract && s.flags.osial_stopped,   // no `when` = always qualifies (use one as the fallback)
+  text: [...], jc: [...], hint: '...' });
+JC.story.qualifying()             // finale endings whose `when` passes, sorted by priority (then n)
+// in the last scene:  { endings: 'finale' }   → shows qualifying()[0], unlocks every qualifying one
+```
+`{ ending }` and `{ endings: [...] }` keep working.
+
+**Aftermath ("Where everyone ended up").** Every chat gets one outcome line on page 2 of the ending screen:
+```js
+JC.story.aftermath([
+  { id: 'zhongli', name: 'Zhongli', avatar: 'zhongli', outcomes: [      // avatar = contact id
+    { id: 'honored', when: (s) => s.flags.zl_contract && !s.flags.zl_broken, line: 'Contract honored. He paid for tea.' },
+    { id: 'never',   line: 'Never signed. He still wonders.' },          // no `when` = catch-all
+  ] },
+]);
+```
+The first matching outcome per chat wins; a chat with no match is left out. Calling `aftermath()` again with the same
+chat id replaces it. The result is computed when the game ends and saved; found outcomes persist across restarts (like
+endings) and show in the Endings gallery ("Zhongli · 2 of 5"). Runtime: `JC.story.aftermathResult()` →
+`[{ id, name, avatar, outcome, line, total }]` (live), `JC.story.aftermathLast()` → `{ ending, list }` (frozen at the
+ending), `JC.story.aftermathFound()` → `[{ id, name, avatar, found, total, outcomes: [{ id, line, found, at }] }]`.
+
+### onAct: repeatable reactions to app acts
+```js
+JC.story.onAct({
+  id: 'paimon_fed',                       // required for `once`; also the key of s.actOnce
+  act: 'order' | ['order', 'charge'],     // one act or any of a list ('*' = every act)
+  match: (p, s) => p.app === 'lotuseats', // optional payload filter
+  fx: { inc: { paimon_meals: 1 } } | ((p, s) => fx),   // effects (function form may return null)
+  start: 'paimon_thanks', delay: 20,      // optional: start a scene (delay in play seconds)
+  notify: { app: 'messages', title: 'Paimon', body: '!!!' },   // optional notification (after `delay`)
+  once: false,                            // true: fires the first time only
+  arc: 'lumine',                          // optional, for the interconnection lint
+});
+```
+Rules run on every `JC.story.act(name, payload)` (repeatable unless `once`), never after the game has ended. Counters
+live in the save (`s.acts[name]`, `s.actOnce[id]`), so rewind is exact. `JC.world.acts` rules are registered at boot.
+
+### Chapters (multi-day play)
+```js
+JC.story.chapter({
+  id: 'sat_am', n: 2, title: 'The Kids Land', label: 'Saturday morning',
+  at: '+1 06:50',                 // the clock jumps here when the chapter begins (ignored for the first chapter)
+  card: 'Saturday, 06:50. You fell asleep on the couch with his phone on your chest.',   // time-skip card text
+  clockRate: 10,                  // in-game seconds per play second while current (× timeScale). Default 1.
+  until: '+1 09:30',              // the clock never runs past this on its own during the chapter
+  maxWait: 1500,                  // optional: move on after this many play seconds regardless
+  settle: (s, dflt) => dflt() && s.flags.kids_landed,   // optional: replaces the default settle test
+  settleDelay: 8,                 // seconds settle must hold before moving on (default 8)
+});
+```
+Register chapters in play order. The first chapter begins at the first unlock. Scenes join a chapter with
+`ch: 'sat_am'`; `required: true` scenes define when it is done; `expire: 'nodeName' | true` says what happens if the
+chapter ends first.
+- **Default settle:** the chapter has at least one `required` scene, every required scene has finished (or was
+  skipped/expired), and none of the chapter's scenes is mid-conversation (no pending choice, no typing; a run sitting
+  in a `wait` step does not block). A chapter with no required scenes only ends by `maxWait` or Later….
+- **Moving on** (settled for `settleDelay` s, `maxWait` reached, or `JC.story.later()`): unfinished chapter scenes
+  expire (pending choice cancelled, then the `expire` node runs instantly, messages without typing, or the scene just
+  ends); unstarted ones are marked `'expired'`; the time-skip card plays (`JC.os.timeSkip({ to, text: card })`, phone
+  locks), the clock is set to `at`, the battery goes to 100 % if the day changed; `story:chapter` fires and the new
+  chapter's triggers arm. The last chapter never auto-advances.
+- `JC.story.later()` → true if it moved on. `JC.story.canLater()`: chapters exist, a next chapter exists, no timed
+  choice is pending, no call is active, no time card is showing.
+- `JC.story.currentChapter()` → chapter def + `{ index, startedAt, day }` (`day` = weekday name) | null;
+  `JC.story.nextChapter()`; `JC.story.chapters()` → defs + `{ index, started }`.
+- UI: "Later…" on the lock screen and a Control Center tile (both show the next chapter's `label`, only while
+  `canLater()`); Settings → Story shows the chapter and day and "Skip to Next Chapter".
+- Use `{ on: 'chapter', ch, delay }` to schedule a chapter's scenes, and `'+N HH:MM'` for every `time` trigger.
+
+### Time controls
+- Setting `timeScale` ∈ {1, 2, 4, 8}: play time and the clock run that much faster, so trigger delays, typing, waits,
+  call captions, ringing and timed choices all shrink proportionally. Message Speed (`settings.speed`) is separate.
+- `JC.story.setTimeScale(n)` (snaps to 1/2/4/8, returns it), `JC.story.timeScale()`.
+- `JC.story.skipNext()`: jumps play time and the clock to the next scheduled step, armed trigger or `on: 'time'`
+  trigger (clock set exactly to its `at`); with nothing scheduled it calls `later()` when possible. Returns
+  `'step' | 'trigger' | 'time' | 'later' | false`. `JC.story.nextEvent()` → `{ in: playMs, kind } | null`.
+- `JC.story.hurry(threadId)`: the contact typing there delivers now (tapping the typing bubble in Messages does this).
+- `JC.story.pause(on)` / `JC.story.paused()`: freezes the clock, play time and timed choices (JC.time.freeze).
+- UI: Control Center hare tile (tap cycles 1→2→4→8, long-press = skip to next, orange while paused), status-bar
+  badge (⏩ 4× / ⏸), Settings → Story (Time Speed, Skip to Next Event, Pause Story), desktop keys `]` faster,
+  `[` slower, `\` skip to next (ignored while typing).
+- Tests: `JC.story._ff = true` (schedule from due time) and `JC.story._advance(ms)` (play time + clock, honoring
+  clockRate and `until`).
+
+### Gossip (suspicion spreads)
+`JC.world.gossip = [{ from: 'tonia', to: 'mama', share: 0.5 }]` (also `JC.story.gossip(edges)`): when suspicion of
+`from` rises by n (scene fx, option fx, onAct fx, or the engine's own off-script bumps), `to` gets `share × n`. One hop
+only. Suspicion raised inside a group thread also gives every other member `JC.world.groupShare × n` (default 0.5).
+Every change emits `story:sus` `{ who, by, via }` (`via` = the gossiping contact, `'group:<thread>'`, or null).
+`{ on: 'sus', who, at }` triggers and `onSuspicion` hooks see the spread values.
+
+### Contact flavour (unscripted replies)
+Pools on the contact, set in `js/story/flavor.js`: `idle`, `confused`, `voiceReact`, `imgReact`, `confess`,
+`confessCall`, plus any pool named in `JC.world.imgPools` (art tag → pool, e.g. `{ dog: 'dogReact' }`). A pool may mix
+strings with **reactive lines** `{ text, when: (s) => bool }`: lines whose `when` passes are preferred (60 % of the
+time when there are plain lines too, always when there are none); failing lines are skipped. `"\n"` splits bubbles.
 
 ### Runtime API (apps)
 ```js
 JC.story.threads()            // [{ id, name, members, group, pinned, muted, unread, last, typing }]
 JC.story.messages(threadId)   // normalized: { id, t, from, text, img, voice, link, loc, react:[], unsent, edited, fail, effect, sys, sticker, status:'sent'|'delivered'|'read'|'failed', readAt }
-JC.story.pending(threadId)    // null | { options: [{ i, label, text, silent }] }
+JC.story.pending(threadId)    // null | { options: [{ i, label, text, silent }], timeout, left }
 JC.story.choose(threadId, i)
 JC.story.send(threadId, { text } | { img } | { voice } | { loc } | { memo })   // free message from the player
 JC.story.typing(threadId)     // contact id currently typing, or null
 JC.story.setOpen(threadId|null), JC.story.markRead(threadId)
 JC.story.react(threadId, msgId, type), JC.story.pin(threadId, on), JC.story.mute(threadId, on), JC.story.remove(threadId)
-JC.story.threadFor(contactId) // DM thread id (created on demand)
-JC.story.sus(contactId), JC.story.susTotal(), JC.story.flag(name)
+JC.story.threadFor(contactId) // DM thread id (created on demand);  JC.story.members(threadId) → contact ids
+JC.story.sus(contactId), JC.story.susTotal(), JC.story.flag(name), JC.story.aff(contactId), JC.story.api() // the `s` object
 JC.story.act(name, payload)   // report player actions
 JC.story.dial(contactId, { video })   // player places a call
 JC.story.call()               // current call state or null
 JC.story.answer(), JC.story.decline(), JC.story.callChoose(i), JC.story.hangup()
 JC.story.endings()            // [{ id, n, title, tag, hint, unlocked, at }]
 JC.story.rewind(), JC.story.restart()
+// + chapters, time controls and aftermath (above)
 ```
-Bus events: `story:thread` ({ thread }), `story:threads`, `story:typing` ({ thread, who }), `story:pending` ({ thread }),
-`story:call` (call state), `story:ending` ({ id }).
+Bus events: `story:thread` ({ thread, msg }), `story:threads`, `story:typing` ({ thread, who }), `story:pending`
+({ thread }), `story:call` (call state), `story:act` ({ name, p }), `story:fx` (the fx object, whenever effects
+apply), `story:sus` ({ who, by, via, value }), `story:ending` ({ id, also }), `story:reset` (rewind/restart),
+`story:chapter` ({ id, n, title, label, index }), `story:chapter:end` ({ id, next, why: 'settled'|'maxWait'|'later' }),
+`story:time` ({ scale, paused }), `story:skip` ({ kind, ms }), `bank` (see JC.bank), `wallet:tx` (tx).
 
 ### Story acts (apps MUST emit these)
+
 | app | act | payload |
 |---|---|---|
-| OS | `open_app` | `{ app }` (automatic) |
-| Messages | `open_thread`, `send`, `tapback` | `{ thread }`, `{ thread, kind, text, art }`, `{ thread, msg, t }` |
+| OS | `open_app`, `unlock`, `wallpaper` | `{ app }` (automatic), `{ first }`, `{ id }` |
+| Messages | `open_thread`, `send`, `tapback` | `{ thread }`, `{ thread, kind, text, art, memo }`, `{ thread, msg, t }` |
+| Calls (engine) | `call_start`, `call_end` | `{ contact, dir }`, `{ contact, dur, answered }` |
+| Bank (JC.bank) | `charge`, `decline`, `transfer`, `card_freeze` | `{ amount, merchant, app, cat, card, tx, balance }`, `{ amount, merchant, app, card, reason }`, `{ to, amount, memo }`, `{ on }` |
 | Voice Memos | `memo_play`, `memo_share`, `memo_delete` | `{ id }`, `{ id, to }`, `{ id }` |
 | Photos / Camera | `photo_view`, `photo_delete`, `photo_fav`, `photo_taken` | `{ id }` |
 | Notes | `note_open`, `note_edit` | `{ id }` |
 | Safari | `visit` | `{ url }` |
 | Maps / Find My | `place_view`, `directions`, `findmy_sound`, `findmy_view` | `{ place }`, `{ place }`, `{ id }`, `{ id }` |
-| Lotus Eats | `order` | `{ rest, total, to }` |
-| Swift Ride | `ride_view`, `ride_report_lost` | `{ id }`, `{}` |
-| Wavelet | `post`, `like`, `comment`, `dm` | `{ text, art }`, `{ post }`, `{ post, text }`, `{ to, text }` |
-| Lotus Leap | `game_score` | `{ score }` |
+| Wanmin Go (`lotuseats`) | `order` | `{ rest, total, to }` |
+| Harbor Ride (`swift`) | `ride_view`, `ride_report_lost` | `{ id }`, `{}` |
+| Ripple (`wavelet`) | `post`, `like`, `comment`, `dm` | `{ text, art }`, `{ post }`, `{ post, text }`, `{ to, text }` |
+| Wallet | `wallet_tx` | `{ id }` |
+| Games | `game_score` | `{ score }` |
 | Phone | `voicemail_play` | `{ id }` |
 | Mail | `mail_open`, `mail_send` | `{ id }`, `{ to, subject, body }` |
 | Calendar | `event_open`, `event_add` | `{ id }` |
 | Settings | `setting` | `{ key, value }` |
+
+List every act the story uses in `JC.world.actVocab` (storytest warns about triggers / onAct rules using others).
+
+## One wallet — `JC.bank`
+Every app that spends money uses the same balance. Cards and accounts come from `JC.world.bank`; the main card draws
+on the main balance; other card ids are recorded but not balance-checked.
+```js
+JC.bank.balance(accountId?)   // main account balance (or another account's)
+JC.bank.accounts()            // [{ id, name, number, balance, main }]
+JC.bank.cards(), JC.bank.mainCard(), JC.bank.isBankCard(cardId)
+JC.bank.check({ amount, card })                       // → { ok, reason: 'frozen'|'funds' } (no side effects)
+JC.bank.charge({ amount, merchant, app, cat, note, card, place, contact, sms, quiet })   // → { ok, reason, tx }
+JC.bank.credit({ amount, merchant, app, cat, note, card })   // refunds, incoming money → { ok, tx }
+JC.bank.transfer({ to: contactId, amount, memo })     // → { ok, reason, tx }; act 'transfer'
+JC.bank.freeze(on), JC.bank.frozen()                  // flag card_frozen + act 'card_freeze'
+JC.bank.on(fn)                                        // fn({ kind: 'charge'|'decline'|'credit'|'freeze', balance, frozen, tx, reason }) → unsubscribe
+JC.bank.reasonText(reason)                            // user-facing decline text
+```
+A charge writes a `tx` record (Wallet's schema, plus `app`), sends the bank SMS from `JC.world.bank.sms` (unless
+`quiet`), emits act `charge` (or `decline`, with no money moved) and bus `bank` + `wallet:tx`. Checkouts: confirm with
+`JC.wallet.pay({ …, record: false })` (Face ID / passcode sheet; it pre-checks the bank and shows "Payment Declined"),
+then call `JC.bank.charge(...)` and show an alert when `ok` is false (see `js/apps/lotuseats.js`).
+
+## World config — `JC.world` (`js/data/world.js`)
+Loaded right after util.js (state.js and keyboard.js read it at load time). Core reads **only** from here for
+story-specific values. Keys (all optional unless marked):
+
+| key | used for |
+|---|---|
+| `storageKey` (required) | localStorage key of the save (`'childephone.v1'`); change it when saves must not collide |
+| `start` (required) | in-game start `'YYYY-MM-DD HH:MM'`; `'+N HH:MM'` is relative to that day |
+| `introFallback` | prologue lines when `JC.story.intro` is empty |
+| `endings` | expected number of endings (gallery fallback; storytest checks it) |
+| `device` | `{ battery, wallpaper, owner, mirroring, mdm, files, print, emergency: ['112', …] }`: starting battery %, default wallpaper art id, owner name, Screen Mirroring / delete-app (MDM) / Save to Files / Print alert texts, numbers treated as emergency |
+| `passcode` | `{ code, wrong: { tries, thread, text }, hints: [byTries…], hintLast, unavailHint }`: the passcode, the message that arrives after `tries` wrong guesses, hint per number of wrong tries, the "iPhone Unavailable" hint |
+| `medicalId` | `{ name, age, rows: [[label, value]…], contacts: [{ id, rel, fallback }] }` |
+| `contacts` | `{ noReply: [ids], failSend: [ids], ownerLine: id, ownerLineCall: { nodes }, hello: { normal, emergency } }`: who never replies, whose messages show Not Delivered, the owner's office line (Lost Mode "Call Owner", and its scripted answer when dialled), how contacts greet "the owner" |
+| `confess` | `{ re: /…/i, endings: { contactId: endingId }, fallback: endingId }`: confession matcher and the default ending per contact (when there's no `confess_<id>` scene) |
+| `imgPools` | `{ artTag: poolName }` reply pool for sent photos carrying that tag (default `imgReact`) |
+| `acts` | onAct rules registered at boot (see onAct) |
+| `actVocab` | every act name the story uses (storytest warns about others) |
+| `gossip` | `[{ from, to, share }]` suspicion edges; `groupShare` (default 0.5) for group threads |
+| `siri` | `{ where, weather, owner, joke, extra: [[/re/, 'answer']…] }` |
+| `keyboard` | `{ frequent: [emoji], dict: 'space separated story words', completions: { 'abc': [3 suggestions] } }` |
+| `apps` | `{ names: { id: 'Display Name' }, home: { pages, dock, hidden }, library: [[category, [ids]]…], spotlightApps: [ids], quick: { appId: [{ text, icon, intent }] } }` (a `quick` list replaces that app's built-in quick actions) |
+| `people` | `{ share: [contact ids for the share sheet], spotlight: [contact ids for empty Spotlight] }` |
+| `widgets` | `{ weather: { city, label, fallback }, lockEvent: { match: /re/, fallback: { title, when } }, calendar: [events when none], memories: { art, title, kicker, intent }, note: { title } }` |
+| `brand` | `{ title, tagline, emblem (JC.icon glyph), replyAs, dictation, epilogue, allFound, someFound, restart, endingsHint }` |
+| `money` | `{ symbol: 'ℳ', fmt: (n) => string }` used by `JC.util.fmtMoney` and the keyboard |
+| `bank` | `{ name, main: cardId, balance, cards: [{ id, name, last, kind }], accounts: [{ id, name, number, main, balance }], sms: { thread, from, text: (kind, tx) => string \| null } }` (`kind`: charge, credit, decline) |
+| `test` | `{ flags: [flags set outside static fx], actions: [{ id, p, after, only, not, repeat, run(T) }] }` for storytest |
+
+The page shell (`css/page.css`) defines the story palette used inside the phone: `--cap-glyph` (caption glyph), and
+`--story-hi`, `--story-hi-soft`, `--story-accent`, `--story-btn`, `--story-card`, `--story-card-line`, `--story-dim`,
+`--story-night1/2` (time-skip card), `--story-lost`, `--story-wg-bg1/2`, `--story-wg-hole`, `--story-wg-fg`,
+`--story-ring` (endings widget). `css/os.css` only reads them, with fallbacks. (`--story-accent` must be a literal
+colour, or leave it undefined to follow `--purple`.)
+
+### App id → display name
+App ids never change (≈250 references); display names come from `JC.world.apps.names`, which win over the `name` an
+app registers.
+
+| id | display name | note |
+|---|---|---|
+| `wavelet` | Ripple | Instagram-like |
+| `lotuseats` | Wanmin Go | food delivery |
+| `swift` | Harbor Ride | rides |
+| `lotusleap` | (removed) | to be replaced by `reelrush` (Reel Rush, fishing game) |
+| `reelrush` | Reel Rush | new |
+| `northland` | Northland Bank | new; the app for `JC.bank` |
+| `feiyun` | Feiyun Market | new; marketplace with auctions |
+| everything else | the iOS name (Messages, Phone, Wallet…) | |
 
 ## App author guide (read before writing an app)
 
@@ -445,6 +671,31 @@ await T.shot(page, 'notes-home');                  // PNG of the device into $SH
 const errors = await done();                       // console + page errors (ignore font ERR_FAILED)
 ```
 Look at your screenshots with the Read tool, in light and dark, and fix what looks wrong. Click through every control.
+`T.unlock(page)` types the current passcode (`JC.world.passcode.code` unless changed).
+
+### Story tester — `tools/storytest.js`
+```
+node tools/storytest.js [runs=30] [--verbose]   static checks + randomized playthroughs (endings, chapters, Aftermath tally)
+node tools/storytest.js --routes [--route name]  scripted playthroughs in tools/routes/*.js; each must land on `expect`
+node tools/storytest.js 30 --lint                + interconnection lint (arc × arc read matrix)
+node tools/storytest.js 30 --scale 8             play at timeScale 8
+node tools/storytest.js 6 --inject stub.js       run a script in the page first (stub content while writing)
+```
+Exit code 1 on static errors, stuck runs, failed routes, lint failures or page errors.
+- **Routes** (`tools/routes/<name>.js`): `module.exports = { name, expect: 'endingId', calls: 'decline'|'answer', steps }`.
+  Steps: `{ choose: { thread, match: /label regex/ } }`, `{ act: [name, payload] }`, `{ later: true }`,
+  `{ wait: seconds }`, `{ dial: contactId }`, `{ answer: true | contactId }`, `{ callChoose: { match } }`,
+  `{ hangup: true }`, `{ send: [thread, text] }`, `{ open: threadId }`, `{ app: appId }`, `{ assert: 's.flags.x' }`,
+  `{ until: 's.flags.x' }` (`within: seconds` on any waiting step, default 3600). Waiting steps fast-forward play time;
+  calls the route doesn't handle are declined (or answered, first option). See `tools/routes/old-honest-hq.js`.
+- **Lint**: flags are owned by the arcs whose scenes (`arc`) or onAct rules (`arc`) write them (`fx.set/inc/aff/sus`,
+  option fx). Reads are recorded per arc at runtime (a Proxy on `s.flags` / `s.aff` / `s.sus` / `s.acted` while
+  `when` / `if` / `match` run) and by scanning condition source. Finale endings' `when` is evaluated with recording
+  proxies. FAIL: a finale ending reads flags of fewer than 2 arcs; an arc's flags are never read by another arc.
+  Warning only when no scene declares `arc`.
+- **Act vocabulary**: with `JC.world.actVocab` set, triggers / onAct rules using an act outside it are warned about.
+- **Chapters**: playthroughs fast-forward through chapters (instant transitions), call Later… when things are quiet,
+  and report chapters reached and why each ended.
 
 ### Notes from integration
 - `JC.ui.page({ content })` renders synchronously inside the constructor: inside `content(pg)` use the `pg` argument, not
@@ -452,7 +703,7 @@ Look at your screenshots with the Read tool, in light and dark, and fix what loo
 - `JC.story.call(def)` registers a call script; `JC.story.call()` (no argument) returns the live call.
 - Extra engine APIs: `JC.story.rename(id, name)`, `JC.story.restore(id)`, `JC.story.removed()`, `JC.story.hideMsg(id, msgId)`,
   `JC.story.dial(cid, { video, num })`; `JC.story.pending(id).left` = ms left on a timed choice.
-- Story tests fast-forward play time by bumping `JC.state.d.eng`. Set `JC.story._ff = true` (and keep `speed` at 1) when
-  you do: steps are then scheduled from when they were due rather than from the 200 ms tick that noticed them, so
+- Story tests fast-forward play time by bumping `JC.state.d.eng` (with chapters: `JC.story._advance(ms)`, which moves
+  the clock too). Set `JC.story._ff = true` (and keep `speed` at 1) when you do (chapter transitions are then instant): steps are then scheduled from when they were due rather than from the 200 ms tick that noticed them, so
   messages and trigger delays keep their real proportions. Without it, every message stretches to two ticks of
   fast-forwarded time and night-only scenes (Fairy, the Ops group) never get their turn. Real play never sets it.
