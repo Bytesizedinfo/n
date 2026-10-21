@@ -1,514 +1,917 @@
-/* Contact avatars (600×600). Stylized flat portraits that read inside 40–90 px circles. */
+/* Contact avatars (600×600): head-and-shoulders portraits that read in 40–90 px circles.
+   Every face is built from one shared kit (head, eyes, brows, mouths, hair locks) so the set looks like one family. */
 (function () {
   'use strict';
   const def = JC.art.def;
 
-  // ---- tiny helpers ----------------------------------------------------------------------
+  // ---------- svg kit ----------
+  const r1 = (n) => Math.round(n * 10) / 10;
   const stops = (s) => s.map(([o, c, a]) => `<stop offset="${o}" stop-color="${c}"${a != null ? ` stop-opacity="${a}"` : ''}/>`).join('');
   const lg = (id, s, x1 = 0, y1 = 0, x2 = 0, y2 = 1) => `<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">${stops(s)}</linearGradient>`;
+  const lgu = (id, s, x1, y1, x2, y2) => `<linearGradient id="${id}" gradientUnits="userSpaceOnUse" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">${stops(s)}</linearGradient>`;
   const rg = (id, s, cx = 0.5, cy = 0.5, r = 0.5) => `<radialGradient id="${id}" cx="${cx}" cy="${cy}" r="${r}">${stops(s)}</radialGradient>`;
-  const svg = (w, h, defs, body) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><defs>${defs}</defs>${body}</svg>`;
-  const f = (n) => Math.round(n);
-  // Characters are drawn a little larger than the canvas so faces read at 40 px.
-  const zoom = (s) => `<g transform="matrix(1.1 0 0 1.1 -30 -34)">${s}</g>`;
+  const op = (o) => ` opacity="${o}"`;
+  const tf = (t) => ` transform="${t}"`;
+  const P = (d, fill, x = '') => `<path d="${d}" fill="${fill}"${x}/>`;
+  const S = (d, c, w, o, x = '') => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"${o != null ? op(o) : ''}${x}/>`;
+  const C = (cx, cy, r, fill, x = '') => `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}"${x}/>`;
+  const E = (cx, cy, rx, ry, fill, x = '') => `<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${fill}"${x}/>`;
+  const G = (t, s, x = '') => `<g transform="${t}"${x}>${s}</g>`;
+  const hairG = (id, c) => lg(id, [[0, c[0]], [0.5, c[1]], [1, c[2]]], 0.15, 0, 0.85, 1);
+  const iris = (id, c) => lg(id, [[0, c[2]], [0.5, c[1]], [1, c[0]]]);
 
   // Skin tones: [highlight, base, shade, deep]
-  const SKIN = { young: ['#ffe8d8', '#f9d4bb', '#edb796', '#d9977a'], tan: ['#f7cfae', '#ebb48c', '#d6966c', '#b9774f'] };
-
-  // Shared defs: skin, neck, blush, halo.
+  const SKIN = {
+    fair: ['#fff4ec', '#fde1cf', '#f2c4ab', '#d89c83'],
+    warm: ['#ffefe2', '#fad7bf', '#ecb698', '#cc8d6f'],
+    pale: ['#fffbf8', '#f9ebe4', '#ebd2c8', '#c7a397'],
+    tan: ['#f9dcc2', '#eec29f', '#d8a07a', '#b07a58'],
+    old: ['#fbe4d2', '#efc9ae', '#daa98a', '#b48266'],
+  };
+  const FACES = {
+    m: 'M198 238C196 302 216 352 254 386Q282 408 300 409Q318 408 346 386C384 352 404 302 402 238C402 170 358 134 300 134C242 134 198 170 198 238Z',
+    f: 'M202 238C200 300 220 348 256 382Q284 403 300 404Q316 403 344 382C380 348 400 300 398 238C398 172 356 136 300 136C244 136 202 172 202 238Z',
+    c: 'M190 250C188 320 216 366 258 391Q284 405 300 405Q316 405 342 391C384 366 412 320 410 250C410 174 364 138 300 138C236 138 190 174 190 250Z',
+    o: 'M196 236C194 306 210 358 248 390Q278 411 300 411Q322 411 352 390C390 358 406 306 404 236C404 166 360 130 300 130C240 130 196 166 196 236Z',
+  };
   const skinDefs = (k) =>
-    lg('sk', [[0, k[0]], [0.55, k[1]], [1, k[2]]], 0.2, 0, 0.9, 1) +
+    lg('sk', [[0, k[0]], [0.45, k[1]], [1, k[2]]], 0.15, 0.1, 0.85, 0.95) +
     lg('nk', [[0, k[3]], [0.55, k[2]], [1, k[1]]]) +
-    rg('bl', [[0, '#ff7e7e', 0.42], [1, '#ff7e7e', 0]]) +
-    rg('halo', [[0, '#fff', 0.75], [0.6, '#fff', 0.18], [1, '#fff', 0]]);
+    rg('bl', [[0, '#ff6f6f', 0.4], [1, '#ff6f6f', 0]]);
 
-  const FACE = 'M300 150C366 150 404 196 404 260C404 316 384 356 350 384C333 398 316 405 300 405C284 405 267 398 250 384C216 356 196 316 196 260C196 196 234 150 300 150Z';
-  const FACE_M = 'M300 146C368 146 406 194 406 260C406 314 394 352 364 380C344 398 322 409 300 409C278 409 256 398 236 380C206 352 194 314 194 260C194 194 232 146 300 146Z';
+  // ears + face (with cheek shade and blush); also defines clip #fc for shadows on the face
+  function head(k, o = {}) {
+    const F = FACES[o.face || 'm'];
+    const ears = o.ears === false ? '' :
+      P('M206 272C188 256 168 268 170 296C172 322 190 338 210 332Z', k[1]) +
+      P('M394 272C412 256 432 268 430 296C428 322 410 338 390 332Z', k[2]) +
+      S('M194 284C184 292 186 310 196 318', k[3], 4, 0.6) + S('M406 284C416 292 414 310 404 318', k[3], 4, 0.6);
+    return `<clipPath id="fc"><path d="${F}"/></clipPath>` + ears + P(F, 'url(#sk)') +
+      `<g clip-path="url(#fc)">` + P('M410 220C410 300 392 360 340 400L300 420L330 420C380 380 404 330 382 250Z', k[2], op(0.55)) +
+      P('M180 120H420V200C380 168 340 158 300 158C260 158 220 168 180 200Z', k[2], op(0.25)) + `</g>` +
+      (o.blush === 0 ? '' : `<g${op(o.blush || 1)}>${E(240, 340, 30, 15, 'url(#bl)')}${E(360, 340, 30, 15, 'url(#bl)')}</g>`);
+  }
+  const neck = (k, w = 32) =>
+    P(`M${300 - w} 340V466Q300 486 ${300 + w} 466V340Z`, 'url(#nk)') +
+    P(`M${300 - w} 384Q300 432 ${300 + w} 384V414Q300 450 ${300 - w} 414Z`, k[3], op(0.4));
+  // soft shadow that the fringe casts on the forehead
+  const fringeShade = (d, k, dy = 14) => `<g clip-path="url(#fc)">${P(d, k[3], op(0.45) + tf(`translate(3 ${dy})`))}</g>`;
+  const nose = (k, y = 0) => S(`M303 ${316 + y}Q296 ${332 + y} 307 ${336 + y}`, k[3], 4.5, 0.75);
 
-  // Neck (drawn before the clothes), ears + face (after the clothes).
-  const neck = (k, x0 = 260, x1 = 340) =>
-    `<path d="M${x0} 330V478Q300 500 ${x1} 478V330Z" fill="url(#nk)"/>` +
-    `<path d="M${x0} 392Q300 430 ${x1} 392V420Q300 452 ${x0} 420Z" fill="${k[3]}" opacity=".35"/>`;
-  const ears = (k) =>
-    `<path d="M202 258C182 246 164 262 168 288C172 314 188 326 206 320Z" fill="${k[1]}"/>` +
-    `<path d="M398 258C418 246 436 262 432 288C428 314 412 326 394 320Z" fill="${k[2]}"/>` +
-    `<path d="M190 272C182 280 184 298 194 304" fill="none" stroke="${k[3]}" stroke-width="5" stroke-linecap="round" opacity=".7"/>` +
-    `<path d="M410 272C418 280 416 298 406 304" fill="none" stroke="${k[3]}" stroke-width="5" stroke-linecap="round" opacity=".7"/>`;
-  const face = (k, shape, blush = 1) =>
-    `<path d="${shape || FACE}" fill="url(#sk)"/>` +
-    `<path d="M404 262C404 316 384 356 350 384C333 398 316 405 300 405C340 380 372 330 380 262Z" fill="${k[2]}" opacity=".45"/>` +
-    `<g opacity="${blush}"><ellipse cx="236" cy="328" rx="32" ry="17" fill="url(#bl)"/><ellipse cx="364" cy="328" rx="32" ry="17" fill="url(#bl)"/></g>`;
-  const nose = (k) => `<path d="M302 296Q294 318 304 326" fill="none" stroke="${k[3]}" stroke-width="5" stroke-linecap="round" opacity=".8"/>`;
-
-  // Eyes
-  const INK = '#2b1d22';
-  const eyeOpen = (cx, cy, c = INK, lid = 0) =>
-    `<ellipse cx="${cx}" cy="${cy}" rx="13.5" ry="17" fill="${c}"/>` +
-    `<circle cx="${cx + 4.5}" cy="${cy - 6}" r="5.2" fill="#fff"/><circle cx="${cx - 4}" cy="${cy + 7}" r="2.2" fill="#fff" opacity=".8"/>` +
-    `<path d="M${cx - 22} ${cy - 4 + lid}Q${cx} ${cy - 25 + lid * 1.4} ${cx + 22} ${cy - 6 + lid}" fill="none" stroke="${c}" stroke-width="6.5" stroke-linecap="round"/>`;
-  const eyeHappy = (cx, cy, c = INK, w = 19) => `<path d="M${cx - w} ${cy + 5}Q${cx} ${cy - 18} ${cx + w} ${cy + 5}" fill="none" stroke="${c}" stroke-width="8" stroke-linecap="round"/>`;
-  const eyeSmile = (cx, cy, c = INK) =>
-    `<path d="M${cx - 19} ${cy + 3}Q${cx} ${cy - 21} ${cx + 19} ${cy + 3}Q${cx} ${cy - 5} ${cx - 19} ${cy + 3}Z" fill="${c}" stroke="${c}" stroke-width="4" stroke-linejoin="round"/>`;
-  const brow = (d, c, w = 9) => `<path d="${d}" fill="none" stroke="${c}" stroke-width="${w}" stroke-linecap="round"/>`;
-
-  // Bokeh dots for backgrounds
-  const bokeh = (pts, c) => pts.map(([x, y, r, o]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${c}" opacity="${o}"/>`).join('');
-  const BOKEH = [[90, 130, 22, 0.4], [516, 104, 15, 0.5], [530, 300, 30, 0.22], [64, 316, 11, 0.45]];
-
-  // Fluffy edge along an ellipse arc (angles in degrees, 0 = right, 90 = down)
-  function fluff(cx, cy, rx, ry, a0, a1, n, amp, cmd) {
-    const P = (a, r) => [cx + (rx + r) * Math.cos((a * Math.PI) / 180), cy + (ry + r) * Math.sin((a * Math.PI) / 180)];
-    const st = (a1 - a0) / n;
-    let d = '';
-    for (let i = 0; i <= n; i++) {
-      const a = a0 + st * i;
-      const [x, y] = P(a, 0);
-      if (i === 0) {
-        d += (cmd || 'M') + f(x) + ' ' + f(y);
-        continue;
-      }
-      const [c1x, c1y] = P(a - st * 0.85, amp * 0.5);
-      const [tx, ty] = P(a - st * 0.3, amp);
-      const [c2x, c2y] = P(a - st * 0.1, amp * 0.3);
-      d += `Q${f(c1x)} ${f(c1y)} ${f(tx)} ${f(ty)}Q${f(c2x)} ${f(c2y)} ${f(x)} ${f(y)}`;
+  // One eye. s = -1 (viewer's left) or 1 (viewer's right).
+  // o: iris (gradient id), lash, lid (0 open … 0.8 heavy), pup ('dot' | 'x' | 'plum' | 'none'), pc (pupil colour),
+  //    hl (highlight strength), k (size), shut (closed smiling eye), liner (coloured flick at the outer corner)
+  let EID = 0;
+  function eye(cx, cy, s, o = {}) {
+    const k = o.k || 1, lid = o.lid || 0, L = o.lash || '#2a1a1c';
+    const X = (dx) => r1(cx + s * dx * k), Y = (dy) => r1(cy + dy * k);
+    if (o.shut) {
+      return S(`M${X(-24)} ${Y(2)}Q${X(2)} ${Y(-20)} ${X(28)} ${Y(0)}`, L, 7 * k) + S(`M${X(28)} ${Y(0)}l${s * 9 * k} ${-5 * k}`, L, 4 * k) +
+        (o.liner ? S(`M${X(14)} ${Y(-14)}Q${X(30)} ${Y(-12)} ${X(42)} ${Y(-20)}`, o.liner, 6 * k, 0.55) : '');
     }
-    return d;
+    const ox = X(29), oy = Y(-3 + lid * 4);
+    const up = `M${X(-24)} ${Y(4)}C${X(-14)} ${Y(-24 + lid * 20)} ${X(14)} ${Y(-31 + lid * 22)} ${ox} ${oy}`;
+    const shape = up + `C${X(25)} ${Y(18)} ${X(-8)} ${Y(26)} ${X(-24)} ${Y(4)}Z`;
+    const id = 'e' + ++EID;
+    const icx = X(2), icy = Y(4);
+    const pc = o.pc || '#160c14';
+    let pup = '';
+    if (o.pup === 'x') pup = S(`M${r1(icx - 9 * k)} ${r1(icy - 11 * k)}L${r1(icx + 9 * k)} ${r1(icy + 11 * k)}M${r1(icx + 9 * k)} ${r1(icy - 11 * k)}L${r1(icx - 9 * k)} ${r1(icy + 11 * k)}`, pc, 5 * k);
+    else if (o.pup === 'plum') {
+      for (let i = 0; i < 5; i++) {
+        const a = (i * 72 - 90) * Math.PI / 180;
+        pup += C(r1(icx + Math.cos(a) * 6 * k), r1(icy + Math.sin(a) * 6 * k), 5 * k, pc);
+      }
+      pup += C(icx, icy, 3 * k, o.pc2 || '#ffb3a8');
+    } else if (o.pup !== 'none') pup = E(icx, icy, 8.5 * k, 11.5 * k, pc, op(0.9));
+    const hl = o.hl == null ? 1 : o.hl;
+    return `<clipPath id="${id}"><path d="${shape}"/></clipPath>` +
+      P(shape, o.white || '#fffaf6') +
+      `<g clip-path="url(#${id})">` +
+      E(icx, icy, r1(19 * k), r1(24.5 * k), `url(#${o.iris || 'ir'})`) + pup +
+      E(icx, icy, r1(19 * k), r1(24.5 * k), 'none', ` stroke="${L}" stroke-width="${r1(2.2 * k)}" stroke-opacity=".55"`) +
+      S(up, L, 16 * k, 0.25) +
+      C(r1(cx - 6 * k), r1(cy - 6 * k + lid * 10), r1(6.5 * k * (hl < 0.5 ? 0.7 : 1)), '#fff', op(hl)) +
+      (hl > 0.5 ? C(r1(cx + 7 * k), r1(cy + 13 * k), r1(2.8 * k), '#fff', op(0.85)) : '') +
+      `</g>` +
+      (o.liner ? S(`M${X(10)} ${Y(-22 + lid * 16)}Q${X(30)} ${Y(-16 + lid * 8)} ${X(44)} ${Y(-14)}`, o.liner, 7 * k, 0.55) : '') +
+      S(up, L, 6.5 * k) +
+      S(`M${ox} ${oy}l${s * 9 * k} ${-6 * k}`, L, 4.5 * k) +
+      S(`M${X(27)} ${Y(4)}Q${X(22)} ${Y(16)} ${X(12)} ${Y(21)}`, L, 2.6 * k, 0.5) +
+      S(`M${X(-10)} ${Y(-35 + lid * 18)}Q${X(10)} ${Y(-43 + lid * 18)} ${X(26)} ${Y(-31 + lid * 14)}`, L, 2.4 * k, 0.3);
+  }
+  const eyes = (o, y = 294, dx = 48) => eye(300 - dx, y, -1, o) + eye(300 + dx, y, 1, o);
+
+  // Tapered brow over the eye at (cx, cy). li lifts the inner end, lo the outer end, ar arches the middle.
+  function brow(cx, cy, s, c, o = {}) {
+    const w = o.w || 7, li = o.li || 0, lo = o.lo || 0, ar = o.ar == null ? 7 : o.ar;
+    const X = (dx) => r1(cx + s * dx);
+    const yi = cy - 46 - li, yo = cy - 44 - lo, ym = (yi + yo) / 2 - ar;
+    return P(`M${X(-22)} ${r1(yi + w / 2)}Q${X(4)} ${r1(ym + w * 0.4)} ${X(30)} ${r1(yo)}Q${X(4)} ${r1(ym - w * 0.7)} ${X(-22)} ${r1(yi - w / 2)}Z`, c);
+  }
+  const brows = (c, o = {}, y = 294, dx = 48) => brow(300 - dx, y, -1, c, o) + brow(300 + dx, y, 1, c, Object.assign({}, o, o.r || {}));
+
+  // Mouths (centred on x = 300)
+  const LIP = '#b44c56';
+  const smile = (w = 24, d = 9, c = LIP, y = 360, sw = 5.5) => S(`M${300 - w} ${y}Q300 ${y + d * 2} ${300 + w} ${y}`, c, sw);
+  const smirk = (c = LIP, y = 360) => S(`M276 ${y + 2}Q302 ${y + 14} 328 ${y - 6}`, c, 5.5) + S(`M325 ${y - 11}Q330 ${y - 7} 331 ${y - 2}`, c, 3.5);
+  // open smile: w half width, d depth, tilt raises the right corner
+  function grin(o = {}) {
+    const y = o.y || 350, w = o.w || 32, d = o.d || 30, t = o.tilt || 0;
+    const sh = `M${300 - w} ${y + t}Q300 ${y + 10} ${300 + w} ${y - t}Q${300 + w * 0.55} ${y + d} 300 ${y + d}Q${300 - w * 0.55} ${y + d} ${300 - w} ${y + t}Z`;
+    return `<clipPath id="mo"><path d="${sh}"/></clipPath>` + P(sh, o.c || '#6e2129') +
+      `<g clip-path="url(#mo)">` +
+      (o.teeth === false ? '' : P(`M${300 - w} ${y - 6}H${300 + w}V${y + 9}Q300 ${y + 16} ${300 - w} ${y + 9}Z`, '#fff')) +
+      (o.gap ? P(`M296 ${y}h8v14h-8z`, '#6e2129') : '') +
+      (o.fang ? P(`M${300 + w * 0.45} ${y + 4}l5 13l5 -13z`, '#fff') : '') +
+      E(300, y + d, w * 0.55, d * 0.45, '#e2737c') + `</g>` +
+      P(sh, 'none', ` stroke="${o.c || '#6e2129'}" stroke-width="3"`);
   }
 
-  // ---- Jin Ling ---------------------------------------------------------------------------
-  def('av_jl', {
-    title: 'Jin Ling',
-    w: 600, h: 600, tags: ['avatar', 'jl'],
-    svg: (w, h) => {
-      const k = SKIN.young;
-      const HAIR = '#22171a';
-      return svg(w, h,
-        skinDefs(k) +
-        rg('bg', [[0, '#fff7da'], [0.5, '#ffd866'], [1, '#e99a10']], 0.5, 0.36, 0.78) +
-        lg('hr', [[0, '#4b3127'], [0.45, '#2a1c1b'], [1, '#160f10']], 0, 0, 1, 1) +
-        lg('jk', [[0, '#ffd257'], [0.6, '#f4b222'], [1, '#d88a06']]) +
-        lg('jkS', [[0, '#c77b05', 0], [1, '#a86200', 0.55]], 0, 0, 1, 0),
-        `<rect width="600" height="600" fill="url(#bg)"/>` +
-        `<circle cx="300" cy="250" r="250" fill="url(#halo)"/>` +
-        bokeh([[86, 140, 26, 0.35], [520, 110, 18, 0.4], [540, 300, 34, 0.22], [70, 330, 14, 0.4], [470, 190, 8, 0.6]], '#fff') +
-        zoom(
-          // back hair: short sides, volume on top
-          `<path d="M192 270C176 190 214 106 300 100C392 96 434 176 412 270C406 244 398 226 386 214H214C204 228 196 246 192 270Z" fill="url(#hr)"/>` +
-          neck(k, 262, 338) +
-          // jacket
-          `<path d="M36 600C46 520 112 476 210 460L262 452L300 520L338 452L390 460C488 476 554 520 564 600Z" fill="url(#jk)"/>` +
-          `<path d="M564 600C554 520 488 476 390 460L420 470C470 500 500 548 504 600Z" fill="url(#jkS)"/>` +
-          `<path d="M262 452L300 560L338 452L322 448L300 500L278 448Z" fill="#fffaf0"/>` +
-          `<path d="M262 452L228 470L282 600H300Z" fill="#e8a010" opacity=".55"/>` +
-          `<path d="M338 452L372 470L318 600H300Z" fill="#c98204" opacity=".45"/>` +
-          `<path d="M300 520V600" stroke="#b97200" stroke-width="4" opacity=".6"/>` +
-          `<path d="M118 540C130 520 146 508 160 502M482 540C470 520 454 508 440 502" fill="none" stroke="#b97200" stroke-width="5" stroke-linecap="round" opacity=".45"/>` +
-          // peony pin
-          `<g transform="translate(412 530)"><circle r="22" fill="#f7a8bf"/><circle cx="-8" cy="-6" r="13" fill="#fbc7d6"/><circle cx="9" cy="-4" r="12" fill="#f590ad"/><circle cx="0" cy="8" r="12" fill="#f8b6c8"/><circle r="7" fill="#f2b51d"/></g>` +
-          ears(k) + face(k, FACE, 0.7) +
-          `<circle cx="422" cy="306" r="6" fill="#f7c52e" stroke="#b97a00" stroke-width="2"/>` +
-          // fringe shadow + swept fringe with a little quiff
-          `<path d="M200 252C196 170 244 124 302 122C372 122 414 176 402 262C394 240 382 224 368 214C372 234 368 248 360 258C352 234 338 218 318 208C320 222 318 232 312 240C300 222 282 212 262 210C266 222 262 232 256 238C250 222 236 214 222 220C210 228 204 240 200 252Z" fill="${k[3]}" opacity=".35" transform="translate(4 10)"/>` +
-          `<path d="M196 250C186 172 226 116 290 108C312 82 352 74 388 86C372 92 362 100 358 110C400 128 422 178 406 260C398 238 386 222 372 212C376 232 372 246 364 256C356 232 340 216 320 206C322 220 320 230 314 238C302 220 284 210 264 208C268 220 264 230 258 236C252 220 238 212 224 218C212 226 202 238 196 250Z" fill="url(#hr)"/>` +
-          `<path d="M240 146C270 124 316 118 352 130M300 98C320 86 344 82 366 86" fill="none" stroke="#7a5642" stroke-width="7" stroke-linecap="round" opacity=".55"/>` +
-          // cinnabar mark
-          `<circle cx="300" cy="234" r="7.5" fill="#e0242f"/><circle cx="298" cy="232" r="2.4" fill="#ff8a8a"/>` +
-          // proud brows + eyes, smirk
-          brow('M230 242Q254 236 280 248', HAIR, 10) + brow('M320 248Q346 236 370 242', HAIR, 10) +
-          eyeOpen(256, 284, INK, 5) + eyeOpen(344, 284, INK, 5) +
-          nose(k) +
-          `<path d="M280 354Q304 364 326 346" fill="none" stroke="#b5505a" stroke-width="7" stroke-linecap="round"/>`
-        )
-      );
-    },
+  // Hair cap: a crown dome plus a fringe of pointed locks. pts run along the hairline from the left side of the
+  // head to the right, alternating tip (low) and valley (high). sw leans every lock; top is the crown height.
+  function cap(pts, o = {}) {
+    const top = o.top == null ? 96 : o.top, sw = o.sw || 0, k = o.k == null ? 0.7 : o.k, wd = o.wd || 0;
+    let d = `M${pts[0][0]} ${pts[0][1]}`;
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1], b = pts[i];
+      const v = a[1] < b[1] ? a : b, t = a[1] < b[1] ? b : a;
+      d += `Q${r1(v[0] + sw)} ${r1(v[1] + (t[1] - v[1]) * k)} ${b[0]} ${b[1]}`;
+    }
+    const L = pts[0], R = pts[pts.length - 1];
+    if (o.crown) return d + o.crown + 'Z';
+    d += `C${R[0] + 6 + wd} ${R[1] - 120} ${392 + wd} ${top} 300 ${top}C${208 - wd} ${top} ${L[0] - 6 - wd} ${L[1] - 120} ${L[0]} ${L[1]}Z`;
+    return d;
+  }
+  // tapered lock from a root (x0, y0) of width w to a tip (x1, y1); bend pushes its middle sideways
+  const lock = (x0, y0, x1, y1, w, bend = 0) => {
+    const mx = (x0 + x1) / 2 + bend, my = (y0 + y1) / 2;
+    return `M${r1(x0 - w / 2)} ${y0}Q${r1(mx - w / 2)} ${r1(my)} ${x1} ${y1}Q${r1(mx + w / 2)} ${r1(my)} ${r1(x0 + w / 2)} ${y0}Z`;
+  };
+  // glossy ring of light on top of the hair: tapered glints along an arc
+  function shine(c, y = 150, x0 = 226, x1 = 376, o = 0.45, segs = [[0.05, 0.3], [0.38, 0.62], [0.7, 0.93]], h = 7) {
+    const q = (t) => { const u = 1 - t; return [u * u * x0 + 2 * u * t * 300 + t * t * x1, u * u * (y + 18) + 2 * u * t * (y - 26) + t * t * (y + 18)]; };
+    const d = segs.map(([a, b]) => {
+      const p0 = q(a), p1 = q(b), pm = q((a + b) / 2);
+      return `M${r1(p0[0])} ${r1(p0[1])}Q${r1(pm[0])} ${r1(pm[1] - h)} ${r1(p1[0])} ${r1(p1[1])}Q${r1(pm[0])} ${r1(pm[1] + h)} ${r1(p0[0])} ${r1(p0[1])}Z`;
+    }).join('');
+    return P(d, c, op(o));
+  }
+  // braid: n alternating lobes from (x0, y0) to (x1, y1)
+  function braid(x0, y0, x1, y1, n, w, fill, line) {
+    let s = '';
+    const a = Math.atan2(y1 - y0, x1 - x0) * 180 / Math.PI - 90;
+    for (let i = 0; i < n; i++) {
+      const t = (i + 0.5) / n, side = i % 2 ? 1 : -1, ww = w * (1 - t * 0.3);
+      const cx = r1(x0 + (x1 - x0) * t + side * ww * 0.16), cy = r1(y0 + (y1 - y0) * t);
+      s += E(cx, cy, r1(ww * 0.5), r1(((y1 - y0) / n) * 0.78), fill, tf(`rotate(${r1(a + side * 28)} ${cx} ${cy})`)) +
+        S(`M${r1(cx - side * ww * 0.3)} ${r1(cy - 8)}Q${cx} ${r1(cy + 4)} ${r1(cx + side * ww * 0.3)} ${r1(cy + 10)}`, line, 3, 0.5);
+    }
+    return s;
+  }
+
+  // Shoulders (neck opening at y ≈ 436)
+  const TORSO = 'M0 600V572C8 514 76 474 184 456C226 450 252 444 264 436H336C348 444 374 450 416 456C524 474 592 514 600 572V600Z';
+  // fluffy fur collar: overlapping puffs along a curve from (x0, y0) through the neck to (x1, y1)
+  function furCollar(c1, c2, x0 = 150, x1 = 450, y0 = 478, dip = 456, n = 13, r = 24) {
+    let s = '';
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, u = 1 - t;
+      const x = u * u * x0 + 2 * u * t * 300 + t * t * x1, y = u * u * y0 + 2 * u * t * (dip - 40) + t * t * y0;
+      s += C(r1(x), r1(y + (i % 2) * 6), r1(r * (0.85 + (i % 3) * 0.12)), i % 2 ? c2 : c1);
+    }
+    return s;
+  }
+  // isometric die with pips on the top face
+  const die = (x, y, s, rot) => G(`translate(${x} ${y}) rotate(${rot}) scale(${s})`,
+    P('M0-30L28-16L0-2L-28-16Z', '#fff') + P('M-28-16L0-2V30L-28 16Z', '#d6dce8') + P('M28-16L0-2V30L28 16Z', '#aeb8cc') +
+    E(0, -16, 5, 3, '#2a3a8a') + E(-14, 0, 3, 4, '#2a3a8a') + E(-14, 14, 3, 4, '#2a3a8a') + E(14, 2, 3, 4, '#2a3a8a') + E(14, 18, 3, 4, '#2a3a8a'));
+  const flower5 = (x, y, r, c, mid, rot = 0) => {
+    let s = '';
+    for (let i = 0; i < 5; i++) s += C(r1(Math.cos((i * 72 + rot) * Math.PI / 180) * r * 0.6), r1(Math.sin((i * 72 + rot) * Math.PI / 180) * r * 0.6), r1(r * 0.55), c);
+    return G(`translate(${x} ${y})`, s + C(0, 0, r1(r * 0.3), mid));
+  };
+  const star = (x, y, r, c, o = 1) => P(`M${x} ${y - r}Q${x} ${y} ${x + r} ${y}Q${x} ${y} ${x} ${y + r}Q${x} ${y} ${x - r} ${y}Q${x} ${y} ${x} ${y - r}Z`, c, op(o));
+
+  // Background: soft radial colour, a halo behind the head, bokeh
+  const BOK = [[80, 118, 26, 0.3], [524, 98, 16, 0.42], [544, 300, 34, 0.18], [58, 334, 13, 0.36], [470, 190, 9, 0.5], [128, 226, 7, 0.45]];
+  const bgDefs = (c) =>
+    rg('bg', [[0, c[0]], [0.55, c[1]], [1, c[2]]], 0.5, 0.36, 0.8) + rg('halo', [[0, '#fff', 0.55], [0.6, '#fff', 0.12], [1, '#fff', 0]]);
+  const bgBody = (dots = '#fff', extra = '') =>
+    `<rect width="600" height="600" fill="url(#bg)"/>` + C(300, 250, 250, 'url(#halo)') +
+    BOK.map(([x, y, r, o]) => C(x, y, r, dots, op(o))).join('') + extra;
+
+  // Register: build() returns [defs, background, character]; the character is drawn larger than the canvas,
+  // so drawing coordinates x 54–546, y 36–528 are what shows.
+  function avatar(id, title, tags, build) {
+    def(id, {
+      title, w: 600, h: 600, tags: ['avatar'].concat(tags),
+      svg: (w, h) => {
+        EID = 0;
+        const [d, b, c] = build();
+        return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}"><defs>${d}</defs>${b}<g transform="matrix(1.22 0 0 1.22 -66 -44)">${c}</g></svg>`;
+      },
+    });
+  }
+  const GINGER = ['#f29a5a', '#cf6634', '#8c3c1e'];
+  const FAMILY_IRIS = ['#8cc4ff', '#3f84de', '#183c86'];
+
+  // ======================================================================================
+  // Childe (the phone's owner)
+  avatar('av_childe', 'Childe', ['childe', 'me'], () => {
+    const k = SKIN.warm;
+    const fr = cap([[176, 238], [190, 336], [204, 230], [220, 292], [236, 210], [256, 274], [272, 198], [296, 264], [312, 194], [338, 258], [352, 202], [378, 272], [392, 226], [410, 334], [424, 238]], {
+      sw: 8,
+      crown: 'C434 196 428 160 412 140L434 124Q414 120 400 110L410 88Q384 94 364 90L368 66Q342 80 318 84Q298 72 272 76L282 90Q252 92 230 104L212 90Q208 112 202 124Q184 136 174 152L156 156Q172 178 172 200Q168 220 176 238',
+    });
+    return [
+      bgDefs(['#d6ecff', '#7fb8ea', '#2d6eb0']) + skinDefs(k) + hairG('hr', ['#e8874e', '#b44a2b', '#6c281a']) +
+      iris('ir', ['#6f9fe6', '#2f5bb0', '#122459']) +
+      lg('jk', [[0, '#80868f'], [1, '#4a4f58']]) + lg('sc', [[0, '#e5464d'], [1, '#a1202b']]) +
+      lg('ms', [[0, '#e8505a'], [1, '#9a1d27']]) + rg('gem', [[0, '#c9f2ff'], [0.45, '#3aa0e6'], [1, '#1d5fa8']], 0.4, 0.35, 0.7),
+      bgBody('#fff', S('M40 470Q120 440 200 470T360 470T520 470T680 470', '#fff', 6, 0.18) + S('M-20 520Q60 490 140 520T300 520T460 520T620 520', '#fff', 6, 0.12)),
+      P('M174 300C156 220 180 126 250 102C312 82 384 96 420 152C446 200 442 268 426 312L414 354L400 318L388 350L376 300H224L212 352L200 316L188 348Z', 'url(#hr)') +
+      neck(k) +
+      // grey jacket, dark shirt, red scarf, Vision pendant
+      P(TORSO, 'url(#jk)') +
+      P('M260 438L300 540L340 438Z', '#2a2e38') +
+      P('M262 436L226 452L284 600H300V540Z', '#969ca5') + P('M338 436L374 452L316 600H300V540Z', '#6d727c') +
+      S('M110 540Q126 512 152 496M490 540Q474 512 448 496', '#3e424a', 5, 0.5) +
+      S('M300 470V486', '#d9b45a', 3) +
+      G('translate(300 502)', P('M0-19L14 0L0 19L-14 0Z', '#e2bd5e') + P('M0-13L9 0L0 13L-9 0Z', 'url(#gem)') + C(-2, -5, 2.6, '#fff', op(0.9))) +
+      P('M244 426Q300 466 356 426L366 452Q300 498 234 452Z', 'url(#sc)') +
+      P('M338 458Q362 504 360 560H416Q408 500 366 448Z', 'url(#sc)') + S('M366 474Q384 510 390 550', '#8a1a24', 4, 0.5) +
+      S('M250 444Q300 476 350 444', '#ff8a8a', 3, 0.4) +
+      head(k, { face: 'm', blush: 0.45 }) +
+      eyes({ lash: '#3a1c18', hl: 0.3 }) +
+      brows('#7a3322', { w: 8, ar: 6, r: { lo: 5 } }) +
+      nose(k) +
+      grin({ y: 352, w: 30, d: 24, tilt: 5 }) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') +
+      shine('#ffbe8a', 142, 224, 376, 0.4) +
+      S('M246 228Q262 200 286 190M320 194Q342 200 360 222M206 170Q224 150 250 140', '#6c281a', 4, 0.45) +
+      // Fatui half-mask pushed up on the side of the head
+      G('translate(392 148) rotate(26) scale(.92)',
+        P('M-70-26Q-36-46 0-36Q36-46 70-26L86-48L80-14Q72 14 38 20Q14 22 0 40Q-14 22-38 20Q-72 14-80-14L-86-48Z', 'url(#ms)') +
+        P('M-54-6Q-34-24-12-10Q-30 6-54-6ZM54-6Q34-24 12-10Q30 6 54-6Z', '#3b0c12') +
+        S('M-70-26Q-36-46 0-36Q36-46 70-26L86-48L80-14Q72 14 38 20Q14 22 0 40Q-14 22-38 20Q-72 14-80-14L-86-48Z', '#2a0a10', 3.5) +
+        S('M-62 8Q-40 14-20 10M62 8Q40 14 20 10M0-34V-14', '#2a0a10', 3, 0.8) + S('M-62-30Q-32-42-6-32', '#ff9a9a', 3, 0.5)) +
+      S('M418 334V350', '#c8323c', 3) + P('M418 348l7 12l-7 14l-7-14z', '#c8323c'),
+    ];
   });
 
-  // ---- Fairy ------------------------------------------------------------------------------
-  def('av_fairy', {
-    title: 'Fairy',
-    w: 600, h: 600, tags: ['avatar', 'dog', 'fairy'],
-    svg: (w, h) => {
-      const FUR = 'url(#fur)';
-      return svg(w, h,
-        rg('bg', [[0, '#f8f0ff'], [0.55, '#d6c1fb'], [1, '#9d7ee6']], 0.5, 0.35, 0.8) +
-        rg('halo', [[0, '#fff', 0.8], [0.6, '#fff', 0.2], [1, '#fff', 0]]) +
-        lg('fur', [[0, '#3a3b4f'], [0.45, '#1e1e29'], [1, '#121219']], 0.2, 0, 0.8, 1) +
-        lg('ruff', [[0, '#2a2b3a'], [1, '#101016']]) +
-        rg('sheen', [[0, '#9a9fc6', 0.6], [1, '#9a9fc6', 0]]) +
-        lg('muz', [[0, '#40414f'], [1, '#262632']]) +
-        lg('gold', [[0, '#ffd45a'], [1, '#d48a06']]) +
-        rg('iris', [[0, '#d39448'], [0.7, '#8a5520'], [1, '#4a2a0e']]),
-        `<rect width="600" height="600" fill="url(#bg)"/>` +
-        `<circle cx="300" cy="260" r="260" fill="url(#halo)"/>` +
-        bokeh([[90, 120, 22, 0.4], [510, 90, 14, 0.5], [530, 260, 30, 0.25], [60, 300, 10, 0.5]], '#fff') +
-        zoom(
-          // chest ruff
-          `<path d="M30 640${fluff(300, 590, 262, 200, 180, 360, 24, 20, 'L')}L570 640Z" fill="url(#ruff)"/>` +
-          `<path d="M120 470Q150 452 176 450M424 450Q450 452 480 470M200 520Q230 508 252 508M348 508Q370 508 400 520" fill="none" stroke="#4a4e68" stroke-width="5" stroke-linecap="round" opacity=".6"/>` +
-          // ears
-          `<path d="M166 238C154 182 160 120 184 84C220 104 256 142 268 180Z" fill="${FUR}"/>` +
-          `<path d="M434 238C446 182 440 120 416 84C380 104 344 142 332 180Z" fill="${FUR}"/>` +
-          `<path d="M190 198C186 162 190 132 200 114C224 134 240 156 248 180Z" fill="#4b3a48"/>` +
-          `<path d="M410 198C414 162 410 132 400 114C376 134 360 156 352 180Z" fill="#3f303c"/>` +
-          // head with fluffy cheeks
-          `<path d="${fluff(300, 280, 150, 130, 185, -5, 14, 22)}C452 196 392 146 300 146C208 146 148 196 151 269Z" fill="${FUR}"/>` +
-          `<ellipse cx="284" cy="196" rx="92" ry="44" fill="url(#sheen)"/>` +
-          `<path d="M178 296C190 330 214 356 244 372M422 296C410 330 386 356 356 372" fill="none" stroke="#4d5170" stroke-width="6" stroke-linecap="round" opacity=".6"/>` +
-          `<path d="M226 222C242 212 260 212 272 218M374 222C358 212 340 212 328 218" fill="none" stroke="#7d82a6" stroke-width="7" stroke-linecap="round" opacity=".75"/>` +
-          // collar + tag
-          `<path d="M150 442Q300 518 450 442L458 472Q300 554 142 472Z" fill="url(#gold)"/>` +
-          `<path d="M150 448Q300 522 450 448" fill="none" stroke="#fff3c0" stroke-width="3" opacity=".7"/>` +
-          `<circle cx="300" cy="502" r="9" fill="none" stroke="#c9c9d4" stroke-width="5"/>` +
-          `<circle cx="300" cy="532" r="25" fill="#f4f4f8"/><circle cx="300" cy="532" r="17" fill="#e4e4ec"/><circle cx="294" cy="525" r="6" fill="#fff"/>` +
-          // muzzle
-          `<ellipse cx="300" cy="338" rx="80" ry="58" fill="url(#muz)"/>` +
-          `<ellipse cx="300" cy="312" rx="50" ry="22" fill="#5a5d78" opacity=".35"/>` +
-          // mouth + tongue
-          `<path d="M258 354Q300 392 342 354Q332 384 300 388Q268 384 258 354Z" fill="#3b0e1c"/>` +
-          `<path d="M280 366Q300 360 320 366L321 404C321 424 279 424 279 404Z" fill="#ff7f9c"/>` +
-          `<path d="M300 370V408" stroke="#e05a7a" stroke-width="4" stroke-linecap="round"/>` +
-          `<path d="M300 326V350M300 350Q280 370 256 352M300 350Q320 370 344 352" fill="none" stroke="#0b0b10" stroke-width="6" stroke-linecap="round"/>` +
-          // nose
-          `<path d="M268 304C268 288 332 288 332 304C332 322 314 334 300 334C286 334 268 322 268 304Z" fill="#0b0b10"/>` +
-          `<ellipse cx="290" cy="298" rx="12" ry="6" fill="#7c809e"/>` +
-          // eyes
-          `<circle cx="244" cy="262" r="22" fill="url(#iris)"/><circle cx="246" cy="264" r="13" fill="#0c0806"/><circle cx="252" cy="255" r="7" fill="#fff"/><circle cx="238" cy="271" r="3" fill="#fff" opacity=".8"/>` +
-          `<circle cx="356" cy="262" r="22" fill="url(#iris)"/><circle cx="358" cy="264" r="13" fill="#0c0806"/><circle cx="364" cy="255" r="7" fill="#fff"/><circle cx="350" cy="271" r="3" fill="#fff" opacity=".8"/>`
-        )
-      );
-    },
+  // Zhongli
+  avatar('av_zl', 'Zhongli', ['zl', 'zhongli'], () => {
+    const k = SKIN.fair;
+    const fr = cap([[184, 250], [204, 428], [218, 238], [236, 304], [254, 196], [278, 262], [298, 172], [318, 252], [340, 198], [362, 294], [380, 236], [398, 430], [418, 250]], { top: 104, k: 0.68 });
+    return [
+      bgDefs(['#fff1cf', '#e8bd6c', '#9a6526']) + skinDefs(k) +
+      lgu('hr', [[0, '#4a3326'], [0.55, '#2e1f17'], [0.78, '#4a2f1a'], [1, '#e8ad55']], 0, 120, 0, 436) +
+      lgu('pt', [[0, '#2e1f17'], [0.45, '#3a2617'], [0.8, '#a06e2c'], [1, '#f2bc62']], 0, 430, 0, 560) +
+      iris('ir', ['#ffd77a', '#e09a2c', '#8a4a12']) +
+      lg('ct', [[0, '#4a3628'], [1, '#2a1d15']]) + lg('gd', [[0, '#f6d78c'], [1, '#b8862e']]),
+      bgBody('#fff8e0', C(110, 470, 40, '#fff', op(0.12)) + C(500, 430, 22, '#fff', op(0.2))),
+      P('M186 300C172 220 198 126 300 118C402 126 428 220 414 300C410 360 392 420 362 470H238C208 420 190 360 186 300Z', 'url(#hr)') +
+      neck(k, 30) +
+      P(TORSO, 'url(#ct)') +
+      // high collar with gold trim and an amber stone
+      P('M258 396Q300 414 342 396L354 462Q300 488 246 462Z', '#3a2a20') +
+      S('M258 398Q300 416 342 398', 'url(#gd)', 4) + S('M246 462Q300 488 354 462', 'url(#gd)', 5) +
+      S('M262 420Q300 434 338 420M264 442Q300 456 336 442', '#d9a74a', 2, 0.45) +
+      P('M300 474L316 494L300 514L284 494Z', 'url(#gd)') + P('M300 484L308 494L300 504L292 494Z', '#e8962c') +
+      P('M120 500L190 466L204 494L132 528Z', '#5a4230') + S('M190 466L204 494', 'url(#gd)', 3) +
+      P('M480 500L410 466L396 494L468 528Z', '#5a4230') + S('M410 466L396 494', 'url(#gd)', 3) +
+      // long ponytail over the shoulder, amber at the tip
+      P('M252 436C212 448 186 494 188 560H240C236 510 246 474 272 450Z', 'url(#pt)') +
+      S('M232 458Q206 494 206 548M248 452Q226 490 224 540', '#7a5028', 2.5, 0.45) +
+      P('M244 440l26-6l6 16l-26 8z', '#d9a74a') +
+      head(k, { face: 'm', blush: 0.25 }) +
+      eyes({ lash: '#3a1712', lid: 0.42, liner: '#d8452e' }) +
+      brows('#3a2418', { w: 6, ar: 3, li: -2 }) +
+      nose(k) + smile(16, 4, '#9a4a44', 362, 5) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') +
+      shine('#a87a50', 146, 226, 376, 0.4) +
+      S('M300 176Q270 196 252 240M300 176Q330 196 346 236', '#6a4a30', 3, 0.5) +
+      // single long tassel earring
+      S('M420 330V346', '#d9a74a', 3) + C(420, 352, 7, '#e8962c') + P('M414 360h12l4 92h-20z', '#c89038') + S('M416 366V448M420 366V452M424 366V448', '#8a5a1e', 1.5, 0.7),
+    ];
   });
 
-  // ---- Lan Xichen -------------------------------------------------------------------------
-  def('av_lxc', {
-    title: 'Lan Xichen',
-    w: 600, h: 600, tags: ['avatar', 'lxc'],
-    svg: (w, h) => {
-      const k = SKIN.young;
-      return svg(w, h,
-        skinDefs(k) +
-        rg('bg', [[0, '#ffffff'], [0.5, '#dcebfb'], [1, '#8fb6e2']], 0.5, 0.35, 0.8) +
-        lg('hr', [[0, '#3c4258'], [0.4, '#1f1f2c'], [1, '#14141c']], 0, 0, 1, 1) +
-        lg('robe', [[0, '#ffffff'], [1, '#d8e4f1']]) +
-        lg('inner', [[0, '#d6e8fa'], [1, '#a6c9ec']]),
-        `<rect width="600" height="600" fill="url(#bg)"/>` +
-        `<circle cx="300" cy="250" r="250" fill="url(#halo)"/>` +
-        `<path d="M-20 470C10 430 70 432 92 460C112 430 170 436 180 476C200 470 222 484 222 504H-20Z" fill="#fff" opacity=".7"/>` +
-        `<path d="M620 440C590 406 540 410 520 436C500 410 450 416 440 452C420 448 400 462 402 480H620Z" fill="#fff" opacity=".6"/>` +
-        zoom(
-          // long hair falling behind the back
-          `<path d="M178 290C158 186 212 100 300 98C388 100 442 186 422 290C430 350 440 410 446 470H154C160 410 170 350 178 290Z" fill="url(#hr)"/>` +
-          neck(k, 256, 344) +
-          // white jacket, crossed collar trimmed in pale blue
-          `<path d="M26 600C36 520 108 474 210 460L256 454H344L390 460C492 474 564 520 574 600Z" fill="url(#robe)"/>` +
-          `<path d="M256 454L300 520L344 454Z" fill="url(#inner)"/>` +
-          `<path d="M356 450L334 450L286 516L298 530Z" fill="#a9cdee"/>` +
-          `<path d="M240 450L264 450L384 600H354Z" fill="#a9cdee"/>` +
-          `<path d="M264 450L276 450L394 600H384Z" fill="#7fb0e0"/>` +
-          `<path d="M110 520C122 504 138 494 156 488" fill="none" stroke="#c4d4e6" stroke-width="6" stroke-linecap="round"/>` +
-          // low ponytail draped over his shoulder, tied with a pale blue ribbon
-          `<path d="M372 404C412 420 440 462 446 516C450 552 444 580 432 606H482C494 568 494 516 476 470C458 428 428 402 392 388Z" fill="url(#hr)"/>` +
-          `<path d="M402 430C424 456 436 492 438 532" fill="none" stroke="#5c6488" stroke-width="5" stroke-linecap="round" opacity=".6"/>` +
-          `<path d="M398 428C414 452 420 480 420 510L408 508C408 482 402 458 390 436ZM406 426C428 446 440 472 444 500L432 502C428 476 416 454 400 434Z" fill="#e6f0fa" stroke="#8fb6e2" stroke-width="2"/>` +
-          `<path d="M366 398L410 410L404 432L360 420Z" fill="#cfe3f8" stroke="#8fb6e2" stroke-width="2"/>` +
-          ears(k) + face(k, FACE_M, 0.55) +
-          // hair cap with a centre part, swept back behind the ears
-          `<path d="M200 262C194 192 238 136 300 132C362 136 406 192 400 262C392 226 374 198 346 184C330 176 314 174 300 178C286 174 270 176 254 184C226 198 208 226 200 262Z" fill="${k[3]}" opacity=".3" transform="translate(0 8)"/>` +
-          `<path d="M194 262C184 186 236 124 300 120C364 124 416 186 406 262C400 236 390 214 376 198C356 182 330 172 300 176C270 172 244 182 224 198C210 214 200 236 194 262Z" fill="url(#hr)"/>` +
-          `<path d="M300 124C330 128 358 142 378 166M300 124C270 128 242 142 222 166" fill="none" stroke="#5c6488" stroke-width="6" stroke-linecap="round" opacity=".6"/>` +
-          // two thin strands framing the face
-          `<path d="M294 176C262 186 236 210 228 246C222 276 222 306 226 336C232 306 234 276 240 250C248 216 266 192 294 176Z" fill="url(#hr)"/>` +
-          `<path d="M306 176C338 186 364 210 372 246C378 276 378 306 374 336C368 306 366 276 360 250C352 216 334 192 306 176Z" fill="url(#hr)"/>` +
-          // silver hair crown
-          `<path d="M270 112L300 88L330 112L300 122Z" fill="#eef3f9" stroke="#a9bad0" stroke-width="3" stroke-linejoin="round"/>` +
-          `<circle cx="300" cy="106" r="5" fill="#9cc0e6"/>` +
-          // gentle brows, soft eyes, small smile
-          brow('M232 248Q256 238 282 244', '#24212d', 10) + brow('M318 244Q344 238 368 248', '#24212d', 10) +
-          eyeOpen(256, 288, INK, 6) + eyeOpen(344, 288, INK, 6) +
-          `<path d="M240 306Q256 312 272 306M328 306Q344 312 360 306" fill="none" stroke="${k[3]}" stroke-width="3.5" stroke-linecap="round" opacity=".7"/>` +
-          nose(k) +
-          `<path d="M280 356Q300 368 320 356" fill="none" stroke="#a6584f" stroke-width="6" stroke-linecap="round"/>`
-        )
-      );
-    },
+  // Teucer, 8
+  avatar('av_teucer', 'Teucer', ['teucer', 'family'], () => {
+    const k = SKIN.warm;
+    const fr = cap([[184, 250], [192, 318], [208, 232], [226, 276], [246, 226], [270, 272], [292, 222], [316, 270], [338, 224], [362, 274], [384, 230], [404, 320], [416, 250]], { top: 120, sw: 5 });
+    const flake = (x, y, r) => G(`translate(${x} ${y})`, S(`M0-${r}V${r}M-${r * 0.87}-${r / 2}L${r * 0.87} ${r / 2}M-${r * 0.87} ${r / 2}L${r * 0.87}-${r / 2}`, '#fff', 3.5, 0.85));
+    return [
+      bgDefs(['#fffbe0', '#ffe07a', '#f0a43a']) + skinDefs(k) + hairG('hr', ['#ffab64', '#e2763a', '#a24a24']) +
+      iris('ir', FAMILY_IRIS) +
+      lg('hat', [[0, '#5b9be6'], [1, '#2c5fae']]) + lg('cf', [[0, '#eef4fb'], [1, '#c4d4e6']]) + lg('ct', [[0, '#f26b5b'], [1, '#b8343a']]),
+      bgBody('#fff', flake(96, 140, 16) + flake(510, 230, 12) + flake(520, 470, 18) + flake(70, 420, 10)),
+      P('M190 300C176 230 200 160 300 156C400 160 424 230 410 300L400 340H200Z', 'url(#hr)') +
+      neck(k, 28) +
+      // red puffy coat
+      P('M20 600C30 520 96 478 196 462C230 456 256 448 268 438H332C344 448 370 456 404 462C504 478 570 520 580 600Z', 'url(#ct)') +
+      S('M110 520Q190 500 252 512M348 512Q410 500 490 520', '#8f2430', 5, 0.5) +
+      P('M258 438Q300 478 342 438L352 462Q300 506 248 462Z', '#f4e6c8') + S('M262 452Q300 486 338 452', '#d9c8a4', 3, 0.7) +
+      head(k, { face: 'c', blush: 1 }) +
+      [[224, 332], [238, 322], [252, 334], [348, 334], [362, 322], [376, 332], [234, 346], [366, 346]].map(([x, y]) => C(x, y, 3.4, '#c46a44', op(0.7))).join('') +
+      eyes({ lash: '#3a1c18', k: 1.1 }, 300, 50) +
+      brows('#b45a30', { w: 7, ar: 9, li: 4 }, 300, 50) +
+      nose(k, 6) +
+      grin({ y: 358, w: 34, d: 32, gap: true }) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') +
+      P(lock(196, 240, 182, 320, 30, -8), 'url(#hr)') + P(lock(404, 240, 418, 320, 30, 8), 'url(#hr)') +
+      // knitted beanie with a fold and a pompom
+      P('M182 224C176 128 236 78 300 76C364 78 424 128 418 224Z', 'url(#hat)') +
+      S('M226 108V204M260 88V204M300 80V204M340 88V204M374 108V204', '#24508f', 4, 0.5) +
+      P('M170 220Q300 178 430 220L434 254Q300 214 166 254Z', 'url(#cf)') +
+      S('M192 232V248M218 224V242M244 218V236M272 214V232M300 212V230M328 214V232M356 218V236M382 224V242M408 232V248', '#a8b8cc', 4, 0.8) +
+      C(300, 72, 34, '#f4f6fb') + C(290, 62, 16, '#fff') + S('M276 68Q300 48 322 70', '#c8d2e0', 4, 0.6),
+    ];
   });
 
-  // ---- Nie Huaisang -----------------------------------------------------------------------
-  def('av_nhs', {
-    title: 'Nie Huaisang',
-    w: 600, h: 600, tags: ['avatar', 'nhs'],
-    svg: (w, h) => {
-      const k = SKIN.young;
-      // fan geometry: pivot P, radius R, folds from -66° to 66°
-      const P = [300, 492], R = 196, r0 = 62, N = 14, A = 66;
-      const pt = (deg, rad) => [P[0] + rad * Math.sin((deg * Math.PI) / 180), P[1] - rad * Math.cos((deg * Math.PI) / 180)];
-      let folds = '', ribs = '';
-      for (let i = 0; i < N; i++) {
-        const a0 = -A + (2 * A * i) / N, a1 = -A + (2 * A * (i + 1)) / N;
-        const [x0, y0] = pt(a0, R), [x1, y1] = pt(a1, R), [x2, y2] = pt(a1, r0 + 34), [x3, y3] = pt(a0, r0 + 34);
-        folds += `<path d="M${f(x0)} ${f(y0)}L${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}L${f(x3)} ${f(y3)}Z" fill="${i % 2 ? '#efe6d2' : '#fbf6ea'}"/>`;
-      }
-      for (let i = 0; i <= N; i++) {
-        const a = -A + (2 * A * i) / N;
-        const [x0, y0] = pt(a, r0 + 36), [x1, y1] = pt(a, 6);
-        ribs += `M${f(x0)} ${f(y0)}L${f(x1)} ${f(y1)}`;
-      }
-      const [ex0, ey0] = pt(-A, R), [ex1, ey1] = pt(A, R);
-      const arc = `M${f(ex0)} ${f(ey0)}A${R} ${R} 0 0 1 ${f(ex1)} ${f(ey1)}`;
-      return svg(w, h,
-        skinDefs(k) +
-        rg('bg', [[0, '#f1fff4'], [0.5, '#b4ebc5'], [1, '#3fa66d']], 0.5, 0.35, 0.8) +
-        lg('hr', [[0, '#4a3a33'], [0.45, '#261c1c'], [1, '#141011']], 0, 0, 1, 1) +
-        lg('jk', [[0, '#4fb37c'], [1, '#22764c']]) +
-        `<clipPath id="fanclip"><path d="M${P[0]} ${P[1]}L${f(ex0)} ${f(ey0)}A${R} ${R} 0 0 1 ${f(ex1)} ${f(ey1)}Z"/></clipPath>`,
-        `<rect width="600" height="600" fill="url(#bg)"/>` +
-        `<circle cx="300" cy="250" r="250" fill="url(#halo)"/>` +
-        bokeh([[84, 130, 24, 0.4], [520, 100, 16, 0.5], [536, 300, 28, 0.22], [64, 320, 12, 0.45]], '#fff') +
-        zoom(
-          // bun + hair stick
-          `<path d="M232 70L372 118" stroke="#2f8a58" stroke-width="9" stroke-linecap="round"/><circle cx="234" cy="70" r="9" fill="#6fd39a"/>` +
-          `<circle cx="300" cy="98" r="44" fill="url(#hr)"/><path d="M270 84C284 70 312 68 328 82" fill="none" stroke="#6e5648" stroke-width="5" stroke-linecap="round" opacity=".7"/>` +
-          // back hair to shoulders
-          `<path d="M180 300C160 196 214 112 300 110C386 112 440 196 420 300C424 330 428 360 430 388L170 388C172 360 176 330 180 300Z" fill="url(#hr)"/>` +
-          neck(k) +
-          `<path d="M34 600C44 520 112 476 212 462L300 470L388 462C488 476 556 520 566 600Z" fill="url(#jk)"/>` +
-          `<path d="M250 456L300 486L350 456L360 470L300 506L240 470Z" fill="#e9f7ee"/>` +
-          ears(k) + face(k) +
-          // fringe
-          `<path d="M198 268C192 186 236 128 302 126C368 128 410 184 402 270C394 232 376 206 352 192C356 214 348 232 336 242C330 216 314 200 290 192C288 212 278 226 262 236C262 216 254 204 240 200C222 214 206 238 198 268Z" fill="${k[3]}" opacity=".32" transform="translate(2 9)"/>` +
-          `<path d="M194 300C180 190 230 120 302 118C374 120 422 190 406 300C400 240 380 206 352 190C356 212 348 230 336 240C330 214 314 198 290 190C288 210 278 224 262 234C262 214 254 202 240 198C214 220 200 254 194 300Z" fill="url(#hr)"/>` +
-          `<path d="M256 136C288 124 330 128 360 148" fill="none" stroke="#6e5648" stroke-width="6" stroke-linecap="round" opacity=".55"/>` +
-          // playful brows + crescent eyes
-          brow('M228 236Q254 220 280 232', '#241a1c', 8.5) + brow('M320 232Q346 220 372 236', '#241a1c', 8.5) +
-          eyeSmile(256, 280) + eyeSmile(344, 280) +
-          // sleeve
-          `<path d="M300 600C300 560 304 520 314 500C350 492 392 510 410 540C420 560 424 580 424 600Z" fill="#2a8456"/>` +
-          // fan
-          `<g transform="rotate(-8 300 492)">` +
-          `<path d="${ribs}" stroke="#8a5a32" stroke-width="7" stroke-linecap="round"/>` +
-          `<g clip-path="url(#fanclip)">${folds}` +
-          `<path d="M96 420L150 352L184 384L232 318L280 372L318 334L366 386L404 346L470 420Z" fill="#9cc2ad" opacity=".6"/>` +
-          `<path d="M110 430L176 380L214 404L262 360L304 394L352 366L420 430Z" fill="#4f8a6c" opacity=".6"/>` +
-          `<circle cx="368" cy="330" r="15" fill="#f08a7c" opacity=".85"/>` +
-          `<path d="M200 314C228 320 252 336 264 358M226 322l-8-14M246 336l12-10" fill="none" stroke="#5a3a2a" stroke-width="3.5" stroke-linecap="round"/>` +
-          `<g fill="#f4a3b8"><circle cx="214" cy="312" r="6"/><circle cx="236" cy="330" r="5"/><circle cx="258" cy="344" r="6"/><circle cx="250" cy="322" r="4"/></g>` +
-          `<rect x="330" y="400" width="14" height="18" fill="#d6332f" opacity=".85"/>` +
-          `</g>` +
-          `<path d="${arc}" fill="none" stroke="#8a5a32" stroke-width="5"/>` +
-          `</g>` +
-          // hand holding the fan
-          `<path d="M276 492C270 470 290 456 312 460C334 464 344 482 338 500C334 516 318 526 300 524C286 522 278 508 276 492Z" fill="${k[1]}"/>` +
-          `<path d="M290 470C302 466 316 468 326 476M286 486C300 482 316 484 330 492M288 502C300 500 314 502 324 508" fill="none" stroke="${k[3]}" stroke-width="4" stroke-linecap="round" opacity=".7"/>`
-        )
-      );
-    },
+  // Tonia, 15
+  avatar('av_tonia', 'Tonia', ['tonia', 'family'], () => {
+    const k = SKIN.warm;
+    const fr = cap([[188, 252], [200, 334], [212, 236], [228, 284], [244, 210], [266, 262], [284, 192], [314, 244], [338, 200], [370, 264], [386, 222], [404, 344], [416, 252]], { top: 108, sw: 10 });
+    return [
+      bgDefs(['#fff0f3', '#f6b8c6', '#c86a86']) + skinDefs(k) + hairG('hr', GINGER) + iris('ir', FAMILY_IRIS) +
+      lg('ct', [[0, '#3a4a78'], [1, '#222c4c']]) + lg('sf', [[0, '#3f9a92'], [1, '#246a66']]),
+      bgBody('#fff', star(110, 180, 14, '#fff', 0.7) + star(500, 140, 10, '#fff', 0.7) + star(470, 400, 12, '#fff', 0.5)),
+      P('M186 300C170 220 196 128 300 120C404 128 430 220 414 300L408 400H192Z', 'url(#hr)') +
+      neck(k, 28) +
+      P(TORSO, 'url(#ct)') +
+      // chunky knitted scarf
+      P('M228 420Q300 470 372 420L392 462Q300 524 208 462Z', 'url(#sf)') +
+      S('M232 440Q300 488 368 440', '#f4ead2', 7, 0.9) + S('M222 456Q300 506 378 456', '#1c5450', 3, 0.5) +
+      P('M252 470Q246 506 252 540H300Q298 504 296 478Z', 'url(#sf)') + S('M262 490H294M262 510H296', '#f4ead2', 6, 0.9) +
+      S('M254 530l-2 10M266 532v10M278 532v10M290 532v10', '#246a66', 4) +
+      // braid over the shoulder
+      braid(396, 350, 420, 504, 5, 50, 'url(#hr)', '#7a3018') +
+      P('M408 494h26v14h-26z', '#3f9a92') + P(lock(421, 506, 424, 528, 26, 0), 'url(#hr)') +
+      head(k, { face: 'f', blush: 0.7 }) +
+      eyes({ lash: '#3a1c18', lid: 0.12 }) +
+      brows('#a24a26', { w: 6, ar: 6, li: 4 }) +
+      nose(k) + smile(14, 4, '#b44c56', 364, 5) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') +
+      shine('#ffc08a', 148, 226, 376, 0.45) +
+      S('M284 196Q260 220 250 250M296 200Q330 214 352 240', '#8c3c1e', 3, 0.5),
+    ];
   });
 
-  // ---- Mianmian ---------------------------------------------------------------------------
-  def('av_mian', {
-    title: 'Mianmian',
-    w: 600, h: 600, tags: ['avatar', 'mian'],
-    svg: (w, h) => {
-      const k = SKIN.young;
-      return svg(w, h,
-        skinDefs(k) +
-        rg('bg', [[0, '#fff5f8'], [0.5, '#ffc9d9'], [1, '#e7799c']], 0.5, 0.35, 0.8) +
-        lg('hr', [[0, '#5a3a35'], [0.45, '#33201f'], [1, '#1d1314']], 0, 0, 1, 1) +
-        lg('bz', [[0, '#f093ae'], [1, '#c95d80']]) +
-        lg('tn', [[0, '#fff7f2'], [1, '#f1dcd4']]),
-        `<rect width="600" height="600" fill="url(#bg)"/>` +
-        `<circle cx="300" cy="250" r="250" fill="url(#halo)"/>` +
-        bokeh(BOKEH, '#fff') +
-        zoom(
-          // back hair (bob)
-          `<path d="M176 300C156 190 214 106 302 104C392 106 446 192 424 300C428 340 430 380 420 408L180 408C170 380 172 340 176 300Z" fill="url(#hr)"/>` +
-          neck(k) +
-          // turtleneck + blazer
-          `<path d="M32 600C42 520 112 478 214 464L386 464C488 478 558 520 568 600Z" fill="url(#bz)"/>` +
-          `<path d="M246 470C240 440 250 420 262 412H338C350 420 360 440 354 470L346 600H254Z" fill="url(#tn)"/>` +
-          `<path d="M262 412C276 424 324 424 338 412M256 436C276 450 324 450 344 436M252 458C276 472 324 472 348 458" fill="none" stroke="#e2c6bb" stroke-width="4" stroke-linecap="round"/>` +
-          `<path d="M214 464L250 470L276 600H190Z" fill="#d86b8e"/><path d="M386 464L350 470L324 600H410Z" fill="#b84f72"/>` +
-          `<path d="M214 464L250 470L238 520L204 500Z" fill="#f4a9c0"/><path d="M386 464L350 470L362 520L396 500Z" fill="#d97898"/>` +
-          // pencil tucked behind the left ear (drawn behind the ear)
-          `<g transform="rotate(58 190 250)"><rect x="128" y="243" width="104" height="15" rx="3" fill="#ffd43b"/><rect x="128" y="243" width="104" height="5" fill="#ffe680"/><path d="M232 243L254 250.5L232 258Z" fill="#f2d2a9"/><path d="M246 247.6L254 250.5L246 253.4Z" fill="#3a3a3a"/><rect x="116" y="243" width="14" height="15" rx="3" fill="#ff8fab"/><rect x="128" y="243" width="5" height="15" fill="#c9c9c9"/></g>` +
-          ears(k) +
-          `<circle cx="186" cy="322" r="6" fill="#f5c542"/>` +
-          face(k) +
-          // fringe: side part, tucked left, bob right
-          `<path d="M206 258C206 178 248 132 296 128C364 128 410 180 404 262C400 316 404 360 414 398C390 382 382 330 382 284C380 236 362 200 330 182C300 196 258 214 206 258Z" fill="${k[3]}" opacity=".3" transform="translate(-2 8)"/>` +
-          `<path d="M200 262C196 176 244 122 298 120C372 120 422 176 412 264C406 320 414 368 432 406C394 402 378 352 376 292C374 240 356 202 326 182C294 200 252 220 200 262Z" fill="url(#hr)"/>` +
-          `<path d="M244 140C280 124 330 126 366 150M392 300C394 340 402 372 416 396" fill="none" stroke="#7d5a52" stroke-width="6" stroke-linecap="round" opacity=".55"/>` +
-          // brows + eyes with a flick + thin glasses
-          brow('M232 246Q256 236 280 244', '#33201f', 7) + brow('M320 244Q344 236 368 246', '#33201f', 7) +
-          eyeOpen(256, 286, INK, 3) + eyeOpen(344, 286, INK, 3) +
-          `<path d="M234 280L224 272M366 280L376 272" stroke="${INK}" stroke-width="5" stroke-linecap="round"/>` +
-          `<circle cx="256" cy="288" r="34" fill="none" stroke="#c99a3c" stroke-width="4.5"/><circle cx="344" cy="288" r="34" fill="none" stroke="#c99a3c" stroke-width="4.5"/>` +
-          `<path d="M290 284Q300 278 310 284M222 284L204 276M378 284L396 276" fill="none" stroke="#c99a3c" stroke-width="4.5" stroke-linecap="round"/>` +
-          `<path d="M236 270L250 262" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".7"/>` +
-          nose(k) +
-          `<path d="M280 352Q300 366 320 352Q300 358 280 352Z" fill="#c44d68" stroke="#c44d68" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>`
-        )
-      );
-    },
+  // Anthon, 12
+  avatar('av_anthon', 'Anthon', ['anthon', 'family'], () => {
+    const k = SKIN.warm;
+    const fr = cap([[186, 250], [198, 320], [212, 232], [230, 284], [246, 214], [268, 270], [284, 200], [306, 262], [324, 204], [346, 266], [364, 216], [384, 280], [396, 232], [408, 322], [416, 250]], {
+      sw: -8, crown: 'C426 190 420 150 400 128L412 108Q388 110 372 104L376 84Q352 92 334 90L330 70Q312 84 296 88L282 70Q272 88 258 94L238 84Q236 102 226 112Q204 124 196 142L178 140Q186 160 184 184Q178 214 186 250',
+    });
+    let px = '';
+    [[70, 120, 22], [500, 90, 16], [520, 330, 26], [64, 400, 14], [470, 470, 18], [120, 520, 12]].forEach(([x, y, s], i) => { px += `<rect x="${x}" y="${y}" width="${s}" height="${s}" fill="${i % 2 ? '#7ff5c4' : '#fff'}" opacity="${i % 2 ? 0.45 : 0.3}"/>`; });
+    return [
+      bgDefs(['#efe4ff', '#a98ae8', '#4a2e98']) + skinDefs(k) + hairG('hr', GINGER) + iris('ir', FAMILY_IRIS) +
+      lg('hd', [[0, '#4f6070'], [1, '#2c3642']]) + lg('cp', [[0, '#3a3c48'], [1, '#16171d']]),
+      bgBody('#fff', px),
+      P('M190 300C174 220 200 140 300 134C400 140 426 220 410 300L400 340H200Z', 'url(#hr)') +
+      neck(k, 28) +
+      // hoodie with hood and drawstrings
+      P(TORSO, 'url(#hd)') +
+      P('M190 470Q300 404 410 470L398 490Q300 440 202 490Z', '#24303c') +
+      S('M282 450V512M318 450V512', '#eef2f6', 4) + C(282, 514, 5, '#eef2f6') + C(318, 514, 5, '#eef2f6') +
+      head(k, { face: 'c', blush: 0.5 }) +
+      eyes({ lash: '#3a1c18', lid: 0.22 }) +
+      brows('#a24a26', { w: 7, ar: 5, li: -2, r: { lo: 8, ar: 10 } }) +
+      nose(k) + smirk('#a8464e', 362) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') +
+      shine('#ffc08a', 140, 228, 372, 0.4) +
+      // gaming headset: band, ear cups with green light, mic boom
+      S('M180 262C168 140 228 82 300 80C372 82 432 140 420 262', 'url(#cp)', 24) +
+      S('M190 226C190 140 240 96 300 94', '#5a5e6e', 4, 0.6) +
+      `<rect x="146" y="236" width="64" height="112" rx="30" fill="url(#cp)"/><rect x="390" y="236" width="64" height="112" rx="30" fill="url(#cp)"/>` +
+      `<rect x="158" y="250" width="40" height="84" rx="20" fill="none" stroke="#3cf0a0" stroke-width="5"/><rect x="402" y="250" width="40" height="84" rx="20" fill="none" stroke="#3cf0a0" stroke-width="5"/>` +
+      S('M176 330Q190 392 256 384', '#22232b', 8) + C(258, 383, 11, '#3a3c48') + C(258, 383, 4, '#3cf0a0'),
+    ];
   });
 
-  // ---- Lan Sizhui -------------------------------------------------------------------------
-  def('av_sz', {
-    title: 'Lan Sizhui',
-    w: 600, h: 600, tags: ['avatar', 'sz'],
-    svg: (w, h) => {
-      const k = SKIN.young;
-      return svg(w, h,
-        skinDefs(k) +
-        rg('bg', [[0, '#f2fdff'], [0.5, '#bdeaf3'], [1, '#4fb6cf']], 0.5, 0.35, 0.8) +
-        lg('hr', [[0, '#3d3434'], [0.45, '#1e1819'], [1, '#110d0e']], 0, 0, 1, 1) +
-        lg('sw', [[0, '#d6ecfb'], [1, '#9cc9ea']]) +
-        lg('rb', [[0, '#ffffff'], [1, '#e2eef8']]),
-        `<rect width="600" height="600" fill="url(#bg)"/>` +
-        `<circle cx="300" cy="250" r="250" fill="url(#halo)"/>` +
-        bokeh(BOKEH, '#fff') +
-        zoom(
-          // ribbon tails behind
-          `<path d="M392 214C430 240 470 300 488 380C496 420 492 460 480 492C470 452 456 420 440 400C452 360 440 300 404 250Z" fill="url(#rb)" stroke="#c6dcef" stroke-width="3"/>` +
-          `<path d="M400 226C452 252 506 300 540 360C520 356 500 346 482 330C460 290 430 262 396 244Z" fill="url(#rb)" stroke="#c6dcef" stroke-width="3"/>` +
-          // back hair
-          `<path d="M182 300C162 196 214 106 302 104C390 106 440 196 418 300C410 262 400 232 388 214H212C198 232 188 262 182 300Z" fill="url(#hr)"/>` +
-          neck(k) +
-          // sweater with shirt collar
-          `<path d="M34 600C44 520 112 478 212 464L388 464C488 478 556 520 566 600Z" fill="url(#sw)"/>` +
-          `<path d="M250 462Q300 520 350 462" fill="none" stroke="#84b6dc" stroke-width="16"/>` +
-          `<path d="M256 452L300 500L270 520L240 472Z" fill="#fff"/><path d="M344 452L300 500L330 520L360 472Z" fill="#eef5fb"/>` +
-          `<path d="M120 548C132 528 146 516 160 510M480 548C468 528 454 516 440 510" fill="none" stroke="#7fb0d6" stroke-width="5" stroke-linecap="round" opacity=".6"/>` +
-          ears(k) + face(k, FACE, 0.75) +
-          // fringe
-          `<path d="M200 270C194 186 240 130 302 128C366 130 410 186 402 272C394 236 378 212 356 200C358 220 352 234 342 244C336 222 322 206 302 198C300 216 292 230 278 240C276 220 268 208 254 204C230 220 210 242 200 270Z" fill="${k[3]}" opacity=".32" transform="translate(2 9)"/>` +
-          `<path d="M196 284C186 190 236 122 302 120C370 122 420 190 406 284C398 240 380 212 356 198C358 218 352 232 342 242C336 220 322 204 302 196C300 214 292 228 278 238C276 218 268 206 254 202C226 220 206 248 196 284Z" fill="url(#hr)"/>` +
-          `<path d="M240 140C276 124 328 124 362 142" fill="none" stroke="#6e5a58" stroke-width="6" stroke-linecap="round" opacity=".55"/>` +
-          // forehead ribbon with cloud
-          `<path d="M200 200C262 180 340 180 402 200L400 224C340 206 262 206 202 224Z" fill="url(#rb)" stroke="#c6dcef" stroke-width="2"/>` +
-          `<path d="M288 207c3-7 13-7 15 0c5-4 13-1 12 6h-30c-1-4 0-6 3-6Z" fill="#5aa9d6"/>` +
-          // kind brows + eyes
-          brow('M232 250Q256 240 280 246', '#1e1819', 8) + brow('M320 246Q344 240 368 250', '#1e1819', 8) +
-          eyeOpen(256, 288, INK, 2) + eyeOpen(344, 288, INK, 2) +
-          `<path d="M240 304Q256 310 272 304M328 304Q344 310 360 304" fill="none" stroke="${k[3]}" stroke-width="3" stroke-linecap="round" opacity=".55"/>` +
-          nose(k) +
-          `<path d="M276 350Q300 374 324 350Q300 360 276 350Z" fill="#a8424f" stroke="#a8424f" stroke-width="6" stroke-linejoin="round"/>` +
-          `<path d="M284 354Q300 358 316 354" stroke="#fff" stroke-width="4" stroke-linecap="round" opacity=".9"/>`
-        )
-      );
-    },
+  // Mama
+  avatar('av_mama', 'Mama', ['mama', 'family'], () => {
+    const k = SKIN.warm;
+    const fr = cap([[192, 250], [204, 344], [214, 236], [300, 168], [386, 236], [396, 344], [408, 250]], { top: 104, k: 0.72 });
+    const sc = 'M144 520C146 420 152 330 164 250C178 150 230 92 300 88C324 70 364 70 382 96C420 120 436 180 438 250C448 330 454 420 456 520Z';
+    const hole = 'M206 420C196 340 192 280 198 226C206 168 248 140 300 138C352 140 394 168 402 226C408 280 404 340 394 420Z';
+    let dots = '';
+    [[176, 220], [196, 150], [244, 110], [300, 104], [352, 100], [404, 150], [420, 230], [168, 310], [430, 320], [166, 400], [436, 410], [180, 480], [424, 488]].forEach(([x, y]) => { dots += flower5(x, y, 13, '#fff1d6', '#e8a63a'); });
+    return [
+      bgDefs(['#fff4ea', '#ffcaa8', '#e0866a']) + skinDefs(k) + hairG('hr', ['#d89a68', '#a8673e', '#6e3e24']) + iris('ir', FAMILY_IRIS) +
+      lg('sf', [[0, '#d94a3a'], [1, '#9a2a24']]) + lg('cd', [[0, '#e8b456'], [1, '#b47e2a']]),
+      bgBody('#fff'),
+      P(TORSO, 'url(#cd)') +
+      neck(k, 28) +
+      P('M266 436L300 476L334 436', '#fbf4e6', ' stroke="#e8dcc4" stroke-width="3"') +
+      S('M262 446L300 520L338 446', '#a87428', 3, 0.5) + C(300, 506, 5, '#fbf4e6') + C(300, 526, 5, '#fbf4e6') +
+      // warm headscarf over her bun, draped onto the shoulders
+      P(sc + hole, 'url(#sf)', ' fill-rule="evenodd"') +
+      head(k, { face: 'f', blush: 0.8 }) +
+      eyes({ lash: '#4a2a22', lid: 0.32 }) +
+      S('M208 300l-10-2M210 310l-10 4M392 300l10-2M390 310l10 4', k[3], 3, 0.6) +
+      brows('#8a5434', { w: 6, ar: 6, li: 3 }) +
+      nose(k) + smile(22, 8, '#b4505a', 360, 5.5) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') +
+      S('M300 172Q262 196 240 240M300 172Q338 196 360 240', '#6e3e24', 3, 0.5) +
+      P(hole + 'M140 520V60H460V520Z', 'url(#sf)', ` fill-rule="evenodd" clip-path="url(#scc)"`) +
+      `<clipPath id="scc"><path d="${sc}"/></clipPath>` +
+      `<g clip-path="url(#scc)">${dots}</g>` +
+      S(hole.replace(/Z$/, ''), '#fff1d6', 5, 0.85, ' stroke-dasharray="2 10"') +
+      S('M156 440Q300 470 444 440', '#7a1e1a', 3, 0),
+    ];
   });
 
-  // ---- Lan Jingyi -------------------------------------------------------------------------
-  def('av_jy', {
-    title: 'Lan Jingyi',
-    w: 600, h: 600, tags: ['avatar', 'jy'],
-    svg: (w, h) => {
-      const k = SKIN.young;
-      let rays = '';
-      for (let i = 0; i < 16; i++) {
-        const a = (i / 16) * Math.PI * 2, b = a + Math.PI / 22;
-        rays += `M300 280L${f(300 + 520 * Math.cos(a))} ${f(280 + 520 * Math.sin(a))}L${f(300 + 520 * Math.cos(b))} ${f(280 + 520 * Math.sin(b))}Z`;
-      }
-      return svg(w, h,
-        skinDefs(k) +
-        rg('bg', [[0, '#fffbe0'], [0.45, '#ffd84d'], [1, '#ff9a1a']], 0.5, 0.4, 0.8) +
-        lg('hr', [[0, '#4a352c'], [0.45, '#271b19'], [1, '#141010']], 0, 0, 1, 1) +
-        lg('hd', [[0, '#ff9b3d'], [1, '#e8590c']]) +
-        lg('rb', [[0, '#ffffff'], [1, '#e6eef6']]),
-        `<rect width="600" height="600" fill="url(#bg)"/>` +
-        `<path d="${rays}" fill="#fff" opacity=".18"/>` +
-        `<circle cx="300" cy="260" r="240" fill="url(#halo)"/>` +
-        zoom(
-          // ribbon tails (askew)
-          `<path d="M402 186C446 176 494 186 530 214C508 222 484 220 462 212C446 226 426 228 404 222Z" fill="url(#rb)" stroke="#d4dfea" stroke-width="3"/>` +
-          `<path d="M404 200C440 214 470 246 482 286C462 280 444 266 432 248C420 236 408 226 400 218Z" fill="url(#rb)" stroke="#d4dfea" stroke-width="3"/>` +
-          // tufty back hair
-          `<path d="M184 300C172 254 168 214 178 182C160 176 148 168 140 156C160 154 176 150 190 142C182 126 180 110 184 94C200 104 216 112 230 114C236 96 248 82 264 74C272 92 284 104 300 108C312 92 328 82 348 78C350 96 356 108 368 116C384 106 404 102 424 104C418 120 410 132 400 140C418 146 434 156 446 170C432 174 420 176 412 178C432 220 432 262 418 300C412 262 402 232 388 214H212C198 232 190 262 184 300Z" fill="url(#hr)"/>` +
-          neck(k) +
-          // hoodie
-          `<path d="M32 600C42 520 112 476 212 462L388 462C488 476 558 520 568 600Z" fill="url(#hd)"/>` +
-          `<path d="M196 470C220 440 260 432 300 444C340 432 380 440 404 470C380 500 340 512 300 500C260 512 220 500 196 470Z" fill="#d9480f"/>` +
-          `<path d="M232 476Q300 520 368 476Q300 500 232 476Z" fill="#b8400c"/>` +
-          `<path d="M262 494C260 530 258 552 256 572M338 494C340 530 342 552 344 572" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>` +
-          `<circle cx="256" cy="578" r="7" fill="#fff"/><circle cx="344" cy="578" r="7" fill="#fff"/>` +
-          ears(k) + face(k) +
-          // messy fringe
-          `<path d="M196 280C188 190 236 130 300 128C366 130 414 190 404 282C398 252 386 232 370 220L376 250L346 222L340 252L316 214L300 246L284 210L262 248L254 214L230 246L224 222C210 236 200 256 196 280Z" fill="${k[3]}" opacity=".32" transform="translate(2 9)"/>` +
-          `<path d="M192 290C182 194 234 122 300 120C368 122 420 194 408 292C400 258 388 234 372 220L378 250L348 220L342 252L318 212L300 246L282 208L262 246L252 212L230 244L222 220C206 236 196 260 192 290Z" fill="url(#hr)"/>` +
-          `<path d="M236 142C272 126 326 126 362 144" fill="none" stroke="#6e5648" stroke-width="6" stroke-linecap="round" opacity=".55"/>` +
-          // crooked ribbon
-          `<path d="M198 214C262 184 340 176 404 186L404 210C340 202 264 210 200 238Z" fill="url(#rb)" stroke="#d4dfea" stroke-width="2"/>` +
-          `<path d="M292 197c3-7 13-7 15 0c5-4 13-1 12 6h-30c-1-4 0-6 3-6Z" fill="#5aa9d6"/>` +
-          // raised brows, laughing eyes, big grin
-          brow('M226 238Q252 216 280 228', '#1c1416', 9) + brow('M320 226Q348 214 374 236', '#1c1416', 9) +
-          eyeHappy(256, 284) + eyeHappy(344, 284) +
-          `<path d="M250 336Q300 344 350 336Q350 396 300 400Q250 396 250 336Z" fill="#7a1f2b"/>` +
-          `<path d="M256 338Q300 346 344 338L340 354Q300 360 260 354Z" fill="#fff"/>` +
-          `<path d="M272 384Q300 368 328 384Q316 398 300 399Q284 398 272 384Z" fill="#ff7f8f"/>` +
-          `<path d="M250 336Q300 344 350 336" fill="none" stroke="#7a1f2b" stroke-width="5" stroke-linecap="round"/>` +
-          `<path d="M302 300Q296 314 304 320" fill="none" stroke="${k[3]}" stroke-width="5" stroke-linecap="round" opacity=".8"/>` +
-          `<ellipse cx="232" cy="322" rx="30" ry="16" fill="url(#bl)"/><ellipse cx="368" cy="322" rx="30" ry="16" fill="url(#bl)"/>`
-        )
-      );
-    },
+  // Papa
+  avatar('av_papa', 'Papa', ['papa', 'family'], () => {
+    const k = SKIN.tan;
+    return [
+      bgDefs(['#f2f6f8', '#b8cad6', '#5e7a8e']) + skinDefs(k) + iris('ir', FAMILY_IRIS) +
+      lg('bd', [[0, '#c47e50'], [0.55, '#ae7a5c'], [1, '#e2dad2']]) + lg('cp', [[0, '#3a4a6a'], [1, '#1e2638']]) +
+      lg('sw', [[0, '#eadfca'], [1, '#bcae92']]),
+      bgBody('#fff', S('M0 470H600', '#fff', 3, 0.35) + S('M70 160q16-14 32 0q16-14 32 0M470 220q12-10 24 0q12-10 24 0', '#4a5e70', 4, 0.5)),
+      neck(k, 34) +
+      // cream cable-knit roll neck
+      P(TORSO, 'url(#sw)') +
+      S('M200 470Q190 500 200 530M230 466Q222 500 230 530M370 466Q378 500 370 530M400 470Q410 500 400 530', '#a8987a', 5, 0.55) +
+      P('M246 414Q300 446 354 414L368 466Q300 500 232 466Z', '#e8dcc4') + S('M252 430Q300 458 348 430M244 448Q300 478 356 448', '#bcae92', 4, 0.7) +
+      head(k, { face: 'o', blush: 0.35 }) +
+      // greying ginger hair at the temples
+      P(lock(200, 210, 196, 290, 26, -4), '#b8835e') + P(lock(400, 210, 404, 290, 26, 4), '#b8835e') +
+      S('M196 230L200 280M404 230L400 280', '#e2dad2', 3, 0.7) +
+      eyes({ lash: '#3a2418', lid: 0.36, k: 0.92 }) +
+      S('M212 298l-12-4M212 308l-12 4M388 298l12-4M388 308l12 4M234 322Q252 330 270 322M330 322Q348 330 366 322', k[3], 3, 0.6) +
+      brows('#a8724e', { w: 11, ar: 4, li: 2 }) +
+      nose(k) +
+      // full beard and moustache
+      P('M200 262C196 330 212 386 252 412Q280 432 300 432Q320 432 348 412C388 386 404 330 400 262C396 300 384 330 364 346Q340 358 300 352Q260 358 236 346C216 330 204 300 200 262Z', 'url(#bd)') +
+      S('M226 330Q240 380 270 410M374 330Q360 380 330 410M300 380V426', '#e2dad2', 3, 0.45) +
+      S('M284 370Q300 378 316 370', '#5a2a20', 5) +
+      P('M254 354Q274 330 300 340Q326 330 346 354Q334 364 316 358Q300 352 284 358Q266 364 254 354Z', '#b0704a') +
+      // fisherman's cap
+      P('M172 204C164 152 196 106 300 102C404 106 436 152 428 204Z', 'url(#cp)') +
+      S('M210 150Q300 118 390 150', '#5a6a8a', 6, 0.5) +
+      P('M176 198Q300 180 424 198L426 222Q300 204 174 222Z', '#141a28') +
+      S('M182 206Q300 190 418 206', '#c9a24a', 3, 0.85, ' stroke-dasharray="7 5"') +
+      P('M200 216Q300 202 400 216Q394 248 300 246Q206 248 200 216Z', '#10141c') + S('M216 224Q300 212 384 224', '#4a5468', 3, 0.6),
+    ];
   });
 
-  // ---- Old Huang --------------------------------------------------------------------------
-  def('av_huang', {
-    title: 'Old Huang',
-    w: 600, h: 600, tags: ['avatar', 'huang'],
-    svg: (w, h) => {
-      const k = SKIN.tan;
-      const GREY = '#c9c4c0';
-      return svg(w, h,
-        skinDefs(k) +
-        rg('bg', [[0, '#fff4e6'], [0.5, '#ffc27a'], [1, '#ec7a22']], 0.5, 0.36, 0.8) +
-        lg('cap', [[0, '#3a4c6b'], [1, '#1c2940']]) +
-        lg('visor', [[0, '#2c2f38'], [0.5, '#0e1015'], [1, '#22252e']], 0, 0, 1, 0) +
-        lg('uni', [[0, '#34496b'], [1, '#1d2b45']]) +
-        lg('gold', [[0, '#ffe08a'], [1, '#d39a1c']]),
-        `<rect width="600" height="600" fill="url(#bg)"/>` +
-        `<circle cx="300" cy="250" r="250" fill="url(#halo)"/>` +
-        bokeh(BOKEH, '#fff') +
-        zoom(
-          `<path d="M258 330V478Q300 504 342 478V330Z" fill="url(#nk)"/>` +
-          // uniform
-          `<path d="M28 600C38 518 110 474 214 460L386 460C490 474 562 518 572 600Z" fill="url(#uni)"/>` +
-          `<path d="M250 452L300 506L350 452L364 470L300 540L236 470Z" fill="#e8edf5"/>` +
-          `<path d="M250 452L300 506L282 524L232 478Z" fill="#f4f7fb"/>` +
-          `<path d="M300 506L300 600" stroke="#13203a" stroke-width="4"/>` +
-          `<circle cx="300" cy="560" r="5" fill="#d39a1c"/>` +
-          `<path d="M86 500L178 470L184 488L92 520Z" fill="url(#gold)"/><path d="M514 500L422 470L416 488L508 520Z" fill="url(#gold)"/>` +
-          `<path d="M392 512L436 506L440 548L414 566L392 548Z" fill="url(#gold)"/><path d="M414 520L418 540" stroke="#a87410" stroke-width="4" stroke-linecap="round"/>` +
-          ears(k) + face(k, FACE_M, 0.6) +
-          // grey hair sides
-          `<path d="M196 262C192 230 196 210 204 196L222 200C214 220 212 240 214 262Z" fill="${GREY}"/>` +
-          `<path d="M404 262C408 230 404 210 396 196L378 200C386 220 388 240 386 262Z" fill="#b5afaa"/>` +
-          // cap
-          `<path d="M182 196C170 150 214 104 300 98C386 104 430 150 418 196Z" fill="url(#cap)"/>` +
-          `<path d="M196 190H404V222H196Z" fill="#141c2c"/>` +
-          `<path d="M196 196H404" stroke="#d39a1c" stroke-width="4"/>` +
-          `<path d="M190 218C230 236 370 236 410 218C400 250 360 262 300 262C240 262 200 250 190 218Z" fill="url(#visor)"/>` +
-          `<path d="M232 232C270 244 330 244 368 232" fill="none" stroke="#fff" stroke-width="3" opacity=".25"/>` +
-          `<g transform="translate(300 160)"><circle r="26" fill="url(#gold)"/><path d="M0-15C7-6 7 6 0 14C-7 6-7-6 0-15ZM-14-4C-4-2 0 6 0 14C-8 10-13 4-14-4ZM14-4C4-2 0 6 0 14C8 10 13 4 14-4Z" fill="#9a6a0a"/></g>` +
-          // bushy brows, crinkled eyes
-          brow('M228 284Q254 270 280 280', '#a8a29d', 13) + brow('M320 280Q346 270 372 284', '#a8a29d', 13) +
-          eyeHappy(256, 308, '#2b1d1a', 17) + eyeHappy(344, 308, '#2b1d1a', 17) +
-          `<path d="M222 304L210 298M222 314L208 316M378 304L390 298M378 314L392 316" stroke="${k[3]}" stroke-width="4" stroke-linecap="round"/>` +
-          `<path d="M302 312Q292 334 306 340" fill="none" stroke="${k[3]}" stroke-width="6" stroke-linecap="round"/>` +
-          // smile + mustache
-          `<path d="M262 366Q300 402 338 366Q300 380 262 366Z" fill="#7a2a22"/><path d="M270 368Q300 378 330 368L328 376Q300 384 272 376Z" fill="#fff"/>` +
-          `<path d="M300 346C278 342 254 350 246 368C266 362 284 362 300 356C316 362 334 362 354 368C346 350 322 342 300 346Z" fill="${GREY}"/>` +
-          `<path d="M238 354Q232 380 248 398M362 354Q368 380 352 398" fill="none" stroke="${k[3]}" stroke-width="5" stroke-linecap="round" opacity=".8"/>` +
-          // thumbs up
-          `<g transform="translate(468 470) rotate(8)">` +
-          `<path d="M-40 34C-44 8-40-14-26-26C-18-34-14-46-14-62C-14-76 4-80 10-68C16-56 12-40 6-28L38-28C52-28 56-14 48-6C58-2 58 12 48 16C56 22 54 36 44 38C50 46 44 58 32 58L-20 58C-32 58-38 48-40 34Z" fill="${k[1]}" stroke="${k[3]}" stroke-width="4" stroke-linejoin="round"/>` +
-          `<path d="M8-6L44-6M10 16L46 16M14 38L40 38" stroke="${k[3]}" stroke-width="4" stroke-linecap="round"/>` +
-          `<path d="M-62 30L-36 22L-34 70L-62 74Z" fill="#1d2b45"/>` +
-          `</g>`
-        )
-      );
-    },
+  // Hu Tao
+  avatar('av_ht', 'Hu Tao', ['ht', 'hutao'], () => {
+    const k = SKIN.fair;
+    const fr = cap([[192, 252], [204, 344], [216, 240], [234, 280], [250, 214], [268, 270], [286, 208], [300, 290], [314, 208], [334, 268], [352, 214], [370, 280], [386, 240], [398, 344], [410, 252]], { top: 112 });
+    const ghost = G('translate(506 400)', P('M-26 10C-26-20-14-34 0-34C14-34 26-20 26 10L18 4L10 12L0 4L-10 12L-18 4Z', '#fff', op(0.9)) + C(-8, -12, 3.5, '#4a3040') + C(8, -12, 3.5, '#4a3040') + S('M-5-3Q0 1 5-3', '#4a3040', 2.5));
+    return [
+      bgDefs(['#ffe8d6', '#f59a72', '#a83230']) + skinDefs(k) + hairG('hr', ['#6e3e2e', '#40231a', '#1e100c']) +
+      iris('ir', ['#ff8a6a', '#e0302c', '#6a0c14']) +
+      lg('ct', [[0, '#5a3426'], [1, '#2e1812']]) + lg('ht', [[0, '#2e2a30'], [1, '#0e0c10']]),
+      bgBody('#fff', ghost + flower5(90, 150, 16, '#ffd0d6', '#fff6e0') + flower5(520, 240, 12, '#ffd0d6', '#fff6e0') + flower5(70, 430, 10, '#ffd0d6', '#fff6e0')),
+      P('M186 300C170 220 196 128 300 120C404 128 430 220 414 300L404 380H196Z', 'url(#hr)') +
+      neck(k, 28) +
+      P(TORSO, 'url(#ct)') +
+      P('M228 436L300 530L372 436L398 452L300 560L202 452Z', '#1e1210') +
+      S('M232 448L300 536L368 448', '#d9a74a', 3, 0.8) + S('M120 520Q140 492 168 478M480 520Q460 492 432 478', '#c8323c', 4, 0.7) +
+      // twin tails over the shoulders
+      P('M214 316C172 340 140 404 136 470C134 496 138 516 146 532H202C192 500 194 460 204 420C212 384 226 356 242 338Z', 'url(#hr)') +
+      P('M386 316C428 340 460 404 464 470C466 496 462 516 454 532H398C408 500 406 460 396 420C388 384 374 356 358 338Z', 'url(#hr)') +
+      S('M170 400Q160 450 170 520M430 400Q440 450 430 520', '#7a4636', 3, 0.5) +
+      head(k, { face: 'f', blush: 0.8 }) +
+      eyes({ lash: '#2a1214', pup: 'plum', pc: '#4a0610', pc2: '#ffb3a8' }) +
+      brows('#3a2018', { w: 6, ar: 10, li: 3 }) +
+      nose(k) + grin({ y: 352, w: 26, d: 22, tilt: 4, fang: true }) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') +
+      // pork-pie hat with plum blossoms and a red talisman
+      E(300, 124, 128, 26, 'url(#ht)') +
+      P('M226 126L232 64Q300 50 368 64L374 126Z', 'url(#ht)') + E(300, 64, 68, 12, '#3a343c') +
+      P('M228 112Q300 124 372 112L373 126Q300 138 227 126Z', '#6a1c1c') +
+      S('M332 100Q362 84 392 92', '#4a2a1a', 4) +
+      flower5(350, 98, 18, '#e8455a', '#ffd27a') + flower5(384, 88, 15, '#f0687a', '#ffd27a', 20) + flower5(398, 116, 13, '#e8455a', '#ffd27a', 40) +
+      P('M196 128L222 126L228 208L202 212Z', '#e2453a') + S('M206 146H220M208 160Q216 168 222 158M210 178H222M212 192Q218 200 224 190', '#ffd27a', 2.5),
+    ];
+  });
+
+  // Lumine
+  avatar('av_lumine', 'Lumine', ['lumine'], () => {
+    const k = SKIN.fair;
+    const fr = cap([[190, 252], [202, 364], [214, 236], [232, 290], [246, 212], [266, 272], [282, 200], [302, 264], [318, 200], [340, 270], [356, 212], [376, 280], [390, 236], [400, 368], [412, 252]], { top: 110, sw: 6 });
+    let petals = '';
+    for (let i = 0; i < 6; i++) petals += P('M0 0Q11-16 0-36Q-11-16 0 0Z', '#fff', ` transform="rotate(${i * 60})" stroke="#c8d6e8" stroke-width="2"`);
+    return [
+      bgDefs(['#eef9ff', '#a6d8f0', '#3a86b4']) + skinDefs(k) + hairG('hr', ['#fff1b8', '#ecc768', '#b08332']) +
+      iris('ir', ['#ffe08a', '#e8a830', '#8c5a16']) +
+      lg('dr', [[0, '#ffffff'], [1, '#cfd8e6']]) + lg('gd', [[0, '#f6d78c'], [1, '#c08a2e']]),
+      bgBody('#fff', G('translate(96 150) rotate(20)', P('M0 0Q8-10 0-22Q-8-10 0 0Z', '#fff', op(0.8))) + G('translate(500 420) rotate(-30)', P('M0 0Q8-10 0-22Q-8-10 0 0Z', '#fff', op(0.7)))),
+      P('M188 300C174 220 200 130 300 124C400 130 426 220 412 300L404 380H196Z', 'url(#hr)') +
+      neck(k, 28) +
+      P(TORSO, 'url(#dr)') +
+      P('M262 436Q300 480 338 436L350 444Q300 500 250 444Z', 'url(#gd)') +
+      P('M300 470L312 486L300 502L288 486Z', '#2a4a8a') + S('M300 470L312 486L300 502L288 486Z', 'url(#gd)', 3) +
+      S('M100 540Q140 500 200 480M500 540Q460 500 400 480', '#b8c4d6', 4, 0.6) +
+      head(k, { face: 'f', blush: 0.6 }) +
+      eyes({ lash: '#3a2a18', lid: 0.1 }) +
+      brows('#b8893a', { w: 6, ar: 5 }) +
+      nose(k) + smile(16, 6, '#b44c56', 362, 5) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') +
+      shine('#fffbe6', 150, 226, 376, 0.7) +
+      // white Inteyvat flower
+      G('translate(382 182)', petals + C(0, 0, 9, '#f6e7a2') + S('M0 0L-6-12M0 0L8-10M0 0L10 6', '#d9b44a', 2)),
+    ];
+  });
+
+  // Paimon
+  avatar('av_paimon', 'Paimon', ['paimon'], () => {
+    const k = SKIN.fair;
+    const fr = cap([[188, 256], [198, 352], [212, 240], [234, 282], [252, 226], [276, 276], [296, 222], [320, 278], [342, 226], [366, 282], [388, 240], [402, 352], [412, 256]], { top: 120 });
+    let st = '';
+    [[110, 120, 10], [480, 90, 14], [520, 280, 8], [70, 330, 9], [500, 470, 11], [140, 500, 7]].forEach(([x, y, r]) => { st += star(x, y, r, '#fff', 0.85); });
+    let cape = '';
+    [[150, 500], [190, 480], [420, 486], [460, 510], [128, 524], [478, 470]].forEach(([x, y], i) => { cape += star(x, y, i % 2 ? 6 : 9, '#ffe9a8', 0.9); });
+    return [
+      bgDefs(['#f6f1ff', '#cbb9f6', '#7660c4']) + skinDefs(k) + hairG('hr', ['#ffffff', '#eceefa', '#b9bbd8']) +
+      iris('ir', ['#c0a8ff', '#6c4ad2', '#22185c']) +
+      lg('cp', [[0, '#2c3a7a'], [1, '#141c44']]) + lg('cl', [[0, '#ffffff'], [1, '#d8dcec']]) + lg('cr', [[0, '#3a3f78'], [1, '#121434']]),
+      bgBody('#fff', st),
+      // starry cape
+      P('M50 600C60 500 130 452 210 442H390C470 452 540 500 550 600Z', 'url(#cp)') + cape +
+      P('M184 300C168 220 196 136 300 130C404 136 432 220 416 300L410 384H190Z', 'url(#hr)') +
+      neck(k, 24) +
+      P('M126 600C136 520 186 478 244 466Q270 458 276 448H324Q330 458 356 466C414 478 464 520 474 600Z', 'url(#cl)') +
+      P('M256 448Q300 486 344 448L352 462Q300 506 248 462Z', '#f2d07a') + C(300, 486, 8, '#5a8ae8') +
+      head(k, { face: 'c', blush: 1 }) +
+      eyes({ lash: '#2a1e48', k: 1.3 }, 302, 54) +
+      brows('#a0a2c8', { w: 5, ar: 9, li: 5 }, 302, 54) +
+      grin({ y: 366, w: 22, d: 26, teeth: false }) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') +
+      shine('#fff', 152, 228, 372, 0.9) +
+      P(lock(398, 250, 432, 420, 16, 18), 'url(#hr)') +
+      // dark star crown floating above her head
+      G('translate(304 76) rotate(-10)', P('M0-46L13-16L46-14L20 6L28 40L0 22L-28 40L-20 6L-46-14L-13-16Z', 'url(#cr)') + P('M0-26L7-10L24-9L11 2L15 20L0 11L-15 20L-11 2L-24-9L-7-10Z', '#6a74c8', op(0.6)) + C(0, 0, 6, '#ffe9a8')),
+    ];
+  });
+
+  // Ekaterina
+  avatar('av_ekat', 'Ekaterina', ['ekat', 'fatui'], () => {
+    const k = SKIN.fair;
+    const fr = cap([[190, 252], [194, 394], [212, 248], [228, 266], [246, 252], [264, 268], [282, 254], [300, 270], [318, 254], [336, 268], [354, 252], [372, 266], [388, 248], [406, 394], [410, 252]], { top: 112 });
+    return [
+      bgDefs(['#eef1f8', '#b4bfd8', '#56648a']) + skinDefs(k) + hairG('hr', ['#4a3a44', '#261d24', '#120c10']) +
+      iris('ir', ['#bcccf2', '#6a7ab4', '#28325e']) + lg('jk', [[0, '#34447e'], [1, '#1a2448']]),
+      bgBody('#fff', `<rect x="440" y="60" width="90" height="140" rx="6" fill="#fff" opacity=".12"/><rect x="60" y="380" width="70" height="120" rx="6" fill="#fff" opacity=".1"/>`),
+      P('M184 300C168 220 196 126 300 120C404 126 432 220 416 300L414 398Q300 412 186 398Z', 'url(#hr)') +
+      neck(k, 28) +
+      P(TORSO, 'url(#jk)') +
+      P('M270 436L300 478L330 436Z', '#f6f6fa') + P('M294 446h12l4 30l-10 10l-10-10z', '#c8323c') +
+      furCollar('#f6f6fa', '#e2e4ec', 140, 460, 476, 470, 14, 22) +
+      G('translate(372 508)', P('M0-12L10 0L0 12L-10 0Z', '#c8323c') + C(0, 0, 4, '#ffd27a')) +
+      head(k, { face: 'f', blush: 0.5 }) +
+      eyes({ lash: '#1e1418', lid: 0.15 }) +
+      brows('#2a1e24', { w: 6, ar: 5, li: 1 }) +
+      nose(k) + smile(14, 5, '#b04a56', 362, 5) +
+      fringeShade(fr, k, 10) +
+      P(fr, 'url(#hr)') +
+      shine('#8a7a8a', 146, 226, 376, 0.5),
+    ];
+  });
+
+  // La Signora
+  avatar('av_signora', 'La Signora', ['signora', 'fatui', 'harbinger'], () => {
+    const k = SKIN.pale;
+    const fr = cap([[192, 250], [202, 306], [218, 214], [262, 250], [256, 198], [318, 250], [304, 192], [368, 272], [350, 206], [402, 320], [412, 250]], { top: 110, sw: 16 });
+    const mask = 'M300 272C280 252 252 240 228 236C206 232 186 222 172 200C176 238 186 262 204 276C190 286 188 302 196 316C214 320 242 316 264 308C282 302 294 294 300 292C306 294 318 302 336 308C358 316 386 320 404 316C412 302 410 286 396 276C414 262 424 238 428 200C414 222 394 232 372 236C348 240 320 252 300 272Z';
+    const holes = 'M226 294Q252 274 278 292Q252 308 226 294ZM374 294Q348 274 322 292Q348 308 374 294Z';
+    let snow = '';
+    [[90, 120, 6], [140, 300, 4], [510, 160, 5], [470, 330, 7], [70, 470, 5], [540, 500, 4]].forEach(([x, y, r]) => { snow += C(x, y, r, '#fff', op(0.8)); });
+    return [
+      bgDefs(['#f6f9ff', '#c6d4ee', '#5e6f9e']) + skinDefs(k) + hairG('hr', ['#fffbe8', '#f0d9a0', '#c4a35e']) +
+      iris('ir', ['#d6ecff', '#7aa6d8', '#2a4a7a']) + lg('mk', [[0, '#3a3040'], [0.5, '#141018'], [1, '#2a1a24']], 0, 0, 1, 0),
+      bgBody('#fff', snow),
+      neck(k, 26) +
+      P(TORSO, '#1c1a24') +
+      furCollar('#ffffff', '#eceff6', 110, 490, 480, 476, 15, 30) +
+      head(k, { face: 'f', blush: 0.35 }) +
+      eyes({ lash: '#1a1418', lid: 0.3 }) +
+      nose(k) +
+      // red lips
+      P('M278 364Q290 354 300 360Q310 354 322 364Q310 378 300 378Q290 378 278 364Z', '#c4122a') + S('M282 365Q300 368 318 365', '#7a0a18', 2, 0.7) + E(304, 370, 7, 2.5, '#fff', op(0.35)) +
+      // black butterfly mask
+      P(mask + holes, 'url(#mk)', ' fill-rule="evenodd"') +
+      S(mask, '#8a1a2a', 2.5, 0.8) + S('M300 272V290M244 252Q220 262 206 278M356 252Q380 262 394 278', '#5a3a4a', 2.5, 0.7) +
+      fringeShade(fr, k, 12) +
+      // swept-up pale blonde hair with a high bun
+      P('M216 128C200 80 244 40 300 40C356 40 400 80 384 128Z', 'url(#hr)') +
+      S('M240 100Q270 60 316 66Q352 74 360 104M262 110Q290 84 330 96', '#c4a35e', 4, 0.6) +
+      P(fr, 'url(#hr)') +
+      S('M226 210Q270 190 300 226M300 200Q346 196 374 262', '#c4a35e', 3, 0.55) +
+      P(lock(198, 270, 186, 380, 26, -14), 'url(#hr)') +
+      shine('#fff', 150, 226, 376, 0.6) +
+      G('translate(372 112)', P('M0-14L10 0L0 14L-10 0Z', '#b0182a') + C(0, 0, 4, '#ffd6dc')),
+    ];
+  });
+
+  // Scaramouche
+  avatar('av_scara', 'Scaramouche', ['scara', 'fatui', 'harbinger'], () => {
+    const k = SKIN.pale;
+    const fr = cap([[194, 252], [204, 352], [218, 236], [236, 288], [252, 212], [272, 270], [290, 204], [308, 272], [326, 206], [346, 274], [364, 216], [384, 292], [396, 236], [404, 352], [410, 252]], { top: 112, sw: -4 });
+    return [
+      bgDefs(['#ece2ff', '#8e70d8', '#2a1a62']) + skinDefs(k) + hairG('hr', ['#5c5eaa', '#30316a', '#17173a']) +
+      iris('ir', ['#b49cf8', '#5e44b6', '#22144e']) +
+      lg('hb', [[0, '#5a4690'], [1, '#2a1f4c']]) + lg('hc', [[0, '#4e3c82'], [1, '#231a42']], 0, 0, 1, 1) + lg('kn', [[0, '#2a2844'], [1, '#14121f']]),
+      bgBody('#e6dcff', S('M470 40L440 120L476 130L430 230', '#e6dcff', 5, 0.4) + S('M110 360L86 420L114 426L80 500', '#e6dcff', 4, 0.3)),
+      // translucent veil behind
+      P('M84 176C78 300 70 420 60 540H190C196 420 204 300 214 196Z', '#c9b6f0', op(0.32)) +
+      P('M516 176C522 300 530 420 540 540H410C404 420 396 300 386 196Z', '#c9b6f0', op(0.32)) +
+      P('M188 300C174 220 200 132 300 126C400 132 426 220 412 300L404 372H196Z', 'url(#hr)') +
+      neck(k, 28) +
+      P(TORSO, 'url(#kn)') +
+      P('M246 432L300 520L354 432L370 440L300 552L230 440Z', '#f2eef8') + P('M262 434L300 500L338 434Z', '#2a2844') +
+      S('M232 444L300 548L368 444', '#8a6ad8', 3, 0.8) +
+      head(k, { face: 'm', blush: 0.2 }) +
+      eyes({ lash: '#1a1430', lid: 0.42, liner: '#e0303a' }) +
+      brows('#2a2a5a', { w: 6, ar: 3, li: -3 }) +
+      nose(k) + smirk('#9a4a5a', 364) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') +
+      // wide-brimmed hat
+      `<g clip-path="url(#fc)">${E(300, 226, 130, 30, '#1a1430', op(0.25))}</g>` +
+      P('M70 184C74 156 172 136 300 136C428 136 526 156 530 184C526 210 428 226 300 226C172 226 74 210 70 184Z', 'url(#hb)') +
+      S('M84 190C120 208 200 218 300 218C400 218 480 208 516 190', '#8a72c8', 4, 0.6) +
+      P('M212 174C214 98 250 58 300 56C350 58 386 98 388 174Z', 'url(#hc)') +
+      P('M212 156Q300 176 388 156L388 176Q300 196 212 176Z', '#1a1430') +
+      S('M240 92Q270 70 300 70', '#8a72c8', 5, 0.5) +
+      G('translate(300 168)', C(0, 0, 11, '#e8c66a') + S('M-6 6L-10 40M6 6L10 40M0 8V44', '#f2eef8', 3, 0.9)),
+    ];
+  });
+
+  // Il Dottore
+  avatar('av_dottore', 'Il Dottore', ['dottore', 'fatui', 'harbinger'], () => {
+    const k = SKIN.pale;
+    const fr = cap([[188, 252], [198, 330], [214, 230], [236, 274], [254, 206], [278, 254], [300, 198], [322, 254], [346, 206], [366, 274], [386, 230], [402, 330], [412, 252]], {
+      sw: 6, crown: 'C426 200 426 160 410 136L428 126Q408 118 396 106L402 86Q376 96 356 92L356 72Q332 86 312 88L300 70Q288 88 270 90L254 76Q248 96 234 104Q206 112 196 128L176 126Q188 150 186 176Q180 214 188 252',
+    });
+    let hx = '';
+    [[90, 150], [130, 220], [480, 120], [520, 200], [480, 420], [90, 420]].forEach(([x, y]) => { hx += P(`M${x} ${y - 24}l21 12v24l-21 12l-21-12v-24z`, 'none', ' stroke="#fff" stroke-width="3" opacity=".25"'); });
+    return [
+      bgDefs(['#e4f6ef', '#88c8b4', '#245a56']) + skinDefs(k) + hairG('hr', ['#8ab6ea', '#4a72b8', '#1e3870']) +
+      lg('mk', [[0, '#5a6274'], [0.5, '#2c3240'], [1, '#14171e']], 0, 0, 1, 1) + rg('rd', [[0, '#ffd0c0'], [0.35, '#ff3b3b'], [1, '#5a0a10']]) +
+      lg('ct', [[0, '#2c3446'], [1, '#14181f']]),
+      bgBody('#fff', hx),
+      P('M180 300C164 220 190 120 300 112C410 120 436 220 420 300L410 370L396 340L384 376L372 330H228L216 376L204 340L190 370Z', 'url(#hr)') +
+      neck(k, 28) +
+      P(TORSO, 'url(#ct)') +
+      P('M268 436L300 480L332 436Z', '#e8eaf0') +
+      furCollar('#eef0f4', '#d4d8e2', 120, 480, 486, 476, 14, 26) +
+      head(k, { face: 'm', blush: 0 }) +
+      grin({ y: 384, w: 38, d: 14, c: '#4a1a22' }) + S('M262 386Q256 380 252 372M338 386Q344 380 348 372', '#7a4a52', 3, 0.7) +
+      // beaked mask over the upper face
+      P('M196 228Q300 196 404 228L408 300Q372 318 336 314L300 370L264 314Q228 318 192 300Z', 'url(#mk)') +
+      S('M300 206V368', '#8a94a8', 3, 0.5) + S('M200 232Q300 202 400 232', '#8a94a8', 3, 0.5) +
+      E(252, 280, 24, 13, 'url(#rd)') + E(348, 280, 24, 13, 'url(#rd)') + C(254, 280, 4, '#fff') + C(350, 280, 4, '#fff') +
+      C(214, 260, 4, '#8a94a8') + C(386, 260, 4, '#8a94a8') +
+      P(fr, 'url(#hr)') +
+      shine('#cfe4ff', 142, 226, 376, 0.5),
+    ];
+  });
+
+  // Pulcinella
+  avatar('av_pulci', 'Pulcinella', ['pulci', 'fatui', 'harbinger'], () => {
+    const k = SKIN.old;
+    const fr = cap([[190, 252], [198, 304], [212, 222], [250, 186], [300, 172], [350, 186], [388, 222], [402, 304], [410, 252]], { top: 116, k: 0.6 });
+    return [
+      bgDefs(['#fff6e6', '#e8c896', '#94703e']) + skinDefs(k) + hairG('hr', ['#ffffff', '#e2e4ec', '#a4a8b8']) +
+      lg('wh', [[0, '#ffffff'], [1, '#d4d6e0']]) + lg('ct', [[0, '#5e2c3a'], [1, '#2c121c']]) + rg('gd', [[0, '#fff2b0'], [0.5, '#e2b440'], [1, '#8a6414']], 0.35, 0.3, 0.7),
+      bgBody('#fff'),
+      neck(k, 32) +
+      P(TORSO, 'url(#ct)') +
+      furCollar('#c4c0c8', '#a8a4ae', 120, 480, 478, 470, 14, 26) +
+      head(k, { face: 'o', blush: 0.9 }) +
+      eyes({ shut: true, lash: '#5a3a30' }, 296) +
+      S('M208 290l-12-6M208 300l-12 2M392 290l12-6M392 300l12 2M246 318Q256 326 266 320M334 320Q344 326 354 318', k[3], 3, 0.65) +
+      brows('#f4f4f8', { w: 13, ar: 2, li: 4 }) + brows('#c4c6d2', { w: 4, ar: 2, li: 2 }) +
+      nose(k, 2) +
+      S('M276 374Q300 388 324 374', '#8a4a40', 5) +
+      P('M262 380Q300 400 338 380Q334 420 300 430Q266 420 262 380Z', 'url(#wh)') +
+      P('M240 352C256 330 284 332 300 342C316 332 344 330 360 352C376 350 388 340 392 326C392 360 366 380 336 370Q316 362 300 366Q284 362 264 370C234 380 208 360 208 326C212 340 224 350 240 352Z', 'url(#wh)') +
+      fringeShade(fr, k, 10) +
+      P(fr, 'url(#hr)') + S('M232 200Q266 182 300 180M300 180Q334 182 368 200', '#b8bccb', 3, 0.6) +
+      // gloved hand on a gold-knobbed cane
+      `<rect x="432" y="470" width="14" height="70" fill="#2a1a12"/>` +
+      C(439, 462, 22, 'url(#gd)') +
+      P('M412 486Q412 462 440 462Q468 464 470 486Q466 506 440 508Q414 506 412 486Z', '#1e1a22') + S('M420 482H462M422 494H460', '#3e3844', 3, 0.8),
+    ];
+  });
+
+  // Pantalone
+  avatar('av_pantalone', 'Pantalone', ['pantalone', 'fatui', 'harbinger'], () => {
+    const k = SKIN.fair;
+    const fr = cap([[188, 252], [200, 384], [214, 236], [250, 210], [300, 168], [350, 210], [386, 236], [400, 384], [412, 252]], { top: 108, k: 0.66 });
+    let coins = '';
+    [[90, 140, 26], [510, 110, 18], [530, 330, 30], [70, 400, 16], [480, 500, 20]].forEach(([x, y, r]) => { coins += C(x, y, r, '#fff6d6', op(0.35)) + C(x, y, r * 0.7, 'none', ` stroke="#fff" stroke-width="3" opacity=".45"`); });
+    return [
+      bgDefs(['#fff8e2', '#ecd391', '#9c782a']) + skinDefs(k) + hairG('hr', ['#4a4452', '#221e28', '#0c0a10']) +
+      lg('ct', [[0, '#2a2832'], [1, '#121016']]) + lg('gd', [[0, '#f6d78c'], [1, '#b8862e']]),
+      bgBody('#fff', coins),
+      P('M186 300C170 220 196 126 300 120C404 126 430 220 414 300C410 360 400 410 384 446H216C200 410 190 360 186 300Z', 'url(#hr)') +
+      neck(k, 30) +
+      P(TORSO, 'url(#ct)') +
+      P('M262 432L300 470L338 432L346 452L300 494L254 452Z', '#f6f4f0') +
+      S('M226 446L290 540M374 446L310 540', 'url(#gd)', 4) +
+      G('translate(300 504)', P('M0-14L12 0L0 14L-12 0Z', 'url(#gd)') + P('M0-8L6 0L0 8L-6 0Z', '#2e9a6a')) +
+      head(k, { face: 'm', blush: 0.3 }) +
+      eyes({ shut: true, lash: '#1a1418' }, 296) +
+      brows('#1e1a22', { w: 6, ar: 6, li: 2 }) +
+      nose(k) + smile(20, 8, '#a8505a', 360, 5) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') + P(lock(286, 176, 262, 330, 16, -16), 'url(#hr)') +
+      shine('#7a7088', 146, 226, 376, 0.55) +
+      // round gold glasses
+      C(252, 294, 34, '#fff', op(0.12) + ' stroke="#d9b45a" stroke-width="4"') + C(348, 294, 34, '#fff', op(0.12) + ' stroke="#d9b45a" stroke-width="4"') +
+      S('M286 290Q300 282 314 290M218 288L196 280M382 288L404 280', '#d9b45a', 4) +
+      S('M234 274L246 268M330 274L342 268', '#fff', 4, 0.8) +
+      C(200, 338, 6, 'url(#gd)') + C(400, 338, 6, 'url(#gd)'),
+    ];
+  });
+
+  // Arlecchino
+  avatar('av_arle', 'Arlecchino', ['arle', 'fatui', 'harbinger'], () => {
+    const k = SKIN.pale;
+    const fr = cap([[190, 252], [200, 350], [214, 236], [232, 292], [248, 208], [270, 276], [284, 198], [310, 270], [322, 200], [350, 276], [364, 214], [384, 290], [396, 236], [402, 350], [412, 252]], { top: 108, sw: 10 });
+    return [
+      bgDefs(['#fbe8ea', '#d98a94', '#5e1a26']) + skinDefs(k) + hairG('hr', ['#ffffff', '#e4e2ea', '#a6a3b4']) +
+      iris('ir', ['#f6eef2', '#c8b4c0', '#6a5662']) + lg('st', [[0, '#26242c'], [1, '#0e0d12']]),
+      bgBody('#fff'),
+      P('M186 300C170 220 196 128 300 120C404 128 430 220 414 300L408 400L392 380L380 404H220L208 380L192 400Z', '#18161c') +
+      neck(k, 28) +
+      P(TORSO, 'url(#st)') +
+      P('M262 436L300 530L338 436Z', '#f4f4f6') +
+      P('M292 446H308L314 524L300 538L286 524Z', '#16141a') + P('M290 440h20l-4 10h-12z', '#2a2830') +
+      S('M262 436L232 452L282 560M338 436L368 452L318 560', '#3a3842', 4, 0.8) +
+      head(k, { face: 'f', blush: 0.2 }) +
+      eyes({ lash: '#16141a', lid: 0.3, pup: 'x', pc: '#0e0c10' }) +
+      brows('#2a2830', { w: 6, ar: 3, li: -2 }) +
+      nose(k) + smile(12, 3, '#9a4a56', 364, 4.5) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') +
+      P(lock(272, 204, 290, 280, 22, 8), '#18161c') + P(lock(358, 214, 372, 286, 18, 8), '#18161c') + P(lock(206, 250, 202, 348, 18, -4), '#18161c') +
+      shine('#fff', 146, 226, 376, 0.8),
+    ];
+  });
+
+  // Xiangling, with Guoba
+  avatar('av_xl', 'Xiangling', ['xl', 'xiangling'], () => {
+    const k = SKIN.fair;
+    const fr = cap([[190, 252], [200, 330], [214, 236], [232, 280], [250, 214], [272, 268], [290, 206], [310, 266], [330, 208], [350, 268], [368, 218], [386, 282], [396, 236], [402, 330], [412, 252]], { top: 112, sw: 4 });
+    const bun = (x) => C(x, 118, 46, 'url(#hr)') + S(`M${x - 30} 100Q${x} 84 ${x + 30} 100`, '#5a6ab0', 4, 0.6) + S(`M${x - 42} 140Q${x} 166 ${x + 42} 140`, '#e8b23a', 7);
+    return [
+      bgDefs(['#fff3dc', '#ffc070', '#de5a2a']) + skinDefs(k) + hairG('hr', ['#4e5ea6', '#28326a', '#141a3a']) +
+      iris('ir', ['#ffe08a', '#f0a828', '#8a4c10']) +
+      lg('tp', [[0, '#f0682c'], [1, '#b8341c']]) + rg('gb', [[0, '#f27a3c'], [0.7, '#d84a22'], [1, '#a8301a']], 0.4, 0.35, 0.7),
+      bgBody('#fff', S('M90 420Q70 390 90 360Q110 330 90 300M510 200Q490 170 510 140Q530 110 510 80', '#fff', 6, 0.35) +
+        G('translate(480 330) rotate(30)', P('M0-22Q14-20 10 10Q4 30-6 34Q0 10-6-14Z', '#e2302a') + P('M-4-24q4-10 12-8', '#3a8a3a', ' stroke="#3a8a3a" stroke-width="4"'))),
+      bun(214) + bun(386) +
+      P('M188 300C174 220 200 130 300 124C400 130 426 220 412 300L404 360H196Z', 'url(#hr)') +
+      neck(k, 28) +
+      P(TORSO, 'url(#tp)') +
+      P('M262 436Q300 482 338 436L348 446Q300 500 252 446Z', '#fff4e0') + S('M120 520Q150 490 190 476', '#8a2414', 4, 0.5) +
+      head(k, { face: 'f', blush: 0.9 }) +
+      eyes({ lash: '#1e1a2e', k: 1.04 }) +
+      brows('#28326a', { w: 6, ar: 9, li: 3 }) +
+      nose(k) + grin({ y: 352, w: 30, d: 30 }) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') +
+      shine('#8a9ad8', 148, 226, 376, 0.5) +
+      // Guoba peeking over her shoulder
+      C(408, 410, 18, '#c8401c') + C(500, 410, 18, '#c8401c') + C(408, 410, 9, '#6a1a0e') + C(500, 410, 9, '#6a1a0e') +
+      E(454, 462, 58, 52, 'url(#gb)') +
+      E(436, 452, 13, 11, '#fff2dc') + E(472, 452, 13, 11, '#fff2dc') + C(438, 454, 6, '#1a0c08') + C(470, 454, 6, '#1a0c08') +
+      C(436, 451, 2, '#fff') + C(468, 451, 2, '#fff') +
+      E(454, 476, 18, 12, '#fff2dc') + E(454, 470, 6, 4, '#2a0e06') + S('M446 482Q454 488 462 482', '#6a1a0e', 2.5) +
+      C(424, 432, 4, '#ffd0a0') + C(484, 432, 4, '#ffd0a0'),
+    ];
+  });
+
+  // Beidou
+  avatar('av_beidou', 'Beidou', ['beidou'], () => {
+    const k = SKIN.warm;
+    const fr = cap([[188, 252], [198, 360], [212, 236], [236, 292], [250, 206], [278, 276], [292, 196], [326, 268], [336, 200], [370, 278], [380, 222], [400, 350], [412, 252]], { top: 104, sw: 10 });
+    return [
+      bgDefs(['#e4f2f4', '#7fb0c0', '#1e4a58']) + skinDefs(k) + hairG('hr', ['#4e3a3e', '#2a1c20', '#120a0c']) +
+      iris('ir', ['#ff8a70', '#d0302a', '#701410']) +
+      lg('ct', [[0, '#2a2226'], [1, '#100c0e']]) + lg('gd', [[0, '#f6d78c'], [1, '#b8862e']]),
+      bgBody('#fff', S('M0 480Q60 450 120 480T240 480T360 480T480 480T600 480', '#fff', 7, 0.25) + S('M0 530Q60 500 120 530T240 530T360 530T480 530T600 530', '#fff', 7, 0.18)),
+      P('M180 300C164 220 194 120 300 112C406 120 436 220 420 300C428 380 438 460 444 540H156C162 460 172 380 180 300Z', 'url(#hr)') +
+      neck(k, 30) +
+      P(TORSO, 'url(#ct)') +
+      P('M240 436L300 520L360 436Z', '#c8323c') +
+      S('M240 436L196 452L260 560M360 436L404 452L340 560', 'url(#gd)', 4) +
+      P('M196 452L170 470L232 560H260Z', '#a8202a', op(0.9)) + P('M404 452L430 470L368 560H340Z', '#a8202a', op(0.9)) +
+      head(k, { face: 'f', blush: 0.4 }) +
+      eye(348, 294, 1, { lash: '#1e1214' }) +
+      brows('#2a1c20', { w: 7, ar: 6, li: -3, r: { lo: 6 } }) +
+      nose(k) + grin({ y: 352, w: 30, d: 24, tilt: 6 }) +
+      // eyepatch over her right eye
+      S('M220 278L176 230M282 276L346 186', '#141014', 6) +
+      P('M218 280Q252 260 286 280Q292 312 252 324Q214 314 218 280Z', '#141014') + S('M226 284Q252 270 278 284', '#4a3a40', 3, 0.7) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') +
+      shine('#8a7078', 144, 226, 376, 0.45) +
+      // gold hair ornament with a red tassel
+      G('translate(402 186)', C(0, 0, 18, 'url(#gd)') + C(0, 0, 8, '#c8323c') + P('M-4 16h8l6 70h-20z', '#c8323c') + S('M-30-24L28 22', 'url(#gd)', 6)),
+    ];
+  });
+
+  // Yelan
+  avatar('av_yelan', 'Yelan', ['yelan'], () => {
+    const k = SKIN.fair;
+    const fr = cap([[188, 252], [196, 372], [212, 238], [234, 286], [250, 212], [274, 272], [290, 202], [318, 266], [332, 206], [362, 274], [376, 224], [396, 330], [410, 252]], { top: 108, sw: 8 });
+    return [
+      bgDefs(['#dcf4f2', '#5ab0b8', '#143650']) + skinDefs(k) + hairG('hr', ['#4e5ea0', '#24305e', '#10162e']) +
+      iris('ir', ['#9cffd0', '#2fb87a', '#0e5a3a']) + lg('jk', [[0, '#f6f8fc'], [1, '#c4ccda']]),
+      bgBody('#fff', S('M60 200Q100 180 140 200M460 150Q500 130 540 150', '#fff', 4, 0.3)),
+      P('M184 300C170 220 196 126 300 120C404 126 430 220 416 300L410 340L196 384Z', 'url(#hr)') +
+      neck(k, 28) +
+      P(TORSO, 'url(#jk)') +
+      P('M262 436L300 500L338 436Z', '#1e2440') +
+      furCollar('#ffffff', '#e4e8f0', 130, 470, 482, 472, 14, 24) +
+      head(k, { face: 'f', blush: 0.4 }) +
+      eyes({ lash: '#10162e', lid: 0.3 }) +
+      brows('#1e2850', { w: 6, ar: 5, r: { lo: 6, ar: 8 } }) +
+      nose(k) + smirk('#a8465a', 362) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') +
+      shine('#8a9ad8', 146, 226, 376, 0.5) +
+      die(462, 470, 1.15, -12) + die(410, 500, 0.9, 18),
+    ];
+  });
+
+  // Ningguang
+  avatar('av_ning', 'Ningguang', ['ning', 'ningguang'], () => {
+    const k = SKIN.pale;
+    const fr = cap([[188, 252], [200, 404], [214, 236], [240, 286], [256, 210], [290, 262], [300, 180], [310, 262], [344, 210], [360, 286], [386, 236], [400, 404], [412, 252]], { top: 106 });
+    const pin = (x, s) => G(`translate(${x} 156)`, S(`M${-s * 30}-30L${s * 26} 26`, 'url(#gd)', 5) + C(0, 0, 16, 'url(#gd)') + C(0, 0, 8, '#2fae7a') +
+      S('M-6 14V96M0 16V110M6 14V96', '#d9a74a', 2.5) + C(-6, 100, 4, '#2fae7a') + C(0, 114, 5, '#2fae7a') + C(6, 100, 4, '#2fae7a'));
+    return [
+      bgDefs(['#edfaf1', '#8ed0a8', '#24705a']) + skinDefs(k) + hairG('hr', ['#ffffff', '#ece6da', '#b2a896']) +
+      iris('ir', ['#ff8a80', '#d03440', '#6a0c18']) + lg('gd', [[0, '#f8dd94'], [1, '#b8862e']]) + lg('dr', [[0, '#3a3036'], [1, '#18141a']]),
+      bgBody('#fff', star(110, 150, 12, '#fff6c8', 0.8) + star(500, 120, 9, '#fff6c8', 0.8) + star(480, 420, 14, '#fff6c8', 0.6)),
+      P('M180 300C164 220 194 120 300 112C406 120 436 220 420 300C428 380 436 460 442 540H158C164 460 172 380 180 300Z', 'url(#hr)') +
+      neck(k, 28) +
+      P(TORSO, 'url(#dr)') +
+      S('M200 470Q300 520 400 470', 'url(#gd)', 6) +
+      P('M256 398Q300 414 344 398L354 456Q300 480 246 456Z', '#2a2228') + S('M256 400Q300 416 344 400M246 456Q300 480 354 456', 'url(#gd)', 4) +
+      P('M300 466L316 488L300 510L284 488Z', '#2fae7a') + S('M300 466L316 488L300 510L284 488Z', 'url(#gd)', 3) +
+      head(k, { face: 'f', blush: 0.35 }) +
+      eyes({ lash: '#2a1418', lid: 0.4 }) +
+      brows('#c8beb0', { w: 5, ar: 4 }) +
+      nose(k) + smile(14, 4, '#b8323c', 362, 5) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') +
+      shine('#fff', 148, 226, 376, 0.9) +
+      pin(220, -1) + pin(380, 1),
+    ];
+  });
+
+  // Yun Jin
+  avatar('av_yunjin', 'Yun Jin', ['yunjin'], () => {
+    const k = SKIN.fair;
+    const fr = cap([[190, 252], [200, 340], [214, 236], [234, 280], [252, 214], [274, 266], [292, 206], [312, 266], [332, 210], [352, 268], [370, 220], [388, 282], [396, 238], [402, 340], [412, 252]], { top: 112, sw: 2 });
+    const plume = (d) => S(d, '#f4e2c0', 12) + S(d, '#8a4a24', 12, null, ' stroke-dasharray="9 11" stroke-linecap="butt"');
+    const tassel = (x) => S(`M${x} 210V318`, '#d9a74a', 2.5) + C(x, 250, 6, '#e2333f') + C(x, 290, 6, '#e2333f') + C(x, 326, 8, '#e2333f');
+    return [
+      bgDefs(['#fff0f2', '#f4a6b4', '#b03c58']) + skinDefs(k) + hairG('hr', ['#4e3e62', '#261c34', '#120c1a']) +
+      iris('ir', ['#d2b0f0', '#8a5ac0', '#3a1a5a']) + lg('gd', [[0, '#f8dd94'], [1, '#b8862e']]) + lg('rb', [[0, '#e0404a'], [1, '#9a1e2c']]) +
+      rg('pm', [[0, '#ff7a84'], [0.6, '#e2333f'], [1, '#9a1424']], 0.35, 0.3, 0.7),
+      bgBody('#fff'),
+      plume('M276 120C240 40 160 20 80 60') + plume('M324 120C360 40 440 20 520 60') +
+      P('M186 300C170 220 196 128 300 120C404 128 430 220 414 300L408 420H192Z', 'url(#hr)') +
+      neck(k, 28) +
+      P(TORSO, 'url(#rb)') +
+      P('M250 436Q300 480 350 436L364 452Q300 506 236 452Z', 'url(#gd)') + P('M262 436Q300 470 338 436', '#fff4e6') +
+      S('M110 530Q140 490 196 470M490 530Q460 490 404 470', '#f6d78c', 5, 0.7) +
+      head(k, { face: 'f', blush: 0.7 }) +
+      eyes({ lash: '#2a1430', liner: '#e04050' }) +
+      brows('#261c34', { w: 6, ar: 6 }) +
+      nose(k) + smile(15, 6, '#c8323c', 362, 5.5) +
+      fringeShade(fr, k) +
+      P(fr, 'url(#hr)') +
+      // opera headdress: gold band, jewels, red pompoms, side tassels
+      P('M188 214Q300 156 412 214L414 236Q300 180 186 236Z', 'url(#gd)') +
+      C(300, 186, 12, '#3ab0b8') + C(244, 200, 7, '#3ab0b8') + C(356, 200, 7, '#3ab0b8') +
+      C(232, 156, 16, 'url(#pm)') + C(368, 156, 16, 'url(#pm)') + C(264, 128, 20, 'url(#pm)') + C(336, 128, 20, 'url(#pm)') + C(300, 112, 24, 'url(#pm)') +
+      G('translate(300 164)', P('M0-18L8-4L22 0L8 4L0 18L-8 4L-22 0L-8-4Z', 'url(#gd)') + C(0, 0, 6, '#3ab0b8')) +
+      tassel(196) + tassel(404),
+    ];
   });
 })();

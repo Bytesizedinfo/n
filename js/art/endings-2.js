@@ -1,0 +1,450 @@
+/* Ending key art, part 2 (1200×900). Cinematic, emotional cards for the ending screen. */
+(function () {
+  'use strict';
+  const def = JC.art.def;
+
+  // ---- core helpers ---------------------------------------------------------------------------
+  const n = (v) => Math.round(v * 10) / 10;
+  const f = Math.round;
+  const stops = (s) => s.map(([o, c, a]) => `<stop offset="${o}" stop-color="${c}"${a != null ? ` stop-opacity="${a}"` : ''}/>`).join('');
+  const lg = (id, s, x1 = 0, y1 = 0, x2 = 0, y2 = 1) => `<linearGradient id="${id}"${x1 ? ` x1="${x1}"` : ''}${y1 ? ` y1="${y1}"` : ''} x2="${x2}" y2="${y2}">${stops(s)}</linearGradient>`;
+  const rg = (id, s, cx = 0.5, cy = 0.5, r = 0.5) => `<radialGradient id="${id}"${cx !== 0.5 ? ` cx="${cx}"` : ''}${cy !== 0.5 ? ` cy="${cy}"` : ''}${r !== 0.5 ? ` r="${r}"` : ''}>${stops(s)}</radialGradient>`;
+  let S = 1;
+  const rnd = () => (S = (S * 16807) % 2147483647) / 2147483647;
+  const rr = (a, b) => a + (b - a) * rnd();
+  const n2 = (v) => Math.round(v * 100) / 100;
+  const G = (x, y, s, c, sx) => `<g transform="translate(${n(x)} ${n(y)})${s != null && s !== 1 ? ` scale(${sx != null ? n2(sx) + ' ' : ''}${n2(s)})` : ''}">${c}</g>`;
+  const P = (d, fill, x = '') => `<path d="${d}" fill="${fill}"${x ? ' ' + x : ''}/>`;
+  const ST = (d, c, w, x = '') => `<path class="s" d="${d}" stroke="${c}" stroke-width="${w}"${x ? ' ' + x : ''}/>`;
+  const op = (o) => `opacity="${o}"`;
+  const SANS = 'Inter, -apple-system, Helvetica, Arial, sans-serif';
+  const SERIF = 'Georgia, "Times New Roman", serif';
+  const txt = (x, y, s, o) =>
+    `<text x="${x}" y="${y}" font-family='${o.font || SANS}' font-size="${o.size}"${o.weight ? ` font-weight="${o.weight}"` : ''}` +
+    `${o.ls != null ? ` letter-spacing="${o.ls}"` : ''}${o.anchor ? ` text-anchor="${o.anchor}"` : ''}${o.tr ? ` transform="${o.tr}"` : ''} fill="${o.fill || '#fff'}"${o.op != null ? ` opacity="${o.op}"` : ''}>${s}</text>`;
+
+  // Gradients requested by helpers are collected and emitted with each picture.
+  let NEED = new Set();
+  const GR = {};
+  const u = (id) => { if (GR[id]) NEED.add(id); return `url(#${id})`; };
+  let SKIN = ['#ffe7d6', '#f7cdb0', '#e3a586', '#c98468'];
+  const setSkin = (k) => { SKIN = k; };
+  GR.sk = () => lg('sk', [[0, SKIN[0]], [0.6, SKIN[1]], [1, SKIN[2]]], 0.2, 0, 0.8, 1);
+  GR.hC = () => lg('hC', [[0, '#d9743e'], [0.5, '#b44c26'], [1, '#7a2c16']]);
+  GR.hG = () => lg('hG', [[0, '#ee8a46'], [0.55, '#cf6430'], [1, '#9c3c1c']]);
+  GR.hZ = () => lg('hZ', [[0, '#4a3022'], [0.6, '#32201a'], [0.85, '#7a4f26'], [1, '#d9a44a']]);
+  GR.hL = () => lg('hL', [[0, '#fff1b8'], [0.5, '#f2d27a'], [1, '#d6a84a']]);
+  GR.hH = () => lg('hH', [[0, '#5a3428'], [1, '#2c1a17']]);
+  GR.jC = () => lg('jC', [[0, '#8a8f99'], [1, '#4c515c']], 0, 0, 0.6, 1);
+  GR.sC = () => lg('sC', [[0, '#e04a4a'], [1, '#9c1f2a']], 0, 0, 0.4, 1);
+  GR.cZ = () => lg('cZ', [[0, '#4a362a'], [1, '#221812']], 0, 0, 0.5, 1);
+  GR.hy = () => lg('hy', [[0, '#bff0ff'], [0.4, '#3aa0e6'], [1, '#1d5fa8']], 0, 0, 1, 1);
+  GR.gr = () => lg('gr', [[0, '#5d6878'], [1, '#2c3240']], 0, 0, 0.5, 1);
+
+  const GRAIN =
+    `<filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch" result="n"/>` +
+    `<feColorMatrix in="n" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 .7 0 0 0 -.4"/></filter>`;
+  const pic = (sd, fn) => () => { NEED = new Set(); S = sd; return fn(); };
+  // Path data and opacity minifier (keeps every picture well under the 25 KB budget)
+  const mini = (x) => x.replace(/ d="([^"]*)"/g, (m, d) => ' d="' + d.replace(/ -/g, '-').replace(/([^\d])0\./g, '$1.') + '"')
+    .replace(/(opacity|offset)="0\./g, '$1=".').replace(/ y="0"/g, '');
+  const svg = (defs, body, g = 0.35, v = 0.6) => mini(
+    `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900"><style>.s{fill:none;stroke-linecap:round;stroke-linejoin:round}</style><defs>${GRAIN}${rg('vig', [[0.55, '#000', 0], [1, '#000', 1]], 0.5, 0.5, 0.75)}` +
+    `${defs}${[...NEED].map((k) => GR[k]()).join('')}</defs>${body}` +
+    `<rect width="1200" height="900" fill="url(#vig)" opacity="${v}"/><rect width="1200" height="900" filter="url(#grain)" opacity="${g}"/></svg>`);
+
+  // Many circles in one path
+  const dots = (k, x0, x1, y0, y1, r0, r2) => {
+    let d = '';
+    for (let i = 0; i < k; i++) {
+      const r = rr(r0, r2), x = rr(x0, x1), y = rr(y0, y1);
+      d += `M${f(x + r)} ${f(y)}a${n(r)} ${n(r)} 0 1 0 .1 0`;
+    }
+    return d;
+  };
+  // Dots as zero-length round-capped strokes (half the bytes of arcs): use with ST(sd(...), colour, diameter)
+  const sd = (k, x0, x1, y0, y1) => { let d = ''; for (let i = 0; i < k; i++) d += `M${f(rr(x0, x1))} ${f(rr(y0, y1))}h0`; return d; };
+  // Smooth path through points (Catmull-Rom → cubic Bézier)
+  function crv(p, closed) {
+    const N = p.length, g = (i) => p[closed ? (i + N) % N : Math.max(0, Math.min(N - 1, i))];
+    let d = `M${f(p[0][0])} ${f(p[0][1])}`;
+    for (let i = 0; i < (closed ? N : N - 1); i++) {
+      const a = g(i - 1), b = g(i), c = g(i + 1), e = g(i + 2);
+      d += `C${f(b[0] + (c[0] - a[0]) / 6)} ${f(b[1] + (c[1] - a[1]) / 6)} ${f(c[0] - (e[0] - b[0]) / 6)} ${f(c[1] - (e[1] - b[1]) / 6)} ${f(c[0])} ${f(c[1])}`;
+    }
+    return d + (closed ? 'Z' : '');
+  }
+  // Sample a Catmull-Rom spline
+  function samp(p, k) {
+    const out = [], N = p.length, g = (i) => p[Math.max(0, Math.min(N - 1, i))];
+    for (let s = 0; s <= k; s++) {
+      const tt = (s / k) * (N - 1), i = Math.min(N - 2, Math.floor(tt)), t = tt - i;
+      const a = g(i - 1), b = g(i), c = g(i + 1), e = g(i + 2), t2 = t * t, t3 = t2 * t;
+      const q = (j) => 0.5 * (2 * b[j] + (-a[j] + c[j]) * t + (2 * a[j] - 5 * b[j] + 4 * c[j] - e[j]) * t2 + (-a[j] + 3 * b[j] - 3 * c[j] + e[j]) * t3);
+      out.push([q(0), q(1)]);
+    }
+    return out;
+  }
+  // Tapered ribbon along a spline; wf(t) gives the half-width. Returns {d, L, R, pts}
+  function ribbon(p, wf, k = 36) {
+    const pts = samp(p, k), L = [], R = [];
+    for (let i = 0; i < pts.length; i++) {
+      const a = pts[Math.max(0, i - 1)], b = pts[Math.min(pts.length - 1, i + 1)];
+      let dx = b[0] - a[0], dy = b[1] - a[1];
+      const l = Math.hypot(dx, dy) || 1; dx /= l; dy /= l;
+      const w = wf(i / (pts.length - 1));
+      L.push([pts[i][0] - dy * w, pts[i][1] + dx * w]);
+      R.push([pts[i][0] + dy * w, pts[i][1] - dx * w]);
+    }
+    const pl = (a) => a.map((q) => `${f(q[0])} ${f(q[1])}`).join('L');
+    return { d: `M${pl(L)}L${pl(R.slice().reverse())}Z`, L, R, pts };
+  }
+  const poly = (a) => 'M' + a.map((q) => `${f(q[0])} ${f(q[1])}`).join('L');
+  // Fluffy cloud edge along an ellipse arc (deg; 0 = right, 90 = down)
+  function fluff(cx, cy, rx, ry, a0, a1, k, amp, cmd) {
+    const Pt = (a, r) => [cx + (rx + r) * Math.cos((a * Math.PI) / 180), cy + (ry + r) * Math.sin((a * Math.PI) / 180)];
+    const st = (a1 - a0) / k;
+    let d = '';
+    for (let i = 0; i <= k; i++) {
+      const a = a0 + st * i, [x, y] = Pt(a, 0);
+      if (i === 0) { d += (cmd || 'M') + f(x) + ' ' + f(y); continue; }
+      const m = amp * rr(0.6, 1.3), [c1x, c1y] = Pt(a - st * 0.8, m * 0.6), [tx, ty] = Pt(a - st * 0.45, m), [c2x, c2y] = Pt(a - st * 0.1, m * 0.3);
+      d += `Q${f(c1x)} ${f(c1y)} ${f(tx)} ${f(ty)}Q${f(c2x)} ${f(c2y)} ${f(x)} ${f(y)}`;
+    }
+    return d;
+  }
+  const cloud = (cx, cy, rx, ry, amp) => fluff(cx, cy, rx, ry, 180, 360, 7, amp) + `Q${f(cx + rx)} ${f(cy + ry * 0.5)} ${f(cx)} ${f(cy + ry * 0.4)}Q${f(cx - rx)} ${f(cy + ry * 0.5)} ${f(cx - rx)} ${f(cy)}Z`;
+  // Rain streaks
+  const rain = (k, x0, x1, y0, y1, len, ang) => {
+    let d = '';
+    for (let i = 0; i < k; i++) {
+      const x = rr(x0, x1), y = rr(y0, y1), l = len * rr(0.6, 1.3);
+      d += `M${f(x)} ${f(y)}l${n(ang * l)} ${f(l)}`;
+    }
+    return d;
+  };
+  // Lightning bolt path
+  function bolt(x, y, len, dir, k) {
+    let d = `M${f(x)} ${f(y)}`, br = '';
+    for (let i = 0; i < k; i++) {
+      x += rr(-1, 1) * 34 + dir * 10; y += len / k;
+      d += `L${f(x)} ${f(y)}`;
+      if (rnd() < 0.35) br += `M${f(x)} ${f(y)}l${f(rr(-60, 60))} ${f(rr(30, 70))}l${f(rr(-20, 20))} ${f(rr(20, 40))}`;
+    }
+    return d + br;
+  }
+
+  // ---- characters -----------------------------------------------------------------------------
+  // Canonical head: skull top y=-47, face ±37, chin y=46, eyes y=5 (x ±15), mouth y=28, neck to y=64.
+  // o.t: turn (-1..1, + looks to viewer's right). o.ex: open|happy|closed|soft. o.mo: smile|grin|laugh|soft|flat|o.
+  const INK = '#2a1a1c';
+  // Shared face parts are symbols; iris colour = currentColor, the highlight takes fill-opacity from the <use>.
+  const lash = (d, w = 3.4) => `<path class="s" d="${d}" stroke="${INK}" stroke-width="${w}"/>`;
+  const IRIS = '<ellipse cy="-.5" rx="7.5" ry="9.5" fill="currentColor" fill-opacity="1"/><path d="M-6 3Q0 11 6 3Q4 8 0 8Q-4 8-6 3Z" fill="#fff" fill-opacity=".3"/><ellipse rx="3.6" ry="5" fill="#140c14" fill-opacity=".75"/><circle cx="2.6" cy="-3.6" r="2.3" fill="#fff"/>';
+  GR.eo = () => `<g id="eo">${IRIS}${lash('M-10-6Q-2-13 10-7')}</g>`;
+  GR.es = () => `<g id="es"><use href="#eo"/><path d="M-11-14H11V-2Q0-6-11-2Z" fill="${SKIN[1]}" fill-opacity="1"/>${lash('M-10-2Q0-6 10-2', 3.2)}</g>`;
+  GR.eh = () => `<g id="eh">${lash('M-8 3Q0-7 8 3')}</g>`;
+  GR.ec = () => `<g id="ec">${lash('M-9-1Q0 6 9-1', 3)}${lash('M-9-1l-3-2M9-1l3-2', 1.6)}</g>`;
+  // face base: ears, skin, jaw shade (light from the left; o.lr mirrors it)
+  GR.fb = () => `<g id="fb"><path d="M-35 0C-45-6-47 14-36 18Z" fill="${SKIN[1]}"/><path d="M35 0C45-6 47 14 36 18Z" fill="${SKIN[2]}"/>` +
+    `<path d="M-37-6C-37-33-21-47 0-47C21-47 37-33 37-6C37 16 27 31 14 40C8 44 3 46 0 46C-3 46-8 44-14 40C-27 31-37 16-37-6Z" fill="url(#sk)"/>` +
+    `<path d="M37-6C37 16 27 31 14 40C8 44 3 46 0 46C22 34 29 14 33-8Z" fill="${SKIN[2]}" opacity=".4"/></g>`;
+  GR.bw = () => `<path id="bw" class="s" d="M-22-10Q-15-15-8-11M8-11Q15-15 22-10" stroke="currentColor" stroke-width="2.6"/>`;
+  GR.ns = () => `<path id="ns" class="s" d="M1.5 14q-2 4 1.5 5" stroke="${SKIN[3]}" stroke-width="2"/>`;
+  const MO = {
+    smile: ST('M-7 26Q0 32 7 26', '#9a3c3c', 2.6),
+    soft: ST('M-5 28Q0 31 5 28', '#9a4848', 2.4),
+    flat: ST('M-5 29Q0 30 5 29', '#8a4040', 2.4),
+    smirk: ST('M-6 29Q2 31 7 25', '#9a3c3c', 2.6),
+    grin: P('M-9 24Q0 27 9 24Q7 35 0 35Q-7 35-9 24Z', '#8c2d33') + P('M-7 25Q0 27 7 25L6 28H-6Z', '#fff'),
+    laugh: P('M-11 22Q0 25 11 22Q9 38 0 38Q-9 38-11 22Z', '#7d232b') + P('M-8 23Q0 25 8 23L7 26H-7Z', '#fff') + P('M-5 34Q0 30 5 34Q0 37-5 34Z', '#e0707a'),
+    o: '<ellipse cy="29" rx="4.5" ry="5" fill="#7d232b"/>',
+  };
+  for (const k in MO) GR['m' + k] = () => `<g id="m${k}">${MO[k]}</g>`;
+  const use = (id, x, y, ex = '') => `<use href="#${u(id).slice(5, -1)}"${x ? ` x="${x}"` : ''}${y ? ` y="${y}"` : ''}${ex}/>`;
+
+  // Face (skin, ears, eyes, brows, mouth). Draw back hair before, front hair after.
+  // o.t: turn (-1..1, + looks to viewer's right). o.ex: open|happy|closed|soft. o.mo: smile|grin|laugh|soft|flat|smirk|o.
+  function face(o) {
+    const t = o.t || 0, dx = f(t * 9);
+    const sL = n(1 - Math.max(0, -t) * 0.35), sR = n(1 - Math.max(0, t) * 0.35), sy = o.ey || 1;
+    const ex = { open: 'eo', soft: 'es', happy: 'eh', closed: 'ec' }[o.ex || 'open'];
+    if (ex === 'es') u('eo');
+    u('sk');
+    const hl = o.hl != null ? ` fill-opacity="${o.hl}"` : '';
+    const shut = ex === 'eh' || ex === 'ec';
+    const eyeU = (x, sx) => `<use href="#${u(ex).slice(5, -1)}" ${!shut && (sx !== 1 || sy !== 1) ? `transform="translate(${x} 5) scale(${sx} ${sy})"` : `x="${x}" y="5"`}${shut ? '' : ` color="${o.eye || '#3a6ab0'}"${hl}`}/>`;
+    const sc = (o.lr ? -1 : 1) * (o.round ? 1.06 : 1);
+    let s = use('fb', 0, 0, sc !== 1 ? ` transform="scale(${sc} 1)"` : '');
+    if (o.fr) s += ST(sd(7, -30 + dx, -14 + dx, 13, 21) + sd(7, 14 + dx, 30 + dx, 13, 21), '#c0703e', 2.2, op(0.7));
+    s += use('bk', dx, 0, o.blush != null ? ` opacity="${o.blush}"` : '') + use('ns', dx, 0);
+    s += eyeU(-15 + dx, sL) + eyeU(15 + dx, sR);
+    if (o.liner) s += ST(`M${-25 + dx} 0l-5 1M${25 + dx} 0l5 1`, o.liner, 2.4);
+    s += use('bw', dx, 0, ` color="${o.brow || '#6a3020'}"`) + use('m' + (o.mo || 'smile'), dx, 0);
+    return s;
+  }
+  const neck = (w = 11, y1 = 66) => P(`M-${w} 26V${y1}H${w}V26Z`, u('nk'));
+  GR.nk = () => lg('nk', [[0, SKIN[3]], [0.5, SKIN[3]], [0.7, SKIN[2]], [1, SKIN[1]]]);
+
+  // Hair locks: quadratic curves between points, bowed sideways by b (swept, strand-like edges)
+  function jag(pts, b = 0.18, m = 'M') {
+    let d = `${m}${pts[0][0]} ${pts[0][1]}`;
+    for (let i = 1; i < pts.length; i++) {
+      const a = pts[i - 1], c = pts[i];
+      d += `Q${f((a[0] + c[0]) / 2 - (c[1] - a[1]) * b)} ${f((a[1] + c[1]) / 2 + (c[0] - a[0]) * b)} ${c[0]} ${c[1]}`;
+    }
+    return d;
+  }
+  const HAIR = {
+    // Childe: shaggy outline; fringe swept to his right with a long lock between the eyes
+    childeF: jag([[-42, 30], [-40, 12], [-50, 2], [-44, -10], [-52, -24], [-44, -34], [-44, -50], [-26, -56], [-14, -68], [2, -60], [20, -66], [34, -54], [48, -46], [46, -32], [54, -18], [46, -8], [50, 8], [42, 12], [44, 30],
+      [38, 8], [36, -6], [30, 6], [27, -14], [17, 2], [13, -18], [3, 8], [-2, -16], [-12, 0], [-17, -17], [-27, -4], [-31, -15], [-37, 6], [-40, -6], [-42, 30]], 0.15) + 'Z',
+    childeB: 'M-46 0C-52 24-44 40-34 48L-28 20H28L34 48C44 40 52 24 46 0Z',
+    mask: '<g transform="translate(-38 -47) rotate(-28)"><path d="M-24 0C-24-10-12-14-4-11L0-23L4-11C12-14 24-10 24 0C22 8 12 12 4 8L0 2L-4 8C-12 12-22 8-24 0Z" fill="#c8323c" stroke="#6e141c" stroke-width="2"/><path d="M-18-2L-6-5L-8 2ZM18-2L6-5L8 2Z" fill="#2a080c"/><path class="s" d="M-20-3C-17-9-11-11-5-9" stroke="#ffa090" stroke-width="2.4"/></g>',
+    // Zhongli: sleek crown, side part, long front locks with amber tips
+    zlB: 'M-42-14C-46 26-42 56-34 74L-20 70L-22 30H22L20 70L34 74C42 56 46 26 42-14Z',
+    zlF: jag([[-38, 46], [-42, 10], [-44, -24], [-34, -48], [-12, -60], [14, -58], [34, -46], [44, -22], [42, 10], [38, 46], [34, 18], [32, 0], [28, -12], [24, -2], [18, -18], [12, -2], [6, -22], [-2, 0], [-6, -20], [-14, -4], [-20, -18], [-28, -6], [-31, -10], [-33, 14], [-38, 46]], 0.12) + 'Z',
+    tonF: jag([[-40, 20], [-46, -14], [-36, -46], [-10, -60], [18, -58], [40, -42], [46, -14], [40, 22], [36, -4], [30, -16], [20, -24], [6, -28], [-6, -22], [-12, -8], [-20, -20], [-28, -10], [-34, 4], [-40, 20]], 0.14) + 'Z',
+    anF: jag([[-41, 16], [-50, -6], [-44, -18], [-50, -40], [-30, -56], [-16, -66], [4, -58], [24, -64], [36, -50], [52, -36], [46, -18], [50, 4], [41, 16], [38, -4], [28, -12], [22, 0], [14, -14], [4, 0], [-4, -16], [-14, -2], [-20, -16], [-30, -4], [-36, -10], [-41, 16]], 0.15) + 'Z',
+    teuF: jag([[-38, 12], [-42, -4], [-34, 2], [-30, -6], [-22, 6], [-16, -4], [-8, 6], [0, -4], [8, 6], [16, -4], [22, 6], [30, -6], [34, 2], [42, -4], [38, 12]], 0.1),
+    lumF: jag([[-38, 40], [-46, 0], [-44, -30], [-26, -54], [2, -60], [30, -52], [46, -30], [46, 2], [38, 40], [34, 10], [32, -8], [24, -2], [20, -20], [12, -2], [6, -26], [-2, -2], [-8, -24], [-18, -4], [-22, -18], [-30, -4], [-34, 12], [-38, 40]], 0.12) + 'Z',
+    bobF: jag([[-44, 40], [-48, 0], [-42, -36], [-18, -58], [10, -58], [36, -44], [48, -10], [46, 40], [36, 30], [36, -6], [30, -16], [20, -10], [12, -20], [2, -10], [-8, -20], [-16, -10], [-26, -18], [-34, -6], [-36, 30], [-44, 40]], 0.08) + 'Z',
+    htF: jag([[-40, 30], [-46, -20], [-30, -50], [0, -58], [30, -50], [46, -20], [40, 30], [34, -8], [26, -18], [20, -6], [12, -20], [4, -6], [-4, -20], [-12, -6], [-20, -20], [-28, -6], [-34, -10], [-40, 30]], 0.1) + 'Z',
+    yelF: jag([[-46, 44], [-48, 0], [-40, -36], [-14, -58], [14, -58], [38, -42], [48, -14], [44, 14], [36, -4], [30, -18], [18, -12], [10, -26], [-2, -8], [-14, -24], [-26, -10], [-32, 10], [-36, 36], [-46, 44]], 0.08) + 'Z',
+  };
+  // A braid hanging from (x,y), k plaits
+  const braid = (x, y, k, fill) => {
+    let d = '';
+    for (let i = 0; i < k; i++) d += `M${x - 8} ${y + i * 12}q8 ${i % 2 ? 4 : 10} 16 ${i % 2 ? 6 : 0}`;
+    return ST(`M${x} ${y - 6}V${y + k * 12}`, fill, 20) + ST(d, '#8c3418', 1.8, op(0.7));
+  };
+
+  // Generic rounded shoulders/torso, canonical units (cut at y=yb)
+  const torso = (w, yb, fill) => P(`M-14 50C-32 54-${w - 6} 60-${w} 86L-${w + 4} ${yb}H${w + 4}L${w} 86C${w - 6} 60 32 54 14 50Z`, fill);
+  const mg = (a, b) => Object.assign({}, a, b);
+
+  // ---- cast (busts at canonical scale; o.body=false for head only) -------------------------------
+  const CH = {
+    childe(o) {
+      const b = o.body !== false;
+      return P(HAIR.childeB, u('hC')) +
+        (b ? torso(58, 190, u('jC')) + P('M-14 50L0 100L14 50Z', '#23262d') + P('M-14 50L-4 98L-30 62ZM14 50L4 98L30 62Z', '#6c717c') : '') +
+        neck() +
+        (b ? P('M-24 44C-14 58 14 58 24 44L30 60C14 76-14 76-30 60Z', u('sC')) + P('M8 64C16 92 10 128 18 160L36 156C26 126 32 92 26 60Z', u('sC')) : '') +
+        face(mg({ eye: '#2a5fa0', hl: 0.5, brow: '#8a3a1c' }, o)) +
+        P(HAIR.childeF, u('hC')) + ST('M-30-48Q-8-60 22-56M10-58Q24-56 34-46', '#f39a62', 3, op(0.55)) + HAIR.mask;
+    },
+    zhongli(o) {
+      const b = o.body !== false;
+      return P(HAIR.zlB, u('hZ')) + neck(10, 50) +
+        (b ? torso(58, 190, u('cZ')) + P('M-15 34L-17 66Q0 74 17 66L15 34Q0 40-15 34Z', '#2a1d16') + ST('M-17 66Q0 74 17 66M-6 72L-10 190M6 72L10 190', '#c9a24a', 3) +
+          `<circle cy="74" r="5" fill="#e0a83a"/>` : '') +
+        face(mg({ eye: '#d99a32', liner: '#b8402a', brow: '#3a2418', blush: 0.35, ey: 0.86 }, o)) +
+        P(HAIR.zlF, u('hZ'))  +
+        `<g transform="translate(${o.t > 0.3 ? -41 : 41} 16)">${ST('M0 0V26', '#c9a24a', 1.6)}<circle cy="27" r="3" fill="#e0b84a"/>${P('M-3 29L-4 52H4L3 29Z', '#d4a63c')}</g>`;
+    },
+    teucer(o) {
+      const b = o.body !== false;
+      return (b ? torso(50, 170, '#3b6fb8') + P('M-22 48C-10 60 10 60 22 48L26 62C10 74-10 74-26 62Z', '#f2c14e') : '') + neck(10, 56) +
+        face(mg({ round: 1, fr: 1, eye: '#3a7ad0', brow: '#b0582a', mo: 'grin' }, o)) +
+        P('M-42-4C-48 10-44 20-38 22L-34 4ZM42-4C48 10 44 20 38 22L34 4Z', u('hG')) + P(HAIR.teuF + 'L42-20H-42Z', u('hG')) +
+        P('M-42-18C-44-58 44-58 42-18Z', '#3f80d4') + P('M-46-20C-30-30 30-30 46-20L46-4C30-12-30-12-46-4Z', '#2c62ad') +
+        ST('M-36-24V-8M-24-27V-11M-12-28V-12M0-28V-12M12-28V-12M24-27V-11M36-24V-8', '#4a8ae0', 2.4, op(0.6)) +
+        `<circle cy="-60" r="13" fill="#f4f1ea"/><circle cx="-4" cy="-64" r="5" fill="#fff"/>`;
+    },
+    tonia(o) {
+      const b = o.body !== false;
+      return P(jag([[-40, -10], [-46, 30], [-36, 46], [36, 46], [46, 30], [40, -10]], 0.1) + 'Z', u('hG')) +
+        (b ? torso(50, 190, '#6b5a7a') : '') + neck(10, 56) +
+        (b ? P('M-26 44C-14 60 14 60 26 44L32 64C14 80-14 80-32 64Z', '#4f8f9a') + ST('M-28 60Q0 76 28 60', '#e9dfc6', 3, op(0.7)) + P('M12 70C18 96 14 120 20 146L36 142C30 118 34 94 28 66Z', '#4f8f9a') + ST('M16 128l18-4M18 136l18-4', '#e9dfc6', 3, op(0.7)) : '') +
+        face(mg({ eye: '#3a78c8', brow: '#a8502a', blush: 0.6, mo: 'soft' }, o)) +
+        P(HAIR.tonF, u('hG')) + braid(-36, 30, 7, '#c4582a') + `<rect x="-42" y="110" width="12" height="6" rx="2" fill="#4f8f9a"/>` + P('M-41 116L-36 130L-31 116Z', '#c4582a');
+    },
+    anthon(o) {
+      const b = o.body !== false;
+      return (b ? torso(54, 190, '#5f7a3a') + ST('M-20 50Q0 66 20 50', '#46602a', 5) : '') + neck(10, 56) +
+        face(mg({ eye: '#3a78c8', brow: '#a8502a', fr: 1, mo: 'smirk' }, o)) +
+        P(HAIR.anF, u('hG')) +
+        ST('M-46 0C-50-60 50-60 46 0', '#2b2e36', 7) + `<rect x="-54" y="-6" width="14" height="26" rx="6" fill="#23262d"/><rect x="40" y="-6" width="14" height="26" rx="6" fill="#23262d"/>` +
+        `<rect x="-52" y="2" width="4" height="10" rx="2" fill="#5fe08a"/>` + ST('M-48 16Q-40 36-18 34', '#23262d', 3);
+    },
+    mama(o) {
+      const b = o.body !== false;
+      return (b ? torso(56, 190, '#a8543a') + P('M-16 50L0 80L16 50', '#f2e6d4') + ST('M-30 80l4 6M30 80l-4 6', '#7a3424', 3) : '') + neck(10, 56) +
+        P('M-46 30C-52 10-50-50 0-58C50-50 52 10 46 30C40 38 30 40 24 34L36 0C30-34-30-34-36 0L-24 34C-30 40-40 38-46 30Z', '#b82f3a') +
+        face(mg({ eye: '#7a5a3a', brow: '#8a5a3a', ex: 'happy', mo: 'smile', blush: 0.7 }, o)) +
+        P('M-36 0C-36-24-20-34 0-34C20-34 36-24 36 0C30-14 18-20 4-20L0-14L-4-20C-18-20-30-14-36 0Z', '#a8643e') +
+        P('M-40 6C-44-44 44-44 40 6C34-24 18-38 0-38C-18-38-34-24-40 6Z', '#c23a44') +
+        ST(sd(12, -34, 34, -48, -32), '#ffd9a0', 4.4, op(0.8)) + P('M24 34C34 44 44 54 40 66L50 60C52 48 42 38 30 30Z', '#b82f3a');
+    },
+    papa(o) {
+      const b = o.body !== false;
+      return (b ? torso(64, 190, '#2e3f5a') + P('M-18 48Q0 60 18 48L20 58Q0 72-20 58Z', '#3e5274') : '') + neck(11, 56) +
+        face(mg({ eye: '#3a6aa0', brow: '#b8a090', mo: 'flat', blush: 0.4 }, o)) +
+        ST('M-28-2q4 4 9 3M28-2q-4 4-9 3M-16-24h12M4-24h12', SKIN[3], 1.8, op(0.6)) +
+        P('M-39-6C-42 4-40 14-36 20L-33-4ZM39-6C42 4 40 14 36 20L33-4Z', '#b09888') +
+        P('M-38 4C-40 34-24 58 0 60C24 58 40 34 38 4C34 16 28 22 18 24Q8 18 0 20Q-8 18-18 24C-28 22-34 16-38 4Z', '#b48a72') +
+        ST('M-26 32q2 10 8 16M26 32q-2 10-8 16', '#d8c8b8', 2, op(0.6)) +
+        P('M-18 24Q-8 14 0 19Q8 14 18 24Q10 30 0 26Q-10 30-18 24Z', '#9a705a') +
+        (o.mo === 'laugh' || o.mo === 'grin' ? P('M-8 30Q0 32 8 30Q6 37 0 37Q-6 37-8 30Z', '#6d1f26') : '') +
+        P('M-42-8C-46-32-30-52 0-52C34-52 50-34 44-8Z', '#24334d') + P('M-44-14H44V-4H-44Z', '#18202f') + P('M-38-6Q-6 10 28 0L30-6Z', '#0e1420') + ST('M-30-2Q-6 6 20 0', '#4a5a7a', 2, op(0.7));
+    },
+    hutao(o) {
+      const b = o.body !== false;
+      return P('M-38-10C-60 40-56 100-44 140L-30 60ZM38-10C60 40 56 100 44 140L30 60Z', u('hH')) +
+        (b ? torso(50, 190, '#4a2e26') + P('M-16 50L0 74L16 50Z', '#2a1a16') + `<circle cx="-30" cy="78" r="6" fill="#c8303a"/>` : '') + neck(10, 56) +
+        face(mg({ eye: '#c8303a', brow: '#3a2320', mo: 'grin' }, o)) +
+        P(HAIR.htF, u('hH')) +
+        P('M-54-32Q0-42 54-32L50-24Q0-32-50-24Z', '#1c1416') + P('M-32-34L-30-56Q0-62 30-56L32-34Z', '#231a1c') + P('M-32-42Q0-46 32-42V-34Q0-38-32-34Z', '#7a2a2a') +
+        `<circle cx="20" cy="-40" r="6" fill="#e86a7a"/><circle cx="28" cy="-44" r="5" fill="#f08a96"/><circle cx="20" cy="-40" r="2" fill="#ffd36a"/>` +
+        P('M-40-36L-48-10L-38-8L-32-34Z', '#c8323c') + ST('M-42-26q3 4-1 8', '#f0c84a', 1.6);
+    },
+    lumine(o) {
+      const b = o.body !== false;
+      return P('M-42-10C-48 20-44 40-38 50L36 50C44 40 48 20 42-10Z', u('hL')) +
+        (b ? torso(50, 190, '#f2f0ea') + P('M-22 50Q0 66 22 50L24 60Q0 76-24 60Z', '#d4a63c') + ST('M-50 100Q0 120 50 100', '#3a4a7a', 3, op(0.5)) : '') + neck(10, 56) +
+        face(mg({ eye: '#d4a23a', brow: '#b8903a', blush: 0.6, mo: 'soft' }, o)) +
+        P(HAIR.lumF, u('hL')) + ST('M-24-48Q0-58 24-50', '#fff8d8', 3, op(0.7)) +
+        `<g transform="translate(36 -30)"><circle r="8" fill="#fff"/><circle cx="-8" cy="4" r="7" fill="#f4f4f4"/><circle cx="6" cy="8" r="7" fill="#eee"/><circle cx="-2" cy="2" r="3.5" fill="#9ad0f0"/></g>`;
+    },
+    ekat(o) {
+      const b = o.body !== false;
+      return P('M-44 40C-50 0-46-40 0-56C46-40 50 0 44 40Z', '#2a2230') +
+        (b ? torso(50, 190, '#24314f') + P('M-30 52C-16 66 16 66 30 52L36 70C16 86-16 86-36 70Z', '#e8e4dc') + P('M-12 66L0 100L12 66Z', '#f4f1ea') + `<circle cx="-30" cy="104" r="5" fill="#c9a24a"/>` : '') + neck(10, 56) +
+        face(mg({ eye: '#5a4a6a', brow: '#2a2230', mo: 'smile' }, o)) +
+        P(HAIR.bobF, '#2e2534') ;
+    },
+    yelan(o) {
+      const b = o.body !== false;
+      return P('M-44 44C-50 0-46-40 0-56C46-40 50 0 46 20Z', '#25335c') +
+        (b ? torso(54, 190, '#f2f2f2') + P('M-14 50L0 80L14 50Z', '#1e2a4a') + P('M-62 90C-50 60-30 54-16 52L-10 70C-30 72-46 84-52 100ZM62 90C50 60 30 54 16 52L10 70C30 72 46 84 52 100Z', '#e6e1d8') : '') + neck(10, 56) +
+        face(mg({ eye: '#2f9a6a', brow: '#1e2a4a', mo: 'smirk', ex: 'soft' }, o)) +
+        P(HAIR.yelF, '#2b3a68') + ST('M-22-50Q0-58 22-48', '#5a6aa0', 3, op(0.6));
+    },
+    // Fatui grunt: burly, pale face-plate mask, stubble. o.hat: 'elf' | 'ushanka' | 'none'
+    grunt(o) {
+      const b = o.body !== false;
+      const hat = o.hat === 'elf'
+        ? P('M-46-14C-40-50-10-66 20-60C40-56 60-30 76-6L62 4C52-14 40-30 30-30C40-18 44-10 46-14Z', '#2f8f4a') + P('M-50-20C-20-30 20-30 50-20L50-6C20-14-20-14-50-6Z', '#e8e2d6') + `<circle cx="72" cy="4" r="9" fill="#f2c14e"/>`
+        : o.hat === 'none' ? P(jag([[-40, -4], [-44, -30], [-26, -50], [0, -54], [26, -50], [44, -30], [40, -4], [30, -26], [0, -30], [-30, -26], [-40, -4]], 0.06) + 'Z', '#4a3a30')
+          : P('M-44-6C-48-56 48-56 44-6Z', '#3a3f4a') + P('M-50-18C-20-28 20-28 50-18V0C20-10-20-10-50 0Z', '#7a6450') + P('M-52-10L-56 30L-40 26L-40-6ZM52-10L56 30L40 26L40-6Z', '#7a6450');
+      return (b ? torso(84, 200, u('gr')) + P('M-40 50C-20 70 20 70 40 50L52 74C20 96-20 96-52 74Z', '#8a7258') + P('M-6 110l6-9 6 9-6 9Z', '#9fd8ff') : '') + neck(15, 56) +
+        `<g transform="scale(1.08 1)">${face(mg({ ex: 'happy', mo: 'grin', blush: 0.3, brow: '#4a3a30' }, o))}</g>` +
+        ST(sd(12, -26, 26, 32, 46), '#6a5040', 2.2, op(0.5)) +
+        (o.mask !== false ? P('M-42-26C-40-44 40-44 42-26L40 12C26 18 10 14 0 10C-10 14-26 18-40 12Z', '#d3dbe2') + P('M-30-2L-8-6L-10 4ZM30-2L8-6L10 4Z', '#1a202a') + ST('M0-38V8', '#aab6c2', 2.4) + ST('M-38 2C-30 8-12 8 0 6', '#fff', 2, op(0.5)) : '') + hat;
+    },
+  };
+  CH.paimon = (o) => {
+    return P('M-28 44C-56 80-62 150-46 182L46 182C62 150 56 80 28 44Z', '#1d2758') + ST('M-30 120h0M12 100h0M30 150h0M-12 160h0M-36 80h0M38 96h0', '#cfe0ff', 4) +
+      P('M-18 46C-28 70-30 110-24 128H24C30 110 28 70 18 46Z', '#f6f4ef') + ST('M-24 120H24', '#d4a63c', 4) +
+      P('M-18 128L-16 176H-4L-2 128ZM2 128L4 176H16L18 128Z', '#f6f4ef') + neck(8, 54) +
+      P('M-46-12C-52 20-48 42-40 48L40 48C48 42 52 20 46-12Z', '#e4e2f0') +
+      face(mg({ round: 1, eye: '#8a5ad0', brow: '#c8c4dc', mo: 'laugh', ey: 1.15 }, o)) +
+      P(jag([[-46, 30], [-50, -16], [-34, -50], [0, -60], [34, -50], [50, -16], [46, 30], [38, 0], [34, -16], [24, -8], [16, -20], [6, -8], [-4, -20], [-14, -8], [-24, -20], [-32, -8], [-38, 0], [-46, 30]], 0.08) + 'Z', '#fbfbff') +
+      ST('M-26-48Q0-58 26-48', '#fff', 3) + `<ellipse cy="-72" rx="30" ry="8" fill="none" stroke="#3a3f7a" stroke-width="3" opacity=".7"/>` +
+      P('M0-92L5-78L20-77L8-68L12-54L0-62L-12-54L-8-68L-20-77L-5-78Z', '#232a5c');
+  };
+  // limbs: rounded stroke sleeve + hand
+  const arm = (d, c, w) => ST(d, c, w);
+  const hand = (x, y, r = 9, k = SKIN[1]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${k}"/>`;
+  // Liyue paper lantern
+  GR.lan = () => `<g id="lan"><circle r="46" fill="${u('lglow')}"/>` + ST('M0-40V-24', '#3a2418', 2) +
+    P('M-14-24H14L18-18C24-8 24 8 18 18L14 24H-14L-18 18C-24 8-24-8-18-18Z', '#d8342c') + ST('M-8-22C-14-8-14 8-8 22M8-22C14-8 14 8 8 22', '#ffb070', 2, op(0.6)) +
+    P('M-12-24H12V-20H-12ZM-12 20H12V24H-12Z', '#e8b04a') + ST('M0 24V40', '#e8b04a', 3) + '</g>';
+  const lantern = (x, y, s = 1) => { u('lglow'); return `<use href="#${u('lan').slice(5, -1)}" transform="translate(${f(x)} ${f(y)})${s !== 1 ? ` scale(${s})` : ''}"/>`; };
+  GR.lglow = () => rg('lglow', [[0, '#ffd080', 0.75], [0.4, '#ffa040', 0.25], [1, '#ff8030', 0]]);
+
+  JC.art._a7 = { CH, face, HAIR, lantern, setSkin, reset: () => { NEED = new Set(); } };
+  const who = (name, x, y, s, o = {}) => G(x, y, s, CH[name](o), o.flip ? -s : null);
+
+  // ---- 12. Ajax (true ending) ------------------------------------------------------------------
+  def('end_true', {
+    title: 'Ajax', w: 1200, h: 900, tags: ['ending', 'pier', 'family', 'golden'],
+    svg: pic(12, () => {
+      setSkin(['#ffeedd', '#f9d2b2', '#e8a886', '#c98466']);
+      let rail = '', lan = '', glit = '';
+      for (let x = 20; x < 1200; x += 118) rail += `M${x} 512V600`;
+      for (let i = 0; i < 7; i++) {
+        const x = 60 + i * 180;
+        lan += lantern(x, f(110 + Math.sin((x / 1200) * Math.PI) * 90), 0.62);
+      }
+      for (let i = 0; i < 18; i++) glit += `M${f(990 + rr(-1, 1) * rr(10, 150))} ${f(rr(440, 596))}h${f(rr(6, 24))}`;
+      const T = (id, x, y, sc) => `<use href="#${id}" transform="translate(${x} ${y})${sc ? ` scale(${sc})` : ''}"/>`;
+      // table, from the back edge (y 600) to the front edge (y 690)
+      const table =
+        P('M40 600H1160L1200 690H0Z', '#fbf3e4') + P('M0 690H1200V800H0Z', u('drop')) +
+        ST('M100 700V796M300 700V796M500 700V796M700 700V796M900 700V796M1100 700V796', '#cdb894', 6, op(0.3)) +
+        P('M26 632H1174L1180 652H20Z', '#b8302f', op(0.85)) + ST('M26 632H1174M20 652H1180', '#e7b84a', 2);
+      const props =
+        T('tp', 196, 626) + T('cu', 250, 640) + T('gl', 316, 640) +
+        T('pl', 410, 650, 1.3) + P('M374 646C382 632 420 626 446 636L462 628L460 652L446 646C420 660 386 658 374 646Z', '#c88a4a') + `<circle cx="386" cy="642" r="3" fill="#2a1a1c"/>` + ST('M400 638l4 10M414 636l4 12M428 638l4 10', '#8a5a2a', 2, op(0.6)) +
+        T('pl', 512, 662) + ST('M490 656h0M506 654h0M522 656h0M498 666h0M514 666h0M530 664h0', '#e0cfa8', 14) + ST('M490 656h0M506 654h0M522 656h0M498 666h0M514 666h0M530 664h0', '#fff8e8', 10) +
+        T('pl', 604, 640, 0.8) + T('cu', 632, 640) +
+        `<g transform="translate(572 666)">${P('M-28 0L-24-22H24L28 0Z', '#fffdf6', 'stroke="#d8c8a6" stroke-width="1.5"')}${txt(0, -6, 'for you', { size: 15, font: SERIF, anchor: 'middle', fill: '#9a3a2a', tr: 'skewX(-8)' })}</g>` +
+        P('M664 618Q706 604 748 618V646Q706 662 664 646Z', '#6a4030') + ST('M660 626h-8M752 626h8', '#4a2a1e', 7) + `<ellipse cx="706" cy="618" rx="42" ry="12" fill="#b8283a"/><ellipse cx="712" cy="616" rx="9" ry="4" fill="#fff4ea"/>` + ST('M700 614h0M722 618h0M694 620h0', '#6aa84a', 4) +
+        T('cu', 804, 650) + P('M846 650Q834 624 844 604H860Q870 624 858 650Z', '#e6eef6', 'stroke="#9ab0c8" stroke-width="1.5"') +
+        `<g fill="#eaf2ff" stroke="#8aa8d8" stroke-width="1.5"><path d="M852 604L836 572L852 584L856 564L862 586L876 576Z"/><path d="M846 608L822 594L840 590Z"/></g>` + ST('M852 606V590M848 610L838 598', '#5a8a4a', 2.5) +
+        T('gl', 960, 646) + T('pl', 1050, 664, 1.1) + ST('M1026 660h0M1042 654h0M1058 660h0M1074 656h0M1050 666h0', '#c8743a', 16) + ST('M1028 656h0M1044 650h0M1072 652h0', '#f0a860', 6);
+      // the empty chair, turned toward you
+      const chair =
+        `<ellipse cx="600" cy="896" rx="160" ry="20" fill="#3a2010" opacity=".4"/>` +
+        ST('M532 730V880M668 730V880', '#5a3418', 12) +
+        P('M514 684Q600 668 686 684L682 712Q600 698 518 712Z', u('wood')) + ST('M560 708V800M600 702V800M640 708V800', '#8a5430', 9) +
+        ST('M520 686V812M680 686V812', '#7a4626', 14) +
+        P('M492 800H708L728 848H472Z', u('wood')) + P('M472 848H728V862H472Z', '#5a3418') +
+        P('M506 800Q600 786 694 800L710 834Q600 852 490 834Z', '#c8403a') + ST('M512 816Q600 808 690 816', '#e88070', 3, op(0.6)) +
+        ST('M484 860L478 900M716 860L722 900', '#6a3c1e', 15) + ST('M514 686Q600 670 686 686', '#ffd7a0', 3, op(0.8));
+      return svg(
+        lg('sky', [[0, '#8fbfdc'], [0.3, '#cfd8c8'], [0.5, '#f8d7a2'], [0.62, '#ffc884'], [1, '#ffb070']]) +
+        lg('sea', [[0, '#f0b47c'], [0.1, '#8eb0ac'], [1, '#3e7c8c']]) +
+        rg('sun', [[0, '#fffbe8'], [0.12, '#fff1c4', 0.95], [0.45, '#ffd28a', 0.4], [1, '#ffc070', 0]]) +
+        lg('drop', [[0, '#f3e7d2'], [1, '#d4bf9c']]) + lg('deck', [[0, '#a8704a'], [1, '#5e3a22']]) + lg('wood', [[0, '#b8784a'], [1, '#76442a']], 0, 0, 1, 1) +
+        rg('halo', [[0, '#fff2c0', 0.7], [1, '#ffd890', 0]]) + lg('warm', [[0, '#ff9a40', 0], [1, '#ff8a30', 0.5]], 0, 0, 1, 0.3) +
+        `<g id="pl"><ellipse cy="3" rx="44" ry="15" fill="#000" opacity=".12"/><ellipse rx="40" ry="13" fill="#fbf7ee" stroke="#d9cdb4" stroke-width="2"/></g>` +
+        `<g id="cu"><path d="M-11-14H11Q10 0 0 0Q-10 0-11-14Z" fill="#e8efe6" stroke="#9ab8a4" stroke-width="1.5"/><ellipse cy="-14" rx="11" ry="3" fill="#c98a3a"/></g>` +
+        `<g id="gl"><path d="M-8-34H8L6 0H-6Z" fill="#ffd27a" opacity=".75"/><path class="s" d="M-5-30V-6" stroke="#fff" stroke-width="2" opacity=".7"/></g>` +
+        `<g id="tp"><path d="M-22 0Q-22-20 0-20Q22-20 22 0L26 14H-26Z" fill="#8fc4ac"/><ellipse cy="-22" rx="8" ry="4" fill="#6aa58c"/><path class="s" d="M22-2Q36-8 36 6" stroke="#8fc4ac" stroke-width="4"/></g>`,
+        `<rect width="1200" height="900" fill="url(#sky)"/>` +
+        `<circle cx="990" cy="330" r="330" fill="url(#sun)"/><circle cx="990" cy="330" r="46" fill="#fffbea"/>` +
+        P('M0 430L40 370L80 396L130 330L180 392L230 360L290 420L330 400L380 432ZM1080 432L1110 400L1140 414L1180 380L1200 390V432Z', '#c99a92', op(0.55)) +
+        P('M120 432V404H110L150 386L190 404H180V432ZM250 432V396H238L280 370L322 396H310V432Z', '#a87a74', op(0.6)) +
+        `<rect y="430" width="1200" height="180" fill="url(#sea)"/>` + ST(glit, '#fff6d8', 3, op(0.8)) +
+        ST('M380 220q12-10 24 0q12-10 24 0M470 180q8-7 16 0q8-7 16 0M760 150q10-8 20 0q10-8 20 0', '#6a5a5a', 3, op(0.6)) +
+        ST('M0 110Q600 290 1200 110', '#5a3a2a', 2) + lan +
+        `<rect y="600" width="1200" height="300" fill="url(#deck)"/>` + ST('M0 820H1200M0 860H1200', '#4a2c18', 3, op(0.4)) +
+        ST(rail, '#6a3e22', 12) + P('M0 504H1200V518H0Z', '#7a4a2a') + ST('M0 506H1200', '#e8b07a', 2, op(0.7)) +
+        // family & friends (back to front)
+        who('papa', 388, 396, 0.95, { t: 0.1, ex: 'happy', mo: 'laugh' }) + arm('M440 470Q470 430 468 372', '#2e3f5a', 22) + hand(468, 364) + T('gl', 470, 362) +
+        who('hutao', 92, 470, 0.9, { t: 0.3 }) + arm('M118 540Q150 520 146 470', '#4a2e26', 18) + hand(146, 462, 8) + ST('M142 456l-4-16M148 456l3-16', SKIN[1], 5) +
+        who('ekat', 192, 474, 0.9, { t: 0.2, ex: 'happy' }) +
+        who('anthon', 292, 470, 0.9, { t: 0.25, mo: 'grin' }) +
+        who('lumine', 954, 474, 0.9, { t: -0.25, mo: 'smile' }) +
+        who('tonia', 852, 476, 0.88, { t: -0.2, mo: 'smile', ex: 'happy' }) +
+        who('zhongli', 748, 466, 0.96, { t: -0.35, ex: 'soft', mo: 'smile' }) +
+        who('mama', 470, 478, 0.9, { t: 0.25 }) +
+        who('childe', 644, 468, 0.98, { t: -0.25, ex: 'happy', mo: 'laugh' }) + arm('M604 552Q560 540 524 548', '#6c717c', 18) +
+        who('teucer', 553, 500, 0.78, { t: 0.3, ex: 'happy', mo: 'laugh' }) + hand(522, 552, 8) +
+        who('paimon', 1066, 356, 0.55, { t: -0.3 }) + ST('M1032 380L1012 352', '#f2ead8', 7) + `<ellipse cx="1004" cy="340" rx="16" ry="12" fill="#b8682e" transform="rotate(-40 1004 340)"/>` +
+        table + props +
+        `<circle cx="600" cy="790" r="190" fill="url(#halo)"/>` + chair +
+        `<rect width="1200" height="900" fill="url(#warm)" style="mix-blend-mode:soft-light"/>` +
+        P('M1200 120L620 900H760L1200 300ZM1200 360L900 900H980L1200 480Z', '#fff4d0', op(0.08)) +
+        ST(sd(16, 640, 1200, 100, 600), '#fff6d0', 5, op(0.6))
+      , 0.3, 0.45);
+    }),
+  });
+
+  // ---- dev sheet (temporary) -------------------------------------------------------------------
+  def('zz_sheet', {
+    title: 'sheet', w: 1200, h: 900, tags: [],
+    svg: pic(1, () => svg('', `<rect width="1200" height="900" fill="#cfd6dd"/>` +
+      who('childe', 110, 140, 1.4) + who('childe', 320, 140, 1.4, { t: 0.4, ex: 'happy', mo: 'laugh' }) +
+      who('zhongli', 530, 140, 1.4) + who('zhongli', 740, 140, 1.4, { t: -0.4, ex: 'soft', mo: 'soft' }) +
+      who('teucer', 950, 140, 1.4) + who('tonia', 1120, 140, 1.2, { t: -0.3 }) +
+      who('anthon', 90, 470, 1.1) + who('mama', 260, 470, 1.1) + who('papa', 430, 470, 1.1, { mo: 'laugh', ex: 'happy' }) + who('hutao', 600, 470, 1.1) +
+      who('lumine', 770, 470, 1.1) + who('ekat', 940, 470, 1.1) + who('yelan', 1110, 470, 1.1) +
+      who('grunt', 120, 760, 0.9, { hat: 'elf' }) + who('grunt', 330, 760, 0.9) + who('grunt', 540, 760, 0.9, { hat: 'none', mask: false, ex: 'closed', mo: 'laugh' }) +
+      who('childe', 720, 780, 0.6, { t: 0.3 }) + who('zhongli', 800, 780, 0.6, { t: -0.3 }) + who('teucer', 880, 780, 0.6) + who('mama', 960, 780, 0.6) + who('hutao', 1040, 780, 0.6) + who('lumine', 1120, 780, 0.6)
+    , 0, 0)),
+  });
+})();
