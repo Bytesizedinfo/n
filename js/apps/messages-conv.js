@@ -110,7 +110,8 @@
 
     // typing indicator
     const typingAv = h('div.msg-av-slot');
-    const typingRow = h('div.msg-typing-row', { hidden: true }, typingAv, h('div.msg-typing', h('i'), h('i'), h('i')));
+    // tap the typing bubble: the message arrives now (JC.story.hurry)
+    const typingRow = h('div.msg-typing-row', { hidden: true }, typingAv, h('div.msg-typing.tap', { attrs: { title: 'Tap to skip typing' }, onTap: () => { if (JC.story.hurry && JC.story.hurry(tid)) JC.audio.haptic(6); } }, h('i'), h('i'), h('i')));
     after.appendChild(typingRow);
 
     // new-message pill

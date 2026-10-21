@@ -3,6 +3,8 @@
   'use strict';
   const JC = (window.JC = window.JC || {});
   const { h } = JC;
+  const WK = (JC.world && JC.world.keyboard) || {};
+  const CUR = (JC.world && JC.world.money && JC.world.money.symbol) || '$';
 
   const ROWS = {
     abc: [
@@ -13,7 +15,7 @@
     ],
     num: [
       ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
-      ['-', '/', ':', ';', '(', ')', '¥', '&', '@', '"'],
+      ['-', '/', ':', ';', '(', ')', CUR, '&', '@', '"'],
       ['#+=', '.', ',', '?', '!', "'", '⌫'],
       ['ABC', 'space', 'return'],
     ],
@@ -25,14 +27,15 @@
     ],
   };
   const EMOJI = {
-    'Frequently Used': ['😂', '🙄', '😤', '🙏', '😭', '❤️', '👍', '😒', '🪷', '🐶', '💜', '🔥', '😅', '🥺', '😡', '👀'],
+    'Frequently Used': WK.frequent || ['😂', '🙄', '😤', '🙏', '😭', '❤️', '👍', '😒', '😅', '🥺', '😡', '👀', '🔥', '💯', '😊', '🤔'],
     'Smileys & People': ['😀', '😃', '😄', '😁', '😆', '🥹', '😊', '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😋', '😛', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸', '🤩', '🥳', '😏', '😞', '😔', '😟', '😕', '🙁', '😣', '😖', '😫', '😩', '🥱', '😢', '😠', '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓', '🤗', '🤔', '🫡', '🤭', '🫢', '🤫', '🤥', '😶', '😐', '😑', '😬', '🫠', '🙄', '😯', '😦', '😴', '🤤', '😪', '😵', '🤐', '🥴', '🤢', '🤮', '🤧', '😷', '🤒', '🤕', '🤑', '🤠', '😈', '👻', '💀', '🤡', '💩', '👋', '🤚', '✋', '👌', '🤌', '✌️', '🤞', '🫶', '👏', '🙌', '💪', '🫵', '👊'],
     'Animals & Nature': ['🐶', '🐕', '🦮', '🐩', '🐱', '🐰', '🦊', '🐻', '🐼', '🐯', '🦁', '🐸', '🐔', '🐧', '🦆', '🦚', '🐟', '🐠', '🐡', '🦈', '🐢', '🐍', '🦋', '🐝', '🪷', '🌸', '🌺', '🌷', '🌹', '🥀', '🌼', '🌻', '🍀', '🍃', '🌿', '🎋', '🌕', '🌙', '⭐️', '⚡️', '🔥', '🌧️', '☔️', '🌈', '❄️', '🌊'],
     'Food & Drink': ['🍲', '🥟', '🍜', '🍚', '🍙', '🥮', '🍵', '🧋', '🍶', '🍺', '🥂', '🍷', '🍰', '🎂', '🧁', '🍡', '🥢', '🌶️', '🥕', '🥬', '🍠', '🥔', '🍑', '🍓', '🍉', '🍊', '🍋', '🍎'],
     'Objects & Symbols': ['💜', '❤️', '🧡', '💛', '💚', '💙', '🖤', '🤍', '💔', '❣️', '💕', '✨', '💯', '‼️', '⁉️', '❓', '❗️', '🚗', '🚕', '🚙', '🛞', '🔑', '🔔', '🎁', '🎈', '🎉', '📱', '💸', '🧧', '🏮', '🪭', '🎐', '🪈', '⚔️', '🛡️', '📿', '⏰', '📍', '✅', '❌', '⚠️', '🆘'],
   };
-  const DICT = ('the to and you i it is that of for in me my what are on no not be your just this with do so we can get have if at all was but know im dont like ok okay go now one will its out up he about how time when why there yes yeah well good see then come home sorry thanks thank please want need tonight tomorrow sunday soup dinner car dog fairy lotus pier tea call later sure fine maybe never again really idiot ridiculous get lost stop sleep morning night lanling yunmeng gusu jiujiu jin ling wei wuxian ying lan xichen zhan wangji huaisang wen ning sizhui jingyi hotpot birthday cake bell gift brother sister uncle nephew pond koi tower hanshi meeting board ops warehouse delivery').split(' ');
-  const COMPLETIONS = { wei: ['Wei', 'Wei Wuxian', 'Wei Ying'], lan: ['Lan', 'Lan Xichen', 'Lan Zhan'], jin: ['Jin', 'Jin Ling', 'jiujiu'], xi: ['Xichen', 'Xi', 'xin'], ji: ['jiujiu', 'Jin Ling', 'just'], zew: ['Zewu-jun', 'Zewu', 'zero'], hua: ['Huaisang', 'hua', 'huh'], nie: ['Nie Huaisang', 'Nie', 'niece'], idi: ['idiot', 'idea', 'idle'], ri: ['ridiculous', 'right', 'ring'] };
+  // common words first, then the story's own words (names, places) from JC.world.keyboard.dict
+  const DICT = Array.from(new Set(('the to and you i it is that of for in me my what are on no not be your just this with do so we can get have if at all was but know im dont like ok okay go now one will its out up he about how time when why there yes yeah well good see then come home sorry thanks thank please want need tonight tomorrow sunday call later sure fine maybe never again really get lost stop sleep morning night birthday cake gift brother sister uncle nephew meeting delivery ' + (WK.dict || '')).split(/\s+/).filter(Boolean)));
+  const COMPLETIONS = WK.completions || {};
 
   let host = null; // keyboard element
   let target = null; // focused input

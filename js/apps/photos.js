@@ -1006,7 +1006,7 @@
       // ═══ PASSCODE ══════════════════════════════════════════════════════════
       function passSheet(o) {
         const settings = JC.state.d.settings || {};
-        const code = settings.passcode || '181008';
+        const code = settings.passcode || JC.world.passcode.code;
         if (settings.faceAlt) {
           const fl = h('div.ph-faceok', JC.icon('checkmark.circle.fill', { size: 54 }), h('div', 'Face ID'));
           win.overlays.appendChild(fl);

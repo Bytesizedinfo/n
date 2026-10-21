@@ -143,7 +143,7 @@
           expr = full;
           justEval = true;
           if (shown === '1824' || shown === '1,824') JC.ui.toast('1,824 — A-Ling’s Lotus Leap high score', { icon: 'lotus.fill' });
-          if (shown === '181,008' || shown === '181008') JC.ui.toast('That number looks familiar…', { icon: 'lock.open.fill' });
+          if (shown.replace(/,/g, '') === JC.world.passcode.code) JC.ui.toast('That number looks familiar…', { icon: 'lock.open.fill' });
           if (/^(5,?318,?008|58,?008|80,?085)$/.test(shown.replace(/\.0+$/, ''))) JC.ui.toast('Very mature.', { icon: 'face.smiling' });
         } else if (k === '±') {
           const m = expr.match(/(−?)(\d*\.?\d+)$/);

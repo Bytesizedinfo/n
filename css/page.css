@@ -14,6 +14,22 @@
   --font-serif: "Source Serif 4", "Noto Serif SC", "Songti SC", "STSong", Georgia, serif;
   --font-brush: "Ma Shan Zheng", "Noto Serif SC", "Kaiti SC", serif;
   --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  /* story palette used inside the phone (css/os.css reads these; endings, time-skip cards, endings widget) */
+  --cap-glyph: "江澄";
+  --story-hi: #cfb4ff;
+  --story-hi-soft: #d4bcff;
+  --story-btn: #7a4fd6;
+  --story-card: rgba(160, 120, 240, .16);
+  --story-card-line: rgba(200, 170, 255, .25);
+  --story-dim: rgba(10, 5, 20, .88);
+  --story-night1: #2c1f4f;
+  --story-night2: #0a0716;
+  --story-lost: rgba(20, 12, 34, .55);
+  --story-wg-bg1: #3b2a63;
+  --story-wg-bg2: #1d1433;
+  --story-wg-hole: #251a40;
+  --story-wg-fg: #d6b8ff;
+  --story-ring: #c9a7ff;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
@@ -93,7 +109,7 @@ body {
   text-wrap: balance;
 }
 .cap-title::before {
-  content: "江澄";
+  content: var(--cap-glyph, "");
   display: block;
   font-family: var(--font-brush);
   font-weight: 400;

@@ -215,7 +215,7 @@
     'nt.mono': '<path d="M8 7 3.5 12 8 17M16 7l4.5 5-4.5 5M13.5 5l-3 14"/>',
   });
 
-  const PASS = () => (JC.state.d.settings && JC.state.d.settings.passcode) || '181008';
+  const PASS = () => (JC.state.d.settings && JC.state.d.settings.passcode) || JC.world.passcode.code;
   const SYS = { quick: 'Quick Notes', notes: 'Notes', all: 'All iCloud', deleted: 'Recently Deleted' };
   const st = { view: 'list', sort: 'edited', group: true, unlocked: {}, showCount: true };
 

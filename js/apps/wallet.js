@@ -1,8 +1,9 @@
 /* Wallet (iOS 26). Card stack (payment cards, Cash, transit, hotel key, event ticket, car key, store card) →
    tap a card to bring it to the top with its transactions / pass details; pass backs, card info, Pay flow
    (Face ID fails for a stranger → passcode → Hold Near Reader), Add (+) and ··· menus.
-   Shared API (used by Lotus Eats, Swift Ride…): JC.wallet.pay({ merchant, amount, card }) → Promise<{ ok, card }>
-   shows the Wallet Pay sheet; JC.wallet.charge / refund record a transaction (+ the bank's SMS for card 4417).
+   Shared API (used by Lotus Eats, Swift Ride…): JC.wallet.pay({ merchant, amount, card, record }) → Promise<{ ok, card, reason }>
+   shows the Wallet Pay sheet (bank cards are checked against JC.bank first: a frozen card or too little money declines);
+   JC.wallet.charge / refund record a transaction. Cards that draw on the bank balance go through JC.bank.
    Collection `tx`: { card, merchant, amount (+ charge, − credit), t, cat, note, place, pending, supp }.
    Intents: { card } or { id } (card/pass id), { tx } (transaction id). */
 (function () {
@@ -100,14 +101,21 @@
   }
   const save = () => JC.state.save();
   const yen = (n) => U.fmtMoney(n);
-  const passcode = () => String((JC.state.d.settings && JC.state.d.settings.passcode) || '181008');
+  const passcode = () => String((JC.state.d.settings && JC.state.d.settings.passcode) || JC.world.passcode.code);
   const MM = (t) => { const d = new Date(t); return String(d.getMonth() + 1).padStart(2, '0') + '/' + String(d.getDate()).padStart(2, '0') + ' ' + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
 
   function bankSms(card, text) {
     if (card !== 'ycb') return;
     try { JC.story.incoming('bank', { from: 'bank', text: BANK + text }); } catch (e) { /* no thread */ }
   }
+  const isBank = (card) => !!(JC.bank && JC.bank.isBankCard(card || 'ycb'));
   function record(o) {
+    if (isBank(o.card)) {
+      // one balance for every app: JC.bank records the tx, sends the bank SMS and emits charge / decline
+      const spec = { card: o.card || 'ycb', merchant: o.merchant, amount: Math.abs(o.amount), cat: o.cat || 'other', note: o.note || '', place: o.place || null, pending: !!o.pending, sms: o.sms, app: o.app || 'wallet' };
+      const r = o.amount < 0 ? JC.bank.credit(spec) : JC.bank.charge(spec);
+      return r.ok ? r.tx : null;
+    }
     const t = JC.time.now();
     const tx = JC.store.add('tx', { card: o.card || 'ycb', merchant: o.merchant, amount: o.amount, t, cat: o.cat || 'other', note: o.note || '', place: o.place || null, pending: !!o.pending }, { front: true });
     const S = st();
@@ -249,7 +257,7 @@
         const side = sideEl = h('div.wlp-side', { onTap: () => go() }, h('span', 'Double Click'), h('i'));
         sheet.append(
           h('div.wlp-head', h('div.wlp-logo', JC.icon('lotus.fill', { size: 18 }), ' Pay'), h('div.wlp-x', { onTap: () => finish(false) }, JC.icon('xmark', { size: 14, weight: 2.8 }))),
-          h('div.wlp-row.tap', { onTap: () => pick() }, h('div.wlp-mini', cardFace(card, { cls: 'mini' })), h('div.wlp-rm', h('b', c.short + (c.last ? ' •• ' + c.last : '')), h('span', card === 'cash' ? 'Balance ' + yen(st().cash) : c.title)), JC.icon('chevron.right', { size: 14, weight: 2.6 })),
+          h('div.wlp-row.tap', { onTap: () => pick() }, h('div.wlp-mini', cardFace(card, { cls: 'mini' })), h('div.wlp-rm', h('b', c.short + (c.last ? ' •• ' + c.last : '')), h('span', cardSub(card))), JC.icon('chevron.right', { size: 14, weight: 2.6 })),
           h('div.wlp-row', h('div.wlp-k', 'CONTACT'), h('div.wlp-rm', h('span', 'jiang.cheng@lotuspier.yunmeng'))),
           h('div.wlp-total', h('div', h('small', 'PAY ' + String(o.merchant || 'MERCHANT').toUpperCase()), o.sub ? h('span', o.sub) : null), h('b', yen(o.amount || 0))),
           h('div.wlp-auth', { onTap: () => go() }, fid, status));
@@ -278,7 +286,7 @@
         if (offSide) { offSide(); offSide = null; }
         sheet.innerHTML = '';
         sheet.append(h('div.wlp-head', h('div.wlp-back-btn', { onTap: () => main() }, JC.icon('chevron.left', { size: 18, weight: 2.4 })), h('div.wlp-title', 'Cards'), h('span')),
-          h('div.wlp-cards', PAYABLE.map((id) => { const c = cardDef(id); return h('div.wlp-crow', { class: { on: id === card }, onTap: () => { card = id; main(); } }, h('div.wlp-mini', cardFace(id, { cls: 'mini' })), h('div.wlp-rm', h('b', c.short + (c.last ? ' •• ' + c.last : '')), h('span', id === 'cash' ? 'Balance ' + yen(st().cash) : c.title)), id === card ? JC.icon('checkmark', { size: 16, weight: 2.6 }) : null); })));
+          h('div.wlp-cards', PAYABLE.map((id) => { const c = cardDef(id); return h('div.wlp-crow', { class: { on: id === card }, onTap: () => { card = id; main(); } }, h('div.wlp-mini', cardFace(id, { cls: 'mini' })), h('div.wlp-rm', h('b', c.short + (c.last ? ' •• ' + c.last : '')), h('span', cardSub(id))), id === card ? JC.icon('checkmark', { size: 16, weight: 2.6 }) : null); })));
       };
       const passPage = () => {
         sheet.innerHTML = '';
@@ -290,6 +298,17 @@
         }));
       };
       const processing = () => {
+        const chk = isBank(card) ? JC.bank.check({ card, amount: o.amount || 0 }) : { ok: true };
+        if (!chk.ok) {
+          // the bank declines: a frozen card or not enough money (JC.bank.charge reports the decline)
+          if (o.record !== false) record({ card, merchant: o.merchant, amount: o.amount, cat: o.cat, note: o.note, place: o.place, sms: o.sms, app: o.app });
+          else JC.bank.charge({ card, merchant: o.merchant, amount: o.amount, app: o.app || 'wallet', quiet: true });
+          sheet.innerHTML = '';
+          sheet.append(h('div.wlp-done.err', JC.icon(chk.reason === 'frozen' ? 'snowflake' : 'exclamationmark.circle.fill', { size: 54 }), h('b', chk.reason === 'frozen' ? 'Card Frozen' : 'Payment Declined'), h('span', JC.bank.reasonText(chk.reason))));
+          JC.audio.play('error');
+          setTimeout(() => { if (done) return; done = true; U.anim(sheet, [{ transform: 'translateY(0)' }, { transform: 'translateY(110%)' }], { duration: 320 }).then(() => sheet.remove()); U.anim(back, [{ opacity: 1 }, { opacity: 0 }], { duration: 300 }).then(() => back.remove()); resolve({ ok: false, card, reason: chk.reason }); }, 2000);
+          return;
+        }
         if (card === 'cash' && st().cash < (o.amount || 0)) {
           sheet.innerHTML = '';
           sheet.append(h('div.wlp-done.err', JC.icon('exclamationmark.circle.fill', { size: 54 }), h('b', 'Insufficient Balance'), h('span', 'Cash balance is ' + yen(st().cash) + '.')));
@@ -303,7 +322,7 @@
           spin.innerHTML = '';
           spin.append(h('div.wlp-check', JC.icon('checkmark', { size: 34, weight: 3 })), h('b', 'Done'));
           JC.audio.play('success'); JC.audio.haptic(20);
-          if (o.record !== false) record({ card, merchant: o.merchant, amount: o.amount, cat: o.cat, note: o.note, place: o.place, sms: o.sms });
+          if (o.record !== false) record({ card, merchant: o.merchant, amount: o.amount, cat: o.cat, note: o.note, place: o.place, sms: o.sms, app: o.app });
           setTimeout(() => finish(true), 900);
         }, 1000);
       };
@@ -313,13 +332,21 @@
     });
   }
 
+  /** second line under a card in the Pay sheet */
+  function cardSub(id) {
+    if (id === 'cash') return 'Balance ' + yen(st().cash);
+    if (isBank(id)) return JC.bank.frozen() ? 'Frozen' : 'Available ' + yen(JC.bank.balance());
+    const c = cardDef(id);
+    return c ? c.title : '';
+  }
+
   JC.wallet = {
     cards: () => CARDS.slice(),
     pay,
     /** card-on-file charge without UI (e.g. a finished ride) */
     charge: (o) => record(Object.assign({}, o, { amount: Math.abs(o.amount) })),
     refund: (o) => record(Object.assign({}, o, { amount: -Math.abs(o.amount) })),
-    balance: (id) => (id === 'cash' ? st().cash : id === 'metro' ? st().metro : null),
+    balance: (id) => (id === 'cash' ? st().cash : id === 'metro' ? st().metro : isBank(id) ? JC.bank.balance() : null),
   };
 
   JC.app({
@@ -489,7 +516,7 @@
         const S = st();
         return h('div.wl-d',
           c.id === 'ycb'
-            ? h('div.wl-balance', h('div', h('small', 'Statement Balance'), h('b', yen(38214.6))), h('div', h('small', 'Payment Due'), h('b', 'Oct 25')), h('div.wl-auto', JC.icon('checkmark.circle.fill', { size: 14 }), ' Auto-Pay'))
+            ? h('div.wl-balance', isBank(c.id) ? h('div', h('small', JC.bank.frozen() ? 'Card Frozen' : 'Available'), h('b', yen(JC.bank.balance()))) : h('div', h('small', 'Statement Balance'), h('b', yen(38214.6))), h('div', h('small', 'Payment Due'), h('b', 'Oct 25')), h('div.wl-auto', JC.icon('checkmark.circle.fill', { size: 14 }), ' Auto-Pay'))
             : h('div.wl-balance', h('div', h('small', 'This Month'), h('b', yen(txs.filter((t) => { const d = new Date(t.t), n = JC.time.date(); return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear(); }).reduce((a, t) => a + t.amount, 0)))), h('div', h('small', 'Expense report'), h('b', 'Oct 31')), h('div.wl-auto', JC.icon('person.fill', { size: 13 }), ' Tang Mei')),
           actions([['Pay', 'wave.3.right', () => payFlow(c.id), 'pri'], ['Card Info', 'creditcard.fill', () => cardInfo(c)], ['Bank', 'phone.fill', () => JC.story.dial('bank', { num: '95588' })], ['More', 'ellipsis', () => cardInfo(c)]]),
           S.notif[c.id] === false ? h('div.wl-note', 'Transaction notifications are off for this card.') : null,
@@ -643,9 +670,14 @@
           }
           pay({ merchant: JC.contacts.short(cid), amount: amt, card: 'cash', record: false }).then((r) => {
             if (!r.ok) return;
-            const tx = JC.store.add('tx', { card: r.card, merchant: JC.contacts.short(cid), contact: cid, amount: amt, t: JC.time.now(), cat: 'p2p', note: 'Sent with Wallet Cash' }, { front: true });
-            if (r.card === 'cash') { const S = st(); S.cash = Math.round((S.cash - amt) * 100) / 100; save(); }
-            else bankSms(r.card, 'Card ending 4417: ' + yen(amt) + ' spent at WALLET CASH on ' + MM(tx.t) + '.');
+            if (isBank(r.card)) {
+              const b = JC.bank.charge({ card: r.card, merchant: JC.contacts.short(cid), contact: cid, amount: amt, cat: 'p2p', note: 'Sent with Wallet Cash', sms: 'WALLET CASH', app: 'wallet' });
+              if (!b.ok) { JC.ui.alert({ title: 'Payment Declined', message: JC.bank.reasonText(b.reason), buttons: [{ text: 'OK' }] }); return; }
+            } else {
+              const tx = JC.store.add('tx', { card: r.card, merchant: JC.contacts.short(cid), contact: cid, amount: amt, t: JC.time.now(), cat: 'p2p', note: 'Sent with Wallet Cash' }, { front: true });
+              if (r.card === 'cash') { const S = st(); S.cash = Math.round((S.cash - amt) * 100) / 100; save(); }
+              else bankSms(r.card, 'Card ending 4417: ' + yen(amt) + ' spent at WALLET CASH on ' + MM(tx.t) + '.');
+            }
             JC.story.send(JC.story.threadFor(cid), { text: 'Sent ' + yen(amt) + ' with Wallet Cash.' });
             refreshSel();
           });
@@ -654,11 +686,16 @@
       function addMoney() {
         JC.ui.actionSheet({ title: 'Add Money to Cash', actions: [100, 200, 500].map((n) => ({ text: yen(n), onTap: () => pay({ merchant: 'Wallet Cash', sub: 'Add Money', amount: n, card: 'ycb', record: false }).then((r) => {
           if (!r.ok) return;
+          if (isBank(r.card)) {
+            const b = JC.bank.charge({ card: r.card, merchant: 'Wallet Cash', amount: n, cat: 'topup', note: 'Add Money', sms: 'WALLET CASH', app: 'wallet' });
+            if (!b.ok) { JC.ui.alert({ title: 'Payment Declined', message: JC.bank.reasonText(b.reason), buttons: [{ text: 'OK' }] }); return; }
+          } else {
+            JC.store.add('tx', { card: r.card, merchant: 'Wallet Cash', amount: n, t: JC.time.now(), cat: 'topup', note: 'Add Money' }, { front: true });
+            bankSms(r.card, 'Card ending 4417: ' + yen(n) + ' spent at WALLET CASH on ' + MM(JC.time.now()) + '.');
+          }
           const S = st();
           S.cash = Math.round((S.cash + n) * 100) / 100; save();
           JC.store.add('tx', { card: 'cash', merchant: 'Added from YCB •• 4417', amount: -n, t: JC.time.now(), cat: 'topup', note: 'Add Money' }, { front: true });
-          JC.store.add('tx', { card: r.card, merchant: 'Wallet Cash', amount: n, t: JC.time.now(), cat: 'topup', note: 'Add Money' }, { front: true });
-          bankSms(r.card, 'Card ending 4417: ' + yen(n) + ' spent at WALLET CASH on ' + MM(JC.time.now()) + '.');
           refreshSel();
         }) })) });
       }

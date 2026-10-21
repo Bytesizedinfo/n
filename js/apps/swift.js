@@ -52,10 +52,20 @@
   /** charge the selected payment method (Swift Cash is the app's own balance; cards go through Wallet) */
   function charge(o) {
     const S = st();
-    if (S.card === 'swiftcash') { S.cash = Math.round((S.cash - o.amount) * 100) / 100; save(); return; }
-    const tx = { card: S.card, merchant: o.merchant, amount: o.amount, cat: 'ride', note: o.note || '', place: o.place || null, sms: 'SWIFT RIDE' };
-    if (JC.wallet && JC.wallet.charge) JC.wallet.charge(tx);
-    else JC.store.add('tx', Object.assign({ t: JC.time.now() }, tx), { front: true });
+    if (S.card === 'swiftcash') { S.cash = Math.round((S.cash - o.amount) * 100) / 100; save(); return { ok: true }; }
+    // cards go through JC.bank: one balance for every app; a frozen card or an empty account declines
+    const r = JC.bank.charge({ card: S.card, merchant: o.merchant, amount: o.amount, app: 'swift', cat: 'ride', note: o.note || '', place: o.place || null, sms: 'SWIFT RIDE' });
+    if (!r.ok) declined(r.reason, o.after);
+    return r;
+  }
+  function declined(reason, after) {
+    JC.ui.alert({ title: reason === 'frozen' ? 'Card Frozen' : 'Payment Declined', message: JC.bank.reasonText(reason) + (after ? ' ' + after : ''), buttons: [{ text: 'OK' }] });
+  }
+  /** before requesting a ride: would the selected payment method cover it? */
+  function canPay(amount) {
+    const S = st();
+    if (S.card === 'swiftcash') return S.cash >= amount ? { ok: true } : { ok: false, reason: 'funds' };
+    return JC.bank.check({ card: S.card, amount });
   }
   function callSupport() {
     if (JC.callui && JC.callui.dialNumber) { JC.callui.dialNumber(SUPPORT); return; }
@@ -520,6 +530,12 @@
           closeFlow(true);
           return;
         }
+        const chk = canPay(priceFor(active.tier));
+        if (!chk.ok) {
+          if (st().card === 'swiftcash') JC.ui.alert({ title: 'Not Enough Swift Cash', message: 'Your Swift Cash balance is ' + cashText() + '. Add funds or pick a card.', buttons: [{ text: 'OK' }] });
+          else { JC.bank.charge({ card: st().card, merchant: 'Swift Ride', amount: priceFor(active.tier), app: 'swift', quiet: true }); declined(chk.reason, 'Pick another payment method to request a ride.'); }
+          return;
+        }
         active.phase = 'matching';
         active.price = priceFor(active.tier);
         render();
@@ -654,7 +670,7 @@
         R.phase = 'done';
         const ride = JC.store.add('rides', { from: R.from, to: R.to, t: R.tripStart || JC.time.now(), end: JC.time.now() + Math.round(R.route.min * 60000), price: R.price, tier: R.tier, km: Math.round(R.route.km * 10) / 10, card: st().card, status: 'completed', driver: R.driver, rated: 0 }, { front: true });
         R.rideId = ride.id;
-        charge({ merchant: 'Swift Ride', amount: R.price, note: placeName(R.from) + ' → ' + placeName(R.to), place: R.from });
+        charge({ merchant: 'Swift Ride', amount: R.price, note: placeName(R.from) + ' → ' + placeName(R.to), place: R.from, after: 'The fare is still owed to Swift Ride.' });
         sms('[Swift Ride] Trip complete · ' + placeName(R.from) + ' → ' + placeName(R.to) + ' · ' + Math.max(1, Math.round(R.route.min)) + ' min · ¥' + Number(R.price).toFixed(2) + '. Left something behind? Use Report a Lost Item in the app.');
         JC.audio.play('success');
         JC.notify.push({ app: 'swift', title: 'You’ve arrived', body: 'Thanks for riding with ' + R.driver.name + '. ¥' + R.price + ' charged to ' + (CARDS.find((c) => c.id === st().card) || CARDS[0]).name + '.', open: { app: 'swift', intent: { id: ride.id } } });

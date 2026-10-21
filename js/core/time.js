@@ -1,9 +1,10 @@
-/* JC.time — in-game clock. The night starts Fri 16 Oct 2026, 23:47. */
+/* JC.time — in-game clock. It starts at JC.world.start ('YYYY-MM-DD HH:MM'); '+N HH:MM' is relative to that day. */
 (function () {
   'use strict';
   const JC = (window.JC = window.JC || {});
-  const BASE = new Date(2026, 9, 16, 0, 0, 0, 0); // base day for '+N HH:MM'
-  const START = new Date(2026, 9, 16, 23, 47, 0, 0).getTime();
+  const SM = String((JC.world && JC.world.start) || '2026-10-16 23:47').match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2}))?$/);
+  const BASE = new Date(+SM[1], +SM[2] - 1, +SM[3], 0, 0, 0, 0); // base day for '+N HH:MM'
+  const START = new Date(+SM[1], +SM[2] - 1, +SM[3], SM[4] ? +SM[4] : 0, SM[5] ? +SM[5] : 0, 0, 0).getTime();
 
   let last = 0;
   let frozen = 0;
@@ -78,11 +79,21 @@
       last = performance.now();
       timer = setInterval(time._step, 250);
     },
+    /** in-game ms per real ms: JC.story sets this to timeScale × the current chapter's clockRate */
+    rate: () => 1,
+    /** the clock never runs past this (ms) on its own; null = no cap. JC.story sets it from the chapter's `until`. */
+    cap: () => null,
     _step() {
       const n = performance.now();
       const dt = n - last;
       last = n;
-      if (!frozen && dt < 5000) d().clock += dt;
+      if (!frozen && dt < 5000) {
+        const cur = d().clock;
+        let next = cur + dt * (time.rate() || 1);
+        const cap = time.cap();
+        if (cap != null && next > cap) next = Math.max(cur, cap);
+        d().clock = next;
+      }
       time._emit(false);
     },
     _emit(force) {

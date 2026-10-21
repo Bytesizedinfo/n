@@ -754,7 +754,7 @@
             ov.remove();
             JC.ui.alert({ title: 'Unlock Private Browsing', message: 'Enter iPhone Passcode', input: { placeholder: 'Passcode', type: 'password', kbType: 'num', cap: 'none' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Unlock', style: 'default' }] }).then((r) => {
               if (r.index !== 1) { S.priv = false; save(); renderTabs(); return; }
-              if ((r.value || '').trim() === (JC.state.d.settings.passcode || '181008')) {
+              if ((r.value || '').trim() === (JC.state.d.settings.passcode || JC.world.passcode.code)) {
                 S.privLocked = false; save();
                 JC.audio.play('unlock');
                 JC.story.act('safari_private', {});

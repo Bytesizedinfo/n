@@ -451,7 +451,7 @@
           S.pwTries = (S.pwTries || 0) + 1; save();
           const pw = (r.value || '').trim();
           setTimeout(() => {
-            if (pw === '181008') JC.ui.alert({ title: 'Verification Failed', message: 'That’s the iPhone passcode, not the Apple Account password. Jiang Cheng is not *that* careless. (Only with the passcode.)', buttons: [{ text: 'OK' }] });
+            if (pw === JC.world.passcode.code) JC.ui.alert({ title: 'Verification Failed', message: 'That’s the iPhone passcode, not the Apple Account password. Jiang Cheng is not *that* careless. (Only with the passcode.)', buttons: [{ text: 'OK' }] });
             else if (S.pwTries >= 3) JC.ui.alert({ title: 'Verification Failed', message: 'The Apple Account password you entered is incorrect.\n\nForgot password? A reset code would be sent to Jiang Cheng’s trusted devices — including his MacBook Pro, which is in Room 1808 with him.', buttons: [{ text: 'OK' }] });
             else JC.ui.alert({ title: 'Verification Failed', message: 'The Apple Account password you entered is incorrect.', buttons: [{ text: 'OK' }] });
             if (onFail) onFail();

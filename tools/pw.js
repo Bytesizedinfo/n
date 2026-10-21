@@ -34,7 +34,8 @@ async function skipIntro(page) {
 async function unlock(page) {
   await page.evaluate(() => JC.os.unlockThen(() => {}));
   await page.waitForTimeout(1300);
-  for (const d of '181008') {
+  const code = await page.evaluate(() => String((JC.state.d.settings && JC.state.d.settings.passcode) || JC.world.passcode.code));
+  for (const d of code) {
     await page.evaluate((d) => {
       const keys = Array.from(document.querySelectorAll('.passcode .pc-key'));
       const k = keys.find((x) => x.querySelector('.pc-num') && x.querySelector('.pc-num').textContent === d);

@@ -227,9 +227,11 @@
       return h ? h + ':' + String(m).padStart(2, '0') + ':' + s : m + ':' + s;
     },
     fmtMoney(n, cur) {
+      const M = (JC.world && JC.world.money) || {};
+      if (cur == null && typeof M.fmt === 'function') return M.fmt(n);
       const neg = n < 0;
       const v = Math.abs(n).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-      return (neg ? '−' : '') + (cur == null ? '¥' : cur) + v;
+      return (neg ? '−' : '') + (cur == null ? (M.symbol || '$') : cur) + v;
     },
     /** Pointer drag helper. handlers: start(e,p) → false to cancel, move(e,p), end(e,p). p = {x,y,dx,dy,vx,vy,t} in logical px. */
     drag(el, hd) {

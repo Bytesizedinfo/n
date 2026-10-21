@@ -3,8 +3,10 @@
   'use strict';
   const JC = (window.JC = window.JC || {});
   const U = JC.util;
+  const W = () => JC.world || {};
+  const WC = () => W().contacts || {};
 
-  const defs = { threads: {}, scenes: {}, calls: {}, endings: {}, dial: [], susHooks: [], totalHooks: [] };
+  const defs = { threads: {}, scenes: {}, calls: {}, endings: {}, dial: [], susHooks: [], totalHooks: [], actRules: [], chapters: [], aftermath: [], gossip: [] };
   const histCache = {};
   let openTh = null;
   let loopT = null;
@@ -13,7 +15,13 @@
   let callRun = null;
   let ringT = 0;
   let endT = null;
+  let userPaused = false; // JC.story.pause()
+  let chapBusy = false; // a chapter transition is running
+  let chapTok = 0; // invalidates transitions interrupted by rewind / restart
+  let ruleN = 0;
   const S = () => JC.state.d;
+  const SCALES = [1, 2, 4, 8];
+  const scale = () => { const n = S().settings.timeScale; return SCALES.includes(n) ? n : 1; };
 
   // ── Authoring API ────────────────────────────────────────────────
   const story = {
@@ -31,6 +39,34 @@
     dialScript(cid, callId, when) { defs.dial.push({ cid, callId, when }); },
     onSuspicion(cid, n, sceneId) { defs.susHooks.push({ cid, n, sceneId }); },
     onTotalSuspicion(n, sceneId) { defs.totalHooks.push({ n, sceneId }); },
+    /** repeatable, payload-aware reaction to an app act: { id, act, match(p, s), fx, start, delay, notify, once } */
+    onAct(rule) {
+      if (!rule || !rule.act) { console.warn('[story] onAct needs an act', rule); return rule; }
+      if (!rule.id) rule.id = 'rule' + (++ruleN);
+      const i = defs.actRules.findIndex((r) => r.id === rule.id);
+      if (i >= 0) defs.actRules[i] = rule; else defs.actRules.push(rule);
+      return rule;
+    },
+    /** chapters, registered in play order: { id, n, title, label, at, card, settle(s, dflt), maxWait, clockRate, until, settleDelay } */
+    chapter(def) {
+      const i = defs.chapters.findIndex((c) => c.id === def.id);
+      if (i >= 0) defs.chapters[i] = def; else defs.chapters.push(def);
+      return def;
+    },
+    /** per-chat outcomes for the "Where everyone ended up" page: [{ id, name, avatar, outcomes: [{ id, when(s), line }] }] */
+    aftermath(list) {
+      (Array.isArray(list) ? list : [list]).forEach((c) => {
+        if (!c || !c.id) return;
+        const i = defs.aftermath.findIndex((x) => x.id === c.id);
+        if (i >= 0) defs.aftermath[i] = c; else defs.aftermath.push(c);
+      });
+      return list;
+    },
+    /** suspicion spreading along relationships: [{ from, to, share }] */
+    gossip(edges) {
+      (Array.isArray(edges) ? edges : [edges]).forEach((e) => { if (e && e.from && e.to) defs.gossip.push({ from: e.from, to: e.to, share: e.share == null ? 0.5 : e.share }); });
+      return edges;
+    },
     defs,
   };
   JC.story = story;
@@ -59,6 +95,7 @@
     return JC.contacts.name(d.members[0]);
   }
   story.threadName = threadName;
+  story.members = (id) => members(id).slice();
   function members(id) {
     const d = tdef(id);
     const st = S().threads[id];
@@ -68,12 +105,28 @@
 
   function sApi() {
     const s = S();
-    return {
+    const api = {
       flags: s.flags, sus: s.sus, aff: s.aff, done: s.done, fin: s.fin, endings: s.endings,
       flag: (n) => s.flags[n], susTotal: () => story.susTotal(), now: JC.time.now(), eng: s.eng,
       count: (n) => s.flags[n] || 0,
+      acted: (n) => (s.acts && s.acts[n]) || 0,
+      chapter: s.chap ? s.chap.id : null,
+      balance: () => (JC.bank ? JC.bank.balance() : 0),
     };
+    // story tests record which flags a condition reads (tools/storytest.js --lint); story._ctxArc = the arc reading
+    if (story._watchFlags) {
+      const fl = story._watchFlags(s.flags, '');
+      api.flags = fl;
+      api.flag = (n) => fl[n];
+      api.count = (n) => fl[n] || 0;
+      api.aff = story._watchFlags(s.aff, 'aff.');
+      api.sus = story._watchFlags(s.sus, 'sus.');
+      const ac = story._watchFlags(s.acts || {}, 'act.');
+      api.acted = (n) => ac[n] || 0;
+    }
+    return api;
   }
+  story.api = sApi;
   function evalFn(fn, fallback) {
     if (typeof fn !== 'function') return fallback;
     try { return fn(sApi()); } catch (e) { console.error('story condition error', e); return fallback; }
@@ -168,12 +221,14 @@
     if (!run) { st.pend = null; return null; }
     const step = stepAt(run);
     if (!step || !step.choice) return null;
-    const opts = visibleOptions(step);
+    const opts = visibleOptions(step, run);
     return { options: opts.map((o, i) => ({ i, label: o.label || o.t, text: o.t, silent: !!o.silent })), timeout: step.timeout || 0, left: run.tleft > 0 ? run.tleft : 0 };
   };
 
-  function visibleOptions(step) {
-    return (step.choice || []).filter((o) => !o.if || evalFn(o.if, false));
+  function visibleOptions(step, run) {
+    const prev = story._ctxArc;
+    if (run) { const sc = sceneOf(run); story._ctxArc = (sc && sc.arc) || null; }
+    try { return (step.choice || []).filter((o) => !o.if || evalFn(o.if, false)); } finally { story._ctxArc = prev; }
   }
 
   story.typing = (id) => th(id).typing || null;
@@ -223,7 +278,8 @@
     const d = tdef(id);
     if (!d) return false;
     if (d.fails) return false;
-    return members(id).some((m) => { const c = JC.contacts.get(m); return c && !c.service && !['ajie', 'mom', 'dad', 'hq'].includes(m); });
+    const no = WC().noReply || [];
+    return members(id).some((m) => { const c = JC.contacts.get(m); return c && !c.service && !no.includes(m); });
   };
 
   story.react = (id, msgId, type) => {
@@ -319,21 +375,43 @@
   };
 
   // ── Effects & suspicion ──────────────────────────────────────────
-  function applyFx(fx) {
-    if (!fx) return;
+  /** apply effects. ctx.thread: the thread the suspicion was raised in (group threads share it with the other members) */
+  function applyFx(fx, ctx) {
+    if (!fx || typeof fx !== 'object') return;
+    ctx = ctx || {};
     const s = S();
     if (fx.set) Object.keys(fx.set).forEach((k) => { s.flags[k] = fx.set[k]; });
     if (fx.inc) Object.keys(fx.inc).forEach((k) => { s.flags[k] = (s.flags[k] || 0) + fx.inc[k]; });
     if (fx.aff) Object.keys(fx.aff).forEach((k) => { s.aff[k] = (s.aff[k] || 0) + fx.aff[k]; });
-    if (fx.sus) Object.keys(fx.sus).forEach((k) => {
-      const before = s.sus[k] || 0;
-      s.sus[k] = Math.max(0, before + fx.sus[k]);
-      if (s.sus[k] !== before) JC.bus.emit('story:sus', { cid: k, value: s.sus[k], delta: fx.sus[k] });
-    });
+    if (fx.sus) Object.keys(fx.sus).forEach((k) => raiseSus(k, fx.sus[k], ctx.thread));
     JC.state.save();
+    JC.bus.emit('story:fx', fx);
     checkSuspicion();
   }
   story.applyFx = applyFx;
+  function addSus(k, n, via) {
+    const s = S();
+    const before = s.sus[k] || 0;
+    const v = Math.max(0, Math.round((before + n) * 100) / 100);
+    s.sus[k] = v;
+    if (v !== before) JC.bus.emit('story:sus', { who: k, by: Math.round((v - before) * 100) / 100, via: via || null, cid: k, value: v, delta: n });
+  }
+  /** suspicion of `k` changes by n; a rise spreads one hop along gossip edges and to the other members of a group thread */
+  function raiseSus(k, n, tid) {
+    addSus(k, n, null);
+    if (!(n > 0)) return;
+    defs.gossip.forEach((e) => { if (e.from === k && e.to !== k && e.share > 0) addSus(e.to, n * e.share, k); });
+    if (tid) {
+      const d = tdef(tid);
+      const share = W().groupShare != null ? W().groupShare : 0.5;
+      if (d && d.group && share > 0) {
+        members(tid).forEach((m) => {
+          const c = JC.contacts.get(m);
+          if (m !== k && m !== 'me' && c && !c.service) addSus(m, n * share, 'group:' + tid);
+        });
+      }
+    }
+  }
   function checkSuspicion() {
     const s = S();
     if (s.ended) return;
@@ -429,7 +507,7 @@
       if (!n) {
         if (to === 'mail') { title = item.from ? item.from.name : 'Mail'; body = (item.subject || '') + (item.body ? '\n' + item.body.slice(0, 90) : ''); }
         else if (to === 'events') { title = 'Calendar'; body = (item.title || 'Event') + ' — ' + U.fmtDate(added.start, 'md') + (added.allDay ? '' : ' ' + U.fmtTime(added.start)); }
-        else if (to === 'posts') { title = 'Wavelet'; body = '@' + (item.by || 'someone') + ': ' + (item.text || 'posted a photo'); }
+        else if (to === 'posts') { title = JC.notify.appName('wavelet'); body = '@' + (item.by || 'someone') + ': ' + (item.text || 'posted a photo'); }
         else if (to === 'photos') { title = 'Photos'; body = 'New photo saved'; }
         else if (to === 'voicemails') { title = 'Voicemail'; body = 'New voicemail from ' + JC.contacts.name(item.contact); }
         else { title = JC.notify.appName(app); body = item.title || item.text || ''; }
@@ -454,6 +532,12 @@
 
   /** run steps until something waits */
   function process(run) {
+    const sc0 = sceneOf(run);
+    const prevArc = story._ctxArc;
+    story._ctxArc = (sc0 && sc0.arc) || null;
+    try { processRun(run); } finally { story._ctxArc = prevArc; }
+  }
+  function processRun(run) {
     const s = S();
     // story._ff (test harness only): schedule from when the step was due, not when the tick noticed it,
     // so fast-forwarded play time keeps messages and trigger delays in their real proportions.
@@ -472,11 +556,22 @@
       const step = arr[run.i];
       const tid = runThread(run, step);
 
+      if (run.instant) {
+        // a chapter is expiring this scene: deliver its closing lines now, skip anything that would wait
+        if (step.wait != null || step.typing != null || step.say != null || step.call || step.time || step.hangup) { run.i++; continue; }
+        if (step.choice) { console.warn('[story] choice in an expire node', run.sc, run.node); finishRun(run); return; }
+      }
+
       if (step.m != null || (step.img && step.m == null && step.me == null && !step.choice && !step.add)) {
         // NPC message
-        if (!JC.os.online()) { run.until = s.eng + 1500; return; }
         const mem = tid ? members(tid) : [];
         const from = step.from || mem[0] || tid;
+        if (run.instant) {
+          if (tid) { ensureThread(tid, from); th(tid).typing = null; deliver(tid, msgFromStep(step, from)); }
+          run.i++;
+          continue;
+        }
+        if (!JC.os.online()) { run.until = s.eng + 1500; return; }
         if (tid) ensureThread(tid, from);
         if (run.phase !== 'typing') {
           run.phase = 'typing';
@@ -522,7 +617,7 @@
       if (step.choice) {
         if (run.kind === 'call') {
           if (!call || call.run !== run.rid) { finishRun(run); return; }
-          call.pend = { options: visibleOptions(step).map((o, i) => ({ i, label: o.label || o.t, text: o.t, silent: !!o.silent })) };
+          call.pend = { options: visibleOptions(step, run).map((o, i) => ({ i, label: o.label || o.t, text: o.t, silent: !!o.silent })) };
           run.wait = 'choice';
           JC.bus.emit('story:call', call);
           return;
@@ -538,7 +633,7 @@
         JC.bus.emit('story:thread', { thread: tid });
         return;
       }
-      if (step.fx) { applyFx(step.fx); run.i++; continue; }
+      if (step.fx) { applyFx(step.fx, { thread: tid }); run.i++; continue; }
       if (step.if) {
         const ok = evalFn(step.if, false);
         if (ok && step.go) { run.node = step.go; run.i = 0; continue; }
@@ -626,8 +721,11 @@
         continue;
       }
       if (step.ending || step.endings) {
-        let ids = step.endings ? (typeof step.endings === 'function' ? evalFn(step.endings, []) : step.endings) : [step.ending];
+        let ids;
+        if (step.endings === 'finale') ids = story.qualifying().map((e) => e.id);
+        else ids = step.endings ? (typeof step.endings === 'function' ? evalFn(step.endings, []) : step.endings) : [step.ending];
         ids = (ids || []).filter(Boolean);
+        if (!ids.length && step.endings === 'finale') console.warn('[story] no finale ending qualifies');
         run.i++;
         if (ids.length) { finishGame(ids); return; }
         continue;
@@ -650,7 +748,7 @@
     const run = S().runs.find((r) => r.rid === st.pend.rid);
     if (!run) { st.pend = null; return false; }
     const step = stepAt(run);
-    const opts = visibleOptions(step || {});
+    const opts = visibleOptions(step || {}, run);
     const opt = opts[i];
     if (!opt) return false;
     JC.state.snapshot('choice:' + id);
@@ -669,7 +767,7 @@
   function resolveChoice(run, id, opt) {
     const st = th(id);
     st.pend = null;
-    applyFx(opt.fx);
+    applyFx(opt.fx, { thread: id });
     run.wait = null;
     if (opt.go) { run.node = opt.go; run.i = 0; } else run.i++;
     run.until = S().eng + 900 / speed();
@@ -679,7 +777,7 @@
     tick(true);
   }
 
-  const CONFESS = /(i'?m not|i am not|this (is ?n['’]?t|is not)|not)\s+(jiang ?cheng|wanyin|him|your (uncle|brother|boss|jiujiu)|ur (uncle|jiujiu))|found (this|his|the|a|your) (phone|iphone)|(this|his) phone (was|got) (lost|left)|lost (his|this) phone|i('?m| am) a stranger|i('?m| am) (just )?(the|a) (person|guy|girl) who found/i;
+  const CONFESS = () => (W().confess && W().confess.re) || /\bfound (this|the|your) phone\b/i;
 
   function norm(s) { return (s || '').toLowerCase().replace(/[^a-z0-9一-鿿]+/g, ' ').trim(); }
   function similar(a, b) {
@@ -704,30 +802,28 @@
     if (p.memo) { m.memo = p.memo; const mm = JC.store.hasSeed('memos') ? JC.store.get('memos', p.memo) : null; m.voice = { dur: mm ? mm.dur : 12, text: mm ? mm.text : '' }; }
     if (p.link) m.link = p.link;
     if (p.effect) m.effect = p.effect;
-    const failed = (d && d.fails) || !JC.os.online() || members(id).some((c) => ['mom', 'dad', 'ajie'].includes(c));
+    const failTo = WC().failSend || [];
+    const failed = (d && d.fails) || !JC.os.online() || members(id).some((c) => failTo.includes(c));
     if (failed) m.status = 'failed';
     deliver(id, m);
     S().stats.sent++;
     const kind = m.memo ? 'memo' : m.voice ? 'voice' : m.img ? 'img' : m.loc ? 'loc' : 'text';
     story.act('send', { thread: id, kind, text: m.text || '', art: m.img, memo: m.memo });
     if (m.memo) story.act('memo_share', { id: m.memo, to: id });
-    if (failed) {
-      if (id === 'ajie' || members(id).includes('ajie')) applyFx({ set: { ajie_wrote: true } });
-      return m;
-    }
+    if (failed) return m;
     if (S().ended || !story.canReply(id)) {
       const c = JC.contacts.get(members(id)[0]);
       if (c && c.service) aside(id, [{ m: 'This number does not accept replies. Reply STOP to unsubscribe.', from: c.id, d: 0.6 }]);
       return m;
     }
     // confession?
-    if (kind === 'text' && CONFESS.test(m.text || '')) { confess(id); return m; }
+    if (kind === 'text' && CONFESS().test(m.text || '')) { confess(id); return m; }
     // matches a pending option?
     if (st.pend && kind === 'text') {
       const run = S().runs.find((r) => r.rid === st.pend.rid);
       const step = run && stepAt(run);
       if (step && step.choice) {
-        const opts = visibleOptions(step);
+        const opts = visibleOptions(step, run);
         let best = -1, bestS = 0;
         opts.forEach((o, i) => { if (o.silent) return; const sc = similar(o.t, m.text); if (sc > bestS) { bestS = sc; best = i; } });
         if (best >= 0 && bestS >= 0.72) {
@@ -739,7 +835,7 @@
       }
       // off-script while they wait for an answer
       const who = pickMember(id);
-      applyFx({ sus: { [who]: 1 } });
+      applyFx({ sus: { [who]: 1 } }, { thread: id });
       aside(id, [{ m: flavor(who, 'confused', ['?', 'what', '…what does that mean']), from: who }]);
       return m;
     }
@@ -751,10 +847,12 @@
     if (kind === 'voice') { pool = 'voiceReact'; bump = 3; }
     else if (kind === 'img') {
       const meta = JC.art.meta(m.img);
-      pool = meta && (meta.tags || []).includes('dog') ? 'dogReact' : 'imgReact';
+      const pools = W().imgPools || {};
+      const tag = meta ? (meta.tags || []).find((t) => pools[t]) : null;
+      pool = tag ? pools[tag] : 'imgReact';
       bump = 1;
     } else if (kind === 'loc') { pool = 'idle'; }
-    if (bump) applyFx({ sus: { [who]: bump } });
+    if (bump) applyFx({ sus: { [who]: bump } }, { thread: id });
     aside(id, [{ m: flavor(who, pool, ['?']), from: who }]);
     return m;
   };
@@ -764,13 +862,32 @@
     return ms.length ? U.pick(ms) : members(id)[0];
   }
   const flavorIdx = {};
-  function flavor(cid, pool, fallback) {
-    const c = JC.contacts.get(cid);
-    const arr = (c && c[pool] && c[pool].length ? c[pool] : null) || (fallback === null ? null : (c && c.idle && c.idle.length ? c.idle : null) || fallback);
-    if (!arr) return null;
-    const k = cid + ':' + pool;
+  /** reply pools may mix plain strings with { text, when(s) } lines; matching conditional lines win 60% of the time */
+  function flavorLines(c, pool) {
+    const raw = c && c[pool] && c[pool].length ? c[pool] : null;
+    if (!raw) return null;
+    const plain = [];
+    const cond = [];
+    raw.forEach((x) => {
+      if (x == null) return;
+      if (typeof x === 'string') plain.push(x);
+      else if (typeof x === 'object' && x.text != null && (!x.when || evalFn(x.when, false))) cond.push(String(x.text));
+    });
+    if (!plain.length && !cond.length) return null;
+    return { plain, cond };
+  }
+  function rotate(k, arr) {
     const i = flavorIdx[k] = ((flavorIdx[k] == null ? Math.floor(Math.random() * arr.length) : flavorIdx[k] + 1)) % arr.length;
     return arr[i];
+  }
+  function flavor(cid, pool, fallback) {
+    const c = JC.contacts.get(cid);
+    let which = pool;
+    let L = flavorLines(c, pool);
+    if (!L && fallback !== null) { which = 'idle'; L = flavorLines(c, 'idle'); }
+    if (!L) return fallback == null || !fallback.length ? null : rotate(cid + ':fallback', fallback);
+    const useCond = L.cond.length && (!L.plain.length || Math.random() < 0.6);
+    return useCond ? rotate(cid + ':' + which + ':when', L.cond) : rotate(cid + ':' + which, L.plain);
   }
   story.flavor = flavor;
 
@@ -788,9 +905,8 @@
   }
 
   function defaultEnding(cid) {
-    if (cid === 'nhs') return 'busted';
-    if (cid === 'wn') return 'wen_ning';
-    return 'honest';
+    const C = W().confess || {};
+    return (C.endings && C.endings[cid]) || C.fallback || Object.keys(defs.endings)[0];
   }
   function confess(id) {
     const d = tdef(id);
@@ -809,7 +925,7 @@
     }
     if (!cid) {
       // group: everyone is confused, nobody believes you
-      members(id).slice(0, 2).forEach((m) => applyFx({ sus: { [m]: 2 } }));
+      members(id).slice(0, 2).forEach((m) => applyFx({ sus: { [m]: 2 } }, { thread: id }));
       aside(id, [{ m: flavor(members(id)[0], 'confused', ['?']), from: members(id)[0] }, { m: 'lol what', from: members(id)[1] || members(id)[0] }]);
       return;
     }
@@ -821,52 +937,98 @@
   story.act = (name, p) => {
     p = p || {};
     const s = S();
+    s.acts = s.acts || {};
+    s.acts[name] = (s.acts[name] || 0) + 1;
     JC.bus.emit('story:act', { name, p });
-    // automatic flags
-    if (name === 'memo_play' && p.id === 'memo14') s.flags.memo_heard = true;
-    if (name === 'memo_share' && p.id === 'memo14' && (p.to === 'wwx' || (members(p.to || '') || []).includes('wwx'))) s.flags.memo_sent = true;
-    if (name === 'open_thread' && p.thread === 'ajie') s.flags.ajie_read = true;
-    if (name === 'game_score' && p.score > 1824) s.flags.beat_score = true;
-    if (name === 'setting' && p.key === 'passcode') s.flags.changed_passcode = true;
-    if (name === 'ride_report_lost') s.flags.reported_lost = true;
     if (name === 'unlock' && p.first) s.unlockAt = s.eng;
     if (name === 'unlock' && s.unlockAt == null) s.unlockAt = s.eng;
+    if (!s.ended) runActRules(name, p);
     // arm act/open triggers
-    s.armed = s.armed || {};
+    s.due = s.due || {};
     Object.values(defs.scenes).forEach((sc) => {
-      const t = sc.trigger;
-      if (!t || s.done[sc.id] || s.armed[sc.id] != null) return;
-      let hit = false;
-      if (t.on === 'act' && t.act === name) hit = !t.match || !!evalMatch(t.match, p);
-      if (t.on === 'open' && name === 'open_thread' && t.thread && t.thread === p.thread) hit = true;
-      if (t.on === 'open' && name === 'open_app' && t.app && t.app === p.app) hit = true;
-      if (hit) s.armed[sc.id] = s.eng;
+      if (s.done[sc.id] || !chapterOk(sc)) return;
+      trigList(sc).forEach((t) => {
+        let hit = false;
+        if (t.on === 'act' && actMatches(t.act, name)) hit = !t.match || !!evalMatch(t.match, p);
+        if (t.on === 'open' && name === 'open_thread' && t.thread && t.thread === p.thread) hit = true;
+        if (t.on === 'open' && name === 'open_app' && t.app && t.app === p.app) hit = true;
+        if (hit) arm(sc.id, s.eng + (t.delay || 0) * 1000);
+      });
     });
     JC.state.save();
   };
   function evalMatch(fn, p) { try { return fn(p, sApi()); } catch (e) { return false; } }
+  function actMatches(spec, name) { return Array.isArray(spec) ? spec.includes(name) : spec === name || spec === '*'; }
 
+  /** onAct rules (JC.world.acts are registered at init) */
+  function runActRules(name, p) {
+    const s = S();
+    s.actOnce = s.actOnce || {};
+    defs.actRules.slice().forEach((r) => {
+      if (!actMatches(r.act, name)) return;
+      if (r.once && s.actOnce[r.id]) return;
+      story._ctxArc = r.arc || null;
+      const hit = !r.match || evalMatch(r.match, p);
+      story._ctxArc = null;
+      if (!hit) return;
+      s.actOnce[r.id] = (s.actOnce[r.id] || 0) + 1;
+      story._ctxArc = r.arc || null;
+      let fx = r.fx;
+      if (typeof fx === 'function') { try { fx = fx(p, sApi()); } catch (e) { console.error('[story] onAct fx failed', r.id, e); fx = null; } }
+      if (fx) applyFx(fx, { thread: p.thread || null });
+      if (r.start) startScene(r.start, { delay: r.delay || 0 });
+      if (r.notify) {
+        if (r.delay) aside(null, [{ notify: Object.assign({}, r.notify) }], r.delay * 1000);
+        else JC.notify.push(Object.assign({}, r.notify));
+      }
+      story._ctxArc = null;
+    });
+  }
+
+  /** absolute in-game ms for a time trigger: '+N HH:MM', 'YYYY-MM-DD HH:MM', or 'HH:MM' (before noon = the next day) */
   function atMs(at) {
     const s = String(at);
     if (/\s/.test(s) || /-/.test(s)) return JC.time.parse(s);
     const hh = parseInt(s, 10);
     return JC.time.parse((hh < 12 ? '+1 ' : '+0 ') + s);
   }
+  function trigList(sc) {
+    const t = sc.trigger;
+    return !t ? [] : Array.isArray(t) ? t.filter(Boolean) : [t];
+  }
+  /** a scene that belongs to a chapter only arms while that chapter is current */
+  function chapterOk(sc) {
+    if (!sc.ch || !defs.chapters.length) return true;
+    const c = S().chap;
+    return !!(c && c.id === sc.ch);
+  }
+  /** arm a scene to start at play time `at` (any-of triggers: the earliest wins) */
+  function arm(id, at) {
+    const s = S();
+    s.due = s.due || {};
+    if (s.due[id] == null || at < s.due[id]) s.due[id] = at;
+  }
+  function susOf(who) { return who === 'total' ? story.susTotal() : (S().sus[who] || 0); }
 
   function checkTriggers() {
     const s = S();
-    s.armed = s.armed || {};
+    s.due = s.due || {};
     Object.values(defs.scenes).forEach((sc) => {
-      const t = sc.trigger;
-      if (!t || s.done[sc.id]) return;
-      if (s.armed[sc.id] == null) {
-        if (t.on === 'unlock' && s.unlockAt != null) s.armed[sc.id] = s.unlockAt;
-        else if (t.on === 'scene' && s.fin[t.scene]) s.armed[sc.id] = s.fin[t.scene];
-        else if (t.on === 'flag' && s.flags[t.flag]) s.armed[sc.id] = s.eng;
-        else if (t.on === 'time' && JC.time.now() >= atMs(t.at)) s.armed[sc.id] = s.eng;
-      }
-      if (s.armed[sc.id] != null && s.eng >= s.armed[sc.id] + (t.delay || 0) * 1000) {
-        if (sc.when && !evalFn(sc.when, true)) {
+      if (s.done[sc.id] || !chapterOk(sc)) return;
+      trigList(sc).forEach((t) => {
+        const d = (t.delay || 0) * 1000;
+        if (t.on === 'unlock' && s.unlockAt != null) arm(sc.id, s.unlockAt + d);
+        else if (t.on === 'scene' && s.fin[t.scene]) arm(sc.id, s.fin[t.scene] + d);
+        else if (t.on === 'flag' && s.flags[t.flag]) arm(sc.id, s.eng + d);
+        else if (t.on === 'time' && JC.time.now() >= atMs(t.at)) arm(sc.id, s.eng + d);
+        else if (t.on === 'chapter' && s.chapAt && s.chapAt[t.ch] != null) arm(sc.id, s.chapAt[t.ch] + d);
+        else if (t.on === 'sus' && t.who && susOf(t.who) >= (t.at || 0)) arm(sc.id, s.eng + d);
+      });
+      if (s.due[sc.id] != null && s.eng >= s.due[sc.id]) {
+        story._ctxArc = sc.arc || null;
+        const pass = !sc.when || evalFn(sc.when, true);
+        story._ctxArc = null;
+        if (!pass) {
           if (sc.retry) return;
           s.done[sc.id] = 'skipped';
           return;
@@ -877,17 +1039,20 @@
   }
 
   // ── Loop ─────────────────────────────────────────────────────────
-  story._debug = () => ({ paused: paused(), started: S().started, ended: S().ended, frozen: JC.time.frozen, loop: !!loopT, tick: (() => { try { tick(false); return 'ok'; } catch (e) { return 'ERR ' + (e && e.stack || e); } })() });
-  function paused() {
+  story._debug = () => ({ halted: halted(), started: S().started, ended: S().ended, frozen: JC.time.frozen, loop: !!loopT, chapter: S().chap, tick: (() => { try { tick(false); return 'ok'; } catch (e) { return 'ERR ' + (e && e.stack || e); } })() });
+  function halted() {
     const s = S();
     return !s.started || !!s.ended || JC.time.frozen;
   }
   function tick(force) {
     const now = performance.now();
-    const dt = Math.min(1000, now - lastTick);
+    const raw = Math.min(1000, now - lastTick);
+    const dt = raw * scale();
     lastTick = now;
     const s = S();
-    if (paused() && !force) return;
+    // the call timer (Date.now() - call.start) counts play time: faster with timeScale, stopped while paused
+    if (call && call.start && call.phase === 'active' && !force) call.start -= halted() ? -raw : dt - raw;
+    if (halted() && !force) return;
     if (!force) s.eng += dt;
     // choice timeouts count only while the thread is on screen
     s.runs.forEach((r) => {
@@ -908,7 +1073,218 @@
     checkTriggers();
     s.runs.slice().forEach((r) => process(r));
     if (call && call.phase === 'ringing' && call.dir === 'in' && s.eng > ringT) missCall();
+    checkChapter();
   }
+
+  // ── Chapters ─────────────────────────────────────────────────────
+  const chapterDef = (id) => defs.chapters.find((c) => c.id === id) || null;
+  const chapterIndex = (id) => defs.chapters.findIndex((c) => c.id === id);
+  function nextChapterDef() {
+    const c = S().chap;
+    if (!c) return defs.chapters[0] || null;
+    return defs.chapters[chapterIndex(c.id) + 1] || null;
+  }
+  function chapterScenes(chId) { return Object.values(defs.scenes).filter((sc) => sc.ch === chId); }
+  /** default settle: the chapter's required scenes are all finished / skipped, and none of its scenes is mid-conversation */
+  function defaultSettle(ch) {
+    const s = S();
+    const list = chapterScenes(ch.id);
+    const req = list.filter((sc) => sc.required);
+    if (!req.length) return false;
+    if (!req.every((sc) => s.fin[sc.id] || s.done[sc.id] === 'skipped' || s.done[sc.id] === 'expired')) return false;
+    const ids = new Set(list.map((sc) => sc.id));
+    return !s.runs.some((r) => r.kind === 'scene' && ids.has(r.sc) && (r.wait === 'choice' || r.wait === 'cinema' || r.phase !== 'wait'));
+  }
+  function settled(ch) {
+    if (typeof ch.settle === 'function') {
+      try { return !!ch.settle(sApi(), () => defaultSettle(ch)); } catch (e) { console.error('[story] chapter settle failed', ch.id, e); return false; }
+    }
+    return defaultSettle(ch);
+  }
+  function startChapter(i, at) {
+    const s = S();
+    const c = defs.chapters[i];
+    if (!c) return;
+    s.chap = { id: c.id, at, clock: JC.time.now() };
+    s.chapAt = s.chapAt || {};
+    s.chapAt[c.id] = at;
+    JC.state.save();
+    JC.bus.emit('story:chapter', { id: c.id, n: c.n, title: c.title, label: c.label, index: i });
+    checkTriggers();
+  }
+  function checkChapter() {
+    const s = S();
+    if (!defs.chapters.length || s.ended || chapBusy) return;
+    if (!s.chap) { if (s.unlockAt != null) startChapter(0, s.unlockAt); return; }
+    const cur = chapterDef(s.chap.id);
+    if (!cur || !nextChapterDef() || call) return;
+    if (settled(cur)) {
+      if (s.chap.settledAt == null) s.chap.settledAt = s.eng;
+      if (s.eng - s.chap.settledAt >= (cur.settleDelay != null ? cur.settleDelay : 8) * 1000) advanceChapter('settled');
+      return;
+    }
+    s.chap.settledAt = null;
+    if (cur.maxWait && s.eng - s.chap.at >= cur.maxWait * 1000) advanceChapter('maxWait');
+  }
+  /** end the current chapter's scenes: cancel pending choices, run `expire` nodes instantly, mark unstarted scenes expired */
+  function expireChapter(ch) {
+    const s = S();
+    const list = chapterScenes(ch.id);
+    const ids = new Set(list.map((sc) => sc.id));
+    s.runs.filter((r) => r.kind === 'scene' && ids.has(r.sc)).forEach((r) => {
+      const sc = defs.scenes[r.sc];
+      Object.keys(s.threads).forEach((k) => {
+        const t = s.threads[k];
+        if (t.pend && t.pend.rid === r.rid) { t.pend = null; JC.bus.emit('story:pending', { thread: k }); }
+      });
+      const tid = runThread(r, stepAt(r));
+      if (tid && th(tid).typing) { th(tid).typing = null; JC.bus.emit('story:typing', { thread: tid, who: null }); }
+      if (typeof sc.expire === 'string' && sc.nodes && sc.nodes[sc.expire]) {
+        Object.assign(r, { node: sc.expire, i: 0, wait: null, phase: null, until: s.eng, instant: true });
+        process(r);
+        if (s.runs.includes(r)) finishRun(r);
+      } else finishRun(r);
+    });
+    list.forEach((sc) => { if (!s.done[sc.id]) s.done[sc.id] = 'expired'; if (s.due) delete s.due[sc.id]; });
+  }
+  function advanceChapter(why) {
+    const s = S();
+    const cur = s.chap && chapterDef(s.chap.id);
+    const next = nextChapterDef();
+    if (!cur || !next || chapBusy || s.ended) return false;
+    chapBusy = true;
+    const tok = ++chapTok;
+    expireChapter(cur);
+    const fromT = JC.time.now();
+    const to = Math.max(next.at ? JC.time.parse(next.at) : fromT, fromT);
+    s.chapGo = { id: next.id, to };
+    JC.state.save();
+    JC.bus.emit('story:chapter:end', { id: cur.id, next: next.id, why });
+    const finish = () => {
+      if (tok !== chapTok) return;
+      chapBusy = false;
+      s.chapGo = null;
+      if (JC.time.now() < to) JC.time.set(to);
+      if (new Date(fromT).toDateString() !== new Date(to).toDateString() && JC.os.setBattery) JC.os.setBattery(100);
+      startChapter(chapterIndex(next.id), s.eng);
+    };
+    if (story._ff || !JC.os.timeSkip) { JC.time.set(to); finish(); } else JC.os.timeSkip({ to, text: next.card || '', lock: next.lock }).then(finish);
+    return true;
+  }
+  story.chapters = () => defs.chapters.map((c, i) => Object.assign({}, c, { index: i, started: S().chapAt ? S().chapAt[c.id] : undefined }));
+  story.currentChapter = () => {
+    const s = S();
+    if (!s.chap) return null;
+    const c = chapterDef(s.chap.id);
+    return c ? Object.assign({}, c, { index: chapterIndex(c.id), startedAt: s.chap.at, day: U.DAYS[JC.time.date().getDay()] }) : null;
+  };
+  story.nextChapter = () => { const n = nextChapterDef(); return S().chap ? n : null; };
+  story.canLater = () => {
+    const s = S();
+    if (!defs.chapters.length || !s.chap || s.ended || chapBusy || call || !s.started) return false;
+    if (!nextChapterDef()) return false;
+    return !s.runs.some((r) => r.wait === 'cinema' || (r.wait === 'choice' && r.tleft > 0));
+  };
+  story.later = () => (story.canLater() ? advanceChapter('later') : false);
+  /** in-game clock pace for the current chapter (in-game seconds per play second, before timeScale) */
+  function clockRate() {
+    const s = S();
+    if (!s.chap || s.ended || chapBusy) return 1;
+    const c = chapterDef(s.chap.id);
+    return c && c.clockRate > 0 ? c.clockRate : 1;
+  }
+  function clockCap() {
+    const s = S();
+    if (!s.chap || chapBusy) return null;
+    const c = chapterDef(s.chap.id);
+    return c && c.until ? JC.time.parse(c.until) : null;
+  }
+  story.clockRate = clockRate;
+  JC.time.rate = () => scale() * clockRate();
+  JC.time.cap = clockCap;
+
+  // ── Time controls ────────────────────────────────────────────────
+  story.timeScale = () => scale();
+  story.setTimeScale = (n) => {
+    n = Number(n);
+    if (!SCALES.includes(n)) n = SCALES.reduce((a, b) => (Math.abs(b - n) < Math.abs(a - n) ? b : a), 1);
+    JC.state.setting('timeScale', n);
+    JC.bus.emit('story:time', { scale: n, paused: userPaused });
+    return n;
+  };
+  story.paused = () => userPaused;
+  story.pause = (on) => {
+    on = !!on;
+    if (on === userPaused) return on;
+    userPaused = on;
+    JC.time.freeze(on);
+    lastTick = performance.now();
+    JC.bus.emit('story:time', { scale: scale(), paused: on });
+    return on;
+  };
+  /** play-ms until the next scheduled thing: a run's next step, an armed trigger, or an in-game time trigger */
+  function nextEvent() {
+    const s = S();
+    let best = null;
+    const consider = (d, kind, at) => { if (d == null || isNaN(d)) return; d = Math.max(0, d); if (!best || d < best.d) best = { d, kind, at }; };
+    s.runs.forEach((r) => { if (!r.wait && r.until != null) consider(r.until - s.eng, 'step'); });
+    Object.keys(s.due || {}).forEach((id) => { if (!s.done[id]) consider(s.due[id] - s.eng, 'trigger'); });
+    const now = JC.time.now();
+    const cap = clockCap();
+    const rate = clockRate();
+    Object.values(defs.scenes).forEach((sc) => {
+      if (s.done[sc.id] || !chapterOk(sc)) return;
+      trigList(sc).forEach((t) => {
+        if (t.on !== 'time') return;
+        const at = atMs(t.at);
+        if (at <= now || (cap != null && at > cap)) return;
+        consider((at - now) / rate + (t.delay || 0) * 1000, 'time', at);
+      });
+    });
+    return best;
+  }
+  story.nextEvent = () => { const e = nextEvent(); return e ? { in: e.d, kind: e.kind } : null; };
+  story.skipNext = () => {
+    const s = S();
+    if (!s.started || s.ended || chapBusy) return false;
+    const e = nextEvent();
+    if (!e) {
+      if (story.canLater()) { story.later(); return 'later'; }
+      return false;
+    }
+    s.eng += e.d;
+    if (e.kind === 'time') JC.time.set(Math.max(JC.time.now(), e.at));
+    else {
+      const cap = clockCap();
+      let t = JC.time.now() + e.d * clockRate();
+      if (cap != null) t = Math.min(t, Math.max(JC.time.now(), cap));
+      JC.time.set(t);
+    }
+    lastTick = performance.now();
+    tick(true);
+    JC.state.save();
+    JC.bus.emit('story:skip', { kind: e.kind, ms: e.d });
+    return e.kind;
+  };
+  /** tests: fast-forward play time by ms and move the clock with it (× the chapter's clockRate, never past `until`) */
+  story._advance = (ms) => {
+    const s = S();
+    s.eng += ms;
+    const cap = clockCap();
+    let t = JC.time.now() + ms * clockRate();
+    if (cap != null) t = Math.min(t, Math.max(JC.time.now(), cap));
+    if (t > JC.time.now()) JC.time.set(t);
+  };
+  /** the contact typing in this thread finishes right now */
+  story.hurry = (tid) => {
+    const s = S();
+    if (!th(tid).typing) return false;
+    const run = s.runs.find((r) => r.phase === 'typing' && !r.wait && runThread(r, stepAt(r)) === tid);
+    if (!run) return false;
+    run.until = s.eng;
+    tick(true);
+    return true;
+  };
 
   // ── Calls ────────────────────────────────────────────────────────
   function callRecord(dir, dur) {
@@ -980,7 +1356,7 @@
     const run = S().runs.find((r) => r.rid === call.run);
     if (!run) return;
     const step = stepAt(run);
-    const opts = visibleOptions(step || {});
+    const opts = visibleOptions(step || {}, run);
     const opt = opts[i];
     if (!opt) return;
     JC.state.snapshot('call:' + call.cid);
@@ -1058,7 +1434,7 @@
       call.run = run.rid;
       S().runs.push(run);
       JC.bus.emit('story:call', call);
-    }, (def.noAnswer ? 0.5 : ringFor) * 1000);
+    }, ((def.noAnswer ? 0.5 : ringFor) * 1000) / scale());
     story.act('call_start', { contact: cid, dir: 'out' });
   };
 
@@ -1076,20 +1452,11 @@
     const name = JC.contacts.short(cid);
     let def;
     if (c.dial === 'disconnected') {
-      def = { id, from: cid, ringFor: 1.5, nodes: { start: [{ say: 'The number you have dialed is no longer in service. Please check the number and try again.', from: 'sys' }, { fx: { set: cid === 'ajie' ? { ajie_called: true } : {} } }, { hangup: true }] } };
+      def = { id, from: cid, ringFor: 1.5, nodes: { start: [{ say: 'The number you have dialed is no longer in service. Please check the number and try again.', from: 'sys' }, { hangup: true }] } };
     } else if (c.dial === 'busy' || c.service) {
       def = { id, from: cid, ringFor: 1, nodes: { start: [{ say: 'This number does not accept incoming calls.', from: 'sys' }, { hangup: true }] } };
-    } else if (cid === 'hq') {
-      def = { id, from: cid, nodes: {
-        start: [{ say: 'Yunmeng Jiang Group, Lotus Pier night desk. How can I help you?' }, { choice: [
-          { t: '"Wrong number. Sorry."', go: 'wrong' },
-          { t: 'Tell them you found Mr. Jiang’s phone', go: 'truth' },
-          { t: '(Hang up)', go: 'hang' },
-        ] }],
-        wrong: [{ say: 'No problem. Good night.' }, { hangup: true }],
-        hang: [{ hangup: 'me' }],
-        truth: [{ say: 'You found the boss’s phone? Oh, thank heavens. Please — stay right there, I’m writing everything down…' }, { fx: { set: { told_truth: true } } }, { ending: 'honest' }],
-      } };
+    } else if (cid === WC().ownerLine && WC().ownerLineCall) {
+      def = Object.assign({ from: cid }, WC().ownerLineCall, { id });
     } else if (c.dial === 'voicemail') {
       def = { id, from: cid, ringFor: 7, nodes: {
         start: [{ say: c.voicemail || ('You’ve reached ' + name + '. Leave a message.'), from: 'sys' }, { say: '(Beep.)', from: 'sys' }, { choice: [
@@ -1101,7 +1468,7 @@
       } };
     } else {
       def = { id, from: cid, nodes: {
-        start: [{ say: (c.hello || (o.emergency ? 'Jiang Cheng? Why are you calling from your emergency screen??' : 'Hello? Jiang Cheng?')) }, { choice: [
+        start: [{ say: (c.hello || (o.emergency ? (WC().hello || {}).emergency : (WC().hello || {}).normal) || 'Hello?') }, { choice: [
           { t: '(Stay silent)', go: 'silent' },
           { t: '"…Mm."', go: 'mm' },
           { t: 'Tell the truth', go: 'truth' },
@@ -1123,10 +1490,46 @@
   // ── Endings ──────────────────────────────────────────────────────
   story.endingDef = (id) => defs.endings[id] || null;
   story.endings = () => Object.values(defs.endings).sort((a, b) => (a.n || 99) - (b.n || 99)).map((e) => Object.assign({}, e, { unlocked: !!S().endings[e.id], at: S().endings[e.id] ? S().endings[e.id].at : 0 }));
+  /** finale endings ({ finale: true }) whose `when` passes, best first (lower priority number first; no `when` = always) */
+  story.qualifying = () => Object.values(defs.endings)
+    .filter((e) => e.finale && (!e.when || evalFn(e.when, false)))
+    .sort((a, b) => (a.priority != null ? a.priority : 999) - (b.priority != null ? b.priority : 999) || (a.n || 99) - (b.n || 99));
+
+  // ── Aftermath ────────────────────────────────────────────────────
+  /** where every chat ended up right now: [{ id, name, avatar, outcome, line, total }] (chats with no matching outcome are left out) */
+  story.aftermathResult = () => {
+    const out = [];
+    defs.aftermath.forEach((c) => {
+      const o = (c.outcomes || []).find((x) => !x.when || evalFn(x.when, false));
+      if (!o) return;
+      out.push({ id: c.id, name: c.name || (c.avatar ? JC.contacts.short(c.avatar) : c.id), avatar: c.avatar || null, outcome: o.id, line: o.line || '', total: (c.outcomes || []).length });
+    });
+    return out;
+  };
+  /** the aftermath shown with the last ending (frozen when the game ended) */
+  story.aftermathLast = () => S().afterLast || null;
+  /** every chat with its outcomes, and which were found in any playthrough: [{ id, name, avatar, outcomes: [{ id, line, found, at }], found, total }] */
+  story.aftermathFound = () => {
+    const F = S().afterFound || {};
+    return defs.aftermath.map((c) => {
+      const got = F[c.id] || {};
+      const outcomes = (c.outcomes || []).map((o) => ({ id: o.id, line: o.line || '', found: !!got[o.id], at: got[o.id] || 0 }));
+      return { id: c.id, name: c.name || (c.avatar ? JC.contacts.short(c.avatar) : c.id), avatar: c.avatar || null, outcomes, found: outcomes.filter((o) => o.found).length, total: outcomes.length };
+    });
+  };
+  story.aftermathDefs = () => defs.aftermath.slice();
+
   function finishGame(ids) {
     const s = S();
     if (s.ended) return;
     ids.forEach((id) => { if (!s.endings[id]) s.endings[id] = { at: Date.now() }; });
+    // per-chat outcomes, computed before anything else changes
+    try {
+      const res = story.aftermathResult();
+      s.afterLast = { ending: ids[0], list: res };
+      s.afterFound = s.afterFound || {};
+      res.forEach((r) => { const m = s.afterFound[r.id] = s.afterFound[r.id] || {}; if (!m[r.outcome]) m[r.outcome] = Date.now(); });
+    } catch (e) { console.error('[story] aftermath failed', e); }
     s.ended = ids[0];
     if (call) { JC.audio.ring(false); JC.audio.ringback(false); const c = call; c.phase = 'ended'; call = null; JC.bus.emit('story:call', c); }
     Object.keys(s.threads).forEach((k) => { s.threads[k].typing = null; s.threads[k].pend = null; });
@@ -1159,6 +1562,10 @@
     story.begin();
   };
   function afterReset() {
+    chapTok++;
+    chapBusy = false;
+    if (userPaused) { userPaused = false; JC.bus.emit('story:time', { scale: scale(), paused: false }); }
+    if (S().chapGo) resumeChapter();
     Object.keys(histCache).forEach((k) => delete histCache[k]);
     updateBadge();
     phoneBadge();
@@ -1189,8 +1596,31 @@
     JC.state.save();
   }
 
+  /** a chapter transition was interrupted (reload, rewind): land in the next chapter now */
+  function resumeChapter() {
+    const s = S();
+    const go = s.chapGo;
+    s.chapGo = null;
+    if (!go || chapterIndex(go.id) < 0) return;
+    if (JC.time.now() < go.to) JC.time.set(go.to);
+    startChapter(chapterIndex(go.id), s.eng);
+  }
+  let initDone = false;
   story.init = () => {
+    if (!initDone) {
+      initDone = true;
+      (W().acts || []).forEach((r) => story.onAct(Object.assign({}, r)));
+      story.gossip(W().gossip || []);
+    }
     firstRunSetup();
+    const s = S();
+    // older saves kept arm times in s.armed (+ trigger delay)
+    s.due = s.due || {};
+    if (s.armed) {
+      Object.keys(s.armed).forEach((id) => { const sc = defs.scenes[id]; if (sc && !s.done[id] && s.due[id] == null) s.due[id] = s.armed[id] + ((trigList(sc)[0] || {}).delay || 0) * 1000; });
+      delete s.armed;
+    }
+    if (s.chapGo) resumeChapter();
     // resume runs waiting on a cinema overlay
     S().runs.forEach((r) => { if (r.wait === 'cinema') { r.wait = null; r.i++; } if (r.kind === 'call') r.dead = true; });
     S().runs = S().runs.filter((r) => !r.dead);
@@ -1207,7 +1637,7 @@
     updateBadge();
     JC.bus.emit('notifs');
     if (!s.started) {
-      const lines = story.intro && story.intro.length ? story.intro : ['11:47 PM. Lanling.', 'A phone buzzes under your hand.'];
+      const lines = story.intro && story.intro.length ? story.intro : (W().introFallback || ['A phone buzzes under your hand.']);
       JC.os.prologue(lines).then(() => { s.started = true; JC.state.save(); });
     }
   };

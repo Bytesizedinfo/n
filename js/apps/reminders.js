@@ -371,7 +371,8 @@
         circ.classList.toggle('on', on);
         circ.classList.add('pop');
         setTimeout(() => circ.classList.remove('pop'), 300);
-        row.querySelector('.rm-title').classList.toggle('done', on);
+        const title = row && row.querySelector('.rm-title');
+        if (title) title.classList.toggle('done', on);
         JC.audio.play(on ? 'tink' : 'tap');
         JC.audio.haptic(8);
         if (on) {

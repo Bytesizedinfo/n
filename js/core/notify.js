@@ -15,8 +15,9 @@
   function list() { return JC.state.d.notifs; }
 
   function appName(app) {
+    if (JC.os && JC.os.appName) return JC.os.appName(app);
     const def = JC.apps && JC.apps[app];
-    return (def && def.name) || APP_NAMES()[app] || app.replace(/^\w/, (c) => c.toUpperCase());
+    return APP_NAMES()[app] || (def && def.name) || app.replace(/^\w/, (c) => c.toUpperCase());
   }
 
   /** small app icon or avatar with an app badge */
@@ -186,7 +187,7 @@
         actions.innerHTML = '';
         const p = JC.story.pending(id);
         if (p) {
-          actions.appendChild(h('div.qr-label', 'Reply as Jiang Cheng'));
+          actions.appendChild(h('div.qr-label', (JC.world && JC.world.brand && JC.world.brand.replyAs) || 'Reply'));
           p.options.forEach((o) => actions.appendChild(h('div.qr-opt', { onTap: () => { JC.story.choose(id, o.i); } }, o.label)));
         } else if (JC.story.canReply(id)) {
           const input = JC.ui.input({ placeholder: 'Reply', enterkey: 'send', onSubmit: (v) => { if (v.trim()) { JC.story.send(id, { text: v.trim() }); JC.audio.play('send'); input.value = ''; } } });

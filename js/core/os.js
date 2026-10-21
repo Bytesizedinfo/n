@@ -13,35 +13,18 @@
     return def;
   };
 
-  const APP_NAMES = {
-    phone: 'Phone', messages: 'Messages', safari: 'Safari', music: 'Music', facetime: 'FaceTime', calendar: 'Calendar',
-    photos: 'Photos', camera: 'Camera', mail: 'Mail', notes: 'Notes', reminders: 'Reminders', clock: 'Clock', maps: 'Maps',
-    weather: 'Weather', wallet: 'Wallet', settings: 'Settings', wavelet: 'Wavelet', lotuseats: 'Lotus Eats', swift: 'Swift Ride',
-    health: 'Health', findmy: 'Find My', voicememos: 'Voice Memos', stocks: 'Stocks', lotusleap: 'Lotus Leap', contacts: 'Contacts',
-    calculator: 'Calculator',
-  };
-
-  const DEFAULT_HOME = {
-    pages: [
-      [{ widget: 'weather' }, { widget: 'calendar' }, 'facetime', 'calendar', 'photos', 'camera', 'mail', 'notes', 'reminders', 'clock', 'maps', 'weather', 'wallet', 'settings', 'wavelet', 'lotuseats', 'swift', 'health'],
-      [{ widget: 'memories' }, { widget: 'endings' }, 'findmy', 'voicememos', 'stocks', 'lotusleap', { folder: 'Utilities', apps: ['calculator', 'contacts'] }],
-    ],
-    dock: ['phone', 'messages', 'safari', 'music'],
-    hidden: [],
-  };
-
-  const LIBRARY = [
-    ['Suggestions', ['messages', 'phone', 'photos', 'voicememos', 'notes', 'findmy', 'wavelet', 'maps']],
-    ['Social', ['messages', 'wavelet', 'facetime', 'phone', 'contacts']],
-    ['Productivity & Finance', ['mail', 'notes', 'calendar', 'reminders', 'wallet', 'stocks']],
-    ['Utilities', ['calculator', 'clock', 'settings', 'findmy', 'voicememos', 'contacts']],
-    ['Travel', ['maps', 'swift', 'weather']],
-    ['Food & Drink', ['lotuseats']],
-    ['Creativity', ['photos', 'camera', 'music']],
-    ['Health & Fitness', ['health']],
-    ['Games', ['lotusleap']],
-    ['Information & Reading', ['safari', 'weather', 'stocks']],
-  ];
+  const W = JC.world || {};
+  const WA = W.apps || {};
+  const APP_NAMES = WA.names || {};
+  const DEFAULT_HOME = WA.home || { pages: [[]], dock: [], hidden: [] };
+  const LIBRARY = WA.library || [];
+  const BRAND = W.brand || {};
+  const DEV = W.device || {};
+  const WID = W.widgets || {};
+  const EMBLEM = () => BRAND.emblem || 'star.fill';
+  const ENDN = (list) => (list && list.length) || W.endings || 0;
+  /** display name of an app: JC.world.apps.names wins over the name the app registers */
+  const appName = (id) => APP_NAMES[id] || (apps[id] && apps[id].name) || id;
 
   const S = () => JC.state.d;
   const setting = (k, v) => JC.state.setting(k, v);
@@ -54,6 +37,7 @@
     locked: true,
     asleep: false,
     appNames: APP_NAMES,
+    appName,
     apps,
   };
   JC.os = os;
@@ -80,8 +64,8 @@
     screen = h('div#screen');
     device.appendChild(screen);
     const caption = h('div#caption',
-      h('div.cap-title', 'Jiang Cheng’s Phone'),
-      h('div.cap-sub', 'You found it in a taxi. Everyone thinks you’re him.'),
+      h('div.cap-title', BRAND.title || ''),
+      h('div.cap-sub', BRAND.tagline || ''),
       h('div.cap-hints',
         h('div', h('b', 'Home'), ' drag up from the bottom bar (or tap it) · Esc'),
         h('div', h('b', 'Control Center'), ' drag down from the top-right'),
@@ -168,9 +152,9 @@
 
   os.setAppearance = (a) => { setting('appearance', a); applyAppearance(); };
 
-  function wallUrl(id) { return JC.art.url(id || S().settings.wallpaper || 'wp_lotus_dusk'); }
+  function wallUrl(id) { return JC.art.url(id || S().settings.wallpaper || DEV.wallpaper); }
   function applyWallpaper() {
-    const id = S().settings.wallpaper || 'wp_lotus_dusk';
+    const id = S().settings.wallpaper || DEV.wallpaper;
     const url = wallUrl(id);
     els.wall.style.backgroundImage = `url("${url}")`;
     if (els.lockWall) els.lockWall.style.backgroundImage = `url("${url}")`;
@@ -209,13 +193,14 @@
   function buildStatusBar() {
     const sb = els.statusbar;
     sb.innerHTML = '';
-    const left = h('div.sb-left', { onTap: () => openNC() }, h('span.sb-time'), h('span.sb-focus'));
+    const left = h('div.sb-left', { onTap: () => openNC() }, h('span.sb-time'), h('span.sb-focus'), h('span.sb-speed', { hidden: true }));
     const right = h('div.sb-right', { onTap: () => openCC() },
       h('span.sb-cell', svgBars()), h('span.sb-net'), h('span.sb-wifi', JC.icon('wifi', { size: 17, weight: 2.4 })),
       h('span.sb-batt', h('span.sb-batt-body', h('span.sb-batt-fill')), h('span.sb-batt-cap')));
     sb.append(left, right);
     els.sbTime = left.querySelector('.sb-time');
     els.sbFocus = left.querySelector('.sb-focus');
+    els.sbSpeed = left.querySelector('.sb-speed');
     els.sbNet = right.querySelector('.sb-net');
     els.sbWifi = right.querySelector('.sb-wifi');
     els.sbCell = right.querySelector('.sb-cell');
@@ -249,6 +234,7 @@
     els.sbTime.textContent = U.fmtClock(JC.time.now());
     els.sbFocus.innerHTML = '';
     if (s.focus) els.sbFocus.appendChild(JC.icon(s.focus === 'sleep' ? 'bed.double.fill' : s.focus === 'work' ? 'briefcase.fill' : 'moon.fill', { size: 13 }));
+    paintSpeedBadge();
     const air = s.airplane;
     els.sbCell.style.display = air ? 'none' : '';
     els.sbCell.classList.toggle('off', !s.cellular);
@@ -265,6 +251,22 @@
     if (els.lockTime) renderLockClock();
   }
   os.updateStatus = updateStatus;
+  /** "⏩ 4×" while time runs faster, "⏸" while the story is paused */
+  function paintSpeedBadge() {
+    const b = els.sbSpeed;
+    if (!b || !JC.story || !JC.story.timeScale) return;
+    const paused = JC.story.paused();
+    const n = JC.story.timeScale();
+    const key = paused ? 'p' : n > 1 ? 'x' + n : '';
+    if (b._key === key) return;
+    b._key = key;
+    b.hidden = !key;
+    b.innerHTML = '';
+    b.classList.toggle('paused', paused);
+    if (paused) b.append(JC.icon('pause.fill', { size: 11 }));
+    else if (n > 1) b.append(JC.icon('forward.fill', { size: 11 }), h('span.sb-speed-t', n + '×'));
+    b.title = paused ? 'Story paused' : n > 1 ? 'Time ' + n + '× faster' : '';
+  }
   os.setStatus = (style) => { if (active) { active.status = style; updateStatus(); } };
 
   // ── Battery ──────────────────────────────────────────────────────
@@ -395,6 +397,7 @@
     els.lockLost = h('div.lock-lost', { hidden: true });
     els.lockNotifs = h('div.lock-notifs.scroll');
     els.lockHint = h('div.lock-hint', 'Swipe up to open');
+    els.lockLater = h('div.lock-later', { hidden: true, onTap: (e) => { e.stopPropagation(); laterNow(); } });
     const flash = h('div.lock-btn.flash', { onTap: () => { os.setToggle('flashlight', !S().settings.flashlight); flash.classList.toggle('on', !!S().settings.flashlight); } }, JC.icon('flashlight.off.fill', { size: 22 }));
     const cam = h('div.lock-btn.cam', { onTap: () => unlockThen(() => os.open('camera')) }, JC.icon('camera.fill', { size: 22 }));
     els.lockFlash = flash;
@@ -402,14 +405,14 @@
     const clock = h('div.lock-clock', els.lockTime);
     const front = h('div.lock-front', els.lockGlyph, els.lockDate);
     els.lockWidgets.classList.add('lock-wlayer');
-    const content = h('div.lock-content', els.lockWall, clock, els.lockFg, front, els.lockWidgets, els.lockLost, els.lockNotifs, flash, cam, els.lockHint);
+    const content = h('div.lock-content', els.lockWall, clock, els.lockFg, front, els.lockWidgets, els.lockLost, els.lockNotifs, flash, cam, els.lockLater, els.lockHint);
     L.append(content);
     els.lockContent = content;
     buildPasscode();
     // swipe up anywhere on the lock screen
     U.drag(content, {
       axis: 'y',
-      filter: (e) => !e.target.closest('.ncard, .lock-btn, .lock-lost, .lock-notifs .scrolling'),
+      filter: (e) => !e.target.closest('.ncard, .lock-btn, .lock-lost, .lock-later, .lock-notifs .scrolling'),
       start: (e, p) => p.dy < 0,
       move: (e, p) => {
         const y = Math.min(0, p.dy);
@@ -426,6 +429,34 @@
     JC.bus.on('minute', () => { renderLockClock(); renderLockWidgets(); });
     renderLockClock();
     renderLockWidgets();
+    setInterval(() => { if (os.locked) renderLater(); }, 1000);
+  }
+  /** chapters: "Later…" jumps to the next chapter once nothing urgent is pending */
+  function laterInfo() {
+    const st = JC.story;
+    if (!st || !st.canLater || !st.chapters || !st.chapters().length || !st.canLater()) return null;
+    const n = st.nextChapter();
+    return n ? { label: n.label || n.title || 'Next chapter' } : null;
+  }
+  function renderLater() {
+    const el = els.lockLater;
+    if (!el) return;
+    const info = laterInfo();
+    const key = info ? info.label : '';
+    if (el._key !== key) {
+      el._key = key;
+      el.innerHTML = '';
+      if (info) el.append(h('span.ll-ic', JC.icon('moon.zzz.fill', { size: 17 })), h('span.ll-txt', h('b', 'Later…'), h('small', info.label)));
+    }
+    el.hidden = !info;
+    els.lock.classList.toggle('has-later', !!info);
+  }
+  os.renderLater = renderLater;
+  function laterNow() {
+    if (!JC.story || !JC.story.later) return;
+    closeCC();
+    if (!JC.story.later()) JC.ui.toast('Not now — something still needs you', { icon: 'exclamationmark.circle.fill' });
+    renderLater();
   }
 
   function renderLockClock() {
@@ -437,12 +468,17 @@
 
   function upcomingLabel() {
     const evs = (JC.store.hasSeed('events') ? JC.store.all('events') : []).filter((e) => e.start >= JC.time.now() - 3600e3).sort((a, b) => a.start - b.start);
-    const bday = evs.find((e) => /A-Ling/.test(e.title));
-    if (bday) return { title: bday.title, when: U.fmtDate(bday.start, 'day').slice(0, 3) };
+    const le = WID.lockEvent || {};
+    const key = le.match ? evs.find((e) => le.match.test(e.title)) : null;
+    if (key) return { title: key.title, when: U.fmtDate(key.start, 'day').slice(0, 3) };
     if (evs[0]) return { title: evs[0].title, when: U.fmtTime(evs[0].start) };
-    return { title: 'A-Ling turns 18 🎂', when: 'Sun' };
+    return le.fallback || { title: 'No upcoming events', when: 'Today' };
   }
 
+  function weatherNow() {
+    const w = WID.weather || {};
+    return (JC.weather && w.city ? JC.weather.now(w.city) : null) || Object.assign({ temp: 20, label: 'Clear', cond: 'clear', hi: 24, lo: 16, night: false }, w.fallback || {});
+  }
   function wxGlyph(wx) {
     if (/rain|shower|drizzle/.test(wx.cond)) return 'cloud.rain.fill';
     if (wx.cond === 'clear' || (wx.night && wx.cond === 'sunny')) return 'moon.fill';
@@ -453,7 +489,7 @@
   function renderLockWidgets() {
     const W = els.lockWidgets;
     W.innerHTML = '';
-    const wx = JC.weather ? JC.weather.now('lanling') : { temp: 14, cond: 'rain', night: true };
+    const wx = weatherNow();
     const up = upcomingLabel();
     W.append(
       h('div.lw.lw-rect', { onTap: () => unlockThen(() => os.open('calendar')) }, h('div.lw-k', JC.icon('calendar', { size: 13 }), ' ', up.when), h('div.lw-v', up.title)),
@@ -540,7 +576,7 @@
     L.append(
       h('div.lost-title', 'This iPhone has been lost.'),
       h('div.lost-msg', lost.message || ''),
-      h('div.lost-btn', { onTap: () => JC.story.dial(lost.contact || 'hq') }, JC.icon('phone.fill', { size: 16 }), h('span', 'Call ' + (lost.phone || 'Owner'))));
+      h('div.lost-btn', { onTap: () => JC.story.dial(lost.contact || (W.contacts && W.contacts.ownerLine)) }, JC.icon('phone.fill', { size: 16 }), h('span', 'Call ' + (lost.phone || 'Owner'))));
     els.lock.classList.add('lost');
   }
 
@@ -591,7 +627,7 @@
     if (pcEntry.length === 6) setTimeout(checkPass, 120);
   }
   function checkPass() {
-    const ok = pcEntry === (S().settings.passcode || '181008');
+    const ok = pcEntry === String(S().settings.passcode || (W.passcode && W.passcode.code) || '');
     if (ok) {
       pcEntry = '';
       paintDots();
@@ -606,25 +642,17 @@
     U.anim(els.pcDots, [{ transform: 'translateX(0)' }, { transform: 'translateX(-14px)' }, { transform: 'translateX(12px)' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(5px)' }, { transform: 'translateX(0)' }], { duration: 420, easing: 'ease-out' });
     setTimeout(() => { pcEntry = ''; paintDots(); }, 380);
     JC.bus.emit('passcode:wrong', tries);
-    if (tries === 2 && !S().unlocked && JC.story && JC.story.incoming) {
-      setTimeout(() => JC.story.incoming('jl', { text: "also i'm literally an adult on sunday so stop calling me a child" }), 1600);
+    const PW = W.passcode || {};
+    if (PW.wrong && tries === PW.wrong.tries && !S().unlocked && JC.story && JC.story.incoming) {
+      setTimeout(() => JC.story.incoming(PW.wrong.thread, { text: PW.wrong.text }), 1600);
     }
     if (tries === 5 || tries === 9) {
       pcLockedUntil = Date.now() + 30000;
       showUnavailable();
     }
-    if (tries >= 3 && !S().unlocked) {
-      const hints = [
-        '',
-        '',
-        '',
-        'Jiang Cheng’s nephew seemed very sure about this passcode.',
-        'A birthday, written DDMMYY. Whose birthday is on the lock screen?',
-        'A-Ling turns 18 on Sunday, October 18. Born 2008.',
-        'A-Ling turns 18 on Sunday, October 18. Born 2008.',
-        'Try 18 · 10 · 08.',
-      ];
-      els.pcHint.textContent = hints[Math.min(tries, hints.length - 1)] || 'Try 18 · 10 · 08.';
+    if (tries >= 3 && !S().unlocked && PW.hints && PW.hints.length) {
+      const hints = PW.hints;
+      els.pcHint.textContent = hints[Math.min(tries, hints.length - 1)] || PW.hintLast || '';
     }
   }
   function showUnavailable() {
@@ -635,7 +663,7 @@
       if (left <= 0) { u.hidden = true; return; }
       u.innerHTML = '';
       u.append(h('div.pcu-title', 'iPhone Unavailable'), h('div.pcu-sub', 'try again in ' + left + ' second' + (left === 1 ? '' : 's')),
-        h('div.pcu-hint', 'You look at the lock screen again. A-Ling’s texts. A birthday on Sunday. DDMMYY.'),
+        (W.passcode && W.passcode.unavailHint) ? h('div.pcu-hint', W.passcode.unavailHint) : null,
         h('div.pcu-btn', { onTap: () => openEmergency() }, 'Emergency'));
       setTimeout(tick, 500);
     };
@@ -725,6 +753,7 @@
     expandedKeys();
     renderLockNotifs();
     renderLockWidgets();
+    renderLater();
     updateStatus();
     JC.bus.emit('lock');
   };
@@ -754,7 +783,7 @@
     keys.forEach(([k, l]) => pad.appendChild(h('div.pc-key', { onTap: () => { num += k; JC.audio.dtmf(k); display.textContent = num; } }, h('div.pc-num', k), l ? h('div.pc-letters', l) : null)));
     const call = h('div.em-call', { onTap: () => {
       if (!num) return;
-      if (['110', '120', '119', '112', '911', '999'].includes(num)) {
+      if ((DEV.emergency || ['112', '911']).includes(num)) {
         JC.ui.alert({ title: 'Emergency SOS', message: 'This is a story phone. No real call will be placed.\n\nIf you are in danger in real life, call your local emergency number from your own phone.', buttons: [{ text: 'OK' }] });
       } else JC.ui.alert({ title: 'Emergency Calls Only', message: 'Unlock iPhone to call ' + num + '.', buttons: [{ text: 'OK' }] });
     } }, JC.icon('phone.fill', { size: 30 }));
@@ -767,25 +796,18 @@
     U.anim(el, [{ opacity: 0 }, { opacity: 1 }], { duration: 220 });
   }
   function openMedicalID(parent) {
-    const jl = JC.contacts.get('jl');
-    const aj = JC.contacts.get('ajie');
+    const M = W.medicalId || {};
     const row = (k, v) => h('div.mid-row', h('div.mid-k', k), h('div.mid-v', v));
+    const ecs = M.contacts || [];
     const el = h('div.medid.scroll',
       h('div.mid-head', h('div.mid-star', JC.icon('staroflife.fill', { size: 20 })), h('div.mid-h', 'Medical ID'), h('div.mid-done', { onTap: () => U.anim(el, [{ transform: 'translateY(0)' }, { transform: 'translateY(100%)' }], { duration: 300 }).then(() => el.remove()) }, 'Done')),
-      h('div.mid-person', JC.ui.avatar('me', 64), h('div', h('div.mid-name', 'Jiang Cheng'), h('div.mid-age', '15 May 1992 (34 years)'))),
-      h('div.mid-card',
-        row('Medical Conditions', 'Liver transplant recipient (2008).'),
-        row('Medical Notes', 'Immunosuppressed. Do not give him alcohol. (He will not listen.) — A-Ling'),
-        row('Allergies & Reactions', 'None. (Wei Wuxian. — A-Ling)'),
-        row('Medications', 'Tacrolimus 2 mg, twice daily.'),
-        row('Blood Type', 'O+'),
-        row('Organ Donor', 'Yes'),
-        row('Height', '183 cm'),
-        row('Weight', '72 kg')),
-      h('div.mid-sec', 'Emergency Contacts'),
-      h('div.mid-card',
-        h('div.mid-contact', { onTap: () => { el.remove(); parent.remove(); JC.story.dial('ajie', { emergency: true }); } }, h('div.mid-c-rel', 'sister'), h('div.mid-c-name', aj ? aj.display : 'A-Jie'), h('div.mid-c-num', aj ? aj.phones[0].num : ''), JC.icon('phone.fill', { size: 18, cls: 'mid-c-ic' })),
-        h('div.mid-contact', { onTap: () => { el.remove(); parent.remove(); JC.story.dial('jl', { emergency: true }); } }, h('div.mid-c-rel', 'nephew'), h('div.mid-c-name', jl ? jl.display : 'A-Ling'), h('div.mid-c-num', jl ? jl.phones[0].num : ''), JC.icon('phone.fill', { size: 18, cls: 'mid-c-ic' }))),
+      h('div.mid-person', JC.ui.avatar('me', 64), h('div', h('div.mid-name', M.name || DEV.owner || ''), M.age ? h('div.mid-age', M.age) : null)),
+      h('div.mid-card', (M.rows || []).map(([k, v]) => row(k, v))),
+      ecs.length ? h('div.mid-sec', 'Emergency Contacts') : null,
+      ecs.length ? h('div.mid-card', ecs.map((ec) => {
+        const c = JC.contacts.get(ec.id);
+        return h('div.mid-contact', { onTap: () => { el.remove(); parent.remove(); JC.story.dial(ec.id, { emergency: true }); } }, h('div.mid-c-rel', ec.rel || ''), h('div.mid-c-name', c ? c.display : (ec.fallback || ec.id)), h('div.mid-c-num', c && c.phones[0] ? c.phones[0].num : ''), JC.icon('phone.fill', { size: 18, cls: 'mid-c-ic' }));
+      })) : null,
       h('div.mid-foot', 'Medical ID is visible while iPhone is locked.'));
     els.lock.appendChild(el);
     U.anim(el, [{ transform: 'translateY(100%)' }, { transform: 'translateY(0)' }], { duration: 420 });
@@ -894,7 +916,7 @@
     } }, h('div.ccf-ic', JC.icon(s.focus === 'sleep' ? 'bed.double.fill' : s.focus === 'work' ? 'briefcase.fill' : s.focus === 'personal' ? 'person.fill' : 'moon.fill', { size: 20 })), h('div.ccf-t', s.focus ? focusLabels[s.focus] : 'Focus'), s.focus ? h('div.ccf-s', 'On') : null);
     g.append(conn, np, focus, ccSlider('bright'), ccSlider('vol'),
       ccTile({ icon: 'lock.rotation', on: s.rotationLock, color: '#ff453a', onTap: () => os.setToggle('rotationLock', !s.rotationLock) }),
-      ccTile({ icon: 'rectangle.on.rectangle', onTap: () => JC.ui.alert({ title: 'Screen Mirroring', message: 'Looking for Apple TV and AirPlay-compatible TVs…\n\nNo devices found. (The taxi does not have a TV.)', buttons: [{ text: 'OK' }] }) }),
+      ccTile({ icon: 'rectangle.on.rectangle', onTap: () => JC.ui.alert({ title: 'Screen Mirroring', message: DEV.mirroring || 'Looking for Apple TV and AirPlay-compatible TVs…\n\nNo devices found.', buttons: [{ text: 'OK' }] }) }),
       ccTile({ icon: s.flashlight ? 'flashlight.on.fill' : 'flashlight.off.fill', on: s.flashlight, color: '#fff', cls: 'white-on', onTap: () => os.setToggle('flashlight', !s.flashlight) }),
       ccTile({ icon: 'timer', onTap: () => { closeCC(); unlockThen(() => os.open('clock', { tab: 'timer' })); } }),
       ccTile({ icon: 'calculator', onTap: () => { closeCC(); unlockThen(() => os.open('calculator')); } }),
@@ -902,8 +924,50 @@
       ccTile({ icon: s.silent ? 'bell.slash.fill' : 'bell.fill', on: s.silent, color: '#ff453a', onTap: () => os.setToggle('silent', !s.silent) }),
       ccTile({ icon: 'moon', on: os.dark, color: '#fff', cls: 'white-on', onTap: () => os.setAppearance(os.dark ? 'light' : 'dark') }),
       ccTile({ icon: 'battery.25', on: s.lowPower, color: '#ffd60a', onTap: () => os.setToggle('lowPower', !s.lowPower) }),
-      ccTile({ icon: 'lock.fill', onTap: () => { closeCC(); setTimeout(() => os.sleep(), 250); } }));
+      ccTile({ icon: 'lock.fill', onTap: () => { closeCC(); setTimeout(() => os.sleep(), 250); } }),
+      speedTile(), laterTile());
   }
+  /** hare tile: tap cycles 1×→2×→4×→8×, long-press skips to the next event; shows the paused state */
+  function speedTile() {
+    if (!JC.story || !JC.story.setTimeScale) return null;
+    const paused = JC.story.paused();
+    const n = JC.story.timeScale();
+    const el = h('div.cc-tile.cc-speed', {
+      class: { on: paused || n > 1, paused },
+      style: { '--on-c': paused ? '#ff9f0a' : '#30b0c7' },
+      attrs: { title: 'Time speed (hold: skip to next)' },
+      onTap: () => {
+        JC.audio.haptic(8);
+        if (JC.story.paused()) { JC.story.pause(false); islandFlash('Story resumed', 'play.fill'); }
+        else { const nx = cycleScale(+1, true); islandFlash('Time ' + nx + '×', 'hare.fill', nx > 1 ? '#64d2ff' : '#fff'); }
+        renderCC();
+      },
+    }, h('div.cc-ic', JC.icon(paused ? 'pause.fill' : n > 1 ? 'hare.fill' : 'hare', { size: 24 })), h('div.cc-speed-n', paused ? 'Paused' : n + '×'));
+    U.longPress(el, () => { skipNow(); renderCC(); });
+    return el;
+  }
+  function laterTile() {
+    const info = laterInfo();
+    if (!info) return null;
+    return h('div.cc-focus.cc-later.span-2x1', { onTap: () => laterNow() }, h('div.ccf-ic', JC.icon('moon.zzz.fill', { size: 20 })), h('div', h('div.ccf-t', 'Later…'), h('div.ccf-s', info.label)));
+  }
+  /** step timeScale up / down through 1, 2, 4, 8 (wrap: tap in Control Center cycles) */
+  function cycleScale(dir, wrap) {
+    const L = [1, 2, 4, 8];
+    let i = L.indexOf(JC.story.timeScale()) + dir;
+    if (wrap) i = (i + L.length) % L.length;
+    i = U.clamp(i, 0, L.length - 1);
+    return JC.story.setTimeScale(L[i]);
+  }
+  function skipNow() {
+    if (!JC.story || !JC.story.skipNext) return;
+    const r = JC.story.skipNext();
+    if (r === 'later') islandFlash('Later…', 'moon.zzz.fill');
+    else if (r) islandFlash('Skipped ahead', 'forward.end.fill');
+    else JC.ui.toast('Nothing scheduled right now', { icon: 'clock' });
+  }
+  os.skipNow = skipNow;
+  os.cycleScale = cycleScale;
   function nowPlayingTile() {
     const np = JC.music && JC.music.nowPlaying ? JC.music.nowPlaying() : null;
     const el = h('div.cc-np.span-2x2');
@@ -937,7 +1001,12 @@
   function closeCC() {
     if (!els.cc.classList.contains('open')) return;
     U.anim(els.cc.querySelector('.cc-grid'), [{ opacity: 1 }, { transform: 'translateY(-30px) scale(.92)', opacity: 0 }], { duration: 240 });
-    U.anim(els.cc.querySelector('.cc-bg'), [{ opacity: 1 }, { opacity: 0 }], { duration: 260 }).then(() => { els.cc.classList.remove('open'); updateStatus(); });
+    U.anim(els.cc.querySelector('.cc-bg'), [{ opacity: 1 }, { opacity: 0 }], { duration: 260 }).then(() => {
+      els.cc.classList.remove('open');
+      // drop the forwards-filled fade-outs so the next open starts visible
+      els.cc.querySelectorAll('.cc-grid, .cc-bg').forEach((x) => x.getAnimations().forEach((a) => a.cancel()));
+      updateStatus();
+    });
   }
   os.openCC = openCC;
   os.closeCC = closeCC;
@@ -1009,7 +1078,7 @@
 
   function appTile(id, opts) {
     opts = opts || {};
-    const name = (apps[id] && apps[id].name) || APP_NAMES[id] || id;
+    const name = appName(id);
     const icon = JC.appIcon(id);
     const el = h('div.app', { data: { app: id } }, h('div.app-icon-wrap', icon, h('div.app-badge', { hidden: true }), h('div.app-minus', { onTap: (e) => { e.stopPropagation(); removeApp(id); } }, JC.icon('minus', { size: 12, weight: 3.2 }))), opts.noLabel ? null : h('div.app-label', name));
     JC.ui.onTap(el, (e) => {
@@ -1030,24 +1099,25 @@
 
   function quickActions(id) {
     const qa = {
-      messages: [{ text: 'New Message', icon: 'square.and.pencil', intent: { compose: {} } }, { text: 'A-Ling', icon: 'person.crop.circle', intent: { thread: 'jl' } }, { text: '🐶 DO NOT ANSWER', icon: 'person.crop.circle', intent: { thread: 'wwx' } }],
+      messages: [{ text: 'New Message', icon: 'square.and.pencil', intent: { compose: {} } }],
       camera: [{ text: 'Take Selfie', icon: 'camera.rotate', intent: { selfie: true } }, { text: 'Take Photo', icon: 'camera', intent: {} }],
       phone: [{ text: 'Voicemail', icon: 'recordingtape', intent: { tab: 'voicemail' } }, { text: 'Recents', icon: 'clock', intent: { tab: 'recents' } }],
       notes: [{ text: 'New Note', icon: 'square.and.pencil', intent: { compose: true } }],
       clock: [{ text: 'Create Alarm', icon: 'alarm.fill', intent: { tab: 'alarm', create: true } }, { text: 'Start Timer', icon: 'timer', intent: { tab: 'timer' } }],
-      maps: [{ text: 'Directions Home', icon: 'house.fill', intent: { directions: 'lp-residence' } }, { text: 'Share My Location', icon: 'location.fill', intent: { share: true } }],
+      maps: [{ text: 'Share My Location', icon: 'location.fill', intent: { share: true } }],
       safari: [{ text: 'New Tab', icon: 'plus', intent: { newTab: true } }],
       music: [{ text: 'Search', icon: 'magnifyingglass', intent: { tab: 'search' } }],
       mail: [{ text: 'New Message', icon: 'square.and.pencil', intent: { compose: {} } }],
       photos: [{ text: 'Most Recent', icon: 'photo', intent: {} }, { text: 'Favorites', icon: 'heart', intent: { album: 'favorites' } }],
     };
-    return qa[id] || [];
+    const wq = WA.quick || {};
+    return wq[id] || qa[id] || [];
   }
   function iconMenu(el, id) {
     const items = quickActions(id).map((q) => ({ text: q.text, icon: q.icon, onTap: () => os.open(id, q.intent) }));
     if (items.length) items.push('-');
     items.push({ text: 'Edit Home Screen', icon: 'apps.iphone', onTap: () => setJiggle(true) });
-    items.push({ text: 'Share App', icon: 'square.and.arrow.up', onTap: () => JC.ui.share({ title: (apps[id] && apps[id].name) || APP_NAMES[id], subtitle: 'App', icon: 'square.grid.2x2', payload: { kind: 'text', text: 'Check out ' + ((apps[id] && apps[id].name) || APP_NAMES[id]) } }) });
+    items.push({ text: 'Share App', icon: 'square.and.arrow.up', onTap: () => JC.ui.share({ title: appName(id), subtitle: 'App', icon: 'square.grid.2x2', payload: { kind: 'text', text: 'Check out ' + appName(id) } }) });
     items.push({ text: 'Remove App', icon: 'minus.circle.fill', destructive: true, onTap: () => removeApp(id) });
     JC.ui.contextMenu.show ? JC.ui.contextMenu.show(el, items) : showCtx(el, items);
   }
@@ -1090,10 +1160,10 @@
 
   function removeApp(id) {
     JC.ui.alert({
-      title: 'Remove “' + ((apps[id] && apps[id].name) || APP_NAMES[id]) + '”?',
+      title: 'Remove “' + appName(id) + '”?',
       message: 'Removing from Home Screen will keep the app in your App Library.',
       buttons: [
-        { text: 'Delete App', style: 'destructive', onTap: () => setTimeout(() => JC.ui.alert({ title: 'Can’t Delete App', message: 'This iPhone is managed by Yunmeng Jiang Group. Contact your IT department. (Tang Mei.)', buttons: [{ text: 'OK' }] }), 300) },
+        { text: 'Delete App', style: 'destructive', onTap: () => setTimeout(() => JC.ui.alert({ title: 'Can’t Delete App', message: DEV.mdm || 'This app can’t be deleted.', buttons: [{ text: 'OK' }] }), 300) },
         { text: 'Remove from Home Screen', onTap: () => {
           const hm = home();
           hm.pages.forEach((pg) => {
@@ -1178,7 +1248,7 @@
   os.setJiggle = setJiggle;
 
   function widgetGallery() {
-    const all = [['weather', 'Weather', 'Lanling forecast'], ['calendar', 'Calendar', 'Up Next'], ['memories', 'Photos', 'On This Day'], ['endings', 'Endings', 'Your story so far'], ['battery', 'Batteries', 'Device charge'], ['notes', 'Notes', 'A pinned note']];
+    const all = [['weather', 'Weather', ((WID.weather && WID.weather.label) || 'Local') + ' forecast'], ['calendar', 'Calendar', 'Up Next'], ['memories', 'Photos', 'On This Day'], ['endings', 'Endings', 'Your story so far'], ['battery', 'Batteries', 'Device charge'], ['notes', 'Notes', 'A pinned note']];
     const s = JC.ui.sheet({
       title: 'Widgets', detent: 'large', system: true, left: { text: 'Done' },
       content: () => [h('div.wg-grid', all.map(([id, name, sub]) => h('div.wg-item', { onTap: () => {
@@ -1221,35 +1291,36 @@
     const d = JC.time.date();
     const open = (app, intent) => { if (!jiggle && !preview) os.open(app, intent, JC.ui.toLocal(el.getBoundingClientRect())); };
     if (id === 'weather') {
-      const wx = JC.weather ? JC.weather.now('lanling') : { temp: 14, label: 'Rain', cond: 'rain', hi: 17, lo: 11, night: true };
+      const wx = weatherNow();
       el.classList.toggle('night', !!wx.night);
-      el.append(h('div.ww-city', 'Lanling ', JC.icon('location.fill', { size: 10 })), h('div.ww-temp', wx.temp + '°'), h('div.ww-cond', JC.icon(wxGlyph(wx), { size: 16 }), h('span', wx.label)), h('div.ww-hl', 'H:' + wx.hi + '° L:' + wx.lo + '°'));
+      el.append(h('div.ww-city', ((WID.weather && WID.weather.label) || '') + ' ', JC.icon('location.fill', { size: 10 })), h('div.ww-temp', wx.temp + '°'), h('div.ww-cond', JC.icon(wxGlyph(wx), { size: 16 }), h('span', wx.label)), h('div.ww-hl', 'H:' + wx.hi + '° L:' + wx.lo + '°'));
       JC.ui.onTap(el, () => open('weather'));
     } else if (id === 'calendar') {
       const evs = (JC.store.hasSeed('events') ? JC.store.all('events') : []).filter((e) => e.end >= JC.time.now() || e.start >= JC.time.now()).sort((a, b) => a.start - b.start).slice(0, 2);
       el.append(h('div.wc-day', U.DAYS[d.getDay()].toUpperCase()), h('div.wc-date', String(d.getDate())));
       const list = h('div.wc-list');
-      if (!evs.length) evs.push({ title: 'A-Ling turns 18 🎂', start: JC.time.parse('+2 00:00'), allDay: true, cal: 'birthdays' }, { title: 'Tea? — Hanshi', start: JC.time.parse('+1 15:00'), cal: 'home' });
+      if (!evs.length) (WID.calendar || []).forEach((e) => evs.push(Object.assign({}, e, { start: JC.time.parse(e.start) })));
       evs.forEach((e) => list.appendChild(h('div.wc-ev', { class: 'cal-' + (e.cal || 'home') }, h('div.wc-ev-t', e.title), h('div.wc-ev-w', e.allDay ? U.fmtDate(e.start, 'day') : U.fmtDate(e.start, 'day').slice(0, 3) + ' ' + U.fmtTime(e.start)))));
       el.append(list);
       JC.ui.onTap(el, () => open('calendar'));
     } else if (id === 'memories') {
-      const art = JC.art.el('p_family_2007', { cls: 'wm-art' });
-      el.append(art, h('div.wm-shade'), h('div.wm-label', h('div.wm-k', 'ON THIS DAY'), h('div.wm-t', 'Lotus Pier, 2007')));
-      JC.ui.onTap(el, () => open('photos', { memory: 'lotus-pier-2007' }));
+      const mem = WID.memories || {};
+      const art = JC.art.el(mem.art || 'memories', { cls: 'wm-art' });
+      el.append(art, h('div.wm-shade'), h('div.wm-label', h('div.wm-k', mem.kicker || 'ON THIS DAY'), h('div.wm-t', mem.title || 'Memories')));
+      JC.ui.onTap(el, () => open('photos', mem.intent || {}));
     } else if (id === 'endings') {
       const list = JC.story && JC.story.endings ? JC.story.endings() : [];
       const got = list.filter((e) => e.unlocked).length;
-      const total = list.length || 13;
-      el.append(h('div.we-top', h('div.we-ic', JC.icon('lotus.fill', { size: 16 })), h('div.we-k', 'ENDINGS')),
-        h('div.we-ring', { style: { '--p': Math.round((got / total) * 100) } }, h('div.we-n', String(got)), h('div.we-of', 'of ' + total)),
-        h('div.we-sub', got ? 'Latest: ' + (list.filter((e) => e.unlocked).sort((a, b) => b.at - a.at)[0].title) : 'Find out how the night ends.'));
+      const total = ENDN(list);
+      el.append(h('div.we-top', h('div.we-ic', JC.icon(EMBLEM(), { size: 16 })), h('div.we-k', 'ENDINGS')),
+        h('div.we-ring', { style: { '--p': total ? Math.round((got / total) * 100) : 0 } }, h('div.we-n', String(got)), h('div.we-of', 'of ' + total)),
+        h('div.we-sub', got ? 'Latest: ' + (list.filter((e) => e.unlocked).sort((a, b) => b.at - a.at)[0].title) : (BRAND.endingsHint || 'Find out how the story ends.')));
       JC.ui.onTap(el, () => { if (!jiggle && !preview) os.showEndings(); });
     } else if (id === 'battery') {
       el.append(h('div.wb-row', h('div.wb-ring', { style: { '--p': S().battery } }, JC.icon('iphone', { size: 20 })), h('div.wb-pct', S().battery + '%')), h('div.wb-row', h('div.wb-ring.off', JC.icon('airpods', { size: 20 })), h('div.wb-pct.off', '—')));
       JC.ui.onTap(el, () => open('settings', { page: 'battery' }));
     } else if (id === 'notes') {
-      const n = (JC.store.hasSeed('notes') ? JC.store.all('notes') : []).find((x) => x.pinned) || { title: 'Things I will not say to Wei Wuxian', body: '' };
+      const n = (JC.store.hasSeed('notes') ? JC.store.all('notes') : []).find((x) => x.pinned) || { title: (WID.note && WID.note.title) || 'Notes', body: '' };
       el.append(h('div.wn-k', JC.icon('folder.fill', { size: 12 }), ' Notes'), h('div.wn-t', n.title), h('div.wn-b', (n.body || '').split('\n').slice(0, 3).join('\n')));
       JC.ui.onTap(el, () => open('notes', { note: n.id }));
     }
@@ -1314,12 +1385,15 @@
       grid.hidden = !!q;
       results.innerHTML = '';
       if (!q) return;
-      const ids = Object.keys(APP_NAMES).filter((id) => APP_NAMES[id].toLowerCase().includes(q)).sort((a, b) => APP_NAMES[a].localeCompare(APP_NAMES[b]));
-      results.appendChild(JC.ui.list([{ rows: ids.map((id) => ({ icon: { app: id }, title: APP_NAMES[id], onTap: () => os.open(id) })) }], { style: 'plain' }));
+      const ids = allAppIds().filter((id) => appName(id).toLowerCase().includes(q)).sort((a, b) => appName(a).localeCompare(appName(b)));
+      results.appendChild(JC.ui.list([{ rows: ids.map((id) => ({ icon: { app: id }, title: appName(id), onTap: () => os.open(id) })) }], { style: 'plain' }));
       if (!ids.length) results.appendChild(h('div.lib-none', 'No Results'));
     }
     return lib;
   }
+  /** every app id the phone knows: named in JC.world.apps.names or registered with JC.app */
+  function allAppIds() { return Array.from(new Set(Object.keys(APP_NAMES).concat(Object.keys(apps)))); }
+  os.appIds = allAppIds;
   function openLibCategory(name, ids) {
     const ov = h('div.folder-open.lib');
     ov.append(h('div.fo-back', { onTap: () => ov.remove() }), h('div.fo-title', name), h('div.fo-panel', h('div.fo-grid', ids.map((id) => appTile(id, { noDrag: true })))));
@@ -1364,12 +1438,13 @@
       results.innerHTML = '';
       q = q.trim().toLowerCase();
       if (!q) {
-        results.append(h('div.sp-h', 'Siri Suggestions'), h('div.sp-apps', ['messages', 'voicememos', 'photos', 'findmy', 'notes', 'wavelet', 'maps', 'lotusleap'].map((id) => appTile(id, { noDrag: true }))));
-        const recent = JC.contacts.people().filter((c) => ['jl', 'wwx', 'lxc', 'nhs'].includes(c.id));
+        results.append(h('div.sp-h', 'Siri Suggestions'), h('div.sp-apps', (WA.spotlightApps || []).filter((id) => apps[id] || APP_NAMES[id]).map((id) => appTile(id, { noDrag: true }))));
+        const spIds = (W.people && W.people.spotlight) || [];
+        const recent = JC.contacts.people().filter((c) => spIds.includes(c.id));
         results.append(h('div.sp-h', 'Contacts'), JC.ui.list([{ rows: recent.map((c) => ({ avatar: c.id, avatarSize: 34, title: c.display, subtitle: c.phones[0] ? c.phones[0].num : '', onTap: () => { close(); os.open('contacts', { contact: c.id }); } })) }]));
         return;
       }
-      const appIds = Object.keys(APP_NAMES).filter((id) => APP_NAMES[id].toLowerCase().includes(q));
+      const appIds = allAppIds().filter((id) => appName(id).toLowerCase().includes(q));
       if (appIds.length) results.append(h('div.sp-h', 'Apps'), h('div.sp-apps', appIds.slice(0, 8).map((id) => appTile(id, { noDrag: true }))));
       const cs = JC.contacts.people().filter((c) => (c.display + ' ' + JC.contacts.full(c.id) + ' ' + (c.nick || '')).toLowerCase().includes(q)).slice(0, 5);
       if (cs.length) results.append(h('div.sp-h', 'Contacts'), JC.ui.list([{ rows: cs.map((c) => ({ avatar: c.id, avatarSize: 34, title: c.display, subtitle: JC.contacts.real(c.id), onTap: () => { close(); os.open('contacts', { contact: c.id }); } })) }]));
@@ -1403,7 +1478,7 @@
       win.inst = def.launch(win, null) || {};
     } catch (e) {
       console.error('app launch failed', id, e);
-      body.appendChild(h('div.app-crash', h('div.ac-t', (def.name || id) + ' quit unexpectedly.'), h('div.ac-s', String(e && e.message || e))));
+      body.appendChild(h('div.app-crash', h('div.ac-t', appName(id) + ' quit unexpectedly.'), h('div.ac-s', String(e && e.message || e))));
       win.inst = {};
     }
     return win;
@@ -1437,7 +1512,7 @@
 
   os.open = (id, intent, fromRect) => {
     if (!apps[id]) {
-      JC.ui.alert({ title: (APP_NAMES[id] || id) + ' is unavailable', message: 'This app is still being set up.', buttons: [{ text: 'OK' }] });
+      JC.ui.alert({ title: appName(id) + ' is unavailable', message: 'This app is still being set up.', buttons: [{ text: 'OK' }] });
       return;
     }
     if (os.locked) { unlockThen(() => os.open(id, intent)); return; }
@@ -1636,7 +1711,7 @@
     let offset = 0;
     const cards = ids.map((id, i) => {
       const w = running[id];
-      const card = h('div.sw-card', { data: { app: id } }, h('div.sw-head', JC.appIcon(id), h('span', (apps[id] && apps[id].name) || id)), h('div.sw-shot'));
+      const card = h('div.sw-card', { data: { app: id } }, h('div.sw-head', JC.appIcon(id), h('span', appName(id))), h('div.sw-shot'));
       // live snapshot: temporarily move the window into the card
       w.el.style.display = 'block';
       w.el.classList.add('in-switcher');
@@ -1745,6 +1820,7 @@
   }
   os.volume = volume;
 
+  const SIRI = W.siri || {};
   function siri() {
     if (os.asleep) os.wake();
     const layer = els['sys-overlays'];
@@ -1764,27 +1840,38 @@
       input.value = '';
       if (!s.trim()) return;
       if (/time/.test(s)) say('It’s ' + U.fmtTime(JC.time.now()) + '.');
-      else if (/where am i|location/.test(s)) say('You’re near Jinxing Road, Lanling.');
-      else if (/weather|rain/.test(s)) say('It’s 14° and raining in Lanling.');
-      else if (/who.*(own|this phone)|whose phone|my name/.test(s)) say('This iPhone belongs to Jiang Cheng. You are not Jiang Cheng.');
+      else if (/where am i|location/.test(s)) say(SIRI.where || 'I can’t find your location.');
+      else if (/weather|rain/.test(s)) { const wx = weatherNow(); say(SIRI.weather || ('It’s ' + wx.temp + '° and ' + String(wx.label || '').toLowerCase() + '.')); }
+      else if (/who.*(own|this phone)|whose phone|my name/.test(s)) say(SIRI.owner || 'This iPhone isn’t yours.');
       else if (/call (.+)/.test(s)) {
         const name = s.match(/call (.+)/)[1];
         const c = JC.contacts.people().find((x) => (x.display + ' ' + JC.contacts.full(x.id) + ' ' + (x.nick || '')).toLowerCase().includes(name.trim()));
         if (c) { say('Calling ' + c.display + '…'); setTimeout(() => { close(); JC.story.dial(c.id); }, 900); } else say('I couldn’t find “' + name + '” in your contacts.');
       } else if (/open (.+)/.test(s)) {
         const n = s.match(/open (.+)/)[1].trim();
-        const id = Object.keys(APP_NAMES).find((k) => APP_NAMES[k].toLowerCase() === n);
+        const id = allAppIds().find((k) => appName(k).toLowerCase() === n);
         if (id) { close(); os.open(id); } else say('I couldn’t find an app called “' + n + '”.');
-      } else if (/joke/.test(s)) say('Why did the radish blush? It saw the salad dressing. (Wei Wuxian added this joke to my database.)');
+      } else if (/joke/.test(s)) say(SIRI.joke || 'I’m not very funny.');
       else if (/passcode|password/.test(s)) say('I can’t help with that.');
-      else if (/jiang cheng|wanyin/.test(s)) say('Jiang Cheng is the owner of this iPhone. His Medical ID says he is allergic to Wei Wuxian.');
-      else if (/sorry|thank/.test(s)) say('You don’t need to apologize to me. But maybe to someone.');
+      else if ((SIRI.extra || []).some(([re]) => re.test(s))) say(SIRI.extra.find(([re]) => re.test(s))[1]);
       else say('Here’s what I found on the web for “' + q + '”.') || setTimeout(() => { close(); os.open('safari', { search: q }); }, 900);
     }
   }
   os.siri = siri;
 
   function keyboardShortcuts() {
+    // time controls: ] faster, [ slower, \ skip to the next event (ignored while typing)
+    window.addEventListener('keydown', (e) => {
+      if (e.metaKey || e.ctrlKey || e.altKey || !JC.story || !JC.story.setTimeScale) return;
+      if (e.key !== ']' && e.key !== '[' && e.key !== '\\') return;
+      const ae = document.activeElement;
+      if (ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable)) return;
+      if (JC.kb.visible || !S().started) return;
+      e.preventDefault();
+      if (e.key === '\\') { skipNow(); return; }
+      const n = cycleScale(e.key === ']' ? +1 : -1, false);
+      islandFlash('Time ' + n + '×', 'hare.fill', n > 1 ? '#64d2ff' : '#fff');
+    });
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         const layer = els['sys-overlays'];
@@ -1874,14 +1961,22 @@
     const body = h('div.end-body',
       h('div.end-art', JC.art.el(def.art || 'end_' + def.id, { cls: 'end-art-img' }), h('div.end-art-fade')),
       h('div.end-text',
-        h('div.end-tag', (def.tag ? def.tag + ' · ' : '') + 'Ending ' + (def.n || '') + ' of ' + (all.length || 13)),
+        h('div.end-tag', (def.tag ? def.tag + ' · ' : '') + 'Ending ' + (def.n || '') + ' of ' + ENDN(all)),
         h('div.end-title', def.title),
         (def.text || []).map((p) => h('p', p)),
-        def.jc && def.jc.length ? h('div.end-jc', h('div.end-jc-k', JC.icon('lotus.fill', { size: 14 }), ' When Jiang Cheng got his phone back…'), def.jc.map((p) => h('p', p))) : null,
+        def.jc && def.jc.length ? h('div.end-jc', h('div.end-jc-k', JC.icon(EMBLEM(), { size: 14 }), ' ' + (BRAND.epilogue || 'Afterwards…')), def.jc.map((p) => h('p', p))) : null,
         opts.also && opts.also.length ? h('div.end-also', 'Also unlocked: ' + opts.also.map((id) => (JC.story.endingDef(id) || {}).title || id).join(', ')) : null,
-        h('div.end-count', 'Endings found: ' + got + ' / ' + (all.length || 13))));
+        h('div.end-count', 'Endings found: ' + got + ' / ' + ENDN(all))));
     return body;
   }
+
+  /** "Where everyone ended up": avatar, chat name and outcome line per chat */
+  function aftermathList(list) {
+    return h('div.af-list', list.map((r) => h('div.af-row',
+      r.avatar ? JC.ui.avatar(r.avatar, 44) : h('div.af-av', JC.icon('person.fill', { size: 20 })),
+      h('div.af-m', h('div.af-name', r.name), h('div.af-line', r.line)))));
+  }
+  os.aftermathList = aftermathList;
 
   os.ending = (id, also) => {
     const C = els.cinema;
@@ -1890,15 +1985,39 @@
     JC.time.freeze(true);
     JC.kb.hide();
     const e = JC.story.endingDef(id);
+    const last = JC.story.aftermathLast ? JC.story.aftermathLast() : null;
+    const after = last && last.ending === id && last.list && last.list.length ? last.list : null;
     const wrap = h('div.ending.scroll');
-    const btns = h('div.end-btns',
+    const endBtns = () => h('div.end-btns',
       JC.state.canRewind() ? h('div.end-btn', { onTap: () => { close(); JC.story.rewind(); } }, JC.icon('arrow.counterclockwise', { size: 18 }), h('span', 'Rewind to last choice')) : null,
-      h('div.end-btn', { onTap: () => { close(); JC.ui.toast('The story has ended — the phone is yours to explore', { icon: 'lotus.fill', ms: 3000 }); } }, JC.icon('iphone', { size: 18 }), h('span', 'Keep exploring the phone')),
+      h('div.end-btn', { onTap: () => { close(); JC.ui.toast('The story has ended — the phone is yours to explore', { icon: EMBLEM(), ms: 3000 }); } }, JC.icon('iphone', { size: 18 }), h('span', 'Keep exploring the phone')),
       h('div.end-btn', { onTap: () => { close(); os.showEndings(); } }, JC.icon('square.grid.2x2', { size: 18 }), h('span', 'All endings')),
       h('div.end-btn.primary', { onTap: () => { close(); JC.story.restart(); } }, JC.icon('arrow.clockwise', { size: 18 }), h('span', 'Start over')));
-    wrap.append(endingView(e || { id, title: id }, { also }), btns);
+    wrap.append(endingView(e || { id, title: id }, { also }),
+      after ? h('div.end-btn.end-next', { onTap: () => go(1) }, h('span', 'Where everyone ended up'), JC.icon('chevron.right', { size: 16, weight: 2.4 })) : null,
+      endBtns());
     C.appendChild(h('div.end-dim'));
-    C.appendChild(wrap);
+    let pager = null;
+    let dots = null;
+    const go = (n) => {
+      if (!pager) return;
+      pager.classList.toggle('p2', n === 1);
+      dots.querySelectorAll('i').forEach((d, i) => d.classList.toggle('on', i === n));
+      const pg = pager.children[n];
+      if (pg) pg.scrollTop = 0;
+    };
+    if (after) {
+      const def = e || { id, title: id };
+      const page2 = h('div.ending.scroll.end-after',
+        h('div.af-top', h('div.af-back', { onTap: () => go(0) }, JC.icon('chevron.left', { size: 17, weight: 2.6 }), h('span', 'Ending'))),
+        h('div.af-head', h('div.end-tag', 'Aftermath'), h('div.end-title', 'Where everyone ended up'), h('div.af-sub', (def.n ? 'Ending ' + def.n + ' · ' : '') + (def.title || ''))),
+        aftermathList(after),
+        endBtns());
+      pager = h('div.end-pager', wrap, page2);
+      dots = h('div.end-dots', [0, 1].map((i) => h('i', { class: { on: i === 0 }, onTap: () => go(i) })));
+      U.drag(pager, { axis: 'x', end: (ev, p) => { if (p.dx < -70) go(1); else if (p.dx > 70) go(0); } });
+      C.append(pager, dots);
+    } else C.appendChild(wrap);
     U.anim(C.querySelector('.end-dim'), [{ opacity: 0 }, { opacity: 1 }], { duration: 1200 });
     U.anim(wrap, [{ transform: 'translateY(60px)', opacity: 0 }, { transform: 'none', opacity: 1 }], { duration: 1100, delay: 500, easing: 'cubic-bezier(.2,.8,.2,1)', fill: 'both' });
     JC.audio.play('success');
@@ -1914,7 +2033,7 @@
     const s = JC.ui.sheet({
       title: 'Endings', detent: 'large', system: true, left: { text: 'Close' }, cls: 'endings-sheet',
       content: () => [
-        h('div.eg-head', h('div.eg-ring', { style: { '--p': Math.round((got / (list.length || 13)) * 100) } }, h('span', got + '/' + (list.length || 13))), h('div.eg-sub', got === list.length && got ? 'You found every ending. Jiang Cheng is impressed (he will never say so).' : 'Each night can end differently. Rewind or start over to find them all.')),
+        h('div.eg-head', h('div.eg-ring', { style: { '--p': ENDN(list) ? Math.round((got / ENDN(list)) * 100) : 0 } }, h('span', got + '/' + ENDN(list))), h('div.eg-sub', got === list.length && got ? (BRAND.allFound || 'You found every ending.') : (BRAND.someFound || 'Rewind or start over to find every ending.'))),
         h('div.eg-grid', list.map((e) => h('div.eg-card', {
           class: { locked: !e.unlocked },
           onTap: () => {
@@ -1924,6 +2043,7 @@
           },
         }, e.unlocked ? JC.art.el(e.art || 'end_' + e.id, { cls: 'eg-art' }) : h('div.eg-art.locked', JC.icon('lock.fill', { size: 22 })),
         h('div.eg-n', 'Ending ' + e.n), h('div.eg-t', e.unlocked ? e.title : '???'), h('div.eg-h', e.unlocked ? (e.tag || '') : (e.hint || ''))))),
+        aftermathGallery(),
         h('div.eg-actions',
           JC.ui.btn({ text: 'Rewind to last choice', kind: 'gray', disabled: !JC.state.canRewind(), onTap: () => { s.close(); JC.story.rewind(); } }),
           JC.ui.btn({ text: 'Restart story', kind: 'tinted', onTap: () => { s.close(); confirmRestart(); } })),
@@ -1931,10 +2051,29 @@
     });
   };
 
+  /** Endings gallery: per-chat outcomes found so far ("Zhongli · 2 of 5") */
+  function aftermathGallery() {
+    const chats = JC.story.aftermathFound ? JC.story.aftermathFound() : [];
+    if (!chats.length) return null;
+    const got = chats.reduce((a, c) => a + c.found, 0);
+    const all = chats.reduce((a, c) => a + c.total, 0);
+    return h('div.eg-after',
+      h('div.eg-after-h', h('b', 'Where everyone ended up'), h('span', got + ' of ' + all + ' outcomes')),
+      JC.ui.list([{ rows: chats.map((c) => ({
+        avatar: c.avatar || undefined, avatarSize: 36, icon: c.avatar ? undefined : { glyph: 'person.2.fill', bg: 'var(--gray)' }, title: c.name, detail: c.found + ' of ' + c.total, chevron: true,
+        onTap: () => JC.ui.sheet({ title: c.name, detent: 'medium', system: true, left: { text: 'Back' }, content: () => [
+          JC.ui.list([{ header: c.found + ' of ' + c.total + ' found', footer: 'Each playthrough ends every conversation somewhere. Find them all.', rows: c.outcomes.map((o) => ({
+            icon: { glyph: o.found ? 'checkmark' : 'lock.fill', bg: o.found ? 'var(--green)' : 'var(--gray)' },
+            title: o.found ? o.line : '???',
+          })) }]),
+        ] }),
+      })) }]));
+  }
+
   function confirmRestart() {
     JC.ui.alert({
       title: 'Start Over?',
-      message: 'The night begins again in the taxi. Endings you have found stay unlocked.',
+      message: BRAND.restart || 'The story begins again. Endings you have found stay unlocked.',
       buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Start Over', style: 'destructive', onTap: () => JC.story.restart() }],
     });
   }
@@ -1983,6 +2122,12 @@
     JC.bus.on('kb', (k) => {
       screen.classList.toggle('kb-open', k.open);
     });
+    ['story:time', 'story:chapter', 'story:pending', 'story:call', 'story:ending', 'story:reset'].forEach((ev) => JC.bus.on(ev, () => {
+      paintSpeedBadge();
+      renderLater();
+      if (els.cc.classList.contains('open') && ev !== 'story:pending') renderCC();
+    }));
+    JC.bus.on('setting:timeScale', () => { paintSpeedBadge(); });
     renderLost();
     renderLockNotifs();
     updateStatus();
