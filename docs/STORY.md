@@ -645,3 +645,4 @@ Liyue phone numbers: `(0761) 555 01xx`. Snezhnaya numbers: `+9 812 555 07xx`.
 Cross-package needs: write `docs/requests/<package>.md`.
 
 ## Facts added
+- Music: "Songs of the Frozen Sea" is by the Morepesok Fishermen's Choir. Brands: Tonia's pen is from SNEZHNAYA Atelier (est. 1801); Zhongli's tea tin is "Jueyun Premium Oolong"; the rod's reel is HYDRO·CARBON. (added by A5)

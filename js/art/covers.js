@@ -1,4 +1,4 @@
-/* Album covers (1000×1000). Fictional titles and artists only. */
+/* Album and playlist covers (600×600) for Childe's Music library. Fictional records only. */
 (function () {
   'use strict';
   const def = JC.art.def;
@@ -7,454 +7,485 @@
   const stops = (s) => s.map(([o, c, a]) => `<stop offset="${o}" stop-color="${c}"${a != null ? ` stop-opacity="${a}"` : ''}/>`).join('');
   const lg = (id, s, x1 = 0, y1 = 0, x2 = 0, y2 = 1) => `<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">${stops(s)}</linearGradient>`;
   const rg = (id, s, cx = 0.5, cy = 0.5, r = 0.5) => `<radialGradient id="${id}" cx="${cx}" cy="${cy}" r="${r}">${stops(s)}</radialGradient>`;
-  const f = Math.round;
-  const r1 = (n) => Math.round(n * 10) / 10;
+  const svg = (defs, body) => `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 600 600"><defs>${defs}</defs>${body}</svg>`;
+  const f = (n) => Math.round(n * 10) / 10;
   let S = 1;
   const seed = (n) => { S = n; };
   const rnd = () => (S = (S * 16807) % 2147483647) / 2147483647;
   const rr = (a, b) => a + (b - a) * rnd();
-
-  const GRAIN =
-    `<filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch" result="n"/>` +
-    `<feColorMatrix in="n" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 .9 0 0 0 -.5" result="l"/>` +
-    `<feColorMatrix in="n" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -.9 0 0 0 .4" result="d"/>` +
-    `<feMerge><feMergeNode in="l"/><feMergeNode in="d"/></feMerge></filter>`;
-  const svg = (defs, body, g = 0.55) =>
-    `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1000 1000"><defs>${GRAIN}${defs}</defs>${body}<rect width="1000" height="1000" filter="url(#grain)" opacity="${g}"/></svg>`;
-
-  const SERIF = `Didot, 'Bodoni 72', 'Bodoni MT', Baskerville, 'Times New Roman', serif`;
-  const SANS = `-apple-system, 'Helvetica Neue', Helvetica, Arial, sans-serif`;
-  const HEAVY = `'Arial Black', 'Helvetica Neue', Helvetica, Arial, sans-serif`;
-  const CJK = `'Kaiti SC', STKaiti, KaiTi, 'Songti SC', serif`;
-  const text = (x, y, s, o) =>
-    `<text x="${x}" y="${y}" font-family="${o.font || SANS}" font-size="${o.size}"${o.weight ? ` font-weight="${o.weight}"` : ''}${o.italic ? ' font-style="italic"' : ''}` +
-    `${o.ls != null ? ` letter-spacing="${o.ls}"` : ''}${o.anchor ? ` text-anchor="${o.anchor}"` : ''} fill="${o.fill || '#fff'}"${o.op != null ? ` opacity="${o.op}"` : ''}${o.extra || ''}>${s}</text>`;
-
-  // Glow dot (fireflies, bokeh)
-  const dots = (n, x0, x1, y0, y1, r0, r2) => {
+  const FONT = 'Inter, -apple-system, Helvetica, Arial, sans-serif';
+  const SERIF = "Georgia, 'Times New Roman', serif";
+  const T = (x, y, s, size, o = {}) =>
+    `<text x="${x}" y="${y}" font-family="${o.serif ? SERIF : FONT}" font-size="${size}" font-weight="${o.w || 400}" fill="${o.fill || '#fff'}" text-anchor="${o.a || 'middle'}"` +
+    `${o.ls ? ` letter-spacing="${o.ls}"` : ''}${o.it ? ' font-style="italic"' : ''}${o.op != null ? ` opacity="${o.op}"` : ''}${o.x || ''}>${s}</text>`;
+  // Light film/paper grain (the single feTurbulence per image).
+  const GRAIN = (freq = 0.8, k = 0.5) =>
+    `<filter id="gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="${freq}" numOctaves="2" stitchTiles="stitch"/>` +
+    `<feColorMatrix values="0 0 0 0 .5 0 0 0 0 .5 0 0 0 0 .5 0 0 0 ${k} 0"/><feComposite in2="SourceGraphic" operator="in"/></filter>`;
+  const grain = (op = 0.35, blend = 'overlay') => `<rect width="600" height="600" filter="url(#gr)" opacity="${op}" style="mix-blend-mode:${blend}"/>`;
+  const dots = (n, x0, x1, y0, y1, r0, r1) => {
     let d = '';
     for (let i = 0; i < n; i++) {
-      const r = rr(r0, r2), x = rr(x0, x1), y = rr(y0, y1);
-      d += `M${f(x + r)} ${f(y)}a${r1(r)} ${r1(r)} 0 1 0 .1 0`;
+      const r = rr(r0, r1), x = rr(x0, x1), y = rr(y0, y1);
+      d += `M${f(x - r)} ${f(y)}a${f(r)} ${f(r)} 0 1 0 ${f(r * 2)} 0a${f(r)} ${f(r)} 0 1 0 ${f(-r * 2)} 0`;
     }
     return d;
   };
-
-  // A lotus bloom (petals fanned from a base point), front view.
-  function lotus(x, y, s, c1, c2, pod) {
-    const pet = (a, L, W) =>
-      `<path transform="rotate(${a})" d="M0 0C${W} ${-L * 0.25} ${W * 0.7} ${-L * 0.85} 0 ${-L}C${-W * 0.7} ${-L * 0.85} ${-W} ${-L * 0.25} 0 0Z" fill="url(#${c1})" stroke="${c2}" stroke-width="1.5"/>`;
-    let p = '';
-    for (const a of [-80, 80, -62, 62]) p += pet(a, 120, 44);
-    for (const a of [-40, 40, -20, 20]) p += pet(a, 150, 46);
-    p += pod ? `<path d="M-40-40C-30-70 30-70 40-40C30-30-30-30-40-40Z" fill="#e2cf5c"/><path d="M-26-50h4M-10-56h4M8-56h4M22-50h4" stroke="#9a8a2a" stroke-width="5" stroke-linecap="round"/>` : '';
-    for (const a of [-8, 8]) p += pet(a, 160, 42);
-    return `<g transform="translate(${x} ${y}) scale(${s})">${p}</g>`;
+  // Tapered ribbon along a cubic Bézier (for plumes, slashes, brush strokes).
+  function taper(p, w0, w1, n = 26) {
+    const at = (t) => {
+      const u = 1 - t;
+      return [0, 1].map((k) => u * u * u * p[0][k] + 3 * u * u * t * p[1][k] + 3 * u * t * t * p[2][k] + t * t * t * p[3][k]);
+    };
+    const L = [], R = [];
+    for (let i = 0; i <= n; i++) {
+      const t = i / n, a = at(Math.max(0, t - 0.01)), b = at(Math.min(1, t + 0.01)), c = at(t);
+      let nx = -(b[1] - a[1]), ny = b[0] - a[0];
+      const m = Math.hypot(nx, ny) || 1, w = (w0 + (w1 - w0) * t) / 2;
+      nx /= m; ny /= m;
+      L.push(`${f(c[0] + nx * w)} ${f(c[1] + ny * w)}`);
+      R.push(`${f(c[0] - nx * w)} ${f(c[1] - ny * w)}`);
+    }
+    return 'M' + L.join('L') + 'L' + R.reverse().join('L') + 'Z';
   }
+  const star5 = (cx, cy, r, rot = 0, k = 0.45) => {
+    let d = '';
+    for (let i = 0; i < 10; i++) {
+      const a = ((i * 36 + rot - 90) * Math.PI) / 180, rad = i % 2 ? r * k : r;
+      d += (i ? 'L' : 'M') + f(cx + Math.cos(a) * rad) + ' ' + f(cy + Math.sin(a) * rad);
+    }
+    return d + 'Z';
+  };
 
-  // ---- Lotus Nocturnes --------------------------------------------------------------------
-  def('cover_lotus_nocturnes', {
-    title: 'Lotus Nocturnes',
-    w: 1000, h: 1000, tags: ['cover', 'guqin', 'night'],
+  // ---- Songs of the Frozen Sea (woodcut) ---------------------------------------------------
+  def('cover_snezh_folk', {
+    title: 'Songs of the Frozen Sea',
+    w: 600, h: 600, tags: ['cover', 'music', 'snezhnaya'],
     svg: () => {
+      const INK = '#1a2738', PAPER = '#ece2cb', RED = '#b3343a';
       seed(4);
-      const hui = [1 / 8, 1 / 6, 1 / 5, 1 / 4, 1 / 3, 2 / 5, 1 / 2, 3 / 5, 2 / 3, 3 / 4, 4 / 5, 5 / 6, 7 / 8];
-      let strings = '';
-      for (let i = 0; i < 7; i++) strings += `M60 ${-42 + i * 14}L860 ${r1(-30 + i * 10)}`;
-      const huiDots = hui.map((t) => `<circle cx="${f(60 + 800 * t)}" cy="${r1(-55 + 9 * t)}" r="5.5"/>`).join('');
-      let refl = '';
-      for (let i = 0; i < 22; i++) {
-        const y = 566 + i * 7 + rr(-2, 2), wd = (130 - i * 4.5) * rr(0.3, 1), x = 720 + rr(-50, 50) * (0.3 + i / 30);
-        refl += `M${f(x - wd / 2)} ${f(y)}h${f(wd)}`;
+      let rings = '';
+      for (let r = 70; r < 520; r += 15) rings += `M${430 - r} 132a${r} ${r} 0 1 0 ${r * 2} 0a${r} ${r} 0 1 0 ${-r * 2} 0`;
+      let waves = '';
+      for (let row = 0; row < 9; row++) {
+        const y = 318 + row * 15 + row * row * 0.6, step = 26 + row * 3, off = (row % 2) * step * 0.5;
+        let d = `M${f(20 - off)} ${f(y)}`;
+        for (let x = 20 - off; x < 600; x += step) d += `q${f(step * 0.25)} ${f(-7 - row * 0.5)} ${f(step * 0.5)} 0t${f(step * 0.5)} 0`;
+        waves += `<path d="${d}" fill="none" stroke="${PAPER}" stroke-width="${f(1.4 + row * 0.32)}" stroke-linecap="round"/>`;
       }
-      const leaf = (x, y, rx, ry) => `<ellipse cx="${x}" cy="${y}" rx="${rx}" ry="${ry}" fill="#0f3b3a"/><path d="M${x} ${y}L${x + rx * 0.6} ${y - ry * 0.7}" stroke="#05201f" stroke-width="5"/><ellipse cx="${x}" cy="${y - 3}" rx="${rx - 6}" ry="${ry - 5}" fill="none" stroke="#2f6b5e" stroke-width="2" opacity=".6"/>`;
-      const GQ = 'M18-72H140Q150-62 162-62Q172-62 180-70L640-60Q652-50 664-50Q676-50 684-58L890-54Q902-54 902-40V40Q902 54 890 54L684 58Q676 50 664 50Q652 50 640 60L180 70Q172 62 162 62Q150 62 140 72H18Q0 72 0 54V-54Q0-72 18-72Z';
+      let hatch = '';
+      for (let i = 0; i < 14; i++) hatch += `M${148 + i * 9} 352l-6 12`;
       return svg(
-        lg('sky', [[0, '#060d22'], [0.45, '#0f2140'], [0.62, '#1d4658']]) +
-        lg('pond', [[0, '#123440'], [1, '#04121a']]) +
-        rg('halo', [[0, '#fff3cf', 0.45], [0.35, '#ffe9b0', 0.12], [1, '#ffe9b0', 0]]) +
-        lg('lacq', [[0, '#5a3626'], [0.3, '#2b1711'], [1, '#0e0605']]) +
-        lg('deck', [[0, '#261a14'], [1, '#0c0807']]) +
-        lg('pk', [[0, '#fff4f6'], [1, '#f08aaa']], 0, 1, 0, 0) +
-        rg('ff', [[0, '#f4ff9a', 0.9], [0.3, '#d8ff6a', 0.35], [1, '#d8ff6a', 0]]),
-        `<rect width="1000" height="1000" fill="url(#sky)"/>` +
-        `<path d="${dots(46, 0, 1000, 0, 470, 0.8, 2.4)}" fill="#fff" opacity=".7"/>` +
-        `<circle cx="720" cy="250" r="330" fill="url(#halo)"/>` +
-        `<circle cx="720" cy="250" r="92" fill="#fbf2d7"/><circle cx="694" cy="232" r="16" fill="#efe3c0" opacity=".7"/><circle cx="748" cy="282" r="11" fill="#efe3c0" opacity=".6"/>` +
-        // far hills with Cloud Recesses roofs
-        `<path d="M0 520C80 470 160 440 260 470C330 430 420 420 500 470C580 440 660 450 740 490C820 470 920 470 1000 500V560H0Z" fill="#0c2233"/>` +
-        `<path d="M170 452L210 436L250 452H236V466H184V452Z" fill="#081926"/><path d="M590 452L630 438L670 452H656V466H604V452Z" fill="#081926"/>` +
-        `<rect y="540" width="1000" height="460" fill="url(#pond)"/>` +
-        `<path d="${refl}" stroke="#fff3cf" stroke-width="4" stroke-linecap="round" opacity=".5"/>` +
-        leaf(140, 620, 110, 26) + leaf(420, 600, 80, 18) + leaf(900, 640, 120, 28) + leaf(600, 680, 90, 20) +
-        `<path d="M300 640C296 600 300 570 306 540M860 660C858 630 862 610 866 590" stroke="#1d5a4a" stroke-width="5" fill="none"/>` +
-        `<path d="M306 540C290 520 296 492 306 480C318 494 322 520 306 540Z" fill="url(#pk)" opacity=".85"/>` +
-        lotus(866, 600, 0.42, 'pk', '#d77d98', true) +
-        `<path d="${dots(14, 40, 980, 420, 760, 3, 5)}" fill="#efff9a"/>` +
-        [[120, 470], [360, 520], [520, 430], [930, 480], [240, 700], [800, 560]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="26" fill="url(#ff)"/>`).join('') +
-        // deck + guqin
-        `<path d="M0 740L1000 680V1000H0Z" fill="url(#deck)"/>` +
-        `<path d="M0 790L1000 730M0 856L1000 796M0 930L1000 870" stroke="#3a2a20" stroke-width="3" opacity=".6"/>` +
-        `<g transform="translate(46 880) rotate(-10)">` +
-        `<path d="${GQ}" fill="#000" opacity=".5" transform="translate(14 26)"/>` +
-        `<path d="${GQ}" fill="url(#lacq)"/>` +
-        `<path d="M20-62H140M190-60L640-52" stroke="#b07a52" stroke-width="3" opacity=".45"/>` +
-        `<rect x="54" y="-50" width="10" height="100" rx="3" fill="#d9c08a" opacity=".8"/><rect x="858" y="-46" width="8" height="92" rx="3" fill="#d9c08a" opacity=".7"/>` +
-        `<path d="${strings}" stroke="#efe4c8" stroke-width="2.2" opacity=".85"/>` +
-        `<g fill="#f6f1e2">${huiDots}</g>` +
-        `<path d="M10 40C-20 70-30 110-20 150M24 46C4 80 0 120 10 160" stroke="#c8243a" stroke-width="4" fill="none"/>` +
-        `<path d="M-30 150l-8 46h30l-4-46ZM2 160l-6 46h28l-6-46Z" fill="#c8243a"/><circle cx="-20" cy="150" r="8" fill="#e8b84a"/><circle cx="10" cy="160" r="8" fill="#e8b84a"/>` +
+        GRAIN(0.9, 0.55) +
+        `<clipPath id="bk"><path d="M32 34Q300 28 568 33L566 438Q300 444 34 437Z"/></clipPath>` +
+        `<clipPath id="sky"><rect x="30" y="30" width="540" height="300"/></clipPath>`,
+        `<rect width="600" height="600" fill="${PAPER}"/>` +
+        `<g clip-path="url(#bk)"><rect width="600" height="600" fill="${INK}"/>` +
+        `<path clip-path="url(#sky)" d="${rings}" fill="none" stroke="${PAPER}" stroke-width="1.3" opacity=".32"/>` +
+        `<circle cx="430" cy="132" r="54" fill="${PAPER}"/>` +
+        `<path d="M400 112q16-6 30 2M412 150q18 6 34-4M446 116q8 6 10 18" fill="none" stroke="${INK}" stroke-width="2.2" opacity=".55" stroke-linecap="round"/>` +
+        // far ice cliffs
+        `<path d="M30 300L70 252L96 270L130 236L170 286L210 268L240 300Z" fill="${PAPER}"/>` +
+        `<path d="M70 252L80 300M130 236L136 300M96 270L102 300M170 286L176 300" stroke="${INK}" stroke-width="2.5"/>` +
+        `<path d="M470 300L500 274L528 282L556 262L570 270V300Z" fill="${PAPER}"/><path d="M500 274L506 300M556 262L552 300" stroke="${INK}" stroke-width="2.5"/>` +
+        `<path d="M30 300H570" stroke="${PAPER}" stroke-width="2"/>` +
+        waves +
+        // ice floes
+        `<path d="M40 420L74 404L132 410L150 426L60 432Z" fill="${PAPER}"/><path d="M80 412l-8 14M96 410l-8 16M112 411l-8 16" stroke="${INK}" stroke-width="2"/>` +
+        `<path d="M440 400L482 390L540 396L556 414L452 418Z" fill="${PAPER}"/><path d="M470 398l-6 14M488 394l-6 18M506 395l-6 18M524 396l-6 18" stroke="${INK}" stroke-width="2"/>` +
+        // the boat
+        `<g transform="rotate(-4 220 340)">` +
+        `<path d="M226 238V336" stroke="${PAPER}" stroke-width="5"/>` +
+        `<path d="M230 246L300 312H230Z" fill="${RED}"/><path d="M236 262l20 20M236 280l26 26M236 298l12 12" stroke="${INK}" stroke-width="2" opacity=".5"/>` +
+        `<path d="M222 252L170 314H222Z" fill="${PAPER}"/><path d="M214 276l-18 22M216 292l-10 14" stroke="${INK}" stroke-width="2"/>` +
+        `<path d="M126 330H320L296 368Q220 378 150 366Z" fill="${PAPER}"/>` +
+        `<path d="M136 342H312M146 356H302" stroke="${INK}" stroke-width="2.4"/>` +
+        `<path d="M${hatch.slice(1)}" stroke="${INK}" stroke-width="1.6"/>` +
+        `<path d="M300 312V330" stroke="${PAPER}" stroke-width="3"/><circle cx="300" cy="306" r="7" fill="#f2c45a"/><circle cx="300" cy="306" r="16" fill="#f2c45a" opacity=".25"/>` +
+        `<path d="M126 330Q140 322 160 326Q200 320 236 326Q280 320 320 330" fill="none" stroke="${PAPER}" stroke-width="4"/></g>` +
+        // snow
+        `<path d="${dots(90, 34, 566, 34, 430, 1.2, 3.6)}" fill="${PAPER}"/>` +
         `</g>` +
-        // a lotus resting on the deck
-        lotus(880, 940, 0.4, 'pk', '#d77d98', false) +
-        // type
-        text(70, 150, 'Lotus', { font: SERIF, size: 104, fill: '#f4ead2', ls: 2 }) +
-        text(70, 250, 'Nocturnes', { font: SERIF, size: 104, fill: '#f4ead2', ls: 2, italic: true }) +
-        `<path d="M74 292H360" stroke="#c9b98f" stroke-width="2" opacity=".7"/>` +
-        text(74, 332, 'GUQIN · NIGHT RECORDINGS', { size: 22, fill: '#c9b98f', ls: 6 }) +
-        `<rect x="372" y="86" width="46" height="46" rx="4" fill="#b8202f"/>` + text(395, 121, '荷', { font: CJK, size: 33, fill: '#fbeee0', anchor: 'middle' })
-      , 0.5);
+        `<path d="M32 34Q300 28 568 33L566 438Q300 444 34 437Z" fill="none" stroke="${INK}" stroke-width="2"/>` +
+        T(300, 474, 'SONGS OF THE', 17, { serif: 1, fill: INK, ls: 9, w: 700 }) +
+        T(300, 524, 'FROZEN SEA', 50, { serif: 1, fill: INK, ls: 7, w: 700 }) +
+        `<path d="M150 544H260M340 544H450" stroke="${RED}" stroke-width="2"/><path d="M292 544l8-6 8 6-8 6Z" fill="${RED}"/>` +
+        T(300, 572, 'MOREPESOK FISHERMEN’S CHOIR', 12, { fill: RED, ls: 4, w: 700 }) +
+        grain(0.55, 'multiply')
+      );
     },
   });
 
-  // ---- Cloud ambient ----------------------------------------------------------------------
-  def('cover_cloud_ambient', {
-    title: 'Cloud Recesses Ambient',
-    w: 1000, h: 1000, tags: ['cover', 'cloud', 'ambient'],
+  // ---- Yun Jin: The Divine Damsel (opera) --------------------------------------------------
+  def('cover_yunjin_opera', {
+    title: 'Yun Jin — The Divine Damsel',
+    w: 600, h: 600, tags: ['cover', 'music', 'opera', 'yunjin'],
     svg: () => {
-      seed(8);
-      const ridge = (y0, amp, n, ph) => {
-        let d = `M0 ${y0}`;
-        for (let i = 0; i <= n; i++) {
-          const x = (i / n) * 1000, y = y0 - Math.abs(Math.sin(i * 1.7 + ph)) * amp - rr(0, amp * 0.3);
-          d += `Q${f(x - 500 / n)} ${f(y - amp * 0.35)} ${f(x)} ${f(y)}`;
-        }
-        return d + 'V1000H0Z';
-      };
-      const band = (y, op) => `<path d="M-50 ${y}C200 ${y - 40} 400 ${y + 20} 620 ${y - 10}S900 ${y - 30} 1050 ${y}V${y + 60}H-50Z" fill="url(#mist)" opacity="${op}"/>`;
+      const SIL = '#2a0609', GOLD = '#e8bd62';
+      const cloud = (x, y, s) =>
+        `<path transform="translate(${x} ${y}) scale(${s})" d="M-40 0C-40-18-22-24-12-14C-10-30 14-32 18-14C30-22 46-10 38 4C50 8 44 22 30 20H-34C-48 20-50 4-40 0ZM-12-14C-6-6 4-6 6-14M18-14C22-6 30-4 38 4" fill="none" stroke="${GOLD}" stroke-width="2.4" stroke-linecap="round"/>`;
+      const pom = (x, y, r, c) => `<path d="M${x} ${y + r}V${y + r + 14}" stroke="${SIL}" stroke-width="3"/><circle cx="${x}" cy="${y}" r="${r}" fill="${c}"/><circle cx="${f(x - r * 0.35)}" cy="${f(y - r * 0.35)}" r="${f(r * 0.3)}" fill="#fff" opacity=".35"/>`;
+      const C1 = [[288, 206], [262, 120], [330, 30], [470, 2]], C2 = [[318, 206], [330, 140], [430, 96], [640, 70]];
+      const P1 = taper(C1, 20, 9), P2 = taper(C2, 18, 8);
+      const cd = (c) => `M${c[0]}C${c[1]} ${c[2]} ${c[3]}`;
       return svg(
-        lg('sky', [[0, '#c9daf2'], [0.55, '#f4f2f1'], [1, '#e4def0']]) +
-        rg('sun', [[0, '#fff', 1], [0.25, '#fff', 0.7], [1, '#fff', 0]]) +
-        lg('m1', [[0, '#c7d2ea'], [1, '#c7d2ea', 0]]) +
-        lg('m2', [[0, '#a9b9dc'], [1, '#a9b9dc', 0]]) +
-        lg('m3', [[0, '#8b9fcc'], [1, '#e8e6f2', 0.2]]) +
-        lg('m4', [[0, '#6d84b8'], [1, '#d8d6ea', 0.4]]) +
-        lg('mist', [[0, '#fff', 0], [0.5, '#fff', 0.9], [1, '#fff', 0]]),
-        `<rect width="1000" height="1000" fill="url(#sky)"/>` +
-        `<circle cx="640" cy="330" r="260" fill="url(#sun)"/><circle cx="640" cy="330" r="64" fill="#fff"/>` +
-        `<path d="${ridge(560, 220, 6, 0.4)}" fill="url(#m1)"/>` + band(470, 0.9) +
-        `<path d="${ridge(650, 200, 5, 2.1)}" fill="url(#m2)"/>` + band(560, 0.85) +
-        // pavilion on a peak
-        `<path d="M266 452L300 436L334 452L322 452V470H278V452Z" fill="#7d8fb8"/><path d="M262 454L300 440L338 454" stroke="#7d8fb8" stroke-width="5" fill="none"/>` +
-        `<path d="${ridge(780, 210, 4, 3.3)}" fill="url(#m3)"/>` + band(680, 0.8) +
-        `<path d="${ridge(930, 160, 5, 5.2)}" fill="url(#m4)"/>` + band(820, 0.7) +
-        // crane
-        `<g transform="translate(400 250) rotate(-8)"><path d="M0 0C30-40 70-60 110-56C80-40 60-20 40 0C70-6 100 6 120 24C90 22 60 18 30 12Z" fill="#fff"/><path d="M96-58C104-58 112-56 118-52L104-46ZM112 22L122 26L108 30Z" fill="#2a3048"/><path d="M0 0L-26 4M-26 4l-8-4" stroke="#fff" stroke-width="5" stroke-linecap="round"/><circle cx="-30" cy="2" r="3" fill="#c8243a"/></g>` +
-        `<g transform="translate(520 200) scale(.5) rotate(4)"><path d="M0 0C30-40 70-60 110-56C80-40 60-20 40 0C70-6 100 6 120 24C90 22 60 18 30 12Z" fill="#fff" opacity=".85"/></g>` +
-        text(64, 930, 'cloud', { size: 150, weight: 200, fill: '#4e5f88', ls: 22, op: 0.9 }) +
-        text(70, 970, 'AMBIENT WORKS FOR STILL MORNINGS', { size: 20, fill: '#4e5f88', ls: 8, op: 0.75 })
-      , 0.4);
-    },
-  });
-
-  // ---- Yiling Laozu & the Radishes -------------------------------------------------------
-  def('cover_yiling_flute', {
-    title: 'Yiling Laozu & the Radishes',
-    w: 1000, h: 1000, tags: ['cover', 'band', 'radish', 'flute'],
-    svg: () => {
-      seed(12);
-      let rays = '';
-      for (let i = 0; i < 24; i++) {
-        const a = (i / 24) * Math.PI * 2, b = a + Math.PI / 24;
-        rays += `M500 540L${f(500 + 900 * Math.cos(a))} ${f(540 + 900 * Math.sin(a))}L${f(500 + 900 * Math.cos(b))} ${f(540 + 900 * Math.sin(b))}Z`;
-      }
-      return svg(
-        rg('bg', [[0, '#fbf3df'], [1, '#e9d7b4']], 0.5, 0.55, 0.7) +
-        lg('rad', [[0, '#ffffff'], [0.7, '#f6eef0'], [1, '#f2c9d6']], 0, 0, 1, 1) +
-        lg('leafG', [[0, '#79c04a'], [1, '#2f7d32']]) +
-        `<pattern id="ht" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(30)"><circle cx="7" cy="7" r="3" fill="#151515"/></pattern>` +
-        `<path id="arc" d="M150 470A350 350 0 0 1 850 470"/>` +
-        rg('htm', [[0.6, '#fff', 0], [1, '#fff', 1]]) +
-        `<mask id="hm"><rect width="1000" height="1000" fill="url(#htm)"/></mask>`,
-        `<rect width="1000" height="1000" fill="url(#bg)"/>` +
-        `<path d="${rays}" fill="#d83a2e" opacity=".9"/>` +
-        `<rect width="1000" height="1000" fill="url(#ht)" mask="url(#hm)" opacity=".35"/>` +
-        `<circle cx="500" cy="560" r="250" fill="#151515"/><circle cx="500" cy="560" r="236" fill="#f6ead0"/><circle cx="500" cy="560" r="214" fill="#d83a2e"/>` +
-        // flute (dizi) with red tassel, behind the radish
-        `<g transform="translate(500 560) rotate(-32)">` +
-        `<rect x="-380" y="-22" width="760" height="44" rx="22" fill="#151515"/><rect x="-370" y="-14" width="740" height="8" rx="4" fill="#5a5a5a"/>` +
-        `<path d="M-300-22v44M-250-22v44M300-22v44M340-22v44" stroke="#c9a24a" stroke-width="8"/>` +
-        `<g fill="#f6ead0"><circle cx="-180" r="7"/><circle cx="60" r="7"/><circle cx="110" r="7"/><circle cx="160" r="7"/><circle cx="210" r="7"/><circle cx="260" r="7"/></g>` +
-        `<path d="M-376 10C-392 40-396 80-384 120" stroke="#d83a2e" stroke-width="6" fill="none"/><path d="M-398 120h30l10 90h-50Z" fill="#d83a2e"/><circle cx="-384" cy="118" r="11" fill="#151515"/>` +
-        `</g>` +
-        // radish mascot
-        `<g transform="translate(500 590)">` +
-        `<path d="M-30-150C-90-230-60-300-20-300C-10-250 0-210-6-160Z" fill="url(#leafG)" stroke="#151515" stroke-width="7" stroke-linejoin="round"/>` +
-        `<path d="M10-160C30-240 90-280 130-250C100-220 60-190 20-150Z" fill="url(#leafG)" stroke="#151515" stroke-width="7" stroke-linejoin="round"/>` +
-        `<path d="M-10-156C-20-250 20-320 60-310C50-260 30-200 6-150Z" fill="#5aa83e" stroke="#151515" stroke-width="7" stroke-linejoin="round"/>` +
-        `<path d="M-120-50C-130-150-40-176 0-176C40-176 130-150 120-50C110 40 40 110 6 190C2 200-4 200-6 190C-40 110-110 40-120-50Z" fill="url(#rad)" stroke="#151515" stroke-width="8" stroke-linejoin="round"/>` +
-        `<path d="M-80-110C-60-140-20-150 10-150" stroke="#fff" stroke-width="10" fill="none" stroke-linecap="round"/>` +
-        `<path d="M-90 0h24M70 30h20M-60 70h16" stroke="#e2b9c6" stroke-width="5" stroke-linecap="round"/>` +
-        // red ribbon bow on the leaves
-        `<path d="M-6-164C-50-200-80-170-60-150C-40-138-20-150-6-164ZM-6-164C40-200 74-176 56-152C38-140 14-150-6-164Z" fill="#e0242f" stroke="#151515" stroke-width="6" stroke-linejoin="round"/>` +
-        `<path d="M-14-160L-46-110M2-160L26-108" stroke="#e0242f" stroke-width="12" stroke-linecap="round"/><circle cx="-6" cy="-162" r="12" fill="#e0242f" stroke="#151515" stroke-width="6"/>` +
-        // face: wink + grin
-        `<path d="M-64-46Q-46-62-28-46" stroke="#151515" stroke-width="9" fill="none" stroke-linecap="round"/>` +
-        `<ellipse cx="44" cy="-48" rx="15" ry="19" fill="#151515"/><circle cx="49" cy="-54" r="5" fill="#fff"/>` +
-        `<path d="M-50 0Q0 56 56 -4Q2 22-50 0Z" fill="#151515"/><path d="M-30 10Q0 26 36 6L30 14Q0 30-26 18Z" fill="#fff"/>` +
-        `<ellipse cx="-82" cy="-6" rx="20" ry="11" fill="#f39ab0" opacity=".7"/><ellipse cx="88" cy="-10" rx="20" ry="11" fill="#f39ab0" opacity=".7"/>` +
-        `</g>` +
+        rg('bg', [[0, '#c4262c'], [0.6, '#8e1418'], [1, '#4e080b']], 0.5, 0.42, 0.75) +
+        rg('halo', [[0, '#ffe7a8'], [0.55, '#f0c463'], [0.85, '#c98f2e'], [1, '#a46d1c']], 0.45, 0.4, 0.6) +
+        lg('btm', [[0, '#3a0508', 0], [1, '#3a0508', 0.75]]) +
+        `<clipPath id="pl"><path d="${P1}${P2}"/></clipPath>`,
+        `<rect width="600" height="600" fill="url(#bg)"/>` +
+        `<g opacity=".35">${cloud(80, 90, 1.1)}${cloud(520, 250, 0.9)}${cloud(70, 420, 0.9)}${cloud(540, 470, 1.2)}${cloud(150, 230, 0.7)}</g>` +
+        `<path d="M24 24H576V576H24Z" fill="none" stroke="${GOLD}" stroke-width="2" opacity=".7"/><path d="M34 34H566V566H34Z" fill="none" stroke="${GOLD}" stroke-width="1" opacity=".5"/>` +
+        `<circle cx="292" cy="290" r="176" fill="url(#halo)"/>` +
+        `<circle cx="292" cy="290" r="150" fill="none" stroke="#fff3cf" stroke-width="1.5" opacity=".5"/><circle cx="292" cy="290" r="124" fill="none" stroke="#b27a22" stroke-width="1" opacity=".5"/>` +
+        // plumes
+        `<path d="${P1}${P2}" fill="${SIL}" stroke="${GOLD}" stroke-width="1.6"/>` +
+        `<path clip-path="url(#pl)" d="${cd(C1)}${cd(C2)}" fill="none" stroke="${GOLD}" stroke-width="22" stroke-dasharray="2.5 8" opacity=".55"/>` +
+        `<path d="${cd(C1)}${cd(C2)}" fill="none" stroke="#f7dfa0" stroke-width="1.2" opacity=".8"/>` +
+        // silhouette: profile facing left
+        `<path d="M262 252Q248 270 250 284L246 298Q246 304 249 306L236 324Q240 330 247 331L244 339L248 344L245 351Q246 362 256 366Q266 372 276 372L282 402Q262 420 248 444Q220 500 214 600H440Q430 500 404 450Q384 420 344 398Q336 380 344 360Q358 330 352 296Q350 268 340 254Q302 236 262 252Z" fill="${SIL}"/>` +
+        // headdress
+        `<path d="M248 262Q256 214 300 206Q344 204 356 248Q358 262 350 270Q300 252 252 272Z" fill="${SIL}" stroke="${GOLD}" stroke-width="2"/>` +
+        `<path d="M260 248Q300 232 348 246" fill="none" stroke="${GOLD}" stroke-width="2.5"/>` +
+        pom(264, 214, 13, '#e8434c') + pom(288, 194, 15, '#f2c45a') + pom(316, 192, 15, '#e8434c') + pom(342, 208, 13, '#f2c45a') +
+        `<circle cx="254" cy="258" r="12" fill="${SIL}" stroke="${GOLD}" stroke-width="2"/><circle cx="254" cy="258" r="5" fill="#e8434c"/>` +
+        // bead tassels behind the head
+        `<path d="M352 262Q366 320 362 392M362 258Q380 312 378 380" fill="none" stroke="${GOLD}" stroke-dasharray="1 7" stroke-linecap="round" stroke-width="4"/>` +
+        `<circle cx="362" cy="398" r="5" fill="#e8434c"/><circle cx="378" cy="386" r="5" fill="#e8434c"/>` +
+        // collar trim
+        `<path d="M262 426Q300 452 372 424" fill="none" stroke="${GOLD}" stroke-width="2.5"/>` +
+        `<path d="M232 470q11 13 22 0q11 13 22 0q11 13 22 0q11 13 22 0q11 13 22 0q11 13 22 0q11 13 22 0q11 13 22 0q11 13 22 0" fill="none" stroke="${GOLD}" stroke-width="2" opacity=".85"/><path d="M243 484l0 8M265 484l0 8M287 484l0 8M309 484l0 8M331 484l0 8M353 484l0 8M375 484l0 8M397 484l0 8" stroke="#e8434c" stroke-width="4" stroke-linecap="round"/>` +
         // type
-        `<text font-family="${HEAVY}" font-size="88" font-weight="900" letter-spacing="3" text-anchor="middle" fill="#d83a2e" transform="translate(6 6)"><textPath href="#arc" xlink:href="#arc" startOffset="50%">YILING LAOZU</textPath></text>` +
-        `<text font-family="${HEAVY}" font-size="88" font-weight="900" letter-spacing="3" text-anchor="middle" fill="#151515"><textPath href="#arc" xlink:href="#arc" startOffset="50%">YILING LAOZU</textPath></text>` +
-        `<path d="M150 850L200 820L800 820L850 850L800 880H200Z" fill="#151515" transform="translate(0 30)"/>` +
-        `<path d="M110 850L180 810H820L890 850L820 890H180Z" fill="#d83a2e" stroke="#151515" stroke-width="7" stroke-linejoin="round"/>` +
-        text(500, 872, '&amp; THE RADISHES', { font: HEAVY, size: 56, weight: 900, fill: '#fbf3df', ls: 5, anchor: 'middle' })
-      , 0.6);
+        `<g font-family="${SERIF}" fill="${GOLD}" font-size="26" text-anchor="middle" opacity=".9">${['神', '女', '劈', '观'].map((c, i) => `<text x="68" y="${200 + i * 34}">${c}</text>`).join('')}</g>` +
+        `<rect x="56" y="342" width="24" height="24" fill="#e8434c"/>` +
+        `<rect y="440" width="600" height="160" fill="url(#btm)"/>` +
+        `<rect x="140" y="482" width="320" height="2" fill="${GOLD}" opacity=".7"/>` +
+        T(300, 532, 'YUN JIN', 52, { serif: 1, w: 700, fill: GOLD, ls: 12 }) +
+        T(300, 562, 'THE DIVINE DAMSEL', 15, { serif: 1, fill: '#f7e3b2', ls: 7, it: 1 })
+      );
     },
   });
 
-  // ---- Gym (Jiang Cheng's playlist) -------------------------------------------------------
-  def('cover_gym', {
-    title: 'Gym',
-    w: 1000, h: 1000, tags: ['cover', 'gym', 'lightning', 'purple'],
+  // ---- lullabies for teucer (crayon) -------------------------------------------------------
+  def('cover_lullaby', {
+    title: 'lullabies for teucer',
+    w: 600, h: 600, tags: ['cover', 'music', 'teucer'],
     svg: () => {
       seed(21);
-      const bolt = (x0, y0, x1, y1, n, jit) => {
-        let d = `M${x0} ${y0}`;
-        for (let i = 1; i <= n; i++) {
-          const t = i / n, x = x0 + (x1 - x0) * t + (i < n ? rr(-jit, jit) : 0), y = y0 + (y1 - y0) * t + (i < n ? rr(-jit * 0.3, jit * 0.3) : 0);
-          d += `L${f(x)} ${f(y)}`;
+      let scrib = '';
+      for (let i = 0; i < 22; i++) {
+        const y = rr(20, 590), x = rr(-40, 400), L = rr(120, 300);
+        scrib += `M${f(x)} ${f(y)}q${f(L / 4)} ${f(rr(-8, 8))} ${f(L / 2)} 0t${f(L / 2)} 0`;
+      }
+      let zz = '';
+      for (let i = 0; i < 16; i++) zz += `M${410 + i * 7} ${f(120 - Math.sqrt(Math.max(0, 70 * 70 - (i * 7 - 50) ** 2)) * 0.9)}l14 ${f(Math.sqrt(Math.max(0, 70 * 70 - (i * 7 - 50) ** 2)) * 1.7)}`;
+      const fish = (x, y, s, c, c2, flip) =>
+        `<g transform="translate(${x} ${y}) scale(${flip ? -s : s} ${s})">` +
+        `<path d="M-60 0C-40-34 20-38 46-6L76-30Q70 0 76 30L46 6C20 38-40 34-60 0Z" fill="${c}" stroke="${c2}" stroke-width="4" stroke-linejoin="round"/>` +
+        `<path d="M-6-26Q4-8-6 24M12-24Q20-6 12 22" fill="none" stroke="${c2}" stroke-width="3"/>` +
+        `<circle cx="-36" cy="-6" r="7" fill="#fff"/><circle cx="-38" cy="-6" r="3.5" fill="#1b2240"/>` +
+        `<path d="M-54 8Q-48 12-42 8" fill="none" stroke="${c2}" stroke-width="3" stroke-linecap="round"/></g>`;
+      return svg(
+        lg('bg', [[0, '#1b2b55'], [0.6, '#2c4a83'], [1, '#4a6fa8']]) + rg('mg', [[0, '#f6d77a', 0.35], [1, '#f6d77a', 0]]) +
+        `<filter id="cr" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" result="n"/>` +
+        `<feDisplacementMap in="SourceGraphic" in2="n" scale="5" xChannelSelector="R" yChannelSelector="G" result="d"/>` +
+        `<feColorMatrix in="n" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 -3.2 2.3" result="m"/><feComposite in="d" in2="m" operator="in"/></filter>`,
+        `<rect width="600" height="600" fill="url(#bg)"/><circle cx="440" cy="140" r="170" fill="url(#mg)"/>` +
+        `<g filter="url(#cr)">` +
+        `<path d="${scrib}" fill="none" stroke="#6f8fca" stroke-width="10" opacity=".35" stroke-linecap="round"/>` +
+        // moon
+        
+        `<path d="M470 52A100 100 0 1 0 540 210A84 84 0 1 1 470 52Z" fill="#f7d774" stroke="#e8b84a" stroke-width="6" stroke-linejoin="round"/>` +
+        `<path d="M404 128q12 12 26 0M418 170q14 10 30 0" fill="none" stroke="#6e4a16" stroke-width="6" stroke-linecap="round"/>` +
+        `<circle cx="402" cy="160" r="10" fill="#f2a08a" opacity=".7"/>` +
+        `<path d="M446 64q-8 20 6 40" fill="none" stroke="#fff3c4" stroke-width="5" stroke-linecap="round" opacity=".7"/>` +
+        // stars
+        `<path d="${star5(96, 92, 22, 8)}${star5(232, 60, 15, -10)}${star5(318, 168, 12, 6)}${star5(560, 300, 14, 12)}${star5(130, 250, 11, -4)}${star5(520, 40, 10, 0)}" fill="#ffe89a" stroke="#f2c54e" stroke-width="3" stroke-linejoin="round"/>` +
+        `<path d="${dots(30, 20, 580, 20, 360, 2, 4)}" fill="#fff6cf"/>` +
+        // fish swimming in the sky
+        fish(222, 300, 1.15, '#f39a4e', '#c3622a', false) + fish(430, 360, 0.75, '#8fd3f0', '#4f9cc6', true) + fish(110, 380, 0.55, '#f7c96a', '#c99230', true) +
+        `<path d="M300 280q-8-10 0-18q10-6 6-16M318 262q-6-8 2-14M70 360q-6-8 2-14" fill="none" stroke="#bfe6ff" stroke-width="3" stroke-linecap="round"/>` +
+        `<circle cx="296" cy="252" r="6" fill="none" stroke="#bfe6ff" stroke-width="3"/><circle cx="312" cy="236" r="4" fill="none" stroke="#bfe6ff" stroke-width="2.5"/>` +
+        // sea
+        `<path d="M0 470q25-16 50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0V600H0Z" fill="#203a6e"/>` +
+        `<path d="M0 470q25-16 50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0t50 0" fill="none" stroke="#9cc4f0" stroke-width="5"/>` +
+        `<path d="M20 500q20-12 40 0t40 0M200 510q20-12 40 0t40 0M420 498q20-12 40 0t40 0" fill="none" stroke="#6f97d4" stroke-width="4"/>` +
+        // title
+        `<text x="300" y="556" font-family="${FONT}" font-size="40" font-weight="700" fill="#fdf3d2" text-anchor="middle" letter-spacing="1">lullabies for teucer</text>` +
+        `<path d="M120 572q90 10 180 0t180 0" fill="none" stroke="#f39a4e" stroke-width="5" stroke-linecap="round"/>` +
+        `</g>`
+      );
+    },
+  });
+
+  // ---- FIGHT MIX ---------------------------------------------------------------------------
+  def('cover_fight_mix', {
+    title: 'FIGHT MIX ⚔️',
+    w: 600, h: 600, tags: ['cover', 'music', 'playlist', 'childe'],
+    svg: () => {
+      seed(9);
+      let half = '';
+      for (let y = 0; y < 14; y++) for (let x = 0; x < 14; x++) {
+        const r = Math.max(0, 6 - (x + y) * 0.42);
+        if (r > 0.4) half += `M${f(600 - x * 18 - r)} ${f(y * 18)}a${f(r)} ${f(r)} 0 1 0 ${f(r * 2)} 0a${f(r)} ${f(r)} 0 1 0 ${f(-r * 2)} 0`;
+      }
+      const blade = (rot) =>
+        `<g transform="translate(300 250) rotate(${rot})">` +
+        `<path d="M0 -150C26 -110 30 -40 12 40L0 56L-12 40C-6 -30 -12 -100 0 -150Z" fill="url(#bl)" stroke="#e9f8ff" stroke-width="3"/>` +
+        `<path d="M0 -140C10 -100 12 -40 4 36" fill="none" stroke="#fff" stroke-width="3" opacity=".8"/>` +
+        `<path d="M-30 56H30L24 68H-24Z" fill="#c8323c"/><rect x="-7" y="68" width="14" height="44" rx="4" fill="#0e2547"/><circle cy="120" r="9" fill="#c8323c"/></g>`;
+      return svg(
+        lg('bg', [[0, '#5cc0f5'], [0.45, '#2a86d6'], [1, '#0c2f66']], 0, 0, 0.4, 1) +
+        lg('bl', [[0, '#d9f5ff'], [0.5, '#7fd3ff'], [1, '#2a9be6']], 0, 0, 1, 0) +
+        lg('sl', [[0, '#fff', 0], [0.5, '#fff', 1], [1, '#fff', 0.2]], 0, 0, 1, 0),
+        `<rect width="600" height="600" fill="url(#bg)"/>` +
+        `<path d="${half}" fill="#bfe9ff" opacity=".35"/>` +
+        // water slashes
+        `<path d="${taper([[-20, 420], [140, 300], [380, 160], [640, 60]], 4, 26)}" fill="#e9f9ff" opacity=".9"/>` +
+        `<path d="${taper([[-30, 520], [160, 420], [420, 360], [640, 220]], 3, 18)}" fill="#bfeaff" opacity=".7"/>` +
+        `<path d="${taper([[620, 330], [480, 300], [300, 380], [120, 600]], 4, 34)}" fill="#fff" opacity=".85"/>` +
+        `<path d="${dots(28, 380, 590, 40, 260, 2, 7)}${dots(18, 20, 200, 360, 520, 2, 6)}" fill="#e9f9ff" opacity=".85"/>` +
+        blade(-28) + blade(28) +
+        `<path d="M300 112l10 26 26 10-26 10-10 26-10-26-26-10 26-10Z" fill="#fff"/>` +
+        // type
+        `<g font-family="${FONT}" font-weight="900" font-style="italic" text-anchor="middle">` +
+        `<text x="306" y="476" font-size="118" fill="#0a1f45" letter-spacing="-2">FIGHT</text>` +
+        `<text x="300" y="470" font-size="118" fill="#fff" letter-spacing="-2">FIGHT</text>` +
+        `<text x="306" y="566" font-size="92" fill="#0a1f45" letter-spacing="2">MIX</text>` +
+        `<text x="300" y="560" font-size="92" fill="#fff" letter-spacing="2">MIX</text></g>` +
+        `<path d="M40 498L570 470" stroke="#c8323c" stroke-width="7" stroke-linecap="round"/>` +
+        `<g transform="translate(470 520) rotate(-8)"><rect x="-56" y="-18" width="112" height="34" rx="4" fill="#c8323c"/>` +
+        T(0, 6, 'VOL. 11', 20, { w: 900, it: 1, ls: 1 }) + `</g>` +
+        T(36, 40, 'PLAY LOUD · NO SKIPS', 13, { w: 800, a: 'start', ls: 3, fill: '#e9f9ff' })
+      );
+    },
+  });
+
+  // ---- harbor lofi -------------------------------------------------------------------------
+  def('cover_harbor_lofi', {
+    title: 'harbor lofi',
+    w: 600, h: 600, tags: ['cover', 'music', 'liyue', 'night'],
+    svg: () => {
+      seed(33);
+      let lights = '', refl = '';
+      for (let i = 0; i < 26; i++) {
+        const x = rr(130, 470), y = rr(318, 344), c = rnd() > 0.35 ? '#ffb45a' : '#ff7a5c';
+        lights += `<circle cx="${f(x)}" cy="${f(y)}" r="${f(rr(1.5, 3.2))}" fill="${c}"/>`;
+        if (i % 2) refl += `<rect x="${f(x - 1.5)}" y="${f(352 + rr(0, 6))}" width="3" height="${f(rr(14, 40))}" fill="${c}" opacity=".45"/>`;
+      }
+      return svg(
+        GRAIN(0.85, 0.6) +
+        lg('wall', [[0, '#4b3a5e'], [1, '#2b2140']]) +
+        lg('sky', [[0, '#1c1f45'], [0.55, '#4b3f7a'], [1, '#c77a8e']]) +
+        lg('sea', [[0, '#3a3a6e'], [1, '#141634']]) +
+        rg('lamp', [[0, '#ffc77a', 0.55], [1, '#ffc77a', 0]]) +
+        lg('desk', [[0, '#5a3b35'], [1, '#2c1c1d']]) +
+        rg('moon', [[0, '#fff3d6'], [0.6, '#ffe2b0'], [1, '#ffe2b0', 0]]) +
+        `<clipPath id="win"><circle cx="300" cy="250" r="182"/></clipPath>`,
+        `<rect width="600" height="600" fill="url(#wall)"/>` +
+        `<circle cx="70" cy="380" r="300" fill="url(#lamp)"/>` +
+        // view through the moon window
+        `<g clip-path="url(#win)"><rect width="600" height="600" fill="url(#sky)"/>` +
+        `<circle cx="390" cy="150" r="60" fill="url(#moon)"/><circle cx="390" cy="150" r="24" fill="#fff6e2"/>` +
+        `<path d="${dots(26, 120, 480, 70, 220, 0.8, 1.8)}" fill="#fff" opacity=".7"/>` +
+        `<path d="M110 330L140 230Q150 214 160 232L176 290L196 210Q206 192 218 212L240 300L262 330ZM380 330L404 244Q414 228 424 246L440 290L456 236Q464 222 474 238L500 330Z" fill="#3b3466"/>` +
+        `<path d="M110 340L150 284Q160 270 170 286L190 312L210 296L240 330H330L360 300L380 316L410 290L440 320L500 340Z" fill="#2a2550"/>` +
+        // pavilion roofs
+        `<path d="M300 300h44v34h-44zM286 300q36-16 72 0l-6 4q-30-10-60 0zM292 286q30-14 60 0l-4 4q-26-8-52 0zM312 274l10-10 10 10z" fill="#1b1838"/>` +
+        `<rect x="140" y="330" width="320" height="14" fill="#1b1838"/>` +
+        lights +
+        `<rect x="100" y="344" width="400" height="160" fill="url(#sea)"/>` + refl +
+        `<path d="M200 380q20-4 40 0M330 400q24-4 48 0M150 420q30-4 60 0M380 440q20-4 40 0" stroke="#8f7fc0" stroke-width="2" opacity=".6"/>` +
+        `<path d="M240 392h46l-6 8h-34z" fill="#141230"/><path d="M262 392v-26" stroke="#141230" stroke-width="2"/><circle cx="276" cy="384" r="3" fill="#ffb45a"/></g>` +
+        // window frame + lattice corners
+        `<circle cx="300" cy="250" r="182" fill="none" stroke="#2a1b26" stroke-width="18"/>` +
+        `<circle cx="300" cy="250" r="190" fill="none" stroke="#7a4a3a" stroke-width="3" opacity=".6"/>` +
+        `<g clip-path="url(#win)"><path d="M100 392H500M100 404H500" stroke="#2a1b26" stroke-width="6"/><path d="${Array.from({ length: 21 }, (_, i) => `M${110 + i * 19} 404V440`).join('')}" stroke="#2a1b26" stroke-width="4"/></g>` +
+        // desk, tea, plant, books
+        `<path d="M0 446H600V600H0Z" fill="url(#desk)"/><path d="M0 446H600" stroke="#8a5c4a" stroke-width="3"/>` +
+        `<path d="M420 400q-10-16 4-28q12-12 2-28M440 404q-8-14 4-24q10-10 2-22" fill="none" stroke="#e8d8f0" stroke-width="3" opacity=".45" stroke-linecap="round"/>` +
+        `<path d="M406 410H462L456 446Q434 454 412 446Z" fill="#a8cfc0"/><ellipse cx="434" cy="410" rx="28" ry="6" fill="#7a5a3a"/><path d="M462 418q16 2 12 14q-4 8-16 6" fill="none" stroke="#a8cfc0" stroke-width="5"/>` +
+        `<path d="M120 446L112 402H168L160 446Z" fill="#b5654a"/>` +
+        `<path d="M140 402C128 370 96 360 92 340C116 342 134 362 140 380C140 350 150 326 170 312C172 340 154 360 144 402Z" fill="#5f9a76"/><path d="M146 402C160 378 186 374 200 364C196 386 170 394 150 402Z" fill="#4c8263"/>` +
+        // sleeping cat
+        `<path d="M226 446C222 414 250 398 284 400C300 386 306 384 312 392L322 384L322 404C336 418 334 446 320 446Z" fill="#1d1630"/>` +
+        `<path d="M232 446C210 446 206 430 224 428" fill="none" stroke="#1d1630" stroke-width="9" stroke-linecap="round"/>` +
+        `<path d="M298 410q6 4 12 0" fill="none" stroke="#ffc77a" stroke-width="2" opacity=".7"/>` +
+        `<rect x="490" y="420" width="90" height="14" rx="2" fill="#6a5a8c"/><rect x="496" y="406" width="80" height="14" rx="2" fill="#c27a5a"/><rect x="486" y="434" width="96" height="12" rx="2" fill="#3f6a6a"/>` +
+        // label
+        `<g transform="translate(36 520)"><rect width="168" height="52" rx="6" fill="#f3e6d6"/>` +
+        `<text x="16" y="34" font-family="${FONT}" font-size="26" font-weight="600" fill="#2b2140" letter-spacing="-.5">harbor lofi</text></g>` +
+        T(564, 560, 'beats to fish to', 13, { a: 'end', fill: '#d9c6e8', op: 0.8, ls: 1 }) +
+        grain(0.5)
+      );
+    },
+  });
+
+  // ---- Northland Bank Corporate Anthem (Official) ------------------------------------------
+  def('cover_fatui_anthem', {
+    title: 'Northland Bank Corporate Anthem (Official)',
+    w: 600, h: 600, tags: ['cover', 'music', 'fatui', 'snezhnaya'],
+    svg: () => {
+      let rays = '';
+      for (let i = 0; i < 36; i++) {
+        const a = (i / 36) * Math.PI * 2, b = a + 0.06;
+        rays += `M300 290L${f(300 + Math.cos(a) * 520)} ${f(290 + Math.sin(a) * 520)}L${f(300 + Math.cos(b) * 520)} ${f(290 + Math.sin(b) * 520)}Z`;
+      }
+      let flake = '';
+      for (let i = 0; i < 8; i++) {
+        flake += `<g transform="rotate(${i * 45} 300 290)"><path d="M300 290L292 236L300 196L308 236Z" fill="url(#ice)"/><path d="M300 228l-14-14M300 228l14-14" stroke="#eaf6ff" stroke-width="3" stroke-linecap="round"/></g>`;
+      }
+      const laurel = (side) => {
+        let s = `<g transform="translate(300 0) scale(${side} 1) translate(-300 0)"><path d="M262 420C200 400 170 330 186 250" fill="none" stroke="url(#sil)" stroke-width="4"/>`;
+        for (let i = 0; i < 7; i++) {
+          const t = i / 7, x = 262 - 70 * Math.sin(t * 1.5) - t * 10, y = 418 - t * 168;
+          s += `<path d="M${f(x)} ${f(y)}q-30-4-36-24q26 0 36 24Z" fill="url(#sil)"/><path d="M${f(x)} ${f(y)}q8-26 32-30q-6 24-32 30Z" fill="url(#sil)" opacity=".85"/>`;
         }
-        return d;
+        return s + '</g>';
       };
-      const main = bolt(640, -20, 360, 1020, 14, 70);
-      const br = bolt(560, 240, 860, 420, 6, 40) + bolt(470, 600, 140, 760, 7, 40) + bolt(420, 820, 600, 1000, 5, 30) + bolt(600, 120, 330, 40, 5, 30);
-      const zap = (d, k) =>
-        `<path d="${d}" stroke="#8a3dff" stroke-width="${46 * k}" opacity=".16"/><path d="${d}" stroke="#b77cff" stroke-width="${18 * k}" opacity=".5"/><path d="${d}" stroke="#fbf6ff" stroke-width="${5 * k}"/>`;
       return svg(
-        rg('bg', [[0, '#3a1166'], [0.45, '#170828'], [1, '#050208']], 0.5, 0.5, 0.75) +
-        lg('txt', [[0, '#ffffff'], [0.45, '#efdcff'], [1, '#a35cff']]) +
-        rg('glow', [[0, '#b77cff', 0.55], [1, '#b77cff', 0]]),
-        `<rect width="1000" height="1000" fill="url(#bg)"/>` +
-        text(500, 640, '紫电', { font: CJK, size: 560, fill: '#b77cff', op: 0.07, anchor: 'middle' }) +
-        `<circle cx="500" cy="560" r="420" fill="url(#glow)"/>` +
-        `<g fill="none" stroke-linecap="round" stroke-linejoin="round">${zap(main, 1)}${zap(br, 0.55)}</g>` +
-        `<path d="${dots(40, 80, 920, 80, 920, 1, 3.5)}" fill="#e9d6ff" opacity=".8"/>` +
-        // GYM
-        `<g transform="skewX(-10)">` +
-        text(612, 660, 'GYM', { font: HEAVY, size: 330, weight: 900, fill: '#12041f', ls: -6, anchor: 'middle', extra: ' transform="translate(16 16)"' }) +
-        text(612, 660, 'GYM', { font: HEAVY, size: 330, weight: 900, fill: 'url(#txt)', ls: -6, anchor: 'middle', extra: ' stroke="#3b0f6e" stroke-width="10" paint-order="stroke"' }) +
-        `</g>` +
-        `<path d="M300 700L700 700" stroke="#b77cff" stroke-width="4" opacity=".6"/>` +
-        text(500, 768, 'DO NOT TALK TO ME', { font: HEAVY, size: 34, weight: 900, fill: '#d9b8ff', ls: 10, anchor: 'middle' }) +
-        `<path d="M486 820L470 860H496L482 900L530 846H504L518 820Z" fill="#fbf6ff"/>`
-      , 0.6);
+        rg('bg', [[0, '#25447a'], [0.6, '#0f2148'], [1, '#060d22']], 0.5, 0.45, 0.7) +
+        lg('sil', [[0, '#f4f8fc'], [0.45, '#9fb2c8'], [0.55, '#dfe8f2'], [1, '#6e8299']], 0, 0, 1, 1) +
+        lg('ice', [[0, '#ffffff'], [0.5, '#aee0ff'], [1, '#4f9ad8']], 0, 0, 1, 0) +
+        lg('sh', [[0, '#1d3a72'], [1, '#0b1838']]) +
+        lg('rb', [[0, '#b52a34'], [1, '#7a121c']]),
+        `<rect width="600" height="600" fill="url(#bg)"/>` +
+        `<path d="${rays}" fill="#cfe6ff" opacity=".06"/>` +
+        `<path d="M28 28H572V572H28Z" fill="none" stroke="#9fb2c8" stroke-width="1.5" opacity=".6"/>` +
+        T(300, 68, 'NORTHLAND BANK GROUP PRESENTS', 11, { w: 600, fill: '#9fb2c8', ls: 5 }) +
+        T(300, 110, 'CORPORATE ANTHEM', 40, { serif: 1, w: 700, fill: '#eef4fa', ls: 4 }) +
+        T(300, 136, '(Official)', 18, { serif: 1, it: 1, fill: '#aec4dc', ls: 2 }) +
+        `<g transform="translate(300 316) scale(.9) translate(-300 -300)">` +
+        laurel(1) + laurel(-1) +
+        // shield
+        `<path d="M300 186L392 214V300C392 362 350 400 300 424C250 400 208 362 208 300V214Z" fill="url(#sh)" stroke="url(#sil)" stroke-width="6"/>` +
+        `<path d="M300 200L380 224V300C380 354 344 388 300 410C256 388 220 354 220 300V224Z" fill="none" stroke="#9fb2c8" stroke-width="1.5" opacity=".6"/>` +
+        `<g transform="translate(0 6) scale(1) ">${flake}</g>` +
+        `<circle cx="300" cy="296" r="14" fill="#eaf6ff"/><circle cx="300" cy="296" r="7" fill="#c8323c"/>` +
+        // crown
+        `<path d="M262 186L270 152L286 172L300 140L314 172L330 152L338 186Z" fill="url(#sil)"/><circle cx="300" cy="138" r="5" fill="#aee0ff"/><circle cx="270" cy="150" r="4" fill="#aee0ff"/><circle cx="330" cy="150" r="4" fill="#aee0ff"/>` +
+        // ribbon
+        `<path d="M168 444L200 434L196 470L168 480L180 462Z" fill="#7a121c"/><path d="M432 444L400 434L404 470L432 480L420 462Z" fill="#7a121c"/>` +
+        `<path d="M196 430Q300 456 404 430L404 466Q300 492 196 466Z" fill="url(#rb)"/>` +
+        `<path id="rp" d="M200 456Q300 482 400 456" fill="none"/>` +
+        `<text font-family="${SERIF}" font-size="15" font-weight="700" fill="#f4e6c8" letter-spacing="2.5" text-anchor="middle"><textPath href="#rp" xlink:href="#rp" startOffset="50%">NORTHLAND BANK</textPath></text></g>` +
+        T(300, 522, 'Liyue Branch Choir &amp; the Zapolyarny Philharmonic', 12, { serif: 1, it: 1, fill: '#aec4dc', ls: 1 }) +
+        // advisory box
+        `<g transform="translate(300 548)"><rect x="-112" y="-18" width="224" height="34" fill="#f2f4f7"/><rect x="-108" y="-14" width="216" height="26" fill="none" stroke="#0b1838" stroke-width="1.5"/>` +
+        T(0, -1, 'MANDATORY LISTENING', 12, { w: 900, fill: '#0b1838', ls: 2 }) + T(0, 10, 'ALL STAFF · ALL BRANCHES', 7.5, { w: 700, fill: '#0b1838', ls: 2 }) + `</g>`
+      );
     },
   });
 
-  // ---- A-Ling's mix (chaotic teen playlist) -----------------------------------------------
-  def('cover_aling_mix', {
-    title: "A-Ling's mix",
-    w: 1000, h: 1000, tags: ['cover', 'jl', 'playlist'],
+  // ---- Crux Shanties Vol. 2 ----------------------------------------------------------------
+  def('cover_sea_shanties', {
+    title: 'Crux Shanties Vol. 2',
+    w: 600, h: 600, tags: ['cover', 'music', 'beidou', 'sea'],
     svg: () => {
-      seed(18);
-      // marker-drawn lowercase letters (x-height 90, baseline 90)
-      const G = {
-        a: ['M70 20C55 0 10 5 8 50C6 90 50 100 70 60M72 10C70 40 70 70 78 92', 92],
-        '-': ['M6 52H50', 64],
-        l: ['M20-50C18 0 16 50 24 92', 46],
-        i: ['M20 14C20 40 18 70 22 92M20-24v2', 44],
-        n: ['M10 6C12 40 10 70 10 92M10 40C20 0 70-5 72 40C74 60 72 80 74 92', 92],
-        g: ['M70 20C55 0 10 5 8 45C6 80 50 85 70 50M72 10C72 60 74 110 60 128C40 150 10 135 6 120', 92],
-        "'": ['M16-44L8-10', 34],
-        s: ['M62 14C50-2 10 2 12 26C14 50 66 40 66 66C66 96 20 98 6 80', 82],
-        m: ['M10 6V92M10 40C16 4 50-4 52 40V92M52 40C58 4 92-4 94 40C96 60 94 80 96 92', 116],
-        x: ['M6 6L76 92M74 4L8 92', 90],
-      };
-      const word = (str) => {
-        let x = 0, out = '';
-        for (const ch of str) {
-          const [p, adv] = G[ch];
-          out += `<path d="${p}"${x ? ` transform="translate(${x} 0)"` : ''}/>`;
-          x += adv;
-        }
-        return out;
-      };
-      const sticker = (inner, tx) => `<g transform="${tx}"><g transform="translate(6 8)" opacity=".25">${inner.replace(/fill="[^"]+"/g, 'fill="#000"').replace(/stroke="[^"]+"/g, 'stroke="#000"')}</g>${inner}</g>`;
-      let doodles = '';
-      for (let i = 0; i < 10; i++) {
-        const x = rr(60, 940), y = rr(60, 940);
-        if (y > 380 && y < 640) continue;
-        doodles += i % 2 ? `M${f(x)} ${f(y - 16)}l5 11 12 1-9 8 3 12-11-6-11 6 3-12-9-8 12-1Z` : `M${f(x)} ${f(y)}c-10-14-30-4-18 10l18 16 18-16c12-14-8-24-18-10Z`;
+      const NAVY = '#14294a';
+      let claws = '';
+      const crest = [[150, 230], [190, 196], [236, 182], [282, 190], [318, 214]];
+      for (const [x, y] of crest) claws += `M${x} ${y}q-6-22 12-30q-4 14 6 18q-2-16 14-20q-6 14 4 22q2-10 12-10q-8 8-2 18Z`;
+      let lines = '';
+      for (let i = 1; i < 7; i++) lines += `M${40 + i * 6} ${600}C${80 + i * 8} ${460 - i * 6} ${110 + i * 14} ${300 + i * 14} ${200 + i * 10} ${236 + i * 14}`;
+      let rays = '';
+      for (let i = 0; i < 16; i++) {
+        const a = Math.PI + (i / 16) * Math.PI, b = a + 0.1;
+        rays += `M470 250L${f(470 + Math.cos(a) * 600)} ${f(250 + Math.sin(a) * 600)}L${f(470 + Math.cos(b) * 600)} ${f(250 + Math.sin(b) * 600)}Z`;
       }
       return svg(
-        lg('bg', [[0, '#ffd84a'], [1, '#ffb52e']], 0, 0, 1, 1) +
-        `<pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(-4)"><path d="M40 0H0V40" fill="none" stroke="#c98a00" stroke-width="1.5" opacity=".35"/></pattern>` +
-        `<pattern id="tape" width="40" height="40" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="40" height="40" fill="#151515"/><rect width="20" height="40" fill="#ffd84a"/></pattern>` +
-        lg('wash', [[0, '#ff9ec7'], [1, '#ff7ab3']]),
-        `<rect width="1000" height="1000" fill="url(#bg)"/><rect width="1000" height="1000" fill="url(#grid)"/>` +
-        `<path d="${doodles}" fill="none" stroke="#151515" stroke-width="5" stroke-linejoin="round" opacity=".55"/>` +
-        // washi tape + caution tape
-        `<rect x="-40" y="60" width="380" height="64" fill="url(#wash)" opacity=".85" transform="rotate(-16 150 92)"/>` +
-        `<path d="M-40 60h380M-40 124h380" stroke="#fff" stroke-width="4" stroke-dasharray="10 10" opacity=".6" transform="rotate(-16 150 92)"/>` +
-        `<g transform="translate(600 900) rotate(-24)"><rect x="-460" y="-38" width="920" height="76" fill="url(#tape)"/><rect x="-220" y="-26" width="440" height="52" fill="#151515"/>` +
-        text(0, 16, 'DO NOT TOUCH', { font: HEAVY, size: 40, weight: 900, fill: '#ffd84a', ls: 6, anchor: 'middle' }) + `</g>` +
-        // Fairy sticker
-        sticker(`<circle r="112" fill="#fff"/><path d="M-70-40L-80-120L-20-70ZM70-40L80-120L20-70Z" fill="#1c1c24"/><circle r="92" fill="#1c1c24"/><ellipse cy="34" rx="46" ry="34" fill="#3a3b4c"/>` +
-          `<circle cx="-34" cy="-14" r="13" fill="#c98a3e"/><circle cx="34" cy="-14" r="13" fill="#c98a3e"/><circle cx="-31" cy="-17" r="4" fill="#fff"/><circle cx="37" cy="-17" r="4" fill="#fff"/>` +
-          `<ellipse cy="18" rx="16" ry="11" fill="#08080c"/><path d="M-10 40Q0 34 10 40V62C10 74-10 74-10 62Z" fill="#ff7f9c"/>`, 'translate(190 250) rotate(-12)') +
-        // peony sticker
-        sticker(`<circle r="104" fill="#fff"/><circle r="86" fill="#f78fb0"/><circle cx="-24" cy="-20" r="46" fill="#fbb6cc"/><circle cx="28" cy="-14" r="44" fill="#f57aa2"/><circle cx="0" cy="26" r="44" fill="#f9a5c0"/><circle r="22" fill="#ffd84a"/>`, 'translate(820 230) rotate(10)') +
-        // lightning sticker (jiujiu's colour)
-        sticker(`<path d="M10-120L-70 20H-10L-30 120L70-30H10L40-120Z" fill="#8a4dff" stroke="#fff" stroke-width="16" stroke-linejoin="round"/>`, 'translate(850 720) rotate(12)') +
-        // 18 star
-        sticker(`<path d="M0-110L26-40L100-50L46 4L80 72L10 44L-40 100L-34 30L-104 10L-36-24Z" fill="#ff5a3a" stroke="#fff" stroke-width="12" stroke-linejoin="round" transform="scale(1.25)"/>` + text(0, 22, '18!', { font: HEAVY, size: 54, weight: 900, fill: '#fff', anchor: 'middle' }), 'translate(180 770) rotate(-10)') +
-        // paper strip with the title
-        `<g transform="translate(500 500) rotate(-5)">` +
-        `<path d="M-390-150L380-160L392-120L384-80L394-40L386 0L396 40L388 80L396 120L386 158L-384 168L-394 130L-386 90L-396 50L-388 10L-398-30L-388-70L-396-110Z" fill="#000" opacity=".22" transform="translate(10 14)"/>` +
-        `<path d="M-390-150L380-160L392-120L384-80L394-40L386 0L396 40L388 80L396 120L386 158L-384 168L-394 130L-386 90L-396 50L-388 10L-398-30L-388-70L-396-110Z" fill="#fffdf6"/>` +
-        `<path d="M-340-90H340M-340-30H340M-340 30H340M-340 90H340" stroke="#9cc3ff" stroke-width="2" opacity=".6"/><path d="M-300-150V160" stroke="#ff8fa8" stroke-width="2" opacity=".6"/>` +
-        `<g fill="none" stroke-linecap="round" stroke-linejoin="round">` +
-        `<g transform="translate(-300 -120) scale(.92)" stroke="#ff4f9a" stroke-width="15" opacity=".9">${word("a-ling's")}</g>` +
-        `<g transform="translate(-306 -126) scale(.92)" stroke="#151515" stroke-width="15">${word("a-ling's")}</g>` +
-        `<g transform="translate(-10 0) scale(1.25)" stroke="#ff4f9a" stroke-width="13">${word('mix')}</g>` +
-        `<g transform="translate(-16 -6) scale(1.25)" stroke="#151515" stroke-width="13">${word('mix')}</g>` +
-        `<path d="M300-96c-8-14-28-6-18 8l18 16 18-16c10-14-10-22-18-8Z" stroke="#ff4f9a" stroke-width="6"/>` +
-        `</g>` +
-        text(-300, 140, '(no skips. jiujiu stop.)', { font: `'Marker Felt', 'Chalkboard SE', 'Comic Sans MS', ${SANS}`, size: 30, fill: '#d6336c', italic: false }) +
-        `</g>` +
-        // crown doodle above the title
-        `<path d="M-52 20l20-40 26 26 6-36 6 36 26-26 20 40Z" fill="#ffd84a" stroke="#151515" stroke-width="6" stroke-linejoin="round" transform="translate(172 128) rotate(-12)"/>`
-      , 0.45);
+        GRAIN(0.9, 0.5) +
+        lg('sky', [[0, '#f3e6c8'], [1, '#e2cfa6']]) +
+        lg('wv', [[0, '#2a7f8f'], [0.5, '#1b5470'], [1, NAVY]], 0, 0, 1, 1) +
+        lg('wv2', [[0, '#3d9aa6'], [1, '#1f5f78']]) +
+        lg('sail', [[0, '#d03a3a'], [1, '#8e1c22']]),
+        `<rect width="600" height="600" fill="url(#sky)"/>` +
+        `<path d="${rays}" fill="#d9bf8a" opacity=".35"/>` +
+        `<circle cx="470" cy="250" r="54" fill="#c8323c" opacity=".9"/>` +
+        // lightning
+        `<path d="M440 0L412 70L436 72L400 150L456 58L430 56L456 0Z" fill="#8a5fd8"/><path d="M560 60L540 112L556 114L530 170L574 102L556 100L574 60Z" fill="#8a5fd8"/>` +
+        // ship on the back of the wave
+        `<g transform="rotate(10 450 330)">` +
+        `<path d="M444 150V316M500 172V312M398 196V318" stroke="#3a2a1e" stroke-width="5"/>` +
+        `<path d="M448 156Q490 150 520 160L516 290Q486 282 448 290Z" fill="url(#sail)"/><path d="M448 182H519M448 208H518M448 234H517M448 260H516" stroke="#2a0e10" stroke-width="2.5"/>` +
+        `<path d="M504 182Q532 180 552 190L548 288Q526 282 504 286Z" fill="url(#sail)"/><path d="M504 206H550M504 230H549M504 254H549" stroke="#2a0e10" stroke-width="2.5"/>` +
+        `<path d="M400 204Q420 198 440 204L438 292Q420 288 400 292Z" fill="url(#sail)"/><path d="M400 226H439M400 248H438M400 270H438" stroke="#2a0e10" stroke-width="2.5"/>` +
+        `<path d="M444 150l26-6-26-6Z" fill="#c8323c"/>` +
+        `<path d="M360 312H560L540 346Q460 360 384 344Z" fill="#3a2a1e"/><path d="M360 312L344 290L380 312ZM540 312L570 296L560 314Z" fill="#3a2a1e"/>` +
+        `<path d="M372 324H548" stroke="#e8bd62" stroke-width="3"/><circle cx="420" cy="334" r="4" fill="#e8bd62"/><circle cx="460" cy="336" r="4" fill="#e8bd62"/><circle cx="500" cy="336" r="4" fill="#e8bd62"/></g>` +
+        // great wave
+        `<path d="M0 600V420C60 360 90 300 130 250C170 200 236 170 296 190C340 206 352 240 330 262C312 280 280 270 290 248C252 240 226 270 236 310C250 380 360 400 450 380C520 364 570 344 600 330V600Z" fill="url(#wv)"/>` +
+        `<path d="${lines}" fill="none" stroke="#7fc6cc" stroke-width="2.5" opacity=".55"/>` +
+        `<path d="M130 250C170 200 236 170 296 190C340 206 352 240 330 262C312 280 280 270 290 248" fill="none" stroke="#f6efe0" stroke-width="12" stroke-linecap="round"/>` +
+        `<path d="${claws}" fill="#f6efe0"/>` +
+        `<path d="M236 310C250 380 360 400 450 380C520 364 570 344 600 330V380C540 410 460 430 380 424C300 418 250 380 236 310Z" fill="url(#wv2)" opacity=".7"/>` +
+        `<path d="M300 400q20-10 40 0t40 0t40 0M440 384q20-10 40 0t40 0" fill="none" stroke="#f6efe0" stroke-width="3" opacity=".7"/>` +
+        `<path d="M0 520Q150 470 300 510T600 470V600H0Z" fill="${NAVY}"/>` +
+        `<path d="M0 520Q150 470 300 510T600 470" fill="none" stroke="#f6efe0" stroke-width="5"/>` +
+        `<path d="M40 540q20-10 40 0M190 506q20-10 40 0M330 534q20-10 40 0M480 500q20-10 40 0M110 570q20-10 40 0M400 566q20-10 40 0" fill="none" stroke="#7fc6cc" stroke-width="3" stroke-linecap="round" opacity=".7"/>` +
+        // title
+        `<g font-family="${SERIF}" font-weight="700" text-anchor="start" fill="${NAVY}">` +
+        `<text x="36" y="76" font-size="62" letter-spacing="2">CRUX</text>` +
+        `<text x="36" y="128" font-size="44" letter-spacing="3">SHANTIES</text></g>` +
+        `<g transform="translate(352 104) rotate(-10)"><circle r="38" fill="#c8323c"/><circle r="32" fill="none" stroke="#f3e6c8" stroke-width="1.5"/>` +
+        T(0, -6, 'VOL.', 12, { w: 800, fill: '#f3e6c8', ls: 2 }) + T(0, 20, '2', 30, { serif: 1, w: 700, fill: '#f3e6c8' }) + `</g>` +
+        T(36, 566, 'THE CREW OF THE ALCOR', 15, { w: 800, a: 'start', fill: '#f3e6c8', ls: 4 }) +
+        T(564, 566, '⚓', 22, { a: 'end', fill: '#f3e6c8' }) +
+        grain(0.5, 'multiply')
+      );
     },
   });
 
-  // ---- Shijie (soft, nostalgic) -----------------------------------------------------------
-  def('cover_shijie', {
-    title: 'Shijie',
-    w: 1000, h: 1000, tags: ['cover', 'lotus', 'nostalgic'],
+  // ---- TEUCER'S MIX!!! (handmade) ----------------------------------------------------------
+  def('cover_teucer_mix', {
+    title: "TEUCER'S MIX!!!",
+    w: 600, h: 600, tags: ['cover', 'music', 'playlist', 'teucer'],
     svg: () => {
-      seed(2);
-      let rip = '';
-      for (let i = 0; i < 6; i++) rip += `<ellipse cx="500" cy="700" rx="${160 + i * 70}" ry="${24 + i * 10}" fill="none" stroke="#fff" stroke-width="3" opacity="${r1(0.32 - i * 0.04)}"/>`;
+      let ruled = '';
+      for (let y = 70; y < 600; y += 30) ruled += `M0 ${y}H600`;
+      const letters = (s, xs, y, size, cols, rots) =>
+        s.split('').map((c, i) => `<text x="${xs[i]}" y="${y}" font-size="${size}" fill="${cols[i % cols.length]}" text-anchor="middle" transform="rotate(${rots[i % rots.length]} ${xs[i]} ${y})">${c}</text>`).join('');
+      const sticker = (x, y, r, inner, rot = 0) =>
+        `<g transform="translate(${x} ${y}) rotate(${rot})"><circle r="${r + 3}" cx="2" cy="4" fill="#000" opacity=".15"/><circle r="${r}" fill="#fff"/>${inner}</g>`;
+      const goldStar = (x, y, r, rot) =>
+        `<path d="${star5(x + 2, y + 3, r, rot)}" fill="#000" opacity=".15"/><path d="${star5(x, y, r, rot)}" fill="url(#gold)" stroke="#b98a1e" stroke-width="1.5" stroke-linejoin="round"/>` +
+        `<path d="${star5(x - r * 0.15, y - r * 0.2, r * 0.35, rot)}" fill="#fff" opacity=".45"/>`;
       return svg(
-        lg('ph', [[0, '#f6d6c2'], [0.5, '#efc0c4'], [0.62, '#d8b7b9'], [1, '#93aea7']]) +
-        rg('leak', [[0, '#ff8a4a', 0.55], [0.5, '#ffb37a', 0.2], [1, '#ffb37a', 0]]) +
-        lg('pk', [[0, '#fff6f4'], [0.55, '#fbd5dc'], [1, '#ec90ac']], 0, 1, 0, 0) +
-        rg('leaf', [[0, '#a9c3a0'], [1, '#6f8f73']], 0.5, 0.4, 0.6) +
-        rg('soft', [[0, '#fff', 0.6], [1, '#fff', 0]]) +
-        `<clipPath id="pc"><rect x="70" y="70" width="860" height="720" rx="6"/></clipPath>`,
-        `<rect width="1000" height="1000" fill="#f3ebde"/>` +
-        `<rect x="70" y="70" width="860" height="720" rx="6" fill="#000" opacity=".12" transform="translate(4 6)"/>` +
-        `<g clip-path="url(#pc)">` +
-        `<rect x="70" y="70" width="860" height="720" fill="url(#ph)"/>` +
-        `<circle cx="500" cy="420" r="380" fill="url(#soft)"/>` +
-        rip +
-        `<ellipse cx="250" cy="760" rx="260" ry="80" fill="url(#leaf)" opacity=".85"/><ellipse cx="820" cy="720" rx="200" ry="60" fill="url(#leaf)" opacity=".7"/>` +
-        `<path d="M500 700C496 640 498 600 500 560" stroke="#7d9a7a" stroke-width="10" fill="none"/>` +
-        lotus(500, 560, 1.55, 'pk', '#e7a9b9', true) +
-        `<path d="M760 480C730 440 744 400 770 380C792 404 796 444 760 480Z" fill="url(#pk)" opacity=".8"/><path d="M760 480C758 560 760 640 764 700" stroke="#7d9a7a" stroke-width="6" fill="none" opacity=".8"/>` +
-        `<circle cx="880" cy="110" r="420" fill="url(#leak)"/>` +
-        `<rect x="70" y="70" width="860" height="720" fill="#fff3e6" opacity=".14"/>` +
+        lg('gold', [[0, '#fff1a8'], [0.45, '#f5c842'], [1, '#c8901c']], 0, 0, 1, 1) +
+        `<filter id="mk" x="-5%" y="-5%" width="110%" height="110%"><feTurbulence type="fractalNoise" baseFrequency=".06" numOctaves="2" result="n"/>` +
+        `<feDisplacementMap in="SourceGraphic" in2="n" scale="7" xChannelSelector="R" yChannelSelector="G"/></filter>`,
+        `<rect width="600" height="600" fill="#fbf9f1"/>` +
+        `<path d="${ruled}" stroke="#a9c8ea" stroke-width="2"/><path d="M64 0V600" stroke="#f08a8a" stroke-width="2.5"/>` +
+        [90, 300, 510].map((y) => `<circle cx="30" cy="${y}" r="12" fill="#e9e4d6"/>`).join('') +
+        `<g filter="url(#mk)">` +
+        // big marker fish
+        `<path d="M140 330C180 250 330 250 380 320L450 270Q436 330 452 390L380 340C330 410 180 410 140 330Z" fill="#ff9a3c" stroke="#d2561b" stroke-width="6" stroke-linejoin="round"/>` +
+        `<path d="M250 268Q264 330 250 392M290 272Q302 330 290 388" fill="none" stroke="#d2561b" stroke-width="5"/>` +
+        `<circle cx="186" cy="318" r="16" fill="#fff" stroke="#222" stroke-width="4"/><circle cx="190" cy="320" r="7" fill="#222"/>` +
+        `<path d="M156 346Q170 360 186 350" fill="none" stroke="#222" stroke-width="5" stroke-linecap="round"/>` +
+        `<path d="M200 268L214 236L236 266" fill="#ffcf4a" stroke="#d2561b" stroke-width="4" stroke-linejoin="round"/>` +
+        // bubbles + waves
+        `<circle cx="112" cy="300" r="10" fill="none" stroke="#3aa0e6" stroke-width="4"/><circle cx="96" cy="268" r="6" fill="none" stroke="#3aa0e6" stroke-width="4"/>` +
+        `<path d="M80 460q20-16 40 0t40 0t40 0t40 0t40 0t40 0t40 0t40 0t40 0t40 0t40 0" fill="none" stroke="#3aa0e6" stroke-width="7" stroke-linecap="round"/>` +
+        `<path d="M110 492q20-14 40 0t40 0t40 0t40 0t40 0t40 0t40 0t40 0t40 0" fill="none" stroke="#1d5fa8" stroke-width="6" stroke-linecap="round"/>` +
+        // title (kid lettering, backwards S)
+        `<g font-family="${FONT}" font-weight="900">` +
+        letters('TEUCER', [118, 176, 236, 298, 360, 420], 144, 78, ['#e8434c', '#3aa0e6', '#2f9e5a', '#f39a1e', '#8a5fd8', '#e8434c'], [-6, 4, -3, 6, -4, 3]) +
+        `<text x="0" y="0" font-size="78" fill="#3aa0e6" transform="translate(478 146) rotate(5) scale(-1 1)" text-anchor="middle">S</text>` +
+        letters('MIX!!!', [196, 256, 310, 362, 394, 426], 232, 74, ['#1d5fa8', '#f39a1e', '#2f9e5a', '#e8434c', '#e8434c', '#e8434c'], [4, -5, 3, 8, 12, 16]) + `</g>` +
+        `<text x="110" y="560" font-family="${FONT}" font-size="26" font-weight="700" fill="#2b4b8c" transform="rotate(-3 110 560)">for BROTHR (best sogns EVR)</text>` +
         `</g>` +
-        // date stamp
-        text(900, 760, "'08 2 12", { font: `'Courier New', Courier, monospace`, size: 40, weight: 700, fill: '#ff8a3a', anchor: 'end', ls: 2, op: 0.9, extra: ' stroke="#ffb27a" stroke-width="1"' }) +
-        // caption
-        text(500, 900, 'shijie', { font: `Baskerville, Georgia, 'Times New Roman', serif`, size: 76, fill: '#6b5650', italic: true, anchor: 'middle', ls: 2 }) +
-        `<path d="M590 880c6-10 20-10 22 2c2-12 18-12 20-2c2 14-20 24-21 28c-1-4-23-14-21-28Z" fill="#e48aa4" opacity=".9"/>`
-      , 0.75);
-    },
-  });
-
-  // ---- Koi Records ------------------------------------------------------------------------
-  def('cover_koi_records', {
-    title: 'Koi Records',
-    w: 1000, h: 1000, tags: ['cover', 'koi', 'label'],
-    svg: () => {
-      seed(30);
-      // Koi outline (head +x), bent so both ends curve the same way.
-      const bend = (x, y) => [x, y + 0.0017 * x * x];
-      const P = (x, y) => bend(x, y).map(f).join(' ');
-      const KOI =
-        `M${P(190, 0)}C${P(184, -44)} ${P(130, -64)} ${P(40, -62)}C${P(-40, -58)} ${P(-110, -32)} ${P(-160, -12)}` +
-        `C${P(-196, -36)} ${P(-246, -66)} ${P(-276, -50)}C${P(-252, -18)} ${P(-252, 18)} ${P(-276, 50)}C${P(-246, 66)} ${P(-196, 36)} ${P(-160, 12)}` +
-        `C${P(-110, 32)} ${P(-40, 58)} ${P(40, 62)}C${P(130, 64)} ${P(184, 44)} ${P(190, 0)}Z`;
-      const FIN = `M${P(90, -50)}C${P(70, -110)} ${P(130, -140)} ${P(150, -100)}C${P(140, -80)} ${P(118, -62)} ${P(106, -54)}Z` + `M${P(90, 50)}C${P(70, 110)} ${P(130, 140)} ${P(150, 100)}C${P(140, 80)} ${P(118, 62)} ${P(106, 54)}Z`;
-      const koi = (tx, body, patches, pc, fc) =>
-        `<g transform="${tx}">` +
-        `<path d="${FIN}" fill="${fc}" opacity=".6"/>` +
-        `<path d="${KOI}" fill="#000" opacity=".35" transform="translate(14 22)"/>` +
-        `<path d="${KOI}" fill="${body}"/>` +
-        `<g clip-path="url(#kc)" fill="${pc}">${patches}</g>` +
-        `<path d="M${P(150, 0)}C${P(60, -4)} ${P(-60, -2)} ${P(-150, 0)}" stroke="#fff" stroke-width="5" opacity=".35" fill="none"/>` +
-        `<circle cx="${bend(158, -24)[0]}" cy="${f(bend(158, -24)[1])}" r="7" fill="#151515"/><circle cx="${bend(158, 24)[0]}" cy="${f(bend(158, 24)[1])}" r="7" fill="#151515"/>` +
-        `</g>`;
-      let rings = '';
-      for (let i = 1; i < 9; i++) rings += `<circle cx="500" cy="440" r="${i * 70}" fill="none" stroke="#2c5286" stroke-width="2" opacity="${r1(0.4 - i * 0.04)}"/>`;
-      let caust = '';
-      for (let i = 0; i < 14; i++) {
-        const x = rr(0, 1000), y = rr(0, 1000);
-        caust += `M${f(x)} ${f(y)}c${f(rr(20, 40))} ${f(rr(-20, 20))} ${f(rr(50, 80))} ${f(rr(-10, 10))} ${f(rr(90, 130))} ${f(rr(-20, 20))}`;
-      }
-      return svg(
-        rg('water', [[0, '#16345e'], [0.6, '#0b1d3a'], [1, '#050c1a']], 0.5, 0.42, 0.75) +
-        lg('gold', [[0, '#f8dc94'], [0.5, '#e2b65a'], [1, '#b8862e']]) +
-        lg('kgold', [[0, '#ffcf5a'], [1, '#f08a1c']], 0, 0, 1, 1) +
-        `<clipPath id="kc"><path d="${KOI}"/></clipPath>`,
-        `<rect width="1000" height="1000" fill="url(#water)"/>` +
-        rings +
-        `<path d="${caust}" stroke="#6fa8e8" stroke-width="3" fill="none" opacity=".18" stroke-linecap="round"/>` +
-        koi('translate(530 300) rotate(10)', '#fbf7f0', `<ellipse cx="60" cy="-30" rx="70" ry="40"/><ellipse cx="-80" cy="20" rx="60" ry="46"/><ellipse cx="160" cy="0" rx="34" ry="30"/>`, '#e8452c', '#f6efe6') +
-        koi('translate(470 600) rotate(190)', 'url(#kgold)', `<ellipse cx="20" cy="30" rx="80" ry="36"/><ellipse cx="-140" cy="-10" rx="40" ry="30"/>`, '#fff6e6', '#ffc85a') +
-        `<path d="${dots(16, 120, 880, 150, 760, 3, 7)}" fill="none" stroke="#9cc8ff" stroke-width="2" opacity=".5"/>` +
-        `<path d="M250 820H750" stroke="url(#gold)" stroke-width="2"/>` +
-        text(500, 900, 'KOI RECORDS', { size: 70, weight: 300, fill: 'url(#gold)', ls: 22, anchor: 'middle' }) +
-        text(500, 948, 'LANLING · EST. 1998', { size: 20, fill: '#c8a85e', ls: 10, anchor: 'middle', op: 0.8 }) +
-        `<rect x="862" y="70" width="70" height="140" rx="6" fill="#b8202f"/>` +
-        text(897, 130, '锦', { font: CJK, size: 46, fill: '#fbeee0', anchor: 'middle' }) + text(897, 186, '鲤', { font: CJK, size: 46, fill: '#fbeee0', anchor: 'middle' })
-      , 0.5);
-    },
-  });
-
-  // ---- Rain -------------------------------------------------------------------------------
-  def('cover_rain', {
-    title: 'Rain',
-    w: 1000, h: 1000, tags: ['cover', 'rain', 'night'],
-    svg: () => {
-      seed(16);
-      const cols = ['#ffb36b', '#6bc7ff', '#ff7aa8', '#ffe2a8', '#9fd2ff'];
-      let bok = '';
-      for (let i = 0; i < 30; i++) {
-        const r = rr(16, 84), c = cols[i % 5], o = rr(0.1, 0.32);
-        bok += `<circle cx="${f(rr(-40, 1040))}" cy="${f(rr(300, 1000))}" r="${f(r)}" fill="${c}" fill-opacity="${r1(o)}" stroke="${c}" stroke-opacity="${r1(o * 1.6)}" stroke-width="2"/>`;
-      }
-      let streaks = '';
-      for (let i = 0; i < 70; i++) {
-        const x = rr(0, 1080), y = rr(-50, 1000), L = rr(40, 140);
-        streaks += `M${f(x)} ${f(y)}l${f(-L * 0.18)} ${f(L)}`;
-      }
-      let drops = '';
-      for (let i = 0; i < 80; i++) drops += `<use href="#dr" transform="translate(${f(rr(0, 1000))} ${f(rr(0, 1000))}) scale(${r1(rr(0.25, 1.1))})"/>`;
-      let drips = '';
-      for (let i = 0; i < 6; i++) {
-        const x = rr(80, 920), y = rr(60, 500), L = rr(160, 380);
-        drips += `M${f(x)} ${f(y)}c${f(rr(-6, 6))} ${f(L * 0.3)} ${f(rr(-10, 10))} ${f(L * 0.6)} ${f(rr(-6, 6))} ${f(L)}`;
-      }
-      return svg(
-        lg('bg', [[0, '#0b1626'], [0.5, '#16263a'], [1, '#0a121e']]) +
-        rg('dg', [[0, '#0b1626', 0.5], [0.7, '#0b1626', 0.15], [1, '#dbeeff', 0.75]], 0.5, 0.35, 0.6) +
-        lg('city', [[0, '#ff9a5a', 0], [1, '#ff9a5a', 0.18]]) +
-        `<g id="dr"><circle r="12" fill="url(#dg)"/><path d="M-8 6A10 10 0 0 0 8 6" stroke="#fff" stroke-width="2" fill="none" opacity=".7"/><circle cx="-4" cy="-5" r="2.5" fill="#fff" opacity=".9"/></g>`,
-        `<rect width="1000" height="1000" fill="url(#bg)"/>` +
-        bok +
-        `<rect y="500" width="1000" height="500" fill="url(#city)"/>` +
-        `<path d="${streaks}" stroke="#cfe6ff" stroke-width="2" opacity=".22" stroke-linecap="round"/>` +
-        `<path d="${drips}" stroke="#dbeeff" stroke-width="5" opacity=".35" fill="none" stroke-linecap="round"/>` +
-        drops +
-        text(64, 912, 'rain', { size: 132, weight: 200, fill: '#e6f0ff', ls: 8, op: 0.92 }) +
-        text(70, 956, 'SOUNDS FOR 4 A.M.', { size: 22, fill: '#9fb6d6', ls: 8 })
-      , 0.6);
+        // stickers
+        goldStar(512, 236, 30, 12) + goldStar(92, 216, 22, -10) + goldStar(540, 470, 24, 20) + goldStar(470, 60, 16, 0) +
+        sticker(470, 360, 44,
+          `<circle r="38" fill="#dceeff"/><path d="M-26-18L-20-44L-6-26ZM26-18L20-44L6-26Z" fill="#7fb8ea"/>` +
+          `<ellipse rx="30" ry="26" cy="2" fill="#fff"/><path d="M-24-6Q0-30 24-6Q12-14 0-2Q-12-14-24-6Z" fill="#7fb8ea"/>` +
+          `<circle cx="-11" cy="2" r="6" fill="#16294d"/><circle cx="11" cy="2" r="6" fill="#16294d"/><circle cx="-9" cy="0" r="2" fill="#fff"/><circle cx="13" cy="0" r="2" fill="#fff"/>` +
+          `<path d="M-5 12Q0 8 5 12Q0 18-5 12Z" fill="#16294d"/><path d="M-16 26Q0 34 16 26V34H-16Z" fill="#c8323c"/>`, -8) +
+        sticker(560, 150, 26, `<path d="M0 14C-30-6-14-26 0-12C14-26 30-6 0 14Z" fill="#e8434c"/>`, 10) +
+        sticker(116, 400, 26, `<path d="M-16 0C-8-12 8-12 14 0L22-8V8L14 0C8 12-8 12-16 0Z" fill="#3aa0e6"/><circle cx="-8" cy="-2" r="2.5" fill="#16294d"/>`, -14) +
+        `<path d="M520 -10l84 20-10 40-84-20Z" fill="#f6e27a" opacity=".7"/><path d="M-6 556l70 22-10 34-70-22Z" fill="#f6e27a" opacity=".7"/>`
+      );
     },
   });
 })();

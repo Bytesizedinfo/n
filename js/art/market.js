@@ -390,7 +390,6 @@
         lg('sil', [[0, '#7d8794'], [0.3, '#f4f7fa'], [0.55, '#aeb7c2'], [1, '#5f6874']]) +
         lg('blk', [[0, '#05070c'], [0.3, '#4a5160'], [0.5, '#151922'], [1, '#020306']]) +
         lg('nib', [[0, '#e8edf2'], [0.5, '#b9c2cc'], [1, '#8a94a0']]) +
-        lg('rbn', [[0, '#c9d3e0'], [0.5, '#f4f7fb'], [1, '#aab6c6']]) +
         blur('bl', 14),
         `<rect width="900" height="900" fill="url(#bg)"/><rect width="900" height="900" fill="url(#kl)"/>` +
         // lid underneath, peeking out
@@ -511,7 +510,6 @@
         `<pattern id="cw" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#1d2025"/><path d="M0 0h3v3H0zM3 3h3v3H3z" fill="#3a3f48"/></pattern>` +
         blur('bl', 6),
         `<rect width="900" height="900" fill="url(#bg)"/><rect width="900" height="900" fill="url(#kl)"/>` +
-        `<path d="M0 0" />` +
         `<g transform="translate(108 828) rotate(-40.5)">` +
         `<g transform="translate(9 20)" opacity=".28" filter="url(#bl)"><path d="M0 -14H210V12H300V-10L1080 -1V1L362 9H300V12H206L216 96C216 130 240 140 262 140C290 140 304 126 304 112H356V74H300V12H210V15H0Z" fill="#000"/></g>` +
         body + `</g>` +
@@ -533,11 +531,11 @@
         const yt = f(TOP + RY * s), yb = f(BOT + RY * s);
         const dome = `M${x} ${yt}C${x} ${f(yt - 92)} ${f(CX + (x - CX) * 0.42)} ${AP + 4} ${CX} ${AP}`;
         if (s < 0) {
-          back += `<path d="M${x} ${yt}V${yb}${dome.replace('M' + x + ' ' + yt, '')}" stroke="#9b7444" stroke-width="5" fill="none" opacity=".55"/>`;
+          back += `<path d="M${x} ${yb}V${yt}${dome.replace('M' + x + ' ' + yt, '')}" stroke="#9b7444" stroke-width="5" fill="none" opacity=".55"/>`;
         } else {
           const nodes = [420, 560].map((y) => `M${x - 4} ${f(y + RY * s)}h8`).join('');
           front +=
-            `<path d="M${x} ${yt}V${yb}${dome.replace('M' + x + ' ' + yt, '')}" stroke="#c99a5a" stroke-width="7" fill="none"/>` +
+            `<path d="M${x} ${yb}V${yt}${dome.replace('M' + x + ' ' + yt, '')}" stroke="#c99a5a" stroke-width="7" fill="none"/>` +
             `<path d="M${f(x - 1.6)} ${yt + 6}V${yb - 4}" stroke="#f3d7a2" stroke-width="1.6" opacity=".8"/>` +
             `<path d="${nodes}" stroke="#7d5428" stroke-width="2.5"/>`;
         }
