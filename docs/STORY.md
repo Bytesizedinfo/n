@@ -235,15 +235,34 @@ Characters *mention* what reached them ("Tonia says you sounded weird. Explain."
 The engine runs chapters in order (`JC.story.chapter`). Each has a narrator card. Scenes declare `ch`, `arc` and
 (when the chapter must wait for them) `required: true`. Timed choices only count down while their thread is open.
 
-| # | id | Label | `at` | Card (narrator) | maxWait (play s) |
-|---|---|---|---|---|---|
-| 1 | `fri_night` | Friday night | start 23:47 | (the prologue) | 1500 |
-| 2 | `sat_dawn` | Saturday morning | `+1 06:50` | "Saturday, 6:50 AM. You fell asleep on the couch with his phone on your chest. It's buzzing." | 900 |
-| 3 | `sat_noon` | Saturday afternoon | `+1 14:20` | "Saturday afternoon. The harbor smells of rain that hasn't arrived." | 900 |
-| 4 | `sat_night` | Saturday night | `+1 21:30` | "Saturday night. The lanterns along Yujing Terrace are being lit for tomorrow." | 1000 |
-| 5 | `sun_rite` | Sunday | `+2 09:30` | "Sunday, 9:30 AM. All of Liyue is wearing white." | 1000 |
-| 6 | `sun_night` | Sunday night | `+2 21:00` | "Sunday night. Out past Guyun, the sea has gone very still." | 1100 |
-| 7 | `mon` | Monday | `+3 07:55` | "Monday. You didn't sleep much." | 1200 |
+| # | id | Label | `at` → `until` | clockRate | maxWait (play s) | Card (narrator) |
+|---|---|---|---|---|---|---|
+| 1 | `fri_night` | Friday night | 23:47 → `+1 02:40` | 6 | 1500 | (the prologue) |
+| 2 | `sat_dawn` | Saturday morning | `+1 06:50` → `+1 09:40` | 10 | 900 | "Saturday, 6:50 AM. You fell asleep on the couch with his phone on your chest. It's buzzing." |
+| 3 | `sat_noon` | Saturday afternoon | `+1 14:20` → `+1 17:40` | 12 | 900 | "Saturday afternoon. The harbor smells of rain that hasn't arrived." |
+| 4 | `sat_night` | Saturday night | `+1 21:30` → `+2 01:40` | 14 | 1000 | "Saturday night. The lanterns along Yujing Terrace are being lit for tomorrow." |
+| 5 | `sun_rite` | Sunday | `+2 09:30` → `+2 17:20` | 27 | 1000 | "Sunday, 9:30 AM. All of Liyue is wearing white." |
+| 6 | `sun_night` | Sunday night | `+2 21:00` → `+3 03:40` | 21 | 1100 | "Sunday night. Out past Guyun, the sea has gone very still." |
+| 7 | `mon` | Monday | `+3 07:55` → `+3 18:30` | 30 | 1200 | "Monday. You didn't sleep much." |
+
+`clockRate` = in-game seconds per play second while that chapter runs (× the player's time speed). So in chapter 1,
+one minute of play is six minutes on the phone's clock. Use **`{ on: 'time', at: '+1 00:30' }`** for anything tied to
+a story time (the auction closing, the 01:30 call, the 07:40 landing, the 15:00 matinee, Signora's 22:30 demand), and
+**`{ on: 'chapter', ch, delay }`** (play seconds) for conversational pacing.
+
+### Pacing slots (avoid floods)
+At most **two threads** should be waiting on the player at once. Each arc starts its chapter scenes in its slot
+(seconds of play after chapter start) and spaces its own scenes ≥ 90 s apart unless one directly follows another:
+
+| Chapter | fam | zl | osial/harb | ops | friends | side/core |
+|---|---|---|---|---|---|---|
+| 1 | 15 (plane) · 420 (Tonia) · 600 (pickup) | 60 (bill) · 330 (auction) · 760 (fish) · 1300 (goodnight) | 140 (Signora) · 520 (harb) · 680 (scara quiz) | 280 (aquarium) | 200 (Paimon) · 880 (Hu Tao slip) | 01:30 in-game: Childe's call (S4) |
+| 2 | 07:40 landing · 40 (FaceTime risk ~08:10) | 30 (cranes) · 300 (knows) | 400 (Yelan) | — | 120 (Xiao) · 500 (Lumine) | — |
+| 3 | 60 (factory) · 500 (Reel Rush) | 15:00 opera · 300 · 600 | 200 (clues) | 120 (costumes) | 400 (Yun Jin) · 700 (Beidou) | — |
+| 4 | 500 (bedtime) | 60 (walk) · 400 · 700 | 200 (pressure) · 600 (Yelan deal) | 300 | 22:00 rematch | 800 (Hu Tao) |
+| 5 | 300 (crowds/Dottore) | 10:00 rite · 16:00 amend · 800 (message) | 200 · 600 | — | 400 (Lumine guard) | — |
+| 6 | 300 (Mama's call) | 200 · 02:10 (will he) | 22:30 deadline (required) | 120 · 500 | 03:00 Skirk | — |
+| 7 | 13:10 departure | 120 · finale | 60 (Signora's last) | 300 | 400 | 08:00 Wangsheng call · 17:30 Pier 7 finale (S4) |
 
 Short path (`deal_refused`): `fri_night` → card "Saturday, 7:05 AM." → Lost Mode ("This phone belongs to a toy
 salesman. Please return it. Reward: one (1) fish. Call Wangsheng Funeral Parlor.") → Wangsheng call → finale with the
