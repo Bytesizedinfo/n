@@ -51,15 +51,6 @@
     const P = (u, v) => `${f(x + dx * u + nx * v)} ${f(y + dy * u + ny * v)}`;
     return `M${P(0, w / 2)}C${P(len * 0.35, w * 0.62)} ${P(len * 0.72, w * 0.32 + bend * 0.8)} ${P(len, bend)}C${P(len * 0.68, -w * 0.12 + bend * 0.6)} ${P(len * 0.35, -w * 0.58)} ${P(0, -w / 2)}Z`;
   };
-  // locks sprouting outward around an ellipse arc
-  const tufts = (cx, cy, rx, ry, a0, a1, n, len, w, bend) => {
-    let d = '';
-    for (let i = 0; i < n; i++) {
-      const a = a0 + ((a1 - a0) * i) / Math.max(1, n - 1) + rr(-5, 5), r = (a * Math.PI) / 180;
-      d += lock(cx + rx * Math.cos(r), cy + ry * Math.sin(r), a + rr(-12, 12), len * rr(0.75, 1.25), w * rr(0.85, 1.15), bend * rr(0.6, 1.2));
-    }
-    return d;
-  };
   // Childe's head seen from behind (radius r, rotated rot); needs #chh in defs
   const MASK = (c = '#c8323c') => `<path d="M-30-4C-20-15-8-12 0-6C8-12 20-15 30-4C26 7 17 11 8 8L0 4L-8 8C-17 11-26 7-30-4Z" fill="${c}"/><path d="M-20-4Q-13-9-6-3Q-13 1-20-4ZM20-4Q13-9 6-3Q13 1 20-4Z" fill="#2a1416"/><path d="M-30-4L-40-13M30-4L40-13" stroke="${c}" stroke-width="4" stroke-linecap="round"/><path d="M-26-6C-19-13-9-11 0-5" stroke="#f07a80" stroke-width="2" fill="none"/>`;
   const chBack = (cx, cy, r, rot) => {
@@ -73,13 +64,6 @@
       `<path d="M${P(-0.6, -0.4)}Q${P(-0.1, -0.75)} ${P(0.55, -0.45)}M${P(-0.7, 0.2)}Q${P(0, -0.2)} ${P(0.7, 0.15)}M${P(-0.35, 0.65)}Q${P(0.05, 0.4)} ${P(0.4, 0.7)}" stroke="${CH.hair2}" stroke-width="${(r * 0.07).toFixed(1)}" fill="none" opacity=".55" stroke-linecap="round"/>` +
       `<path d="M${P(-0.5, -0.7)}Q${P(0, -0.98)} ${P(0.45, -0.75)}" stroke="${CH.hi}" stroke-width="${(r * 0.1).toFixed(1)}" fill="none" opacity=".8" stroke-linecap="round"/>` +
       `<g transform="translate(${P(-0.62, -0.62).replace(' ', ' ')}) rotate(-35) scale(${(r / 38).toFixed(2)})">${MASK()}</g></g>`;
-  };
-  // fur-collar shape between two shoulder points (bumpy top edge)
-  const fluffEdge = (x0, y0, x1, y1) => {
-    const n = 8, w = (x1 - x0) / n;
-    let d = `M${x0 - 10} ${y0 + 30}`;
-    for (let i = 0; i <= n; i++) d += `Q${f(x0 + w * (i - 0.5))} ${f(y0 - 22)} ${f(x0 + w * i)} ${f(y0 - 6 + (i % 2) * 6)}`;
-    return d + `L${x1 + 10} ${y1 + 30}Q${f((x0 + x1) / 2)} ${y1 + 50} ${x0 - 10} ${y0 + 30}Z`;
   };
   // soft steam
   const steam = (x, y, h, c = '#fff', o = 0.5) => {
@@ -1189,6 +1173,174 @@
         `</g>` +
         `<g fill="#ff3b30" opacity=".9">${[[880, 380], [1150, 420], [860, 470]].map(([x, y]) => `<path transform="translate(${x} ${y})" d="M-3-14h6v16h-6zM-3 6h6v6h-6z"/>`).join('')}</g>`,
         0.05, 0.5);
+    },
+  });
+
+  // ==== Stranger on the Screen ==============================================================
+  def('end_facetime', {
+    title: 'Stranger on the Screen',
+    w: 1200, h: 900, tags: ['ending', 'teucer', 'tonia'],
+    svg: () => {
+      seed(123);
+      const T = { hair: '#d8702e', hair2: '#a84a1c', hi: '#f4a060' };
+      const freck = dots(26, -150, 150, 40, 120, 3, 6);
+      const btn = (x, c, icon) => `<circle cx="${x}" cy="0" r="40" fill="${c}"/>${icon}`;
+      return svg(
+        lg('air', [[0, '#cfe4f2'], [0.6, '#eef4f6'], [1, '#d8d2c8']]) +
+        lg('glass', [[0, '#a8d4f0'], [1, '#e8f4fa']]) +
+        lg('tsk', [[0, '#ffeee2'], [0.6, '#fcd8c2'], [1, '#eeb89e']], 0.2, 0, 0.8, 1) +
+        rg('iris', [[0, '#8ad0ff'], [0.55, '#3a8ad8'], [1, '#1a4a8a']], 0.45, 0.4, 0.6) +
+        lg('hat', [[0, '#3a7ac8'], [1, '#22508e']]) +
+        lg('th', [[0, T.hi], [0.5, T.hair], [1, T.hair2]], 0, 0, 0.3, 1) +
+        lg('pip', [[0, '#1a1e2c'], [1, '#0a0c14']]) +
+        rg('pipglow', [[0, '#cfe0ff', 0.6], [1, '#cfe0ff', 0]], 0.5, 0.7, 0.6) +
+        lg('top', [[0, '#000', 0.45], [1, '#000', 0]]) + lg('bot', [[0, '#000', 0], [1, '#000', 0.5]]),
+        // airport arrivals hall behind him
+        `<rect width="1200" height="900" fill="url(#air)"/>` +
+        `<rect x="0" y="80" width="1200" height="380" fill="url(#glass)"/><path d="${[0, 200, 400, 600, 800, 1000, 1200].map((x) => `M${x} 80V460`).join('')}M0 270H1200" stroke="#8a9aa8" stroke-width="10"/>` +
+        `<path d="M40 214L170 202L188 188L198 202L290 198L278 210L188 218Z" fill="#f4f6f8" opacity=".9"/><path d="M164 204L140 184H152L182 202Z" fill="#c8323c" opacity=".8"/>` +
+        `<rect x="700" y="120" width="320" height="110" rx="6" fill="#1a2230"/>` + text(720, 156, 'ARRIVALS', { size: 22, weight: 800, fill: '#ffd25a' }) + text(720, 190, 'LA 711  MOREPESOK  LANDED', { size: 16, fill: '#e8eef4' }) + text(720, 214, '07:40', { size: 16, fill: '#8ae0a0' }) +
+        `<rect y="460" width="1200" height="440" fill="#e2dccf"/><path d="M0 600H1200" stroke="#cfc8b8" stroke-width="4"/>` +
+        // ---- Tonia, behind him, on her phone ----
+        `<g opacity=".9"><path d="M850 900C850 760 880 680 940 660H1040C1100 680 1130 760 1130 900Z" fill="#6a5a7a"/>` +
+        `<path d="M920 660C940 700 1040 700 1060 660L1050 640C1030 668 950 668 930 640Z" fill="#c8323c"/><path d="M930 700L960 780H990L970 696Z" fill="#c8323c"/>` +
+        `<path d="M948 600V660H1024V600Z" fill="#f2cdb4"/>` +
+        `<ellipse cx="986" cy="550" rx="62" ry="72" fill="#f8dcc8"/>` +
+        `<path d="M924 556C916 480 950 450 990 450C1034 450 1060 486 1050 556C1036 520 1020 500 990 496C960 500 940 520 924 556Z" fill="url(#th)"/>` +
+        `<path d="M1040 540C1060 590 1060 660 1040 720C1030 740 1020 744 1012 740C1030 690 1034 620 1024 560Z" fill="url(#th)"/>` +
+        `<path d="M1034 600L1048 606M1030 640L1046 646M1026 680L1042 686" stroke="${T.hair2}" stroke-width="4"/>` +
+        `<path d="M954 556Q966 550 976 558M998 558Q1010 550 1020 556" stroke="#5a2a18" stroke-width="5" fill="none" stroke-linecap="round"/>` +
+        `<path d="M950 538L978 544M998 544L1024 536" stroke="#a84a1c" stroke-width="5" stroke-linecap="round"/>` +
+        `<path d="M974 598Q988 594 1002 600" stroke="#a85a4a" stroke-width="4" fill="none" stroke-linecap="round"/>` +
+        `<rect x="904" y="500" width="36" height="74" rx="8" fill="#2a2e3a" transform="rotate(-12 922 537)"/><path d="M900 590C890 610 896 640 912 650L940 600Z" fill="#f2cdb4"/></g>` +
+        // ---- Teucer, too close to the camera ----
+        `<g transform="translate(560 540)">` +
+        // shoulders + Sir Fang's ear
+        `<path d="M-330 360C-320 260-250 220-170 210H170C250 220 320 260 330 360Z" fill="#e0453c"/><path d="M-170 210C-120 250 120 250 170 210" stroke="#fff" stroke-width="12" fill="none"/>` +
+        `<path d="M230 360L260 230L300 250L320 360Z" fill="#e8f2fa"/><path d="M262 250L276 290L296 262Z" fill="#9ac4e8"/>` +
+        // ears + face
+        `<ellipse cx="-262" cy="10" rx="34" ry="52" fill="#f6c8ae"/><ellipse cx="262" cy="10" rx="34" ry="52" fill="#f6c8ae"/>` +
+        `<g transform="scale(2.5 2.45)"><path d="${FACE_F}" fill="url(#tsk)"/></g>` +
+        `<path d="${freck}" fill="#d98a5a" opacity=".55"/>` +
+        // shocked eyes
+        `<ellipse cx="-110" cy="-6" rx="60" ry="70" fill="#fff"/><ellipse cx="110" cy="-6" rx="60" ry="70" fill="#fff"/>` +
+        `<circle cx="-104" cy="0" r="30" fill="url(#iris)"/><circle cx="104" cy="0" r="30" fill="url(#iris)"/><circle cx="-104" cy="0" r="13" fill="#0e1a30"/><circle cx="104" cy="0" r="13" fill="#0e1a30"/>` +
+        `<circle cx="-94" cy="-10" r="8" fill="#fff"/><circle cx="114" cy="-10" r="8" fill="#fff"/>` +
+        `<path d="M-166-30Q-110-92-54-30M54-30Q110-92 166-30" stroke="#5a2a18" stroke-width="6" fill="none" stroke-linecap="round"/>` +
+        `<path d="M-168-96Q-120-134-60-118M60-118Q120-134 168-96" stroke="#b8541e" stroke-width="14" fill="none" stroke-linecap="round"/>` +
+        // nose + O mouth
+        `<ellipse cx="0" cy="66" rx="20" ry="14" fill="#f2b496" opacity=".7"/><ellipse cx="-8" cy="74" rx="4" ry="3" fill="#c4785a"/><ellipse cx="8" cy="74" rx="4" ry="3" fill="#c4785a"/>` +
+        `<ellipse cx="0" cy="170" rx="44" ry="56" fill="#7a2228"/><ellipse cx="0" cy="196" rx="28" ry="22" fill="#e85a6a"/><path d="M-30 128Q0 120 30 128" stroke="#fff" stroke-width="8" fill="none"/>` +
+        `<ellipse cx="-170" cy="96" rx="50" ry="26" fill="#ff8a8a" opacity=".4"/><ellipse cx="170" cy="96" rx="50" ry="26" fill="#ff8a8a" opacity=".4"/>` +
+        // hands on cheeks (mittens)
+        `<path d="M-300 260C-320 200-300 120-250 110C-210 104-196 150-204 190L-224 270Z" fill="#3a7ac8"/><path d="M-256 112C-276 90-270 66-252 64C-234 62-224 86-232 110Z" fill="#3a7ac8"/>` +
+        `<path d="M300 260C320 200 300 120 250 110C210 104 196 150 204 190L224 270Z" fill="#3a7ac8"/><path d="M256 112C276 90 270 66 252 64C234 62 224 86 232 110Z" fill="#3a7ac8"/>` +
+        `<path d="M-290 230H-218M218 230H290" stroke="#fff" stroke-width="10"/>` +
+        // ginger hair under the hat
+        `<path d="M-270-150C-280-90-270-60-250-40L-230-120ZM270-150C280-90 270-60 250-40L230-120Z" fill="url(#th)"/>` +
+        `<path d="${lock(-180, -200, 110, 80, 60, -12)}${lock(-90, -210, 100, 76, 60, -8)}${lock(10, -214, 88, 70, 60, 6)}${lock(110, -210, 76, 80, 60, 10)}${lock(200, -196, 66, 70, 56, 12)}" fill="url(#th)"/>` +
+        // knit hat with a fish band
+        `<path d="M-290-180C-290-360-160-430 0-430C160-430 290-360 290-180Z" fill="url(#hat)"/>` +
+        `<path d="M-300-200H300V-140C200-120-200-120-300-140Z" fill="#e8f0f8"/>` +
+        `<path d="${[-240, -120, 0, 120, 240].map((x) => `M${x - 30}-170C${x - 14}-186 ${x + 14}-186 ${x + 26}-170L${x + 38}-180V-160L${x + 26}-170C${x + 14}-154 ${x - 14}-154 ${x - 30}-170Z`).join('')}" fill="#3a7ac8"/>` +
+        `<path d="${[-200, -120, -40, 40, 120, 200].map((x) => `M${x}-410V-210`).join('')}" stroke="#2a62a8" stroke-width="5" opacity=".5"/>` +
+        `<circle cx="0" cy="-440" r="56" fill="#f4f8fc"/>` +
+        `</g>` +
+        // ---- FaceTime UI ----
+        `<rect width="1200" height="160" fill="url(#top)"/><rect y="700" width="1200" height="200" fill="url(#bot)"/>` +
+        text(48, 70, 'Teucer', { size: 34, weight: 700, fill: '#fff' }) + text(48, 104, 'FaceTime · 0:04', { size: 20, fill: '#fff', op: 0.85 }) +
+        // self-view: the stranger
+        `<g transform="translate(940 40)"><rect width="220" height="300" rx="26" fill="url(#pip)"/><rect width="220" height="300" rx="26" fill="url(#pipglow)"/>` +
+        `<path d="M30 300C36 240 70 220 110 218C150 220 184 240 190 300Z" fill="#2a3048"/>` +
+        `<ellipse cx="110" cy="160" rx="54" ry="64" fill="#d8c4c0"/>` +
+        `<path d="M54 160C46 100 76 80 110 80C150 80 176 104 168 160C160 130 150 116 136 112L120 124L104 110L86 124C72 124 62 140 54 160Z" fill="#141018"/>` +
+        `<circle cx="88" cy="160" r="9" fill="#fff"/><circle cx="132" cy="160" r="9" fill="#fff"/><circle cx="88" cy="161" r="4" fill="#141018"/><circle cx="132" cy="161" r="4" fill="#141018"/>` +
+        `<path d="M72 138Q86 128 100 136M120 136Q134 128 148 138" stroke="#141018" stroke-width="4" fill="none" stroke-linecap="round"/><ellipse cx="110" cy="196" rx="7" ry="9" fill="#6a4a4a"/>` +
+        `<rect width="220" height="300" rx="26" fill="none" stroke="#fff" stroke-width="3" opacity=".6"/></g>` +
+        // control bar
+        `<g transform="translate(600 812)"><rect x="-330" y="-56" width="660" height="112" rx="56" fill="#3a3a40" opacity=".55"/>` +
+        `<g transform="translate(-240 0)">${btn(0, '#ffffff33', '<path d="M-12-6h8l10-10v32l-10-10h-8z" fill="#fff"/>')}</g>` +
+        `<g transform="translate(-120 0)">${btn(0, '#fff', '<rect x="-16" y="-10" width="22" height="20" rx="4" fill="#1a1a1a"/><path d="M8-6L18-12V12L8 6z" fill="#1a1a1a"/>')}</g>` +
+        `<g>${btn(0, '#ffffff33', '<rect x="-7" y="-18" width="14" height="24" rx="7" fill="#fff"/><path d="M-12 2Q0 18 12 2M0 12V20" stroke="#fff" stroke-width="3" fill="none"/>')}</g>` +
+        `<g transform="translate(120 0)">${btn(0, '#ffffff33', '<circle cx="0" cy="0" r="14" fill="none" stroke="#fff" stroke-width="3"/><path d="M0-8V8M-8 0H8" stroke="#fff" stroke-width="3"/>')}</g>` +
+        `<g transform="translate(240 0)">${btn(0, '#ff3b30', '<path d="M-18 4C-10-8 10-8 18 4L14 10L6 6V0C2-2-2-2-6 0V6L-14 10Z" fill="#fff"/>')}</g>` +
+        `</g>`,
+        0.05, 0.45);
+    },
+  });
+
+  // ==== Where the Abyss Looks Back ==========================================================
+  def('end_abyss', {
+    title: 'Where the Abyss Looks Back',
+    w: 1200, h: 900, tags: ['ending', 'skirk', 'secret'],
+    svg: () => {
+      seed(137);
+      const RIM = '#c8a8ff';
+      let stars = '';
+      for (let i = 0; i < 4; i++) {
+        const x = rr(460, 900), y = rr(600, 860), r = rr(5, 9);
+        stars += `M${f(x)} ${f(y - r * 2)}L${f(x + r * 0.4)} ${f(y - r * 0.4)}L${f(x + r * 2)} ${f(y)}L${f(x + r * 0.4)} ${f(y + r * 0.4)}L${f(x)} ${f(y + r * 2)}L${f(x - r * 0.4)} ${f(y + r * 0.4)}L${f(x - r * 2)} ${f(y)}L${f(x - r * 0.4)} ${f(y - r * 0.4)}Z`;
+      }
+      let rays = '';
+      for (let i = 0; i < 9; i++) {
+        const x = 420 + i * 60 + rr(-10, 10);
+        rays += `M${f(x)} 900L${f(x + rr(-160, 160))} 0L${f(x + rr(-160, 160) + 26)} 0L${f(x + 18)} 900Z`;
+      }
+      return svg(
+        lg('sky', [[0, '#04030c'], [1, '#0e0a24']]) +
+        rg('void', [[0, '#e8d8ff'], [0.15, '#a77aff'], [0.45, '#4a2a9a', 0.85], [1, '#120a30', 0]], 0.5, 0.6, 0.55) +
+        lg('wallL', [[0, '#0c0a1c'], [1, '#2a1e4e']], 0, 0, 1, 0) +
+        lg('wallR', [[0, '#2a1e4e'], [1, '#0c0a1c']], 0, 0, 1, 0) +
+        lg('ray', [[0, '#b08aff', 0], [1, '#b08aff', 0.22]]) +
+        lg('spire', [[0, '#3a2a62'], [1, '#120c26']], 0, 0, 1, 0) +
+        lg('hair', [[0, '#f4f2ff'], [1, '#b8b0e0']], 0, 0, 1, 1) +
+        rg('pglow', [[0, '#e8f4ff', 0.9], [0.3, '#9fd4ff', 0.35], [1, '#9fd4ff', 0]]) +
+        lg('trail', [[0, '#9fd4ff', 0], [1, '#e8f4ff', 0.7]]) + PHONE_DEFS,
+        `<rect width="1200" height="900" fill="url(#sky)"/>` +
+        `<path d="${dots(50, 0, 1200, 0, 300, 0.6, 1.6)}" fill="#fff" opacity=".5"/>` +
+        // the abyss below: violet starlight
+        `<ellipse cx="680" cy="760" rx="520" ry="300" fill="url(#void)"/>` +
+        `<path d="${rays}" fill="url(#ray)" opacity=".5"/>` +
+        `<path d="${dots(120, 380, 1000, 560, 900, 0.8, 2.4)}" fill="#fff" opacity=".85"/>` +
+        `<path d="${stars}" fill="#fff"/>` +
+        `<path d="M420 760C520 700 640 740 760 700S960 720 1020 680" stroke="#e0c8ff" stroke-width="3" fill="none" opacity=".35"/>` +
+        `<path d="M460 820C560 790 700 820 820 780S980 790 1040 760" stroke="#e0c8ff" stroke-width="2" fill="none" opacity=".25"/>` +
+        // chasm walls with old mine scaffolding
+        `<path d="M0 0H360C380 120 330 220 380 330C420 420 360 520 420 620C450 680 400 780 430 900H0Z" fill="url(#wallL)"/>` +
+        `<path d="M1200 0H900C880 140 940 240 900 360C870 460 940 560 900 660C880 740 940 820 920 900H1200Z" fill="url(#wallR)"/>` +
+        `<path d="M360 0C380 120 330 220 380 330C420 420 360 520 420 620C450 680 400 780 430 900M900 0C880 140 940 240 900 360C870 460 940 560 900 660C880 740 940 820 920 900" stroke="${RIM}" stroke-width="3" fill="none" opacity=".45"/>` +
+        `<path d="M940 200H1140M960 200V320M1040 200V320M1120 200V320M940 320H1140M960 200L1040 320M1040 200L1120 320" stroke="#2a1e3a" stroke-width="9" fill="none"/>` +
+        `<path d="M80 260H300M100 260V400M200 260V400M280 260V400M80 400H300M100 260L200 400" stroke="#1e1630" stroke-width="9" fill="none"/>` +
+        `<circle cx="1000" cy="230" r="5" fill="#ffc46a"/><circle cx="1000" cy="230" r="18" fill="#ffc46a" opacity=".2"/>` +
+        // stone spire with Skirk waiting
+        `<path d="M700 900L720 640L740 560L760 520H830L850 570L860 650L880 900Z" fill="url(#spire)"/>` +
+        `<path d="M760 520L740 560L720 640L700 900" stroke="${RIM}" stroke-width="3" fill="none" opacity=".6"/>` +
+        `<g transform="translate(796 520)">` +
+        // long silver hair streaming
+        `<path d="M-6-250C-30-240-40-200-44-150C-50-90-70-40-110 10C-80 6-60-10-46-30C-52 10-70 40-96 70C-50 54-24 10-14-40C-10-90-8-150 4-200Z" fill="url(#hair)"/>` +
+        // body silhouette: star-black coat, long legs, sword
+        `<path d="M-2-262C10-262 18-252 18-240C18-228 12-220 4-218L18-206C30-196 34-170 32-140L28-100L36-40L42 0H22L8-80L-2 0H-22L-18-60L-26-100L-28-150C-30-180-24-200-12-208L-6-218C-14-222-20-230-18-242C-16-254-10-262-2-262Z" fill="#06040e"/>` +
+        `<path d="M-26-100C-40-60-50-20-56 10C-40-10-30-40-22-70ZM28-100C40-60 52-24 60 6C44-14 36-44 30-70Z" fill="#0c0820"/>` +
+        `<path d="${dots(10, -24, 30, -200, -10, 0.8, 1.6)}" fill="#e0d4ff"/>` +
+        `<path d="M30-140L54-110L120 20" stroke="#dcd6f0" stroke-width="4" stroke-linecap="round"/><path d="M48-118L62-128" stroke="#8a6aff" stroke-width="6" stroke-linecap="round"/>` +
+        `<path d="M18-240C18-228 12-220 4-218L18-206C30-196 34-170 32-140L28-100L36-40L42 0" stroke="${RIM}" stroke-width="2.5" fill="none" opacity=".8"/>` +
+        `<path d="M-20-240C-20-258-8-266 2-266C14-266 22-256 20-240C14-250 6-254-2-252C-10-250-16-246-20-240Z" fill="url(#hair)"/>` +
+        `<path d="M-20-240C-24-226-24-212-20-200L-14-214Z" fill="url(#hair)"/>` +
+        `<circle cx="10" cy="-238" r="2.2" fill="#b8a0ff"/>` +
+        `</g>` +
+        // near edge (foreground rock)
+        `<path d="M0 900V560C80 548 160 572 240 560C300 552 360 570 400 600L440 640C420 700 380 780 300 900Z" fill="#05040a"/>` +
+        `<path d="M0 560C80 548 160 572 240 560C300 552 360 570 400 600L440 640" stroke="#8a6ac8" stroke-width="3" fill="none" opacity=".6"/>` +
+        `<path d="M60 600L120 640M200 590L220 660M300 610L330 680" stroke="#1a1428" stroke-width="5" opacity=".8"/>` +
+        // the phone, dropping, trailing light
+        `<path d="M408 560C440 600 470 640 500 690L520 676C490 630 458 594 424 552Z" fill="url(#trail)"/>` +
+        `<circle cx="512" cy="700" r="130" fill="url(#pglow)"/>` +
+        `<g transform="translate(512 704) rotate(38)"><rect x="-38" y="-76" width="76" height="152" rx="13" fill="#1a1c22"/><rect x="-34" y="-72" width="68" height="144" rx="10" fill="#e8f4ff"/><rect x="-14" y="-66" width="28" height="7" rx="3.5" fill="#1a1c22"/>` +
+        `<rect x="-28" y="-30" width="56" height="18" rx="6" fill="#3aa0e6"/>` + text(0, -16, 'Ajax.', { size: 11, weight: 700, anchor: 'middle', fill: '#fff' }) + text(0, 30, '03:00', { size: 18, weight: 300, anchor: 'middle', fill: '#2a3a5a' }) +
+        `<path d="M-38-40L-50-46" stroke="#4fb2ee" stroke-width="10" stroke-linecap="round"/></g>` +
+        `<g transform="translate(470 756) rotate(30)">${fishCharm(18, 0.6)}</g>` +
+        `<path d="M444 630l6 4-4 6-6-4zM470 660l4 3-3 4-4-3zM432 690l5 3-3 5-5-3z" fill="#2a2440"/>`,
+        0.08, 0.8);
     },
   });
 })();
