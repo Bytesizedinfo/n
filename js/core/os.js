@@ -89,7 +89,7 @@
         h('div', h('b', 'Back'), ' swipe from the left edge'),
         h('div', h('b', 'Lock'), ' side button (right edge)')),
       h('div.cap-links',
-        h('span.cap-link', { onTap: () => os.showEndings() }, 'Endings'),
+        h('span.cap-link', { onTap: () => os.showEndings() }, JC.edition === 'sunday' ? 'Sunday Dinners' : 'Endings'),
         h('span.cap-dot', '·'),
         h('span.cap-link', { onTap: () => confirmRestart() }, 'Restart story')));
     stage.append(device, caption);
@@ -1267,6 +1267,20 @@
       const art = JC.art.el('p_family_2007', { cls: 'wm-art' });
       el.append(art, h('div.wm-shade'), h('div.wm-label', h('div.wm-k', 'ON THIS DAY'), h('div.wm-t', 'Lotus Pier, 2007')));
       JC.ui.onTap(el, () => open('photos', { memory: 'lotus-pier-2007' }));
+    } else if (id === 'endings' && JC.edition === 'sunday' && JC.sunday) {
+      // Sunday at Lotus Pier: the live table instead of an endings counter
+      let t = null;
+      try { t = JC.sunday.table(JC.story.view()); } catch (e) { /* story not ready */ }
+      const order = ['jl', 'wwx', 'lwj', 'lxc', 'wn', 'sz', 'jy', 'nhs', 'you'];
+      el.classList.add('wsun');
+      el.append(h('div.we-top', h('div.we-ic.sun', JC.icon('lotus.fill', { size: 16 })), h('div.we-k', 'SUNDAY · 6:30')),
+        h('div.ws-grid', order.map((k) => {
+          const info = JC.sunday.SEAT_INFO[k];
+          const on = t && JC.sunday.SEATED.includes(t.seats[k].state);
+          return h('div.ws-seat', { class: { on, out: t && t.seats[k].state === 'outside' } }, info.cid ? JC.ui.avatar(info.cid, 26) : h('div.ws-you', JC.icon('person.fill', { size: 13 })));
+        })),
+        h('div.we-sub', t ? (order.filter((k) => JC.sunday.SEATED.includes(t.seats[k].state)).length + ' of ' + order.length + ' seats · Lotus Pier') : 'Lotus Pier'));
+      JC.ui.onTap(el, () => { if (!jiggle && !preview) open('notes', { note: 'n_sunday' }); });
     } else if (id === 'endings') {
       const list = JC.story && JC.story.endings ? JC.story.endings() : [];
       const got = list.filter((e) => e.unlocked).length;
@@ -1865,6 +1879,49 @@
     step();
   });
 
+  /** "Sunday at Lotus Pier" finale: a tap-through of cards { kicker, text, art? } on a lantern-lit table.
+      Resolves when the last card is passed (or Skip). Under JC.story._ff (tests) it resolves almost at once. */
+  os.dinner = (cards) => new Promise((resolve) => {
+    cards = (cards || []).filter((c) => c && c.text);
+    const C = els.cinema;
+    C.innerHTML = '';
+    C.classList.add('on');
+    JC.time.freeze(true);
+    JC.kb.hide();
+    let i = 0;
+    let done = false;
+    const stage = h('div.dn-card');
+    const dots = h('div.dn-dots', cards.map(() => h('i')));
+    const next = h('div.dn-next', 'Tap to continue');
+    const skip = h('div.dn-skip', { onTap: (e) => { e.stopPropagation(); finish(); } }, 'Skip');
+    const wrap = h('div.dinner', h('div.dn-glow'), stage, dots, next, skip);
+    C.appendChild(wrap);
+    JC.ui.onTap(wrap, () => step());
+    function step() {
+      if (done) return;
+      if (i >= cards.length) return finish();
+      const c = cards[i];
+      stage.innerHTML = '';
+      const body = h('div.dn-in',
+        c.art && JC.art.has && JC.art.has(c.art) ? h('div.dn-art', JC.art.el(c.art, { cls: 'dn-art-img' })) : null,
+        c.kicker ? h('div.dn-kicker', c.kicker) : null,
+        h('div.dn-text', (Array.isArray(c.text) ? c.text : [c.text]).map((p) => h('p', p))));
+      stage.appendChild(body);
+      Array.from(dots.children).forEach((d, k) => d.classList.toggle('on', k <= i));
+      U.anim(body, [{ opacity: 0, transform: 'translateY(10px)', filter: 'blur(3px)' }, { opacity: 1, transform: 'none', filter: 'blur(0)' }], { duration: 650, easing: 'ease-out', fill: 'none' });
+      i++;
+      next.textContent = i >= cards.length ? 'Tap to finish' : 'Tap to continue';
+    }
+    function finish() {
+      if (done) return;
+      done = true;
+      JC.time.freeze(false);
+      U.anim(wrap, [{ opacity: 1 }, { opacity: 0 }], { duration: 700 }).then(() => { C.classList.remove('on'); C.innerHTML = ''; resolve(); });
+    }
+    step();
+    if (JC.story && JC.story._ff) setTimeout(finish, 50);
+  });
+
   os.timeSkip = (o) => new Promise((resolve) => {
     o = o || {};
     const C = els.cinema;
@@ -1902,19 +1959,34 @@
     const got = all.filter((x) => x.unlocked).length;
     const def = JC.story.endingDef(e.id) || e;
     const rec = (JC.state.d.endings || {})[def.id] || {};
+    const title = rec.title || def.title;
     const text = rec.text || (JC.story.endingText ? JC.story.endingText(def, 'text') : def.text || []);
     const jc = rec.jc || (JC.story.endingText ? JC.story.endingText(def, 'jc') : def.jc || []);
     const body = h('div.end-body',
       h('div.end-art', JC.art.el(def.art || 'end_' + def.id, { cls: 'end-art-img' }), h('div.end-art-fade')),
       h('div.end-text',
-        h('div.end-tag', (def.tag ? def.tag + ' · ' : '') + 'Ending ' + (def.n || '') + ' of ' + (all.length || 13)),
-        h('div.end-title', def.title),
+        h('div.end-tag', JC.edition === 'sunday' ? 'Sunday 18 October · Lotus Pier' : (def.tag ? def.tag + ' · ' : '') + 'Ending ' + (def.n || '') + ' of ' + (all.length || 13)),
+        h('div.end-title', title),
         text.map((p) => h('p', p)),
         jc.length ? h('div.end-jc', h('div.end-jc-k', JC.icon('lotus.fill', { size: 14 }), ' When Jiang Cheng got his phone back…'), jc.map((p) => h('p', p))) : null,
         opts.also && opts.also.length ? h('div.end-also', 'Also unlocked: ' + opts.also.map((id) => (JC.story.endingDef(id) || {}).title || id).join(', ')) : null,
+        JC.edition === 'sunday' ? tableStrip(rec.last) : null,
         opts.trace ? traceView() : null,
-        h('div.end-count', 'Endings found: ' + got + ' / ' + (all.length || 13))));
+        h('div.end-count', JC.edition === 'sunday' ? sundayCount() : 'Endings found: ' + got + ' / ' + (all.length || 13))));
     return body;
+  }
+  // Sunday edition: who was at the table (from the recorded dinner)
+  function tableStrip(last) {
+    if (!last || !JC.sunday) return null;
+    const seated = Object.keys(last.seats || {}).filter((k) => k !== 'jc' && k !== 'huang' && (JC.sunday.SEATED.includes(last.seats[k]) || (k === 'ajie')));
+    return h('div.end-table', h('div.end-trace-k', JC.icon('person.2.fill', { size: 14 }), ' At the table'),
+      h('div.end-seats', seated.map((k) => { const i = JC.sunday.SEAT_INFO[k]; return h('div.end-seat', i.cid ? JC.ui.avatar(i.cid, 30) : h('div.ws-you.big', JC.icon(k === 'fairy' ? 'pawprint.fill' : 'person.fill', { size: 15 })), h('span', i.name)); })));
+  }
+  function sundayCount() {
+    const r = (JC.state.d.endings || {}).sunday || {};
+    const seats = Object.keys(r.seats || {}).length;
+    const n = Object.values(r.outcomes || {}).reduce((a, b) => a + b, 0);
+    return 'Sundays: ' + n + ' · Seats ever filled: ' + seats + ' / ' + (JC.sunday ? JC.sunday.SEATS.length : 13);
   }
   // What the player did with the phone tonight (story.log entries), oldest first, at most ten.
   function traceView() {
@@ -1937,7 +2009,7 @@
     const btns = h('div.end-btns',
       JC.state.canRewind() ? h('div.end-btn', { onTap: () => { close(); JC.story.rewind(); } }, JC.icon('arrow.counterclockwise', { size: 18 }), h('span', 'Rewind to last choice')) : null,
       h('div.end-btn', { onTap: () => { close(); JC.ui.toast('The story has ended — the phone is yours to explore', { icon: 'lotus.fill', ms: 3000 }); } }, JC.icon('iphone', { size: 18 }), h('span', 'Keep exploring the phone')),
-      h('div.end-btn', { onTap: () => { close(); os.showEndings(); } }, JC.icon('square.grid.2x2', { size: 18 }), h('span', 'All endings')),
+      h('div.end-btn', { onTap: () => { close(); os.showEndings(); } }, JC.icon('square.grid.2x2', { size: 18 }), h('span', JC.edition === 'sunday' ? 'Sunday Dinners' : 'All endings')),
       h('div.end-btn.primary', { onTap: () => { close(); JC.story.restart(); } }, JC.icon('arrow.clockwise', { size: 18 }), h('span', 'Start over')));
     wrap.append(endingView(e || { id, title: id }, { also, trace: true }), btns);
     C.appendChild(h('div.end-dim'));
@@ -1951,7 +2023,38 @@
     }
   };
 
+  /** Sunday edition: the record of every Sunday so far (seats ever filled, outcomes reached, the last dinner). */
+  function showSundays() {
+    const r = (JC.state.d.endings || {}).sunday || {};
+    const I = JC.sunday.SEAT_INFO;
+    const filled = Object.keys(r.seats || {}).length;
+    const titles = JC.sunday.TITLES || {};
+    const outs = Object.keys(titles).length ? Object.keys(titles) : Object.keys(r.outcomes || {});
+    const s = JC.ui.sheet({
+      title: 'Sunday Dinners', detent: 'large', system: true, left: { text: 'Close' }, cls: 'endings-sheet',
+      content: () => [
+        h('div.eg-head', h('div.eg-ring', { style: { '--p': Math.round((filled / JC.sunday.SEATS.length) * 100) } }, h('span', filled + '/' + JC.sunday.SEATS.length)),
+          h('div.eg-sub', filled === JC.sunday.SEATS.length ? 'Every seat has been filled at least once. Thirteen years of empty chairs, made up for.' : 'Seats ever filled. Every night ends at the same table; who sits there is up to you.')),
+        r.last ? h('div.sd-last', { onTap: () => JC.ui.sheet({ title: r.last.title, detent: 'large', system: true, left: { text: 'Back' }, content: () => [h('div.ending.inline', endingView({ id: 'sunday' }))] }) },
+          h('div.sd-k', 'Last Sunday'), h('div.sd-t', r.last.title), h('div.sd-s', r.last.filled + ' at the table · tap to read')) : null,
+        h('div.sd-h', 'The table'),
+        h('div.sd-grid', JC.sunday.SEATS.map((k) => {
+          const got = !!(r.seats || {})[k];
+          return h('div.sd-seat', { class: { locked: !got }, onTap: () => JC.ui.alert({ title: I[k].name, message: got ? 'Has sat at the table.' : I[k].hint, buttons: [{ text: 'OK' }] }) },
+            I[k].cid ? JC.ui.avatar(I[k].cid, 40) : h('div.ws-you.big', JC.icon(k === 'fairy' ? 'pawprint.fill' : 'person.fill', { size: 18 })),
+            h('div.sd-n', I[k].name));
+        })),
+        outs.length ? h('div.sd-h', 'Sundays you have seen') : null,
+        outs.length ? h('div.sd-outs', outs.map((o) => h('div.sd-out', { class: { locked: !(r.outcomes || {})[o] } }, h('span', (r.outcomes || {})[o] ? (titles[o] || o) : '???'), (r.outcomes || {})[o] ? h('b', '×' + r.outcomes[o]) : null))) : null,
+        h('div.eg-actions',
+          JC.ui.btn({ text: 'Rewind to last choice', kind: 'gray', disabled: !JC.state.canRewind(), onTap: () => { s.close(); JC.story.rewind(); } }),
+          JC.ui.btn({ text: 'Restart story', kind: 'tinted', onTap: () => { s.close(); confirmRestart(); } })),
+      ],
+    });
+  }
+
   os.showEndings = () => {
+    if (JC.edition === 'sunday' && JC.sunday) return showSundays();
     const list = JC.story.endings();
     const got = list.filter((e) => e.unlocked).length;
     const s = JC.ui.sheet({
@@ -1977,7 +2080,7 @@
   function confirmRestart() {
     JC.ui.alert({
       title: 'Start Over?',
-      message: 'The night begins again in the taxi. Endings you have found stay unlocked.',
+      message: JC.edition === 'sunday' ? 'The night begins again in the taxi. Your Sunday Dinners record stays.' : 'The night begins again in the taxi. Endings you have found stay unlocked.',
       buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Start Over', style: 'destructive', onTap: () => JC.story.restart() }],
     });
   }

@@ -310,14 +310,16 @@
     JC.ui.sheet({
       title: 'How to Play', detent: 'large', right: { text: 'Done' },
       content: () => [h('div.set-htp',
-        h('div.set-htp-hero', JC.icon('lotus.fill', { size: 40 }), h('div.set-htp-h', 'Jiang Cheng’s Phone'), h('div.set-htp-s', 'You found this phone in a taxi. Everyone who texts it thinks you are Jiang Cheng.')),
+        h('div.set-htp-hero', JC.icon('lotus.fill', { size: 40 }), h('div.set-htp-h', JC.edition === 'sunday' ? 'Sunday at Lotus Pier' : 'Jiang Cheng’s Phone'), h('div.set-htp-s', 'You found this phone in a taxi. Everyone who texts it thinks you are Jiang Cheng.')),
         item('message.fill', 'var(--green)', 'Reply as him — or don’t', 'Choices appear above the keyboard in Messages. Short, sharp and never an emoji is very Jiang Cheng. Gushing is not.'),
         item('eye.fill', 'var(--orange)', 'Suspicion', 'Out-of-character replies make people suspicious. Turn on Show Suspicion Meter to see how close you are to being caught.'),
         item('magnifyingglass', 'var(--blue)', 'Snoop for clues', 'Photos, Notes, Mail, Wallet, Voice Memos and Safari history know things you don’t. Some questions have answers hidden in other apps.'),
         item('square.grid.2x2', 'var(--red)', 'His apps count too', 'Orders, rides, payments, photos, posts, notes, contacts and settings: people notice what “he” does, and some of it changes how the night ends. A lotus cue in the Dynamic Island tells you when something changed (Settings › Story Hints).'),
         item('lock.fill', 'var(--gray)', 'The passcode', 'You already cracked it. If you change it, don’t forget the new one.'),
         item('clock.fill', 'var(--indigo)', 'The night moves on', 'Messages arrive in real time while you explore. Leaving someone on read is also an answer.'),
-        item('lotus.fill', 'var(--purple)', '13 endings', 'Rewind to your last choice or restart the story to find them all. Endings you find stay unlocked.'),
+        JC.edition === 'sunday'
+          ? item('lotus.fill', 'var(--orange)', 'Sunday at Lotus Pier', 'Every chat, call and app feeds one dinner: A-Ling’s 18th, Sunday at 6:30. Who sits at the table, what’s served and what gets said depend on your night. The “Sunday” widget and note show the table as it forms; Sunday Dinners keeps every seat you have filled.')
+          : item('lotus.fill', 'var(--purple)', '13 endings', 'Rewind to your last choice or restart the story to find them all. Endings you find stay unlocked.'),
         item('hand.raised.fill', 'var(--pink)', 'Gestures', 'Home: tap or drag up the bar at the bottom (or press Esc). Back: swipe from the left edge. Control Center: drag down from the top right. Notifications: drag down from the top left.'),
         item('hare', 'var(--teal)', 'Message speed', 'Too slow or too fast? Change Message Speed here in Settings › Story.'))],
     });
@@ -336,7 +338,9 @@
     const su = pref('su.state', 'idle');
     return [
       { h: 'Story', cls: 'set-story', f: 'You are not Jiang Cheng. Everyone thinks you are.', rows: [
-        { t: 'Endings', icon: ['lotus.fill', 'linear-gradient(160deg,#8e6bd8,#4a2f8f)'], d: got + ' of ' + (endings.length || 13), tap: () => JC.os.showEndings(), chev: true },
+        JC.edition === 'sunday' && JC.sunday
+          ? { t: 'Sunday Dinners', icon: ['lotus.fill', 'linear-gradient(160deg,#f2b46b,#c0632b)'], d: Object.keys(((JC.state.d.endings || {}).sunday || {}).seats || {}).length + ' of ' + JC.sunday.SEATS.length + ' seats', tap: () => JC.os.showEndings(), chev: true }
+          : { t: 'Endings', icon: ['lotus.fill', 'linear-gradient(160deg,#8e6bd8,#4a2f8f)'], d: got + ' of ' + (endings.length || 13), tap: () => JC.os.showEndings(), chev: true },
         { t: 'Rewind to Last Choice', icon: ['arrow.counterclockwise', 'var(--indigo)'], tap: () => {
           if (!JC.state.canRewind()) { K.alert({ title: 'Nothing to Rewind', message: 'You haven’t made a choice yet. Every reply you pick in Messages is a checkpoint.' }); return; }
           JC.ui.alert({ title: 'Rewind to Last Choice?', message: 'The story goes back to just before your last choice. Endings you found stay unlocked.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Rewind', style: 'default', onTap: () => setTimeout(() => JC.story.rewind(), 250) }] });

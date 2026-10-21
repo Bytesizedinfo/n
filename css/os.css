@@ -774,3 +774,46 @@
 .lnp-fill { height: 100%; background: rgba(255, 255, 255, .85); }
 .lnp-ctrls { display: flex; justify-content: space-around; align-items: center; height: 46px; }
 .lnp-btn { width: 54px; height: 44px; display: flex; align-items: center; justify-content: center; }
+
+/* ═══ Sunday at Lotus Pier: the dinner sequence ═════════════════════════ */
+.dinner { position: absolute; inset: 0; background: #120b07; color: #fff4e6; display: flex; flex-direction: column; justify-content: center; padding: 64px 30px 96px; cursor: pointer; overflow: hidden; }
+.dn-glow { position: absolute; inset: -20%; background: radial-gradient(60% 45% at 50% 38%, rgba(255, 170, 80, .28), transparent 70%), radial-gradient(40% 30% at 20% 85%, rgba(200, 80, 60, .14), transparent 70%); animation: dnflicker 5s ease-in-out infinite; pointer-events: none; }
+@keyframes dnflicker { 0%, 100% { opacity: .9; } 50% { opacity: 1; } 70% { opacity: .82; } }
+.dn-card { position: relative; }
+.dn-in { display: grid; gap: 14px; }
+.dn-art { border-radius: 22px; overflow: hidden; aspect-ratio: 4 / 3; box-shadow: 0 18px 44px rgba(0, 0, 0, .45); max-height: 230px; }
+.dn-art-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.dn-kicker { font-size: 12px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; color: #f2b46b; }
+.dn-text p { margin: 0 0 10px; font-family: var(--font-serif); font-weight: 500; font-size: 19px; line-height: 1.5; text-wrap: pretty; }
+.dn-dots { position: absolute; top: 72px; left: 30px; right: 96px; display: flex; gap: 4px; }
+.dn-dots i { flex: 1; height: 3px; border-radius: 2px; background: rgba(255, 244, 230, .18); }
+.dn-dots i.on { background: rgba(242, 180, 107, .9); }
+.dn-next { position: absolute; bottom: 60px; left: 0; right: 0; text-align: center; font-size: 12px; font-weight: 600; color: rgba(255, 244, 230, .5); letter-spacing: .14em; text-transform: uppercase; animation: pulse 2.2s ease-in-out infinite; }
+.dn-skip { position: absolute; top: 60px; right: 22px; font-size: 14px; font-weight: 600; color: rgba(255, 244, 230, .75); padding: 7px 14px; border-radius: 16px; background: rgba(255, 255, 255, .1); }
+
+/* Sunday edition: live table widget, outcome card strip, Sunday Dinners record */
+.wsun .we-ic.sun { background: linear-gradient(160deg, #f2b46b, #c0632b); }
+.ws-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px 4px; justify-items: center; margin: 8px 0 6px; }
+.ws-seat { opacity: .28; filter: grayscale(1); transition: opacity .3s, filter .3s; }
+.ws-seat.on { opacity: 1; filter: none; }
+.ws-seat.out { opacity: .6; filter: grayscale(.4); }
+.ws-you { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, #f2b46b, #c0632b); color: #fff; }
+.ws-you.big { width: 40px; height: 40px; }
+.end-table { margin-top: 18px; padding: 14px 16px 12px; border-radius: 20px; background: rgba(242, 180, 107, .12); box-shadow: inset 0 0 0 .6px rgba(242, 180, 107, .3); }
+.end-seats { display: flex; flex-wrap: wrap; gap: 10px 12px; }
+.end-seat { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 58px; font-size: 11px; text-align: center; color: rgba(255, 255, 255, .85); }
+.ending.inline .end-seat { color: var(--label2); }
+.end-seat .ws-you.big { width: 30px; height: 30px; }
+.sd-last { margin: 4px 16px 6px; padding: 14px 16px; border-radius: 18px; background: var(--fill2, rgba(120, 120, 128, .12)); cursor: pointer; }
+.sd-k { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--orange, #ff9f0a); }
+.sd-t { font-family: var(--font-serif); font-size: 22px; font-weight: 700; margin: 4px 0 2px; color: var(--label); }
+.sd-s { font-size: 13px; color: var(--label2); }
+.sd-h { margin: 18px 20px 8px; font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--label2); }
+.sd-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px 6px; padding: 0 14px; }
+.sd-seat { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; }
+.sd-seat.locked { opacity: .35; filter: grayscale(1); }
+.sd-n { font-size: 11.5px; text-align: center; color: var(--label); line-height: 1.2; }
+.sd-outs { display: grid; gap: 1px; margin: 0 16px; border-radius: 14px; overflow: hidden; background: var(--sep, rgba(60, 60, 67, .2)); }
+.sd-out { display: flex; justify-content: space-between; padding: 12px 14px; background: var(--bg2, #fff); font-size: 15px; color: var(--label); }
+.sd-out.locked { color: var(--label3, #999); }
+.sd-out b { font-weight: 600; color: var(--label2); }

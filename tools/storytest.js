@@ -6,6 +6,9 @@
 const T = require('./pw');
 
 const runs = parseInt(process.argv[2] || '30', 10);
+// --edition sunday: "Sunday at Lotus Pier" (js/story-sunday): one finale (the dinner) instead of 13 endings
+const edition = process.argv.includes('--edition') ? process.argv[process.argv.indexOf('--edition') + 1] : 'default';
+const SUNDAY = edition === 'sunday';
 const verbose = process.argv.includes('--verbose');
 
 function staticCheck() {
@@ -49,6 +52,7 @@ function staticCheck() {
         collectFx(st.fx);
         if (st.start) { startedScenes.add(st.start); if (!d.scenes[st.start]) errors.push(`${where}: start unknown scene ${st.start}`); }
         if (st.call) { calledCalls.add(st.call); if (!d.calls[st.call]) errors.push(`${where}: unknown call ${st.call}`); }
+        if (st.cancel && !d.scenes[st.cancel]) errors.push(`${where}: cancel unknown scene ${st.cancel}`);
         if (st.ending && !d.endings[st.ending]) errors.push(`${where}: unknown ending ${st.ending}`);
         if (Array.isArray(st.endings)) st.endings.forEach((e) => { if (!d.endings[e]) errors.push(`${where}: unknown ending ${e}`); });
         const th = st.th || def.thread;
@@ -98,8 +102,16 @@ function staticCheck() {
     });
   });
   const ends = Object.values(d.endings);
-  if (ends.length !== 13) errors.push(`expected 13 endings, found ${ends.length}`);
-  ends.forEach((e) => {
+  const sunday = JC.edition === 'sunday';
+  if (sunday) {
+    if (ends.length !== 1 || !d.endings.sunday) errors.push(`sunday edition: expected only the 'sunday' ending, found ${ends.map((e) => e.id).join(', ')}`);
+    ['early_return', 'zidian_fall', 'wn_accomplice', 'nhs_bargain', 'scandal_breaks', 'burned_after'].forEach((id) => { if (!d.scenes[id]) warns.push(`sunday edition: consequence scene ${id} not written yet`); });
+    if (!JC.sunday || !JC.sunday.finale) warns.push('sunday edition: JC.sunday.finale missing (dinner.js)');
+    let dinners = 0;
+    Object.values(d.scenes).concat(Object.values(d.calls)).forEach((sc) => Object.values(sc.nodes || {}).forEach((arr) => arr.forEach((st) => { if (st.dinner) dinners++; if (st.ending || st.endings) warns.push(`sunday edition: ${sc.id} still has an { ending } step (routed to a consequence)`); })));
+    if (!dinners) warns.push('sunday edition: no { dinner: true } step yet');
+  } else if (ends.length !== 13) errors.push(`expected 13 endings, found ${ends.length}`);
+  if (!sunday) ends.forEach((e) => {
     if (!e.title || !e.text || !e.text.length) errors.push(`ending ${e.id}: missing title/text`);
     if (!e.jc || !e.jc.length) warns.push(`ending ${e.id}: no jc epilogue`);
     if (!e.hint) warns.push(`ending ${e.id}: no hint`);
@@ -179,7 +191,10 @@ async function playthrough(page, seed, strategy) {
     const did = {};
     for (let it = 0; it < 2600; it++) {
       const st = JC.state.d;
-      if (st.ended) return { ending: st.ended, also: (ev && ev.also) || [], it, log: log.slice(-12), flags: st.flags, sus: st.sus, aff: st.aff };
+      if (st.ended) {
+        const sun = st.ended === 'sunday' && st.endings.sunday && st.endings.sunday.last;
+        return { ending: sun ? 'sunday:' + sun.outcome : st.ended, filled: sun ? sun.filled : null, seats: sun ? sun.seats : null, also: (ev && ev.also) || [], it, log: log.slice(-12), flags: st.flags, sus: st.sus, aff: st.aff };
+      }
       // occasional optional actions that open branches
       if (strategy !== 'minimal' && !did.memo && it > 30 && rnd() < 0.02) { did.memo = 1; JC.story.act('memo_play', { id: 'memo14' }); log.push('memo_play'); if (rnd() < 0.6) { JC.story.send(JC.story.threadFor('wwx'), { memo: 'memo14' }); log.push('memo_share'); } }
       if (strategy !== 'minimal' && !did.ajie && rnd() < 0.01) { did.ajie = 1; JC.story.act('open_thread', { thread: 'ajie' }); log.push('open ajie'); }
@@ -224,7 +239,7 @@ async function playthrough(page, seed, strategy) {
 }
 
 (async () => {
-  const { page, done } = await T.open({});
+  const { page, done } = await T.open({ edition });
   await T.skipIntro(page);
   const res = await page.evaluate(staticCheck);
   console.log('STATS', JSON.stringify(res.stats));
@@ -234,6 +249,7 @@ async function playthrough(page, seed, strategy) {
   if (!verbose && res.warns.length > 25) console.log(`  … ${res.warns.length - 25} more warnings (--verbose)`);
   const tally = {};
   const unlocked = {};
+  const seatTally = {};
   const strategies = ['random', 'first', 'last', 'chaos', 'decline', 'minimal'];
   for (let k = 0; k < runs; k++) {
     const strategy = strategies[k % strategies.length];
@@ -241,10 +257,12 @@ async function playthrough(page, seed, strategy) {
     const key = r.ending || 'STUCK';
     tally[key] = (tally[key] || 0) + 1;
     [key].concat(r.also || []).forEach((id) => { unlocked[id] = (unlocked[id] || 0) + 1; });
+    if (r.seats) Object.entries(r.seats).forEach(([k, v]) => { seatTally[k + ':' + v] = (seatTally[k + ':' + v] || 0) + 1; });
     if (!r.ending || verbose) console.log(`run ${k} [${strategy}] → ${key}${r.stuck ? '\n   runs: ' + JSON.stringify(r.runs) + '\n   last: ' + JSON.stringify(r.log) + '\n   state: ' + JSON.stringify({ frozen: r.frozen, cinema: r.cinema, call: r.call, eng: r.eng, clock: r.clock }) + '\n   dbg: ' + JSON.stringify(r.dbg) : ''}`);
   }
   console.log('ENDINGS', JSON.stringify(tally));
   console.log('UNLOCKED (primary + also)', JSON.stringify(unlocked));
+  if (SUNDAY) console.log('SEATS', JSON.stringify(Object.fromEntries(Object.entries(seatTally).sort())));
   const errs = await done();
   const real = errs.filter((e) => !e.includes('ERR_FAILED'));
   console.log('PAGE ERRORS:', real.length ? '\n' + real.slice(0, 20).join('\n') : 'none');

@@ -16,7 +16,8 @@ async function open(o = {}) {
   page.on('console', (m) => { if (m.type() === 'error') errors.push('console: ' + m.text()); });
   // block remote fonts quickly (no network in CI) so tests don't hang
   await page.route(/fonts\.(googleapis|gstatic)\.com/, (r) => r.abort());
-  const file = o.file || (o.bundle ? 'dist/standalone.html' : 'index.html');
+  const sun = o.edition === 'sunday';
+  const file = o.file || (o.bundle ? (sun ? 'dist/sunday-standalone.html' : 'dist/standalone.html') : (sun ? 'sunday.html' : 'index.html'));
   if (o.fresh !== false) {
     await page.addInitScript(() => { try { if (!sessionStorage.getItem('__kept')) { localStorage.clear(); sessionStorage.setItem('__kept', '1'); } } catch (e) {} });
   }

@@ -336,9 +336,12 @@
     }
     if (fx.hint) story.hint(fx.hint);
     JC.state.save();
+    JC.bus.emit('story:fx', fx);
     checkSuspicion();
   }
   story.applyFx = applyFx;
+  /** The read-only story state view that conditions receive (flags, sus, aff, done, …). */
+  story.view = () => sApi();
 
   /** Remember something the player did with the phone; the ending card lists these. `once` dedupes by key. */
   story.log = (text, o) => {
@@ -692,8 +695,17 @@
         let ids = step.endings ? (typeof step.endings === 'function' ? evalFn(step.endings, []) : step.endings) : [step.ending];
         ids = (ids || []).filter(Boolean);
         run.i++;
+        // "Sunday at Lotus Pier": the old endings are consequences, not game-overs (JC.sunday.consequence)
+        if (ids.length && sundayEdition() && ids[0] !== 'sunday') { finishRun(run); JC.sunday.consequence(ids[0], run.sc); return; }
         if (ids.length) { finishGame(ids); return; }
         continue;
+      }
+      if (step.dinner) {
+        // the one finale of the Sunday edition: the dinner cinematic, then the outcome card
+        run.i++;
+        run.wait = 'cinema';
+        Promise.resolve(JC.sunday && JC.sunday.finale ? JC.sunday.finale() : null).then(() => { run.wait = null; finishGame(['sunday']); });
+        return;
       }
       if (step.end) { finishRun(run); return; }
       // unknown step: skip
@@ -1208,7 +1220,9 @@
     return p;
   }).filter(Boolean);
   story.endings = () => Object.values(defs.endings).sort((a, b) => (a.n || 99) - (b.n || 99)).map((e) => Object.assign({}, e, { unlocked: !!S().endings[e.id], at: S().endings[e.id] ? S().endings[e.id].at : 0 }));
+  function sundayEdition() { return JC.edition === 'sunday' && !!(JC.sunday && JC.sunday.consequence); }
   function finishGame(ids) {
+    if (sundayEdition() && ids[0] !== 'sunday') { JC.sunday.consequence(ids[0], null); return; }
     const s = S();
     if (s.ended) return;
     // keep the version of the text this night earned (paragraphs can depend on flags), for the gallery too

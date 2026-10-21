@@ -2,7 +2,8 @@
 (function () {
   'use strict';
   const JC = (window.JC = window.JC || {});
-  const KEY = 'jcphone.v1';
+  // each edition keeps its own save (window.JC_EDITION is set by js/editions/<name>.js)
+  const KEY = window.JC_EDITION ? 'jcphone.' + window.JC_EDITION + '.v1' : 'jcphone.v1';
 
   function defaults() {
     return {
