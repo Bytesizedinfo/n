@@ -79,11 +79,21 @@
       last = performance.now();
       timer = setInterval(time._step, 250);
     },
+    /** in-game ms per real ms: JC.story sets this to timeScale × the current chapter's clockRate */
+    rate: () => 1,
+    /** the clock never runs past this (ms) on its own; null = no cap. JC.story sets it from the chapter's `until`. */
+    cap: () => null,
     _step() {
       const n = performance.now();
       const dt = n - last;
       last = n;
-      if (!frozen && dt < 5000) d().clock += dt;
+      if (!frozen && dt < 5000) {
+        const cur = d().clock;
+        let next = cur + dt * (time.rate() || 1);
+        const cap = time.cap();
+        if (cap != null && next > cap) next = Math.max(cur, cap);
+        d().clock = next;
+      }
       time._emit(false);
     },
     _emit(force) {

@@ -17,8 +17,15 @@
       sus: {},
       aff: {},
       runs: [], // active scene runs
-      done: {}, // scene id -> 1 (started)
-      fin: {}, // scene id -> 1 (finished)
+      done: {}, // scene id -> 1 (started) | 'skipped' (when failed) | 'expired' (its chapter ended)
+      fin: {}, // scene id -> play time when it finished
+      due: {}, // scene id -> play time its (armed) trigger fires
+      acts: {}, // act name -> times reported
+      actOnce: {}, // onAct rule id -> times fired
+      chap: null, // current chapter { id, at (play time it began), clock }
+      chapAt: {}, // chapter id -> play time it began
+      chapGo: null, // chapter transition in progress { id, to }
+      bank: null, // JC.bank { bal: { accountId: n } }
       threads: {}, // per-thread dynamic data
       calls: [],
       notifs: [],
@@ -28,6 +35,8 @@
       battery: (W().device && W().device.battery) || 23,
       ended: null,
       endings: {}, // persists across restarts
+      afterFound: {}, // aftermath outcomes ever found { chatId: { outcomeId: at } } (persists across restarts)
+      afterLast: null, // aftermath shown with the last ending { ending, list }
       snaps: [],
       stats: { choices: 0, sent: 0, plays: 1 },
       settings: {
@@ -51,7 +60,8 @@
         rotationLock: true,
         flashlight: false,
         showSus: true,
-        speed: 1,
+        speed: 1, // Message Speed (typing pace)
+        timeScale: 1, // 1 | 2 | 4 | 8: play time and the clock run this much faster
         keyClicks: true,
         passcode: (W().passcode && W().passcode.code) || '000000',
         faceAlt: false,
@@ -131,6 +141,7 @@
       const copy = Object.assign({}, state.d);
       delete copy.snaps;
       delete copy.endings;
+      delete copy.afterFound;
       delete copy.settings;
       let json;
       try {
@@ -145,16 +156,17 @@
     rewind() {
       const s = state.d.snaps.pop();
       if (!s) return false;
-      const keep = { snaps: state.d.snaps, endings: state.d.endings, settings: state.d.settings };
+      const keep = { snaps: state.d.snaps, endings: state.d.endings, afterFound: state.d.afterFound, settings: state.d.settings };
       const restored = merge(defaults(), JSON.parse(s.json));
       state.d = Object.assign(restored, keep);
       state.saveNow();
       return true;
     },
     restart() {
-      const keep = { endings: state.d.endings, settings: state.d.settings, stats: state.d.stats };
+      const keep = { endings: state.d.endings, afterFound: state.d.afterFound, settings: state.d.settings, stats: state.d.stats };
       state.d = defaults();
       state.d.endings = keep.endings || {};
+      state.d.afterFound = keep.afterFound || {};
       state.d.settings = Object.assign(state.d.settings, keep.settings || {});
       state.d.stats = { choices: 0, sent: 0, plays: ((keep.stats && keep.stats.plays) || 1) + 1 };
       state.saveNow();
