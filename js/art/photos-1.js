@@ -108,11 +108,11 @@
       eye(-1) + eye(1) +
       S('M5 40Q10 56 1 61', Z.sk[3], 3.4) +
       S(closed ? 'M-13 98Q0 101 13 97' : 'M-15 98Q0 100 15 97', Z.lip, 3.6) +
-      // earring (his left ear: viewer right)
-      (noRing ? '' : `<circle cx="100" cy="44" r="4" fill="${Z.trim}"/>` + P('M96 50h8l2 14h-12Z', Z.trim) + P('M95 64h12l3 96q-9 6 -18 0Z', Z.hairD) + S('M98 70v84M104 70v84', Z.trimD, 1.4)) +
       // side locks with amber tips (in front of the ears)
       P('M-96 -70C-112 -10 -108 60 -96 128L-84 168L-76 120C-70 60 -72 0 -66 -48Z', 'url(#ztp)') +
       P('M96 -70C112 -10 108 60 98 124L86 162L80 116C74 60 74 0 68 -48Z', 'url(#ztp)') +
+      // earring (his left ear: viewer right)
+      (noRing ? '' : `<circle cx="104" cy="46" r="4" fill="${Z.trim}"/>` + P('M100 52h8l2 14h-12Z', Z.trim) + P('M99 66h12l3 96q-9 6 -18 0Z', Z.hairD) + S('M102 72v84M108 72v84', Z.trimD, 1.4)) +
       // fringe: soft locks, a long strand between the eyes
       P('M-104 -36C-112 -120 -56 -172 2 -172C64 -172 114 -122 104 -40Q96 -20 90 2Q82 -28 70 -40Q62 -22 50 -4Q44 -34 30 -46Q20 -28 8 -8Q2 -40 -10 -50Q-22 -32 -36 -16Q-44 -40 -56 -48Q-68 -28 -82 -6Q-88 -26 -104 -36Z', 'url(#zhr)') +
       S('M-30 -150C-8 -120 6 -80 8 -20M30 -156C44 -120 52 -80 50 -14M-66 -128C-60 -100 -50 -70 -38 -24M72 -130C80 -100 84 -70 88 -10', Z.hairL, 3, ' opacity=".5"')
@@ -146,12 +146,12 @@
         refl += `<rect x="${r0(x - 1.5)}" y="${r0(HZ + 4 + R() * 4)}" width="${big ? 4 : 2}" height="${r0((big ? 30 : 10) + R() * (big ? 60 : 20))}" rx="1.5" fill="#ffa95a" opacity="${(0.2 + R() * 0.35).toFixed(2)}"/>`;
       }
       let moonRefl = '';
-      for (let i = 0; i < 22; i++) {
-        const y = HZ + 8 + i * 9, ww = 10 + i * 5 + R() * 10;
+      for (let i = 0; i < 16; i++) {
+        const y = HZ + 8 + i * 12, ww = 10 + i * 5 + R() * 10;
         moonRefl += `<rect x="${r0(220 - ww / 2 + (R() - 0.5) * 22)}" y="${y}" width="${r0(ww)}" height="2.4" rx="1.2" fill="#dfe6f0" opacity="${(0.55 - i * 0.02).toFixed(2)}"/>`;
       }
       let ripples = '';
-      for (let i = 0; i < 30; i++) ripples += `M${r0(R() * 1200)} ${r0(HZ + 20 + R() * 460)}h${r0(30 + R() * 60)}`;
+      for (let i = 0; i < 20; i++) ripples += `M${r0(R() * 1200)} ${r0(HZ + 20 + R() * 460)}h${r0(30 + R() * 60)}`;
       const boat = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})">` + P('M-40 0H40L30 12H-30Z', '#070c14') + P('M-4 0V-56L22 -6Z', '#0b1220') + disc(-26, -8, 10, 'url(#lg)') + disc(-26, -8, 2.5, '#ffbe6a') + `<rect x="-27" y="14" width="3" height="40" fill="#ffa95a" opacity=".35"/></g>`;
       const Z = ZL;
       const railY = (x) => 552 - x * 0.0233;
@@ -521,12 +521,12 @@
         `<rect width="1200" height="900" fill="url(#sky)"/>` +
         disc(900, 320, 540, 'url(#sun)') + disc(900, 320, 52, '#fff8e4', 0.95) +
         P('M900 320L180 900H420ZM900 320L620 900H760ZM900 320L1000 900H1120ZM900 320L0 560V680Z', 'url(#rays)') +
-        streak(300, 150, 560, 30, '#fff3e6', 0.55) + streak(700, 90, 700, 36, '#f9e6e2', 0.5) + streak(1100, 220, 360, 16, '#fff1d8', 0.6) + streak(560, 250, 300, 12, '#fff5e6', 0.5) +
+        streak(700, 90, 700, 36, '#f9e6e2', 0.5) +
         // karst layers dissolving in mist
-        karst(60, 520, 110, 300, '#c7bccf') + karst(170, 520, 90, 380, '#bfb3c9') + karst(270, 520, 100, 260, '#c9bed0') + karst(380, 520, 80, 200, '#cdc2d2') +
+        karst(60, 520, 110, 300, '#c7bccf') + karst(170, 520, 90, 380, '#bfb3c9') + karst(290, 520, 110, 240, '#c9bed0') +
         karst(1020, 520, 100, 260, '#d2c5cf') + karst(1110, 520, 120, 340, '#c7bacb') + karst(1190, 520, 80, 250, '#cfc2cf') +
         `<rect y="380" width="1200" height="180" fill="url(#mist)"/>` +
-        karst(110, 640, 150, 250, '#a99fbb', '#958aa8') + karst(240, 640, 90, 180, '#ada3bd') + karst(1090, 640, 140, 230, '#b1a5bb', '#9d91aa') +
+        karst(110, 640, 150, 250, '#a99fbb', '#958aa8') + karst(1090, 640, 140, 230, '#b1a5bb', '#9d91aa') +
         `<rect y="470" width="1200" height="150" fill="url(#mist)"/>` +
         // Yujing halls with golden roofs below the terrace
         palace(720, 690, 470) + palace(330, 700, 220) + palace(1010, 690, 200) +
@@ -592,7 +592,8 @@
         S('M0 610Q300 600 600 612T1200 606M0 660Q320 652 640 664T1200 656M0 724Q300 716 620 728T1200 718M0 800Q340 792 660 806T1200 796M0 868Q320 860 640 874T1200 864', '#000', 3, ' opacity=".35"') +
         S('M0 634Q260 628 520 638T1200 632M0 694Q300 688 600 698T1200 690M0 762Q320 756 640 766T1200 758', '#a8714a', 2, ' opacity=".25"') +
         ell(580, 650, 520, 70, 'url(#sheen)') + `<rect y="556" width="1200" height="10" fill="#000" opacity=".4"/>` +
-        // teapot
+        // teapot + cups, framed tight like a listing
+        `<g transform="translate(600 600) scale(1.16) translate(-600 -600)">` +
         `<g transform="translate(470 470)">` +
         ell(10, 120, 200, 26, '#000', ' opacity=".55"') + ell(0, 148, 150, 26, '#9fbfa8', ' opacity=".1"') +
         `<path d="M140 -70C240 -104 248 44 140 52" fill="none" stroke="#8fb39b" stroke-width="26" stroke-linecap="round"/>` +
@@ -608,7 +609,7 @@
         P('M-150 20C-140 60 -100 92 -50 104C-100 100 -146 70 -150 20Z', '#fff', ' opacity=".25"') +
         '</g>' +
         // cups (the front one turned to show its mark)
-        cup(930, 560, 0.82) + cup(780, 640, 0.95) + cup(250, 690, 1) + cup(590, 726, 1.08, true) +
+        cup(930, 560, 0.82) + cup(780, 640, 0.95) + cup(250, 690, 1) + cup(590, 726, 1.08, true) + '</g>' +
         // soft-box reflection + watermark
         T(1176, 880, 'FEIYUN MARKET · LOT 1016', 15, '#fff', ' text-anchor="end" letter-spacing="2" opacity=".35"');
       return wrap(w, h,
@@ -831,7 +832,7 @@
         `<path d="M0 0H440A16 16 0 0 0 472 0H600V250H472A16 16 0 0 0 440 250H0Z" fill="url(#dam)" opacity=".5"/>` +
         `<rect x="12" y="12" width="420" height="226" fill="none" stroke="${G}" stroke-width="3"/><rect x="20" y="20" width="404" height="210" fill="none" stroke="${G}" stroke-width="1.2"/>` +
         `<rect x="480" y="12" width="108" height="226" fill="none" stroke="${G}" stroke-width="2"/>` +
-        scroll(24, 24, 1, 1) + scroll(420, 24, -1, 1) + scroll(24, 226, 1, -1) + scroll(420, 226, -1, -1) +
+        scroll(24, 24, 1, 1) + scroll(420, 24, -1, 1) + scroll(24, 226, 0.6, -0.6) + scroll(420, 226, -1, -1) +
         `<path d="M456 18V232" stroke="#f3d78e" stroke-width="2.5" stroke-dasharray="2 7" opacity=".9"/>` +
         `<text x="48" y="74" font-family="${SERIF}" font-size="21" letter-spacing="5" fill="${G}">HEYU TEA HOUSE</text>` +
         `<text x="46" y="148" font-family="${SERIF}" font-size="54" font-weight="700" letter-spacing="2" fill="url(#foil)">YUN JIN</text>` +
@@ -1040,7 +1041,7 @@
       const VX = 600, VY = 450;
       const Z = [1.15, 1.6, 2.2, 3.1, 4.4, 6.2, 8.8, 12.5];
       let stars = '';
-      for (let i = 0; i < 40; i++) stars += disc(R() * 1200, R() * 260, 0.8 + R() * 1.4, '#fff', 0.3 + R() * 0.6);
+      for (let i = 0; i < 26; i++) stars += disc(R() * 1200, R() * 260, 0.8 + R() * 1.4, '#fff', 0.3 + R() * 0.6);
       let tiles = '';
       for (let i = -10; i <= 10; i++) tiles += `M${VX} ${VY}L${VX + i * 150} 900`;
       Z.forEach((z) => (tiles += `M${r0(VX - 700 / z)} ${r0(VY + 450 / z)}H${r0(VX + 700 / z)}`));
@@ -1116,7 +1117,8 @@
         // karst cliffs and the shore
         karst(70, HZ, 140, 330, '#3a2a48', '#2a2038') + karst(190, HZ, 110, 240, '#43304f') + karst(1110, HZ, 150, 300, '#3e2c4a', '#2a2038') + karst(1010, HZ, 90, 190, '#4a3456') +
         `<rect y="${HZ}" width="1200" height="${900 - HZ}" fill="url(#sea)"/>` + sunRefl + refl +
-        P(`M0 ${HZ + 20}L120 ${HZ}H1200V${HZ + 14}L900 ${HZ + 22}L600 ${HZ + 16}L300 ${HZ + 26}Z`, '#1e1628') + lights +
+        P(`M0 ${HZ + 20}L120 ${HZ}H1200V${HZ + 14}L900 ${HZ + 22}L600 ${HZ + 16}L300 ${HZ + 26}Z`, '#1e1628') +
+        [[140, 50], [260, 70], [380, 44], [470, 60], [640, 54], [760, 72], [960, 50], [1080, 66]].map(([x, ww]) => `<rect x="${x - ww * 0.35}" y="${HZ - 10}" width="${ww * 0.7}" height="14" fill="#1e1628"/>` + roof(x, HZ - 8, ww, ww * 0.3, '#1e1628')).join('') + lights +
         // the floating rock
         P('M286 372C296 420 350 456 410 480C466 504 520 540 556 580C590 540 636 510 696 486C756 460 822 424 834 372Z', 'url(#rock)') +
         S('M560 574C594 538 640 508 700 484C760 458 820 424 830 380', '#ff9a5a', 5, ' opacity=".55"') +
@@ -1130,7 +1132,6 @@
         palace(560, 354, 300, J) + palace(560, 238, 200, J) + `<rect x="530" y="118" width="60" height="46" fill="#2f8a6a"/>` + hall(560, 126, 110, 44, 'url(#gold)', '#fff2c0', 1) +
         S('M560 70V50', '#ffd98a', 4) + disc(560, 46, 6, '#9fe8c8') +
         `<path d="${wins}" fill="#ffe2a0" opacity=".7"/>` +
-        S('M650 340C680 300 690 250 680 200M700 340L712 240', '#ffb06a', 3, ' opacity=".35"') +
         disc(560, 300, 340, 'url(#halo)') +
         // birds crossing
         S('M190 300q10 -10 20 0q10 -10 20 0M240 330q7 -7 14 0q7 -7 14 0', '#2a2038', 2.5);
@@ -1143,6 +1144,347 @@
         lg('gold', [[0, '#ffe8a0'], [0.5, '#f0b048'], [1, '#b86a22']]) +
         vigDef(0.5) + grainDef(),
         body + vig(w, h) + grain(w, h, 0.08));
+    },
+  });
+
+  /* =================================================================================== */
+  /* 13. Wangsheng Funeral Parlor, the front door at night                                */
+  /* =================================================================================== */
+  // Hu Tao's ghost butterfly
+  const fly = (x, y, s, rot) => `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${s})">` + disc(0, 0, 46, 'url(#bfg)') +
+    P('M0 0C-10 -26 -34 -34 -40 -16C-44 -2 -24 4 0 0ZM0 0C10 -26 34 -34 40 -16C44 -2 24 4 0 0Z', 'url(#bfw)') +
+    P('M0 2C-8 14 -26 22 -28 10C-28 2 -14 0 0 2ZM0 2C8 14 26 22 28 10C28 2 14 0 0 2Z', '#d8323c', ' opacity=".85"') +
+    S('M0 -6V8M0 -6L-6 -16M0 -6L6 -16', '#3a0a10', 2) + '</g>';
+  def('p_wangsheng_door', {
+    title: 'Wangsheng Funeral Parlor, night',
+    w: 1200, h: 900, tags: ['wangsheng', 'hutao', 'night', 'butterflies', 'lantern'],
+    svg: (w, h) => {
+      let studs = '';
+      [440, 620].forEach((x0) => { for (let c = 0; c < 4; c++) for (let r = 0; r < 6; r++) studs += `M${x0 + 26 + c * 44} ${330 + r * 70}a5 5 0 1 0 0.1 0Z`; });
+      const plum = (x, y, r) => disc(x, y, r, '#f2a2b8') + disc(x, y, r * 0.4, '#d8405a');
+      const body =
+        `<rect width="1200" height="900" fill="url(#sky)"/>` + disc(1040, 70, 30, '#f6efdc', 0.9) + disc(1040, 70, 110, 'url(#mg)') +
+        // wall + eave
+        `<rect x="0" y="150" width="1200" height="640" fill="url(#wall)"/>` +
+        [200, 1000].map((x) => `<rect x="${x - 30}" y="160" width="60" height="630" fill="url(#beam)"/>`).join('') +
+        `<rect x="0" y="150" width="1200" height="40" fill="#1a1012"/>` +
+        P('M-20 70H1220L1200 150H0Z', '#241a22') + S('M-20 70H1220', '#5a4a5a', 6) +
+        S('M0 120H1200', '#000', 46, ' stroke-linecap="butt" stroke-dasharray="4 22" opacity=".35"') +
+        P('M-20 150H1220L1230 172H-30Z', '#120c10') +
+        // door frame, plaque, doors (the right leaf ajar)
+        `<rect x="404" y="286" width="392" height="494" fill="#1a0e0c"/>` +
+        `<rect x="606" y="300" width="20" height="480" fill="url(#gap)"/>` +
+        `<rect x="424" y="300" width="182" height="480" fill="url(#door)"/><rect x="626" y="300" width="170" height="480" fill="url(#door2)"/>` +
+        S('M470 300V780M515 300V780M560 300V780M668 300V780M710 300V780M752 300V780', '#000', 2, ' opacity=".35"') +
+        `<path d="${studs}" fill="#c9a24a"/>` +
+        `<g fill="none" stroke="#d9b25b" stroke-width="5"><circle cx="572" cy="560" r="22"/><circle cx="660" cy="560" r="20"/></g>` +
+        disc(572, 536, 14, '#b48a3a') + disc(660, 538, 13, '#b48a3a') +
+        // notice taped to the door
+        `<g transform="rotate(-4 500 420)"><rect x="452" y="372" width="104" height="96" fill="#efe4c8"/>` +
+        T(504, 400, 'SPECIAL', 14, '#9a1a1a', ' text-anchor="middle" font-weight="700" letter-spacing="1"') + T(504, 420, 'OFFER!', 14, '#9a1a1a', ' text-anchor="middle" font-weight="700"') +
+        T(504, 444, 'ask inside', 11, '#3a2a2a', ' text-anchor="middle"') + T(504, 460, '✿ ✿ ✿', 10, '#c8405a', ' text-anchor="middle"') + `</g>` +
+        // the ghost peeking out of the gap
+        P('M620 610C620 580 640 566 662 572C690 580 694 620 686 650C680 676 664 690 650 700C656 680 642 666 630 676C628 660 622 640 620 610Z', '#f4f2f8') +
+        disc(642, 606, 5, '#2a1a2a') + disc(664, 608, 5, '#2a1a2a') + disc(644, 604, 1.6, '#fff') + disc(666, 606, 1.6, '#fff') +
+        ell(636, 622, 7, 4, '#ff8aa0', ' opacity=".6"') + ell(674, 624, 7, 4, '#ff8aa0', ' opacity=".6"') + S('M648 622Q654 628 660 622', '#2a1a2a', 2.5) +
+        `<rect x="424" y="300" width="22" height="480" fill="#000" opacity=".25"/>` +
+        // signboard
+        `<rect x="372" y="196" width="456" height="84" fill="#100a0a"/><rect x="382" y="204" width="436" height="68" fill="none" stroke="#d9b25b" stroke-width="3"/>` +
+        `<text x="600" y="246" font-family="${SERIF}" font-size="36" font-weight="700" letter-spacing="8" fill="url(#gold)" text-anchor="middle">WANGSHENG</text>` +
+        T(600, 266, 'FUNERAL PARLOR · EST. LONG AGO', 11, '#c9a24a', ' text-anchor="middle" letter-spacing="3"') +
+        S('M420 196L432 170M780 196L768 170', '#5a4a3a', 3) +
+        // steps + mist
+        P('M340 780H860L900 820H300Z', '#5a5462') + P('M300 820H900L950 860H250Z', '#4a4452') + P('M250 860H950L1000 900H200Z', '#3e3846') +
+        P('M0 790H340L300 820L250 860L200 900H0ZM1200 790H860L900 820L950 860L1000 900H1200Z', '#2a2430') +
+        // lantern hanging from the eave
+        S('M930 172V236', '#1a1012', 3) + disc(930, 316, 230, 'url(#lg)') +
+        `<rect x="904" y="232" width="52" height="12" rx="3" fill="#d9b25b"/>` + P('M890 246Q890 236 930 236Q970 236 970 246L974 330Q970 380 930 384Q890 380 886 330Z', 'url(#lan)') +
+        S('M906 240Q896 310 906 382M954 240Q964 310 954 382M930 238V384', '#8a1810', 2, ' opacity=".7"') +
+        `<rect x="904" y="380" width="52" height="12" rx="3" fill="#d9b25b"/>` + S('M930 392V450', '#c42d22', 5) + P('M922 446H938L942 486Q930 492 918 486Z', '#c42d22') +
+        // a small stone lantern on the left
+        `<rect x="236" y="660" width="70" height="130" fill="#4a4452"/>` + P('M216 620H326L306 660H236Z', '#3e3846') + `<rect x="250" y="680" width="42" height="40" fill="#ffc870"/>` + disc(271, 700, 90, 'url(#lg)') +
+        // plum branch across the top-left
+        S('M-10 230C80 210 150 170 230 120C280 90 330 80 380 84M150 170C170 200 200 220 240 226M260 110C270 80 290 60 320 50', '#2a1a1a', 7) +
+        plum(232, 120, 11) + plum(276, 96, 9) + plum(330, 82, 10) + plum(196, 156, 8) + plum(240, 224, 9) + plum(316, 54, 8) + plum(120, 196, 9) + plum(372, 86, 7) +
+        // butterflies
+        fly(320, 450, 0.9, -20) + fly(210, 580, 0.7, 15) + fly(840, 520, 1, 25) + fly(1010, 640, 0.75, -10) + fly(330, 290, 0.55, 10) + fly(1080, 380, 0.6, -25) +
+        `<rect y="700" width="1200" height="200" fill="url(#mist)"/>`;
+      return wrap(w, h,
+        lg('sky', [[0, '#0e0c22'], [1, '#2a2040']]) + glowDef('mg', '#e8e2ff', 0.3) +
+        lg('wall', [[0, '#3a2a36'], [1, '#221820']]) + lg('beam', [[0, '#2a1a1a'], [0.5, '#4a2e28'], [1, '#2a1a1a']], 0, 0, 1, 0) +
+        lg('door', [[0, '#3a1612'], [0.6, '#5a2418'], [1, '#2a0e0a']], 0, 0, 1, 0) + lg('door2', [[0, '#2a0e0a'], [0.5, '#4a1c14'], [1, '#6a2c1c']], 0, 0, 1, 0) +
+        lg('gap', [[0, '#ffd68a'], [1, '#ff9a4a']]) +
+        lg('gold', [[0, '#fff0b0'], [0.5, '#e2b04a'], [1, '#b8862a']]) +
+        rg('lan', [[0, '#ffd08a'], [0.5, '#f0602c'], [1, '#a8241a']], 0.45, 0.4, 0.65) + glowDef('lg', '#ff9a4a', 0.5) +
+        rg('bfg', [[0, '#ff4a5a', 0.55], [1, '#ff4a5a', 0]]) + lg('bfw', [[0, '#ff8a8a'], [1, '#b8142a']], 0, 0, 0, 1) +
+        lg('mist', [[0, '#b8b0d8', 0], [1, '#b8b0d8', 0.3]]) +
+        vigDef(0.6) + grainDef(),
+        body + vig(w, h) + grain(w, h, 0.1));
+    },
+  });
+
+  /* =================================================================================== */
+  /* 14. Yun Jin on the Heyu Tea House stage                                              */
+  /* =================================================================================== */
+  def('p_heyu_stage', {
+    title: 'Yun Jin at Heyu Tea House',
+    w: 1200, h: 900, tags: ['opera', 'yunjin', 'heyu', 'stage', 'zhongli'],
+    svg: (w, h) => {
+      const plume = (d) => `<path d="${d}" fill="none" stroke="#e2c08a" stroke-width="9" stroke-linecap="round"/>` +
+        `<path d="${d}" fill="none" stroke="#6a3a1a" stroke-width="9" stroke-dasharray="7 9" opacity=".75"/>` + `<path d="${d}" fill="none" stroke="#fff4d8" stroke-width="2" opacity=".6"/>`;
+      const yj =
+        plume('M588 300C560 200 480 120 372 74') + plume('M612 300C650 190 740 110 866 62') +
+        // water sleeves flowing
+        P('M700 286C726 330 690 380 728 430C760 470 790 500 772 548C796 520 812 470 790 430C764 380 790 330 752 286Z', 'url(#slv)') +
+        P('M484 440C452 470 470 510 440 540C420 560 400 572 380 580C420 584 456 570 476 546C500 516 490 480 516 452Z', 'url(#slv)') +
+        // robe
+        P('M562 384C540 420 530 500 516 584H690C676 500 662 420 640 384Z', 'url(#robe)') +
+        P('M584 400L600 584H620L612 400Z', '#b8262c') + S('M520 576H686', '#e2b04a', 6) + S('M540 470H664M528 530H676', '#e2b04a', 2.5, ' opacity=".7"') +
+        S('M560 584L566 520M590 584L592 520M640 584L636 520M666 584L660 520', '#000', 2, ' opacity=".3"') +
+        // arms: right raised, left sweeping out
+        P('M636 392C660 370 684 330 698 290L716 296C708 340 684 384 652 412Z', 'url(#robe)') + disc(708, 286, 9, '#f6e2d4') +
+        P('M566 396C540 410 510 428 484 440L492 456C522 448 554 430 578 414Z', 'url(#robe)') + disc(484, 446, 8, '#f6e2d4') +
+        // cloud collar
+        P('M562 380C548 372 546 392 556 400C552 414 566 422 576 412C586 424 614 424 624 412C634 422 648 414 644 400C654 392 652 372 638 380C626 370 574 370 562 380Z', '#c8323a') +
+        S('M562 380C548 372 546 392 556 400C552 414 566 422 576 412C586 424 614 424 624 412C634 422 648 414 644 400C654 392 652 372 638 380', '#e2b04a', 3) +
+        // head, makeup, headdress
+        `<rect x="590" y="352" width="20" height="24" fill="#f0d6c6"/>` +
+        P('M576 316C576 290 624 290 624 316C624 344 612 360 600 362C588 360 576 344 576 316Z', '#f8e6da') +
+        ell(588, 322, 10, 12, '#f08a8a', ' opacity=".5"') + ell(612, 322, 10, 12, '#f08a8a', ' opacity=".5"') +
+        S('M582 318Q588 314 594 318M606 318Q612 314 618 318', '#2a1418', 2.5) + S('M584 310L594 308M606 308L616 310', '#2a1418', 2) +
+        P('M594 342Q600 345 606 342Q600 348 594 342Z', '#c8202a') +
+        P('M574 314C572 296 584 286 600 286C616 286 628 296 626 314C620 300 610 296 600 296C590 296 580 300 574 314Z', '#1a1214') +
+        P('M566 300C570 278 586 266 600 266C614 266 630 278 634 300C620 290 580 290 566 300Z', 'url(#gold)') +
+        [[568, 292], [582, 278], [600, 272], [618, 278], [632, 292]].map(([x, y]) => disc(x, y, 9, '#e0303a') + disc(x - 2, y - 3, 3, '#ff8a8a')).join('') +
+        S('M566 300C560 330 562 360 560 384M634 300C640 330 638 360 640 384', '#e2b04a', 2) + disc(560, 388, 6, '#e0303a') + disc(640, 388, 6, '#e0303a') +
+        disc(600, 262, 7, '#e2b04a');
+      let heads = '';
+      [[90, 820, 70], [250, 840, 76], [420, 812, 66], [800, 830, 74], [980, 820, 70], [1130, 846, 80], [600, 870, 84]].forEach(([x, y, r]) => {
+        heads += P(`M${x - r * 1.9} 900C${x - r * 1.8} ${y + r * 0.7} ${x - r} ${y + r * 0.5} ${x} ${y + r * 0.5}C${x + r} ${y + r * 0.5} ${x + r * 1.8} ${y + r * 0.7} ${x + r * 1.9} 900Z`, '#0a0505') +
+          ell(x, y, r * 0.62, r * 0.75, '#0c0606') + S(`M${x - r * 0.55} ${y - r * 0.4}Q${x} ${y - r * 0.9} ${x + r * 0.55} ${y - r * 0.4}`, '#ffb070', 3.5, ' opacity=".7"');
+      });
+      const body =
+        `<rect width="1200" height="900" fill="#1a0e0c"/>` +
+        // backdrop: painted mountains and clouds
+        `<rect x="150" y="120" width="900" height="460" fill="url(#bd)"/>` +
+        P('M150 460C220 380 260 300 320 320C370 336 380 420 430 430C480 380 520 300 580 310C640 322 640 410 700 420C760 360 800 280 870 290C930 300 950 400 1050 420V580H150Z', '#6f9a8e', ' opacity=".55"') +
+        cloud(330, 230, 0.9, '#fff6e2', 0.5) + cloud(870, 210, 1.1, '#fff6e2', 0.45) +
+        disc(600, 420, 380, 'url(#spot)') +
+        // stage floor
+        P('M90 580H1110L1180 680H20Z', 'url(#carpet)') + S('M150 600H1050M110 630H1090M70 660H1130', '#e2b04a', 2, ' opacity=".35"') + `<rect x="20" y="680" width="1160" height="40" fill="#3a1410"/>` + S('M20 682H1180', '#e2b04a', 3) +
+        yj +
+        // proscenium: pillars, carved beam, swagged curtains
+        `<rect x="96" y="40" width="64" height="660" fill="url(#pil)"/><rect x="1040" y="40" width="64" height="660" fill="url(#pil)"/>` +
+        S('M128 120V680M1072 120V680', '#e2b04a', 3, ' opacity=".6"') +
+        `<rect x="60" y="30" width="1080" height="96" fill="url(#beamG)"/>` + S('M70 44H1130M70 114H1130', '#fff0b0', 2) +
+        S('M120 80c20 -24 40 24 60 0s40 24 60 0s40 24 60 0s40 24 60 0M840 80c20 -24 40 24 60 0s40 24 60 0s40 24 60 0s40 24 60 0', '#7a4a10', 3) +
+        `<rect x="470" y="46" width="260" height="56" fill="#2a0e0a" stroke="#e2b04a" stroke-width="3"/>` +
+        `<text x="600" y="84" font-family="${SERIF}" font-size="28" font-weight="700" letter-spacing="8" fill="#f3d78e" text-anchor="middle">HEYU</text>` +
+        P('M160 126H470Q380 200 260 220Q200 226 160 220Z', 'url(#cur)') + P('M1040 126H730Q820 200 940 220Q1000 226 1040 220Z', 'url(#cur)') +
+        P('M160 126H230Q210 400 240 690H160Z', 'url(#cur)') + P('M1040 126H970Q990 400 960 690H1040Z', 'url(#cur)') +
+        S('M200 140Q190 400 210 680M1000 140Q1010 400 990 680', '#5a0a0a', 4, ' opacity=".5"') +
+        disc(214, 220, 14, '#e2b04a') + disc(986, 220, 14, '#e2b04a') +
+        // hanging lanterns in the hall
+        [[40, 160], [1160, 170]].map(([x, y]) => disc(x, y, 90, 'url(#lg)') + P(`M${x - 26} ${y - 30}H${x + 26}L${x + 32} ${y + 20}Q${x} ${y + 44} ${x - 32} ${y + 20}Z`, '#d8402c')).join('') +
+        // audience
+        `<rect y="720" width="1200" height="180" fill="url(#spill)"/>` + heads +
+        // a raised teacup
+        P('M1012 744C1010 762 1018 774 1030 774C1042 774 1050 762 1048 744Z', '#d8d0bc') + ell(1030, 744, 18, 5, '#8a5a2a') + S('M1012 748Q1030 754 1048 748', '#fff', 1.5, ' opacity=".5"') +
+        P('M1010 760C1000 770 996 800 1000 840L1030 846C1028 812 1030 790 1034 776Z', '#0a0505') + P('M1008 756C1016 752 1026 760 1024 770L1010 776Z', '#0a0505') +
+        `<rect width="1200" height="900" fill="url(#haze)"/>`;
+      return wrap(w, h,
+        lg('bd', [[0, '#c9d6c0'], [1, '#e8d2a0']]) + glowDef('spot', '#fff0c8', 0.5) +
+        lg('carpet', [[0, '#a8242a'], [1, '#6a1214']]) +
+        lg('robe', [[0, '#16203e'], [0.5, '#2a3a66'], [1, '#121a34']], 0, 0, 1, 0) +
+        lg('slv', [[0, '#ffffff'], [0.6, '#eef2fa'], [1, '#b8c4dc']], 0, 0, 1, 1) +
+        lg('gold', [[0, '#fff0b0'], [1, '#c8902a']]) +
+        lg('pil', [[0, '#5a0e0a'], [0.5, '#b8282a'], [1, '#5a0e0a']], 0, 0, 1, 0) +
+        lg('beamG', [[0, '#f0c860'], [0.5, '#c8902a'], [1, '#8a5a14']]) +
+        lg('cur', [[0, '#c8202a'], [1, '#6a0a10']], 0, 0, 1, 1) + glowDef('lg', '#ff9a4a', 0.5) +
+        lg('haze', [[0, '#ffcf90', 0.06], [1, '#000', 0.15]]) + lg('spill', [[0, '#5a2a1c'], [0.4, '#2a120c'], [1, '#100806']]) +
+        vigDef(0.6) + grainDef(),
+        body + vig(w, h) + grain(w, h, 0.1));
+    },
+  });
+
+  /* =================================================================================== */
+  /* 15. The Golden House, overcast                                                       */
+  /* =================================================================================== */
+  // seated guardian lion on a pedestal, centre x, ground y; f = -1 faces left
+  const lion = (x, y, s, f) => `<g transform="translate(${x} ${y}) scale(${s * f} ${s})">` +
+    `<rect x="-120" y="-150" width="240" height="150" fill="url(#ped)"/><rect x="-130" y="-170" width="260" height="24" fill="#8e8a82"/>` + S('M-110 -100H110M-110 -40H110', '#5e5a54', 3, ' opacity=".6"') +
+    // body
+    P('M-80 -170C-96 -240 -84 -320 -40 -350L40 -340C70 -300 80 -230 76 -170Z', 'url(#stoneL)') +
+    P('M10 -170V-280L44 -290L48 -170Z', '#7a766e') + P('M-30 -170V-270L4 -276L2 -170Z', '#8e8a82') +
+    ell(14, -176, 26, 10, '#6e6a62') + ell(-14, -176, 24, 9, '#7e7a72') +
+    // ball under one paw
+    disc(60, -200, 30, '#7a766e') + S('M34 -212Q60 -186 86 -214M40 -226Q62 -200 84 -230', '#5e5a54', 3) +
+    // mane + head
+    P('M-70 -330C-90 -380 -60 -440 0 -446C64 -448 98 -394 80 -330C60 -300 -50 -300 -70 -330Z', '#6e6a62') +
+    [[-62, -340], [-70, -378], [-54, -414], [-20, -436], [20, -438], [54, -418], [72, -382], [66, -344], [-30, -320], [30, -318]].map(([a, b]) => disc(a, b, 15, '#7e7a72') + disc(a - 3, b - 4, 7, '#a29e94')).join('') +
+    P('M-44 -390C-46 -420 44 -420 44 -390C46 -360 30 -340 0 -338C-30 -340 -46 -360 -44 -390Z', 'url(#stoneL)') +
+    disc(-20, -394, 9, '#5e5a54') + disc(20, -394, 9, '#5e5a54') + disc(-20, -396, 4, '#c8c4ba') + disc(20, -396, 4, '#c8c4ba') +
+    P('M-14 -380H14L8 -366H-8Z', '#6e6a62') + P('M-26 -358Q0 -340 26 -358Q0 -330 -26 -358Z', '#4e4a44') + S('M-16 -356v6M-6 -354v6M6 -354v6M16 -356v6', '#c8c4ba', 2.5) +
+    S('M-44 -410Q-20 -420 -8 -408M44 -410Q20 -420 8 -408', '#5e5a54', 4) + '</g>';
+  def('p_golden_house', {
+    title: 'The Golden House',
+    w: 1200, h: 900, tags: ['liyue', 'golden house', 'vault', 'overcast', 'gnosis'],
+    svg: (w, h) => {
+      let studs = '';
+      for (let c = 0; c < 5; c++) for (let r = 0; r < 4; r++) { studs += `M${494 + c * 24} ${448 + r * 22}a3 3 0 1 0 .1 0ZM${614 + c * 24} ${448 + r * 22}a3 3 0 1 0 .1 0Z`; }
+      let steps = '';
+      for (let i = 0; i < 16; i++) { const t = i / 15, y = 556 + Math.pow(t, 1.25) * 344, xa = 430 - t * 300, xb = 770 + t * 300; steps += `M${r0(xa)} ${r0(y)}H${r0(xb)}`; }
+      const coin = (x) => `<g transform="translate(${x} 380)"><circle r="38" fill="none" stroke="#fff0b0" stroke-width="4"/><circle r="28" fill="none" stroke="#a8742a" stroke-width="3"/>` +
+        `<rect x="-14" y="-14" width="28" height="28" transform="rotate(45)" fill="#a8742a"/><rect x="-6" y="-6" width="12" height="12" transform="rotate(45)" fill="#fff0b0"/></g>`;
+      const body =
+        `<rect width="1200" height="900" fill="url(#sky)"/>` +
+        streak(260, 110, 700, 50, '#7e848e', 0.6) + streak(900, 70, 800, 60, '#868c96', 0.55) + streak(700, 190, 600, 30, '#b8bcc2', 0.5) +
+        // flanking walls and the main block
+        `<rect x="0" y="330" width="1200" height="230" fill="#9a9284"/>` + S('M0 380H1200M0 430H1200M0 480H1200M0 530H1200', '#7e766a', 2, ' opacity=".6"') +
+        hall(120, 340, 360, 50, 'url(#roofG)', '#d8c088', 1) + hall(1080, 340, 360, 50, 'url(#roofG)', '#d8c088', 1) +
+        `<rect x="190" y="210" width="820" height="350" fill="url(#facade)"/>` +
+        S('M190 260H1010M190 310H1010M190 360H1010M190 410H1010M190 460H1010M190 510H1010', '#8a8274', 2, ' opacity=".5"') +
+        [250, 360, 830, 940].map((x) => `<rect x="${x - 28}" y="220" width="56" height="340" fill="url(#col)"/><rect x="${x - 36}" y="540" width="72" height="20" fill="#a89e8c"/>`).join('') +
+        `<rect x="190" y="210" width="820" height="26" fill="#000" opacity=".35"/>` +
+        // great roof
+        `<rect x="330" y="120" width="540" height="70" fill="#7a3a28"/>` + hall(600, 214, 1000, 110, 'url(#roofG)', '#e8d08a') + hall(600, 120, 640, 96, 'url(#roofG)', '#e8d08a') +
+        // portal with the golden doors
+        P('M450 560V320Q600 220 750 320V560Z', '#4a4238') + P('M470 560V330Q600 244 730 330V560Z', '#2a221a') +
+        `<rect x="480" y="300" width="118" height="260" fill="url(#gd)"/><rect x="602" y="300" width="118" height="260" fill="url(#gd2)"/>` +
+        P('M480 300Q600 236 720 300Z', 'url(#gd)') + coin(539) + coin(661) + `<path d="${studs}" fill="#fff0b0"/>` +
+        S('M600 300V560', '#5a3a10', 4) + S('M486 306V556M714 306V556', '#fff0b0', 2, ' opacity=".5"') +
+        `<rect x="480" y="244" width="240" height="36" fill="#2a1e14" stroke="#c9a04a" stroke-width="2"/>` +
+        `<text x="600" y="268" font-family="${SERIF}" font-size="15" letter-spacing="3" fill="#e8c870" text-anchor="middle">THE GOLDEN HOUSE</text>` +
+        // terrace + stairs with balustrades
+        `<rect x="0" y="556" width="1200" height="20" fill="#b8ae9c"/>` +
+        P('M430 556H770L1120 900H80Z', 'url(#stair)') + `<path d="${steps}" stroke="#7a7266" stroke-width="3" opacity=".7"/>` +
+        P('M420 556L440 556L100 900L60 900Z', '#c8bea8') + P('M760 556L780 556L1140 900L1100 900Z', '#c8bea8') +
+        P('M0 576H430L80 900H0Z', '#8a8274') + P('M1200 576H770L1120 900H1200Z', '#8a8274') +
+        // people with umbrellas for scale, pigeons
+        [[560, 640, 1], [660, 610, 0.85], [700, 700, 1.15]].map(([x, y, k]) => `<g transform="translate(${x} ${y}) scale(${k})"><rect x="-5" y="-30" width="10" height="30" fill="#3a3a44"/>${disc(0, -36, 5, '#3a3030')}${P('M-22 -40Q0 -62 22 -40Z', '#2a3a5a')}${S('M0 -40V-30', '#222', 1.5)}</g>`).join('') +
+        S('M300 140q8 -8 16 0q8 -8 16 0M340 170q6 -6 12 0q6 -6 12 0M820 120q7 -7 14 0q7 -7 14 0', '#3a3e46', 2.5) +
+        lion(170, 900, 0.95, 1) + lion(1030, 900, 0.95, -1) +
+        `<rect width="1200" height="900" fill="url(#flat)"/>`;
+      return wrap(w, h,
+        lg('sky', [[0, '#6e747e'], [0.5, '#a4a9b0'], [1, '#c9ccd0']]) +
+        lg('facade', [[0, '#c8bfae'], [1, '#a49a88']]) + lg('col', [[0, '#9a907e'], [0.4, '#d2c9b8'], [1, '#8a806e']], 0, 0, 1, 0) +
+        lg('roofG', [[0, '#c8a454'], [0.5, '#a07a30'], [1, '#6a4a18']]) +
+        lg('gd', [[0, '#f6d47a'], [0.5, '#d4a440'], [1, '#9a6a1a']], 0, 0, 1, 1) + lg('gd2', [[0, '#c8963a'], [0.5, '#e8c060'], [1, '#a87420']], 0, 0, 1, 1) +
+        lg('stair', [[0, '#b8ae9c'], [1, '#d6cebe']]) +
+        lg('ped', [[0, '#9a968e'], [1, '#6e6a62']]) + lg('stoneL', [[0, '#a8a49a'], [0.6, '#8e8a82'], [1, '#6a665e']], 0, 0, 1, 1) +
+        lg('flat', [[0, '#9aa0aa', 0.12], [1, '#3a3e46', 0.15]]) +
+        vigDef(0.4) + grainDef(),
+        body + vig(w, h) + grain(w, h, 0.09));
+    },
+  });
+
+  /* =================================================================================== */
+  /* 16. Archive photo, 1926: "Rex Lapis" at the founding of the Liyue Exchange          */
+  /* =================================================================================== */
+  // an official's head in the same frame as zlHead (face centre 0,0). o: hat, moustache, beard, glasses, hairline
+  const SEP = { sk: '#e0c9a2', skD: '#bfa47c', ink: '#3a2a1a', hair: '#3e2e1e', cloth: '#4a3a28', clothL: '#8a7454', robe: '#b8a17c', shirt: '#efe2c4' };
+  const oldHead = (o) => {
+    const K = SEP;
+    let s = P('M-34 92L-37 210H37L34 92Z', K.skD) +
+      P('M-92 -10C-104 -18 -110 4 -104 22C-100 36 -92 40 -86 34ZM92 -10C104 -18 110 4 104 22C100 36 92 40 86 34Z', K.skD) +
+      P(`M-90 -60C-94 0 -88 50 -68 86C-50 114 -22 ${o.long ? 146 : 136} 0 ${o.long ? 148 : 138}C22 ${o.long ? 146 : 136} 50 114 68 86C88 50 94 0 90 -60Z`, K.sk) +
+      P('M90 -50C94 0 88 50 68 86C50 114 22 136 0 138C34 116 66 70 70 -40Z', K.skD, ' opacity=".6"') +
+      S('M-64 -22Q-42 -30 -18 -22M18 -22Q42 -30 64 -22', K.ink, 6) +
+      ell(-40, 6, 10, 7, K.ink) + ell(40, 6, 10, 7, K.ink) + S('M-56 4Q-40 -8 -24 4M24 4Q40 -8 56 4', K.ink, 3) +
+      S('M4 34Q12 56 0 62', K.skD, 4) + S('M-20 96Q0 102 20 96', '#7a5a42', 4) +
+      S('M-40 30Q-30 40 -20 36M40 30Q30 40 20 36', K.skD, 2.5, ' opacity=".7"');
+    if (o.moustache) s += P('M-34 82C-20 70 -6 74 0 80C6 74 20 70 34 82C20 86 8 84 0 82C-8 84 -20 86 -34 82Z', K.hair);
+    if (o.beard) s += P('M-16 108C-12 140 -4 168 0 176C4 168 12 140 16 108Q0 116 -16 108Z', K.hair);
+    if (o.glasses) s += `<g fill="none" stroke="${K.ink}" stroke-width="4"><circle cx="-40" cy="6" r="22"/><circle cx="40" cy="6" r="22"/><path d="M-18 4H18M-62 2L-90 -6M62 2L90 -6"/></g>`;
+    if (o.hat === 'cap') s += P('M-96 -50C-96 -130 -50 -168 0 -168C50 -168 96 -130 96 -50Z', '#2a2016') + S('M-96 -54H96', '#5a4a36', 6) + disc(0, -174, 12, '#2a2016');
+    else if (o.hat === 'bowler') s += P('M-130 -52Q0 -76 130 -52Q0 -36 -130 -52Z', '#1e1810') + P('M-86 -58C-90 -140 -50 -176 0 -176C50 -176 90 -140 86 -58Z', '#2a2016') + S('M-86 -66Q0 -80 86 -66', '#5a4a36', 6);
+    else if (o.hat === 'bald') s += P('M-92 -40C-96 -110 -60 -150 0 -150C60 -150 96 -110 92 -40C80 -90 50 -110 0 -112C-50 -110 -80 -90 -92 -40Z', K.skD) + P('M-94 -20C-98 -60 -90 -80 -80 -88L-84 -20ZM94 -20C98 -60 90 -80 80 -88L84 -20Z', '#8a7a64');
+    else s += P('M-96 -30C-104 -120 -50 -164 4 -164C60 -164 102 -120 96 -30C88 -70 70 -96 30 -104C-10 -100 -40 -84 -60 -62C-74 -50 -88 -44 -96 -30Z', K.hair);
+    return s;
+  };
+  // torso: suit or robe, shoulders centred on 0, top at 0, scale like the head group
+  const torso = (kind) => {
+    const K = SEP;
+    if (kind === 'plain') return P('M-200 1100C-204 600 -196 300 -60 220H60C196 300 204 600 200 1100Z', '#3a2c1c') + P('M-40 220L0 300L40 220Z', K.shirt);
+    if (kind === 'suit') return P('M-200 1100C-204 600 -196 300 -60 220H60C196 300 204 600 200 1100Z', K.cloth) +
+      P('M-40 220L0 330L40 220Z', K.shirt) + P('M-12 236L0 250L12 236L8 320L0 332L-8 320Z', '#2a2016') +
+      P('M-60 220L-10 400L-70 330L-50 300L-90 260ZM60 220L10 400L70 330L50 300L90 260Z', '#3a2c1c') + disc(-16, 470, 7, '#2a2016') + disc(-16, 540, 7, '#2a2016') +
+      S('M-150 400C-160 600 -156 800 -150 1000M150 400C160 600 156 800 150 1000', '#2a2016', 4, ' opacity=".6"');
+    return P('M-190 1100C-194 600 -186 290 -60 222H60C186 290 194 600 190 1100Z', K.robe) +
+      P('M-200 720C-204 500 -190 300 -70 236H70C190 300 204 500 200 720Z', '#3e3022') +
+      S('M-40 236Q0 250 40 236M0 250V720', '#2a2016', 4) + S('M-16 320H16M-16 400H16M-16 480H16M-16 560H16', '#c8b48c', 6) +
+      S('M-150 400C-160 520 -158 620 -154 700M150 400C160 520 158 620 154 700', '#1e160e', 4, ' opacity=".6"');
+  };
+  // carved dragon head, facing right, for the terrace columns
+  const dHead = (x, y, f) => `<g transform="translate(${x} ${y}) scale(${f} 1)" fill="#8a7458">` +
+    P('M-30 -40C-50 -70 -84 -80 -110 -74C-86 -62 -66 -48 -50 -24Z', '#6a5438') +
+    P('M-50 0C-40 -30 -6 -42 30 -32L72 -28C80 -26 80 -14 72 -12L36 -8L66 6C72 10 68 18 60 16L24 12C-6 30 -36 26 -50 0Z', '#a8916c') +
+    P('M-50 0L-76 -14L-64 4L-88 4L-62 16L-80 26L-48 22Z', '#6a5438') +
+    disc(6, -18, 6, '#3a2a1a') + S('M66 -22C90 -40 110 -30 124 -46M60 10C80 24 96 20 110 34', '#6a5438', 4) + '</g>';
+  def('p_rexlapis_1926', {
+    title: 'Liyue Exchange founding, 1926',
+    w: 1200, h: 900, tags: ['archive', 'rex lapis', 'zhongli', '1926', 'sepia', 'clue'],
+    svg: (w, h) => {
+      const R = rng(1926);
+      const Z = ZS;
+      let scratches = '', dust = '';
+      for (let i = 0; i < 13; i++) { const x = 70 + R() * 1060, y = 60 + R() * 600; scratches += `M${r0(x)} ${r0(y)}l${r0((R() - 0.5) * 30)} ${r0(40 + R() * 200)}`; }
+      for (let i = 0; i < 40; i++) dust += `M${r0(70 + R() * 1060)} ${r0(60 + R() * 690)}h${(1 + R() * 3).toFixed(1)}v${(1 + R() * 3).toFixed(1)}h-1Z`;
+      const person = (x, y, s, o, kind) => `<g transform="translate(${x} ${y}) scale(${s})">${torso(kind)}${oldHead(o)}</g>`;
+      // Zhongli, 1926: same face, same coat, same ponytail
+      const zl = `<g transform="translate(600 300) scale(.6)">` +
+        P('M-216 900C-212 560 -206 340 -150 286C-120 260 -92 246 -66 240H66C92 246 120 260 150 286C206 340 212 560 216 900Z', Z.coat) +
+        P('M-66 240L-24 260L-30 900H30L24 260L66 240C120 300 150 400 160 900H-160C-150 400 -120 300 -66 240Z', Z.coatD, ' opacity=".5"') +
+        S('M-60 236L-20 300V900M60 236L20 300V900', Z.trim, 6) + S('M-170 400C-182 560 -180 700 -176 860M170 400C182 560 180 700 176 860', Z.coatD, 5) + S('M-150 520H150', Z.trim, 5) +
+        `<rect x="-22" y="500" width="44" height="44" transform="rotate(45 0 522)" fill="${Z.tip}" stroke="${Z.trim}" stroke-width="5"/>` +
+        S('M-196 420C-190 360 -170 300 -120 270M196 420C190 360 170 300 120 270', Z.trim, 4, ' opacity=".7"') +
+        // ponytail brought forward over his left shoulder
+        P('M86 150C130 170 150 240 146 330C142 420 130 500 112 580L100 610L92 570C104 490 112 410 110 330C108 260 96 200 70 170Z', 'url(#ztp2)') +
+        zlHead(Z, false) + '</g>';
+      const photo =
+        `<rect x="60" y="50" width="1080" height="710" fill="url(#bg)"/>` +
+        // distant roofs, carved columns, banner
+        P('M60 330L180 300L260 318L380 296L460 312L560 300L700 314L820 298L940 316L1060 300L1140 316V420H60Z', '#d2c09c', ' opacity=".7"') +
+        [130, 1070].map((x) => `<rect x="${x - 44}" y="60" width="88" height="700" fill="url(#colS)"/>` +
+          S(`M${x - 44} 250C${x + 44} 290 ${x - 44} 350 ${x + 44} 390C${x - 44} 430 ${x + 44} 470 ${x - 44} 520C${x + 44} 560 ${x - 44} 600 ${x + 44} 650`, '#7a6448', 26) +
+          S(`M${x - 44} 250C${x + 44} 290 ${x - 44} 350 ${x + 44} 390C${x - 44} 430 ${x + 44} 470 ${x - 44} 520C${x + 44} 560 ${x - 44} 600 ${x + 44} 650`, '#c8b28c', 26, ' stroke-dasharray="3 8" opacity=".6"')).join('') +
+        dHead(140, 236, 1) + dHead(1060, 236, -1) +
+        P('M170 100H1030V170Q600 186 170 170Z', '#cdb892') + S('M170 100H1030', '#6a5438', 4) +
+        `<text x="600" y="150" font-family="${SERIF}" font-size="40" font-weight="700" letter-spacing="14" fill="#5a4630" text-anchor="middle" opacity=".8">LIYUE EXCHANGE</text>` +
+        // balustrade with the dragon relief
+        `<rect x="60" y="470" width="1080" height="18" fill="#e2d2b0"/><rect x="60" y="488" width="1080" height="130" fill="#b8a27e"/>` +
+        `<rect x="60" y="618" width="1080" height="142" fill="#9a8462"/>` +
+        // back row, then front row
+        person(498, 296, 0.36, { hat: 'cap' }, 'plain') + person(712, 300, 0.36, { hat: 'side' }, 'plain') +
+        person(200, 346, 0.46, { hat: 'cap', beard: 1, long: 1 }, 'robe') +
+        person(392, 336, 0.46, { hat: 'bowler', moustache: 1 }, 'suit') +
+        person(808, 340, 0.46, { glasses: 1 }, 'suit') +
+        person(1004, 350, 0.46, { hat: 'bald', moustache: 1 }, 'robe') +
+        zl +
+        // age: exposure falloff, scratches, dust, a crease
+        `<rect x="60" y="50" width="1080" height="710" fill="url(#exp)"/>` +
+        `<path d="${scratches}" stroke="#fff8e6" stroke-width="1.4" opacity=".55"/>` + `<path d="${dust}" fill="#2a1e10" opacity=".55"/>` +
+        S('M760 50Q800 300 744 760', '#fff8e6', 3, ' opacity=".35"') + S('M762 50Q802 300 746 760', '#4a3a24', 1.5, ' opacity=".3"') +
+        P('M1140 650L1040 760H1140Z', '#ece2cc', ' opacity=".9"');
+      const body =
+        `<rect width="1200" height="900" fill="url(#mount)"/>` +
+        `<rect x="68" y="60" width="1080" height="710" fill="#000" opacity=".25"/>` +
+        `<g clip-path="url(#ph)"><g filter="url(#gr2)">${photo}</g></g>` +
+        // photo corners
+        P('M50 40H130L50 120Z', '#1e1810') + P('M1150 40H1070L1150 120Z', '#1e1810') + P('M50 770H130L50 690Z', '#1e1810') +
+        // caption strip
+        `<g transform="rotate(-.6 600 822)"><rect x="200" y="790" width="800" height="66" fill="#f6eedb"/><rect x="200" y="790" width="800" height="66" fill="none" stroke="#c8b896" stroke-width="2"/>` +
+        `<text x="600" y="833" font-family="${SERIF}" font-size="28" fill="#2e2418" text-anchor="middle">Liyue Exchange founding, 1926 — Rex Lapis (centre)</text></g>` +
+        T(1150, 884, 'LIYUE ARCHIVES · PH-1926-0417', 13, '#8a7a5a', ' text-anchor="end" letter-spacing="2"');
+      return wrap(w, h,
+        lg('mount', [[0, '#e8dcc0'], [1, '#d6c6a2']], 0, 0, 1, 1) +
+        lg('bg', [[0, '#f2e6c8'], [0.5, '#e2cfa8'], [1, '#c8b088']]) +
+        lg('colS', [[0, '#9a8462'], [0.5, '#d2bc94'], [1, '#8a7454']], 0, 0, 1, 0) +
+        rg('exp', [[0, '#fff4d8', 0.15], [0.6, '#6a4a24', 0.05], [1, '#3a2410', 0.6]], 0.5, 0.45, 0.72) +
+        lg('ztp2', [[0, ZS.hair], [0.6, ZS.hair], [0.85, ZS.tip], [1, ZS.tipL]], 0, 0, 0, 1) +
+        zlDefs(ZS) + '<clipPath id="ph"><rect x="60" y="50" width="1080" height="710"/></clipPath>' +
+        `<filter id="gr2" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".75" numOctaves="2" stitchTiles="stitch" result="n"/><feColorMatrix in="n" values="0 0 0 0 .3  0 0 0 0 .22  0 0 0 0 .12  0 0 0 .55 -.18" result="g"/><feComposite in="g" in2="SourceGraphic" operator="atop"/></filter>`,
+        body);
     },
   });
 })();
