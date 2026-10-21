@@ -78,9 +78,8 @@
     const eye = (s) => {
       const x = 40 * s, y = 6;
       if (closed) {
-        return S(`M${x - 25 * s} ${y - 3}Q${x} ${y + 9} ${x + 26 * s} ${y - 4}`, Z.lash, 4.5) +
-          S(`M${x + 14 * s} ${y + 1}Q${x + 26 * s} ${y - 4} ${x + 36 * s} ${y - 9}`, Z.liner, 6, ' opacity=".55"') +
-          S(`M${x + 20 * s} ${y + 2}l${5 * s} 6M${x + 9 * s} ${y + 5}l${3 * s} 6`, Z.lash, 2.2);
+        return S(`M${x - 25 * s} ${y - 2}Q${x - 2 * s} ${y + 10} ${x + 25 * s} ${y - 3}`, Z.lash, 4.8) +
+          S(`M${x + 16 * s} ${y + 1}Q${x + 28 * s} ${y - 3} ${x + 37 * s} ${y - 9}`, Z.liner, 5.5, ' opacity=".6"');
       }
       return P(`M${x - 27 * s} ${y + 1}Q${x - 6 * s} ${y - 17} ${x + 25 * s} ${y - 5}Q${x + 12 * s} ${y + 15} ${x - 27 * s} ${y + 1}Z`, '#fffaf4') +
         `<circle cx="${x + 1 * s}" cy="${y + 1}" r="11.5" fill="url(#zir)"/>` +
@@ -102,21 +101,21 @@
       // ears
       P('M-90 -4C-104 -12 -110 8 -106 26C-102 42 -94 46 -86 40Z', Z.sk[1]) + P('M90 -4C104 -12 110 8 106 26C102 42 94 46 86 40Z', Z.sk[2]) +
       // face
-      P('M-90 -52C-92 10 -84 60 -62 94C-42 122 -18 136 0 138C18 136 42 122 62 94C84 60 92 10 90 -52Z', 'url(#zsk)') +
-      P('M90 -40C92 10 84 60 62 94C42 122 18 136 0 138C30 120 64 78 70 -30Z', Z.sk[2], ' opacity=".45"') +
+      P('M-90 -52C-92 6 -86 50 -68 84C-50 114 -22 140 0 143C22 140 50 114 68 84C86 50 92 6 90 -52Z', 'url(#zsk)') +
+      P('M90 -40C92 6 86 50 68 84C50 114 22 140 0 143C30 124 64 80 70 -30Z', Z.sk[2], ' opacity=".45"') +
       // brows, eyes, nose, mouth
-      S('M-66 -24Q-42 -34 -16 -26M16 -26Q42 -34 66 -24', Z.hairD, 4.5) +
+      S('M-68 -24Q-44 -36 -16 -28M16 -28Q44 -36 68 -24', Z.hairD, 5.5) +
       eye(-1) + eye(1) +
       S('M5 40Q10 56 1 61', Z.sk[3], 3.4) +
-      S(closed ? 'M-14 94Q0 99 14 94' : 'M-16 93Q0 97 16 92', Z.lip, 3.6) +
+      S(closed ? 'M-13 98Q0 101 13 97' : 'M-15 98Q0 100 15 97', Z.lip, 3.6) +
       // earring (his left ear: viewer right)
       (noRing ? '' : `<circle cx="100" cy="44" r="4" fill="${Z.trim}"/>` + P('M96 50h8l2 14h-12Z', Z.trim) + P('M95 64h12l3 96q-9 6 -18 0Z', Z.hairD) + S('M98 70v84M104 70v84', Z.trimD, 1.4)) +
       // side locks with amber tips (in front of the ears)
       P('M-96 -70C-112 -10 -108 60 -96 128L-84 168L-76 120C-70 60 -72 0 -66 -48Z', 'url(#ztp)') +
       P('M96 -70C112 -10 108 60 98 124L86 162L80 116C74 60 74 0 68 -48Z', 'url(#ztp)') +
-      // fringe, parted on his right, sweeping across
-      P('M-104 -36C-112 -120 -56 -170 2 -170C64 -170 112 -122 104 -40L92 -8L84 -40L70 -16L62 -54L44 -22L36 -62L14 -24L8 -70L-14 -28L-22 -66L-40 -18L-50 -58L-70 -14L-76 -50L-96 0Z', 'url(#zhr)') +
-      S('M-36 -150C-10 -120 10 -90 14 -40M30 -156C40 -120 48 -90 46 -40M-66 -128C-60 -100 -52 -80 -50 -54', Z.hairL, 3, ' opacity=".55"')
+      // fringe: soft locks, a long strand between the eyes
+      P('M-104 -36C-112 -120 -56 -172 2 -172C64 -172 114 -122 104 -40Q96 -20 90 2Q82 -28 70 -40Q62 -22 50 -4Q44 -34 30 -46Q20 -28 8 -8Q2 -40 -10 -50Q-22 -32 -36 -16Q-44 -40 -56 -48Q-68 -28 -82 -6Q-88 -26 -104 -36Z', 'url(#zhr)') +
+      S('M-30 -150C-8 -120 6 -80 8 -20M30 -156C44 -120 52 -80 50 -14M-66 -128C-60 -100 -50 -70 -38 -24M72 -130C80 -100 84 -70 88 -10', Z.hairL, 3, ' opacity=".5"')
     );
   };
 
@@ -577,7 +576,7 @@
       for (let i = 0; i < 26; i++) {
         let x = -140 + R() * 280, y = -110 + R() * 200;
         crack += `M${r0(x)} ${r0(y)}`;
-        for (let j = 0; j < 3; j++) { x += (R() - 0.5) * 40; y += (R() - 0.5) * 34; crack += `L${r0(x)} ${r0(y)}`; }
+        for (let j = 0; j < 4; j++) { x += (R() - 0.5) * 26; y += (R() - 0.5) * 22; crack += `L${r0(x)} ${r0(y)}`; }
       }
       const cup = (x, y, s, mark) => `<g transform="translate(${x} ${y}) scale(${s})">` +
         ell(4, 84, 78, 12, '#000', ' opacity=".5"') + ell(0, 96, 60, 10, '#9fbfa8', ' opacity=".12"') +
@@ -598,10 +597,10 @@
         ell(10, 120, 200, 26, '#000', ' opacity=".55"') + ell(0, 148, 150, 26, '#9fbfa8', ' opacity=".1"') +
         `<path d="M140 -70C240 -104 248 44 140 52" fill="none" stroke="#8fb39b" stroke-width="26" stroke-linecap="round"/>` +
         `<path d="M146 -62C222 -88 228 30 146 40" fill="none" stroke="#c5ddc9" stroke-width="8" stroke-linecap="round" opacity=".6"/>` +
-        P('M-146 -34C-190 -44 -222 -76 -248 -122L-228 -130C-206 -96 -184 -76 -140 6Z', 'url(#glz)') + ell(-238, -126, 13, 6, '#7a9e88') +
-        S('M-150 -28C-188 -40 -214 -70 -234 -110', '#fff', 5, ' opacity=".5"') +
+        P('M-150 -50C-196 -60 -224 -96 -244 -138C-250 -150 -232 -158 -226 -148C-208 -112 -186 -88 -150 -80C-130 -70 -126 0 -140 10Z', 'url(#glz)') + ell(-236, -144, 12, 6, '#6f9480') +
+        S('M-156 -60C-192 -70 -214 -100 -230 -134', '#fff', 5, ' opacity=".55"') +
         P('M-162 0C-162 -92 -92 -132 0 -132C92 -132 162 -92 162 0C162 70 102 112 0 114C-102 112 -162 70 -162 0Z', 'url(#pot)') +
-        `<path d="${crack}" fill="none" stroke="#6c8f79" stroke-width="1" opacity=".35"/>` +
+        `<path d="${crack}" fill="none" stroke="#6c8f79" stroke-width=".8" opacity=".2"/>` +
         ell(0, 112, 92, 13, '#76987f') +
         ell(0, -122, 74, 17, '#a5c7ae') + P('M-70 -124C-64 -166 64 -166 70 -124Z', 'url(#pot)') + ell(0, -164, 16, 9, '#b9d5be') + disc(0, -172, 10, 'url(#glz)') +
         `<ellipse cx="0" cy="-124" rx="70" ry="15" fill="none" stroke="#6f9480" stroke-width="2"/>` +
@@ -611,7 +610,6 @@
         // cups (the front one turned to show its mark)
         cup(930, 560, 0.82) + cup(780, 640, 0.95) + cup(250, 690, 1) + cup(590, 726, 1.08, true) +
         // soft-box reflection + watermark
-        `<rect x="160" y="0" width="880" height="40" fill="#fff" opacity=".03"/>` +
         T(1176, 880, 'FEIYUN MARKET · LOT 1016', 15, '#fff', ' text-anchor="end" letter-spacing="2" opacity=".35"');
       return wrap(w, h,
         rg('bg', [[0, '#3a3430'], [0.6, '#1c1916'], [1, '#0c0a09']], 0.47, 0.4, 0.75) +
@@ -649,28 +647,40 @@
         S('M920 330C960 300 1000 300 1040 250M980 300C990 280 1010 270 1020 268', '#4a3a2a', 3) + P('M1010 262c8 -8 20 -6 22 2c-6 6 -16 8 -22 -2Z', '#c6a640') + disc(1022, 262, 1.5, '#222') +
         P('M940 330q6 -8 12 0q-6 8 -12 0ZM968 310q6 -8 12 0q-6 8 -12 0Z', '#c86a6a', ' opacity=".7"') + `<rect x="890" y="30" width="190" height="12" fill="#5a3a22"/>` +
         // beam of light across the room
-        P('M70 60L440 50L1200 640V900H520Z', 'url(#beam)') +
+        P('M70 60L440 50L1200 700V900H560Z', 'url(#beam)') +
         // table
-        P('M0 590H1200V900H0Z', 'url(#tbl)') + `<rect y="586" width="1200" height="8" fill="#000" opacity=".3"/>` +
-        S('M0 650Q400 640 800 652T1200 646M0 740Q420 730 820 744T1200 736M0 840Q380 832 780 846T1200 838', '#1e0f07', 2.5, ' opacity=".35"') +
-        `<g transform="matrix(1 0 .8 .45 0 0)" opacity=".22"><rect x="-900" y="1334" width="700" height="666" fill="url(#latL)"/></g>` +
-        // him: shoulders and back
-        P('M470 610C490 470 590 370 720 356C850 344 970 410 1012 520C1030 568 1022 600 1010 612Z', 'url(#coat)') +
-        S('M560 470C620 400 690 372 760 366', '#ffd79a', 4, ' opacity=".35"') +
-        S('M760 366C820 380 870 420 900 470M820 610C840 540 840 470 812 410', Z.trim, 3, ' opacity=".8"') +
-        // ponytail falling over his shoulder onto the table
-        P('M560 480C600 470 640 500 650 560C660 620 640 680 600 730C580 752 556 766 530 770C552 740 574 700 582 650C590 600 576 540 552 500Z', 'url(#pony)') +
-        S('M574 500C600 540 610 600 596 660M590 498C618 540 626 600 614 660', Z.hairL, 2, ' opacity=".5"') +
-        // forearms folded on the table, gloved hand
-        P('M210 596C360 584 600 590 790 606L800 676C600 670 360 668 214 664Z', 'url(#slv)') +
-        S('M240 600C400 592 600 598 780 612', '#ffd79a', 3, ' opacity=".35"') +
-        P('M196 594L232 592L236 666L198 668Z', Z.coatD) + S('M214 594V668M226 594V668', Z.trim, 3) +
-        P('M196 604C160 600 120 612 104 632C96 646 112 658 136 656C156 664 180 662 198 656Z', Z.glove) +
-        S('M120 640Q140 634 162 640M124 650Q146 646 170 650', '#4a4244', 2, ' opacity=".6"') +
-        // head on the arm, cheek down, asleep
-        `<g transform="translate(436 520) rotate(-80) scale(.86)">${zlHead(Z, true)}</g>` +
-        ell(392, 556, 34, 16, '#ff8a7a', ' opacity=".2"') +
-        S('M330 548C318 570 316 590 324 606M352 560C344 580 344 596 352 610', Z.hair, 3.5) +
+        P('M0 640H1200V900H0Z', 'url(#tbl)') + `<rect y="636" width="1200" height="8" fill="#000" opacity=".3"/>` +
+        S('M0 700Q400 690 800 702T1200 696M0 780Q420 770 820 784T1200 776M0 860Q380 852 780 866T1200 858', '#1e0f07', 2.5, ' opacity=".35"') +
+        // window light falling on the table, cut by the lattice
+        P('M300 660L760 660L1100 900H520Z', '#ffe6a8', ' opacity=".16"') +
+        S('M410 660L700 900M520 660L860 900M630 660L1000 900M330 700H800M380 770H900', '#3a2010', 14, ' opacity=".18" stroke-linecap="butt"') +
+        // him: shoulders, coat front
+        P('M300 640C300 540 340 470 420 456C470 446 520 440 560 440H640C700 444 770 456 820 476C880 500 900 570 900 640Z', 'url(#coat)') +
+        P('M546 440L600 470L654 440L640 640H560Z', Z.coatD) + S('M546 440L590 520L596 640M654 440L612 520L606 640', Z.trim, 3) +
+        `<g transform="translate(601 520)"><rect x="-10" y="-10" width="20" height="20" transform="rotate(45)" fill="${Z.tip}" stroke="${Z.trim}" stroke-width="3"/></g>` +
+        S('M420 458C470 450 520 446 548 444M652 444C700 448 760 458 816 478', Z.trim, 2.5, ' opacity=".8"') +
+        S('M330 560C340 500 370 470 420 458', '#ffd79a', 4, ' opacity=".4"') +
+        // collar + neck, head tilted onto his hand
+        P('M560 392H636L640 450Q600 466 556 450Z', Z.sk[2]) +
+        P('M548 404Q598 426 648 404L656 452Q598 474 540 452Z', Z.coatD) + S('M548 404Q598 426 648 404', Z.trim, 3) +
+        `<g transform="translate(592 318) rotate(-20) scale(.95)">${zlHead(Z, true)}</g>` +
+        ell(540, 360, 26, 11, '#ff8a7a', ' opacity=".16"') + ell(650, 346, 22, 10, '#ff8a7a', ' opacity=".12"') +
+        // ponytail over his left shoulder, onto the table
+        P('M664 400C720 410 748 470 748 540C748 600 730 650 700 690L680 708L686 680C700 630 704 580 698 530C692 480 676 440 650 420Z', 'url(#pony)') +
+        S('M680 420C708 460 720 520 716 590M696 430C722 470 732 530 726 600', Z.hairL, 2, ' opacity=".5"') +
+        // left arm resting on the table
+        P('M820 478C870 500 896 580 900 660C880 690 820 700 760 700L600 706L596 660L760 650C800 646 820 620 826 560Z', 'url(#slv)') +
+        P('M600 658L620 656L624 706L602 708Z', Z.coatD) + S('M606 658L608 708M616 657L618 707', Z.trim, 3) +
+        P('M600 664C566 660 532 668 520 684C514 698 530 710 556 708C574 712 592 710 602 704Z', Z.glove) +
+        S('M534 692Q554 686 576 690', '#4a4244', 2, ' opacity=".6"') +
+        // right arm: upper arm down to the elbow on the table, forearm up to his cheek
+        P('M330 500C304 540 296 610 312 676C330 700 372 704 392 688C392 620 400 560 420 500L400 470Z', Z.coatD) +
+        P('M318 676C334 704 380 706 398 690L486 486L438 456C400 540 350 610 318 676Z', 'url(#slv)') +
+        S('M330 668C370 600 410 530 446 466', '#ffd79a', 3, ' opacity=".35"') + S('M324 684C344 700 376 702 394 690', '#000', 3, ' opacity=".35"') +
+        P('M434 452L490 476L478 504L422 482Z', Z.coatD) + S('M436 456L488 478M428 472L480 494', Z.trim, 3) +
+        P('M474 470C470 440 482 410 506 396C526 386 552 392 556 410C560 430 548 452 528 468C512 480 490 482 474 470Z', Z.glove) +
+        S('M494 410Q512 400 534 404M488 428Q506 418 530 424M486 446Q502 438 522 444', '#4a4244', 2.2, ' opacity=".6"') +
+        S('M484 414C496 398 516 390 534 392', '#7a7072', 2.5, ' opacity=".5"') +
         // tea: cup with steam, teapot, osmanthus cakes
         ell(1060, 676, 120, 26, '#000', ' opacity=".4"') + P('M968 650C962 580 1150 580 1146 650C1140 690 974 690 968 650Z', 'url(#clay)') +
         P('M970 620C940 610 924 588 916 572L928 566C938 584 950 598 972 606Z', '#5a2e1c') + ell(1058, 590, 54, 12, '#7a4028') + disc(1058, 580, 12, '#5a2e1c') +
@@ -678,14 +688,14 @@
         ell(860, 768, 80, 18, '#000', ' opacity=".4"') + P('M804 690Q808 760 860 764Q912 760 916 690Z', 'url(#cup)') + ell(860, 690, 56, 14, '#f4efe2') + ell(860, 692, 49, 11, '#c98a3a') +
         S('M816 704Q820 744 846 756', '#fff', 4, ' opacity=".55"') +
         S('M846 676C826 640 870 616 850 576C836 548 864 520 852 488', '#fff', 9, ' opacity=".2"') + S('M876 676C864 646 896 626 880 596C870 576 888 556 882 532', '#fff', 7, ' opacity=".15"') +
-        ell(250, 810, 120, 30, '#000', ' opacity=".35"') + ell(246, 800, 118, 30, '#f2ece0') + ell(246, 802, 96, 22, '#e2d8c6') +
-        [[206, 792], [276, 796]].map(([x, y]) => P(`M${x - 34} ${y}Q${x - 34} ${y - 26} ${x} ${y - 28}Q${x + 34} ${y - 26} ${x + 34} ${y}Q${x} ${y + 12} ${x - 34} ${y}Z`, '#e9b45a') + ell(x, y - 18, 24, 7, '#f6cf7a') + disc(x, y - 18, 4, '#d9772a')).join('') +
+        ell(190, 810, 120, 30, '#000', ' opacity=".35"') + ell(186, 800, 118, 30, '#f2ece0') + ell(186, 802, 96, 22, '#e2d8c6') +
+        [[146, 792], [216, 796]].map(([x, y]) => P(`M${x - 34} ${y}Q${x - 34} ${y - 26} ${x} ${y - 28}Q${x + 34} ${y - 26} ${x + 34} ${y}Q${x} ${y + 12} ${x - 34} ${y}Z`, '#e9b45a') + ell(x, y - 18, 24, 7, '#f6cf7a') + disc(x, y - 18, 4, '#d9772a')).join('') +
         motes +
         `<rect width="1200" height="900" fill="url(#warm)" style="mix-blend-mode:soft-light"/>`;
       return wrap(w, h,
         lg('wall', [[0, '#5e3d24'], [0.6, '#43291a'], [1, '#2a170c']], 0, 0, 1, 1) +
         lg('win', [[0, '#fff9e4'], [0.6, '#ffe2a0'], [1, '#f6b860']], 0, 0, 0.6, 1) +
-        latticeDef('lat', '#3a2414', 6) + latticeDef('latL', '#fff1c8', 18) +
+        latticeDef('lat', '#3a2414', 6) +
         glowDef('glow', '#ffd892', 0.5) +
         lg('beam', [[0, '#fff1c8', 0.32], [0.6, '#ffe0a0', 0.12], [1, '#ffe0a0', 0]], 0, 0, 1, 1) +
         lg('tbl', [[0, '#7a4a2a'], [0.5, '#5a321b'], [1, '#3a1e0e']], 0, 0, 1, 0.3) +
@@ -717,11 +727,12 @@
         const x = 420 + R() * 700, y = 400 + R() * 90, s = 0.4 + (y - 400) / 160;
         boats += `<g transform="translate(${r0(x)} ${r0(y)}) scale(${s.toFixed(2)})">` + P('M-26 0H26L18 8H-18Z', '#5a3a2a') + (R() < 0.6 ? P('M-2 0V-40Q16 -26 18 -4Z', '#f2ead8') : P('M-12 0V-14H10V0Z', '#e8dcc4')) + '</g>';
       }
-      const bird = `<g transform="translate(884 206)">` +
-        P('M-26 6C-30 -14 -14 -28 4 -26C20 -24 28 -10 24 6C20 20 2 26 -12 22L-38 34L-26 16Z', 'url(#yb)') +
-        P('M-6 -2C4 -10 18 -6 20 6C10 10 -2 8 -6 -2Z', '#e8b51a') + S('M-4 2C6 -4 14 -2 18 6', '#c48a10', 1.5) +
-        disc(-12, -14, 3.2, '#1a1410') + disc(-11, -15, 1, '#fff') + P('M-24 -12L-34 -8L-24 -6Z', '#f08a3a') +
-        S('M-4 22l-4 10M4 22l2 10', '#d08a5a', 2) + '</g>';
+      const bird = `<g transform="translate(884 208) scale(.85)">` +
+        P('M14 4L40 22L44 14L48 26L36 30Z', '#d9a514') +
+        P('M-26 6C-30 -14 -14 -28 4 -26C20 -24 30 -10 26 6C22 20 4 26 -10 22C-20 18 -24 12 -26 6Z', 'url(#yb)') +
+        P('M-4 -6C8 -14 24 -8 28 6C18 12 2 10 -4 -6Z', '#e2a816') + S('M2 -2C10 -6 18 -4 24 4M6 4C12 2 18 4 22 8', '#a8700c', 1.6) +
+        disc(-13, -13, 3, '#1a1410') + disc(-12, -14, 1, '#fff') + P('M-25 -11L-34 -7L-25 -5Z', '#f08a3a') + ell(-16, -4, 5, 3, '#ffb070', ' opacity=".5"') +
+        S('M-6 22l-3 8M2 22l1 8', '#c47a4a', 2) + '</g>';
       const cage = `<g transform="translate(330 0)">` +
         S('M0 388V414', '#c9a24a', 4) + `<circle cx="0" cy="382" r="9" fill="none" stroke="#c9a24a" stroke-width="4"/>` +
         P('M-92 480C-92 440 -50 414 0 414C50 414 92 440 92 480Z', 'url(#bamboo)') +
@@ -821,11 +832,11 @@
         scroll(24, 24, 1, 1) + scroll(420, 24, -1, 1) + scroll(24, 226, 1, -1) + scroll(420, 226, -1, -1) +
         `<path d="M456 18V232" stroke="#f3d78e" stroke-width="2.5" stroke-dasharray="2 7" opacity=".9"/>` +
         `<text x="48" y="74" font-family="${SERIF}" font-size="21" letter-spacing="5" fill="${G}">HEYU TEA HOUSE</text>` +
-        `<text x="46" y="148" font-family="${SERIF}" font-size="66" font-weight="700" letter-spacing="3" fill="url(#foil)">YUN JIN</text>` +
+        `<text x="46" y="148" font-family="${SERIF}" font-size="54" font-weight="700" letter-spacing="2" fill="url(#foil)">YUN JIN</text>` +
         `<path d="M48 166H300" stroke="${G}" stroke-width="1.5"/>` +
         `<text x="48" y="204" font-family="${SERIF}" font-size="22" letter-spacing="3" fill="${G}">SAT 15:00 · BOX 2</text>` +
         // emblem: plumed headdress in a roundel
-        `<g transform="translate(352 120)"><circle r="54" fill="#8e1715" stroke="${G}" stroke-width="2.5"/><circle r="46" fill="none" stroke="${G}" stroke-width="1"/>` +
+        `<g transform="translate(366 118) scale(.86)"><circle r="54" fill="#8e1715" stroke="${G}" stroke-width="2.5"/><circle r="46" fill="none" stroke="${G}" stroke-width="1"/>` +
         `<path d="M-6 10C-30 -10 -30 -40 -14 -52M6 10C30 -10 30 -40 14 -52" fill="none" stroke="${G}" stroke-width="3" stroke-linecap="round"/>` +
         `<path d="M-22 18Q0 0 22 18Q0 30 -22 18Z" fill="${G}"/><circle cx="0" cy="4" r="7" fill="${G}"/><circle cx="-24" cy="10" r="5" fill="#f3d78e"/><circle cx="24" cy="10" r="5" fill="#f3d78e"/></g>` +
         `<text x="534" y="58" font-family="${SERIF}" font-size="13" letter-spacing="3" fill="${G}" text-anchor="middle">ADMIT ONE</text>` +
@@ -836,7 +847,7 @@
       let petals = '';
       for (let i = 0; i < 14; i++) petals += disc(R() * 1200, 600 + R() * 300, 3 + R() * 3, R() < 0.5 ? '#f2a640' : '#e88a2a', 0.85);
       const body =
-        `<rect width="1200" height="900" fill="url(#cloth)"/>` + `<rect width="1200" height="900" fill="url(#weave)" opacity=".5"/>` +
+        `<rect width="1200" height="900" fill="url(#cloth)"/>` + `<rect width="1200" height="900" fill="url(#weave)" opacity=".3"/>` +
         ell(560, 420, 700, 520, 'url(#light)') +
         // teacup in the corner
         ell(1090, 120, 150, 96, '#5a3a20', ' opacity=".18"') + ell(1070, 96, 130, 84, '#c8dccd') + ell(1070, 92, 110, 70, 'url(#tea)') + ell(1040, 70, 30, 10, '#fff', ' opacity=".4"') +

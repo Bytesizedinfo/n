@@ -989,4 +989,206 @@
         0.06, 0.6);
     },
   });
+
+  // cheering crew silhouette: x = feet centre, y = feet, h = height, arms up variant
+  const cheer = (x, y, h, c, v = 0) => {
+    const k = h / 200;
+    const arms = v === 0 ? 'M-18-130L-40-200M18-130L40-200' : v === 1 ? 'M-18-130L-50-190M18-130L44-150L60-190' : 'M-18-130L-30-200M18-130L50-110';
+    return `<g transform="translate(${x} ${y}) scale(${k.toFixed(2)})" fill="${c}"><circle cx="0" cy="-168" r="20"/><path d="M-22-146H22L28-60L18 0H6L0-50L-6 0H-18L-28-60Z"/>` +
+      `<path d="${arms}" stroke="${c}" stroke-width="14" stroke-linecap="round"/>` + (v === 1 ? `<rect x="50" y="-212" width="22" height="26" rx="4"/>` : '') + `</g>`;
+  };
+
+  // ==== Third-Round Knockout ================================================================
+  def('end_rematch', {
+    title: 'Third-Round Knockout',
+    w: 1200, h: 900, tags: ['ending', 'beidou', 'comedy'],
+    svg: () => {
+      seed(99);
+      const SKB = { base: '#e8b894', sh: '#c98e6c' };
+      let planks = '';
+      for (let i = -10; i <= 10; i++) planks += `M${600 + i * 26} 560L${600 + i * 150} 900`;
+      return svg(
+        lg('sky', [[0, '#0a1430'], [0.6, '#1c2c58'], [1, '#2e3e6a']]) +
+        lg('sea', [[0, '#1e2e52'], [1, '#0a1226']]) +
+        lg('deck', [[0, '#5a3a28'], [1, '#2e1a12']]) +
+        lg('bsk', [[0, '#f4cca8'], [1, '#d6a07c']], 0, 0, 1, 1) +
+        lg('bcoat', [[0, '#b02a2a'], [1, '#5a1010']]) +
+        lg('bhair', [[0, '#3a2a2a'], [1, '#1a1214']]) +
+        rg('lglow', [[0, '#ffb35a', 0.55], [1, '#ff8a3a', 0]]) +
+        rg('pool', [[0, '#ffb35a', 0.35], [1, '#ffb35a', 0]]),
+        `<rect width="1200" height="560" fill="url(#sky)"/>` +
+        `<path d="${dots(70, 0, 1200, 0, 380, 0.8, 2)}" fill="#fff" opacity=".7"/>` +
+        `<circle cx="980" cy="120" r="46" fill="#fff6dc"/><circle cx="980" cy="120" r="110" fill="#fff6dc" opacity=".08"/>` +
+        `<rect y="470" width="1200" height="90" fill="url(#sea)"/><path d="M940 480L900 560H1060Z" fill="#fff6dc" opacity=".1"/>` +
+        // mast, furled sail, rigging
+        `<path d="M200 0V560" stroke="#3a2418" stroke-width="26"/><path d="M60 90H340" stroke="#3a2418" stroke-width="12"/>` +
+        `<path d="M70 96C120 120 280 120 330 96V120C280 140 120 140 70 120Z" fill="#c8b8a0"/>` +
+        `<path d="M200 0L-40 560M200 0L480 560M60 90L0 560M340 90L520 560" stroke="#1a1210" stroke-width="3" opacity=".7"/>` +
+        `<path d="M1180 520L1180 30" stroke="#3a2418" stroke-width="18"/><path d="M1180 40L900 560M1180 120L1040 560" stroke="#1a1210" stroke-width="3" opacity=".7"/>` +
+        // Crux flag
+        `<path d="M200 0H120Q140 20 120 44H200Z" fill="#c8323c"/>` +
+        // rail + crew behind it
+        cheer(110, 520, 170, '#120c14', 0) + cheer(300, 520, 190, '#120c14', 1) + cheer(420, 520, 150, '#120c14', 2) +
+        cheer(940, 520, 180, '#120c14', 1) + cheer(1050, 520, 160, '#120c14', 0) + cheer(1140, 520, 175, '#120c14', 2) +
+        // Kazuha on a barrel (white hair, red streak)
+        `<g transform="translate(860 520)"><rect x="-26" y="-50" width="52" height="50" rx="8" fill="#2a1a12"/><path d="M-26-30H26M-26-14H26" stroke="#6a4a2a" stroke-width="3"/>` +
+        `<path d="M-14-50L-18-100H18L14-50Z" fill="#120c14"/><circle cx="0" cy="-116" r="16" fill="#e8e4e0"/><path d="M8-120C18-114 22-100 18-88" stroke="#c8323c" stroke-width="5" fill="none"/></g>` +
+        `<rect y="512" width="1200" height="16" fill="#4a2e1e"/><rect y="526" width="1200" height="40" fill="#2e1c14"/>` +
+        `<path d="${[60, 220, 380, 540, 700, 860, 1020, 1160].map((x) => `M${x} 512v54`).join('')}" stroke="#5a3a28" stroke-width="10"/>` +
+        // deck
+        `<path d="M0 560H1200V900H0Z" fill="url(#deck)"/><path d="${planks}" stroke="#1e120c" stroke-width="3" opacity=".6"/>` +
+        `<ellipse cx="640" cy="760" rx="460" ry="120" fill="url(#pool)"/>` +
+        // lanterns
+        `<path d="M-20 160Q300 300 600 230T1240 200" stroke="#1a1010" stroke-width="3" fill="none"/>` +
+        `<g>${[[140, 222], [380, 270], [620, 228], [840, 214], [1080, 214]].map(([x, y]) => `<circle cx="${x}" cy="${y + 30}" r="80" fill="url(#lglow)"/>` + lantern(x, y + 30, 0.9, 0)).join('')}</g>` +
+        // tally board
+        `<g transform="translate(1010 650) rotate(4)"><rect x="-90" y="-60" width="180" height="120" rx="6" fill="#1e2a22" stroke="#6a4a2a" stroke-width="10"/>` +
+        text(0, -22, 'BEIDOU', { size: 22, weight: 800, anchor: 'middle', fill: '#f4f0e0' }) + `<path d="M-40 0V30M-26 0V30M-12 0V30" stroke="#f4f0e0" stroke-width="5"/>` +
+        text(36, 26, '0', { size: 30, weight: 800, anchor: 'middle', fill: '#e8a0a0' }) + text(36, 46, 'kid', { size: 12, anchor: 'middle', fill: '#f4f0e0' }) + `</g>` +
+        // ---- Beidou ----
+        // coat cape behind
+        `<path d="M620 330C570 360 540 460 530 600C524 680 520 740 520 760H900C900 740 896 680 890 600C880 460 850 360 800 330Z" fill="url(#bcoat)"/>` +
+        `<path d="M530 600C524 680 520 740 520 760H560C560 700 566 620 580 540Z" fill="#3a0808" opacity=".5"/>` +
+        `<path d="M620 330C570 360 540 460 530 600M800 330C850 360 880 460 890 600" stroke="#d9aa55" stroke-width="4" fill="none"/>` +
+        // long hair behind
+        `<path d="M650 200C620 260 616 360 630 460C640 520 660 560 680 580H740C760 560 780 520 790 460C804 360 800 260 770 200Z" fill="url(#bhair)"/>` +
+        // body (black dress, red accents), legs planted
+        `<path d="M640 336C630 380 640 440 674 500C664 530 660 560 664 580L650 760H700L712 600H724L736 760H786L768 580C770 560 766 530 756 500C786 440 794 380 784 336C760 324 664 324 640 336Z" fill="#141014"/>` +
+        `<path d="M672 500H758" stroke="#c8323c" stroke-width="12"/><path d="M690 340L712 430L734 340" stroke="#d9aa55" stroke-width="3" fill="none"/><circle cx="712" cy="436" r="6" fill="#d9aa55"/>` +
+        `<path d="M664 580L650 760M768 580L786 760" stroke="#3a2a3a" stroke-width="3" fill="none"/>` +
+        `<path d="M646 760H704V780H636ZM732 760H790L800 780H732Z" fill="#0a0808"/>` +
+        // neck + head thrown back laughing
+        `<path d="M694 290V340H730V290Z" fill="#d6a07c"/>` +
+        `<g transform="translate(712 226) rotate(-8) scale(.62)"><path d="${FACE_F}" fill="url(#bsk)"/>` +
+        `<path d="M-108-40L108-70" stroke="#141014" stroke-width="10"/><path d="M-80-42C-80-60-20-62-14-40C-14-12-30 4-50 4C-70 4-80-20-80-42Z" fill="#141014"/>` +
+        `<path d="M24 -10Q48-34 74-12" stroke="#2a1416" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M30-40Q52-54 78-44" stroke="#2a1416" stroke-width="8" fill="none" stroke-linecap="round"/>` +
+        `<path d="M-48 40Q0 30 50 40Q46 110 0 116Q-44 110-48 40Z" fill="#7a1a20"/><path d="M-42 44Q0 36 44 44L42 56Q0 50-40 56Z" fill="#fff"/><path d="M-24 100Q0 86 24 100Q12 112 0 112Q-12 112-24 100Z" fill="#e85a6a"/>` +
+        `<ellipse cx="66" cy="30" rx="20" ry="10" fill="#ff7a6a" opacity=".4"/>` +
+        `</g>` +
+        // hair top + bangs
+        `<path d="M640 216C630 150 676 130 712 130C756 130 792 160 782 222C768 194 746 178 724 176C698 182 670 198 640 216Z" fill="url(#bhair)"/>` +
+        `<path d="${lock(698, 160, 112, 78, 28, -10)}${lock(744, 164, 70, 66, 26, 10)}${lock(768, 184, 80, 100, 24, 8)}" fill="#2a1e1e"/>` +
+        `<path d="M756 142l14-16 6 20z" fill="#d9aa55"/><circle cx="774" cy="138" r="7" fill="#c8323c"/>` +
+        // arms + fists up
+        `<path d="M648 340C624 350 612 380 616 410L644 402C646 382 654 368 668 362Z" fill="#141014"/>` +
+        `<path d="M624 404C616 380 600 330 610 300L640 304C640 330 648 370 650 398Z" fill="url(#bsk)"/>` +
+        `<path d="M600 300C596 280 610 266 628 266C644 266 652 280 648 298C644 312 630 316 616 314C606 312 600 306 600 300Z" fill="url(#bsk)"/><path d="M606 284H644M606 296H644" stroke="${SKB.sh}" stroke-width="2.5"/>` +
+        `<path d="M774 340C798 350 808 376 804 404L778 398C776 380 768 368 756 362Z" fill="#141014"/>` +
+        `<path d="M798 400C810 376 826 330 816 296L786 300C786 328 778 366 774 394Z" fill="url(#bsk)"/>` +
+        `<path d="M826 296C830 276 816 262 798 262C782 262 774 276 778 294C782 308 796 312 810 310C820 308 826 302 826 296Z" fill="url(#bsk)"/><path d="M782 280H820M782 292H820" stroke="${SKB.sh}" stroke-width="2.5"/>` +
+        // ---- you, KO'd on the deck ----
+        `<g transform="translate(360 800) rotate(-6)">` +
+        `<path d="M-30-20L-300 10L-310 60L-30 40Z" fill="#3a4a6a"/><path d="M-300 10L-380-30L-396 0L-310 60Z" fill="#2a3448"/><path d="M-300 40L-390 70L-380 100L-300 60Z" fill="#2a3448"/>` +
+        `<path d="M-396 0l-24 4 6 22 24-6zM-380 100l-26 2 2 20 26-4z" fill="#141014"/>` +
+        `<path d="M-20-40C-60-50-150-40-180-30L-176 50C-140 60-60 60-20 50Z" fill="#c9b89a"/>` +
+        `<path d="M-160-30L-210-90L-196-104L-140-40ZM-160 46L-220 110L-204 120L-140 56Z" fill="#c9b89a"/>` +
+        `<circle cx="-216" cy="-100" r="14" fill="#f2d2bc"/><circle cx="-214" cy="118" r="14" fill="#f2d2bc"/>` +
+        `<circle cx="40" cy="4" r="54" fill="#f2d2bc"/><path d="M90-10C96-50 60-70 20-60C0-54-14-40-14-30C10-40 40-44 60-36C76-30 86-20 90-10Z" fill="#221a24"/>` +
+        `<path d="M70 16C66 4 54 4 52 14C50 24 62 28 66 20C68 14 62 12 60 16M30 16C26 4 14 4 12 14C10 24 22 28 26 20C28 14 22 12 20 16" stroke="#2a1416" stroke-width="3" fill="none"/>` +
+        `<path d="M30 40Q42 48 54 40" stroke="#2a1416" stroke-width="3" fill="none"/>` +
+        `</g>` +
+        // dizzy stars
+        `<g fill="#ffd25a">${[[300, 690], [380, 666], [460, 690], [430, 726]].map(([x, y]) => `<path transform="translate(${x} ${y})" d="M0-12L3-4L12-3L5 3L7 12L0 7L-7 12L-5 3L-12-3L-3-4Z"/>`).join('')}</g>` +
+        `<ellipse cx="380" cy="700" rx="90" ry="26" fill="none" stroke="#ffd25a" stroke-width="2" opacity=".5" stroke-dasharray="6 8"/>` +
+        // impact lines
+        `<path d="M520 640L560 620M520 680L570 680M510 720L550 744" stroke="#fff4dc" stroke-width="5" stroke-linecap="round" opacity=".7"/>`,
+        0.06, 0.65);
+    },
+  });
+
+  // takeout food pieces
+  const carton = (x, y, s, r) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})"><path d="M-40-50H40L32 30H-32Z" fill="#fbf6ee"/><path d="M-40-50L-30-70H30L40-50Z" fill="#e8e0d2"/><path d="M-40-50L-46-62L-30-70ZM40-50L46-62L30-70Z" fill="#f2ece2"/>` +
+    `<path d="M-24-70C-24-96 24-96 24-70" stroke="#9a9a9a" stroke-width="3" fill="none"/><circle cx="0" cy="-12" r="16" fill="#c8323c"/>` + text(0, -6, 'W', { size: 18, weight: 900, anchor: 'middle', fill: '#fff' }) + `</g>`;
+  const steamer = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-60 0V34C-60 48 60 48 60 34V0Z" fill="#c99a5a"/><path d="M-60 12C-60 26 60 26 60 12M-60 24C-60 38 60 38 60 24" stroke="#a87a40" stroke-width="3" fill="none"/><ellipse cx="0" cy="0" rx="60" ry="16" fill="#e2b874"/><ellipse cx="0" cy="0" rx="48" ry="11" fill="#d6a862"/></g>`;
+  const wbag = (x, y, s, r) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})"><path d="M-50-60H50L56 60H-56Z" fill="#c8323c"/><path d="M-50-60L-40-74H40L50-60Z" fill="#a82730"/><path d="M-20-74C-20-100 20-100 20-74" stroke="#a82730" stroke-width="6" fill="none"/>` +
+    text(0, 4, 'WANMIN', { size: 18, weight: 900, anchor: 'middle', fill: '#fff' }) + text(0, 26, 'GO', { size: 18, weight: 900, anchor: 'middle', fill: '#ffd25a' }) + `</g>`;
+  const bowl = (x, y, s, c = '#f2c46a') => `<g transform="translate(${x} ${y}) scale(${s})"><ellipse cx="0" cy="0" rx="56" ry="14" fill="${c}"/><path d="M-30-4C-20-12-10 4 0-4S20-12 30-4" stroke="#fff2c4" stroke-width="5" fill="none"/><path d="M-56 0C-52 40-20 52 0 52S52 40 56 0C40 10-40 10-56 0Z" fill="#f4f0ea"/><path d="M-50 18C-30 30 30 30 50 18" stroke="#2f6fb8" stroke-width="4" fill="none"/></g>`;
+
+  // ==== Emergency Food ======================================================================
+  def('end_paimon', {
+    title: 'Emergency Food',
+    w: 1200, h: 900, tags: ['ending', 'paimon', 'comedy'],
+    svg: () => {
+      seed(111);
+      let pile = '';
+      // bottom row → top
+      pile += wbag(250, 790, 1.3, -8) + steamer(420, 800, 1.2) + carton(560, 800, 1.3, 4) + wbag(720, 790, 1.25, 6) + steamer(880, 800, 1.1) + carton(1010, 800, 1.1, -6) + carton(140, 820, 1, 10);
+      pile += steamer(330, 690, 1.05) + carton(470, 690, 1.15, -8) + bowl(620, 690, 1.1) + wbag(770, 680, 1.1, -4) + carton(900, 700, 1.05, 8);
+      pile += carton(400, 590, 1, 6) + steamer(530, 600, 1) + wbag(670, 580, 1, 8) + bowl(800, 600, 0.95, '#c8642f');
+      pile += steamer(480, 505, 0.9) + carton(600, 500, 0.95, -4) + steamer(720, 505, 0.85);
+      pile += steamer(600, 425, 0.95);
+      const mound = `<path d="M60 880C120 760 220 700 320 640C400 590 470 520 520 470C560 430 580 410 600 404C620 410 650 430 690 470C740 520 820 590 900 640C1000 700 1100 780 1160 880Z" fill="#7a3418"/><path d="M200 760C300 700 420 640 520 560M1000 760C900 700 780 640 680 560" stroke="#5a2410" stroke-width="6" fill="none" opacity=".5"/>`;
+      pile = mound + carton(300, 740, 0.9, -14) + bowl(940, 760, 0.9) + wbag(370, 640, 0.85, -10) + carton(840, 640, 0.9, 12) + steamer(640, 740, 0.9) + carton(560, 620, 0.8, 10) + pile.replace(/^/, '');
+      const screen =
+        `<rect x="-94" y="-199" width="188" height="398" rx="28" fill="#f4f4f6"/>` +
+        text(0, -150, 'Northland Pay', { size: 13, weight: 600, anchor: 'middle', fill: '#555' }) +
+        `<rect x="-76" y="-130" width="152" height="94" rx="10" fill="#141418"/><path d="M-76-60C-20-100 40-110 76-120V-130H-76Z" fill="#2a2a32"/>` +
+        text(-64, -108, 'NORTHLAND', { size: 11, weight: 700, fill: '#d9c9a0', ls: 1 }) + text(-64, -48, '•••• 1111', { size: 12, fill: '#d9c9a0' }) +
+        `<rect x="40" y="-112" width="22" height="16" rx="3" fill="#d9aa55"/>` +
+        `<circle cx="0" cy="18" r="30" fill="#ff3b30"/><path d="M-12 6L12 30M12 6L-12 30" stroke="#fff" stroke-width="7" stroke-linecap="round"/>` +
+        text(0, 84, 'CARD', { size: 26, weight: 900, anchor: 'middle', fill: '#ff3b30' }) + text(0, 114, 'DECLINED', { size: 26, weight: 900, anchor: 'middle', fill: '#ff3b30' }) +
+        text(0, 140, 'Daily limit reached', { size: 12, anchor: 'middle', fill: '#777' }) +
+        `<rect x="-76" y="156" width="152" height="30" rx="15" fill="#e4e4ea"/>` + text(0, 176, 'Try another card', { size: 12, weight: 600, anchor: 'middle', fill: '#2f6fb8' });
+      return svg(
+        rg('bg', [[0, '#ffe2a8'], [0.5, '#f4a65a'], [1, '#a8442a']], 0.5, 0.35, 0.8) +
+        rg('rays', [[0, '#fff6d8', 0.9], [1, '#fff6d8', 0]]) +
+        lg('pskin', [[0, '#fff2ea'], [1, '#f6d6c6']], 0, 0, 1, 1) +
+        lg('phair', [[0, '#ffffff'], [1, '#d8d2ea']], 0, 0, 0.6, 1) +
+        lg('cape', [[0, '#26306a'], [1, '#0e1236']]) +
+        lg('hand', [[0, '#f2d2bc'], [1, '#d4a68c']], 0, 0, 1, 1),
+        `<rect width="1200" height="900" fill="url(#bg)"/>` +
+        `<path d="${Array.from({ length: 18 }, (_, i) => { const a = (i / 18) * Math.PI * 2, b = a + 0.12; return `M600 260L${f(600 + 1100 * Math.cos(a))} ${f(260 + 1100 * Math.sin(a))}L${f(600 + 1100 * Math.cos(b))} ${f(260 + 1100 * Math.sin(b))}Z`; }).join('')}" fill="#fff4d0" opacity=".22"/>` +
+        `<circle cx="600" cy="260" r="300" fill="url(#rays)"/>` +
+        `<path d="${dots(40, 0, 1200, 0, 900, 2, 6)}" fill="#fff8e0" opacity=".6"/>` +
+        // receipt ribbon
+        `<path d="M80 900C140 760 120 640 200 560C260 500 300 520 340 470L366 484C330 540 290 528 236 590C170 660 190 780 132 900Z" fill="#fffdf6"/>` +
+        `<path d="M150 860L180 850M162 800L196 792M186 700L216 696M220 620L250 610M272 548L300 532" stroke="#999" stroke-width="3"/>` +
+        text(0, 0, 'TOTAL 20,480', { size: 14, weight: 800, fill: '#c8323c', tr: 'translate(176 752) rotate(-66)' }) +
+        `<ellipse cx="600" cy="880" rx="560" ry="40" fill="#5a1e10" opacity=".35"/>` +
+        pile +
+        // ---- Paimon on top, in bliss ----
+        `<g transform="translate(600 300)">` +
+        // cape spread behind
+        `<path d="M-40-20C-90 0-120 60-110 120L-40 90L0 110L40 90L110 120C120 60 90 0 40-20Z" fill="url(#cape)"/>` +
+        `<path d="${dots(14, -100, 100, 10, 110, 1.5, 3)}" fill="#fff" opacity=".85"/>` +
+        // legs dangling
+        `<path d="M-30 70L-46 120L-30 124L-16 76ZM30 70L46 120L30 124L16 76Z" fill="#fff"/><path d="M-50 116h24v14h-26zM26 116h24l2 14h-26z" fill="#2a2a4a"/>` +
+        // body: white dress
+        `<path d="M-30-24C-44-10-50 30-50 70C-20 82 20 82 50 70C50 30 44-10 30-24Z" fill="#fbfbff"/><path d="M-50 70C-20 82 20 82 50 70" stroke="#d9aa55" stroke-width="4" fill="none"/>` +
+        `<path d="M-14-20L0 4L14-20" stroke="#d9aa55" stroke-width="3" fill="none"/><circle cx="0" cy="10" r="7" fill="#3aa0e6"/>` +
+        // head
+        `<g transform="translate(0 -120) scale(.66)">` +
+        `<path d="M-120-40C-130-120-70-170 0-170C70-170 130-120 120-40C126 20 120 60 110 90L80 60L60 100H-60L-80 60L-110 90C-120 60-126 20-120-40Z" fill="url(#phair)"/>` +
+        `<path d="${FACE_F}" fill="url(#pskin)" transform="scale(.92)"/>` +
+        // bangs
+        `<path d="M-104-40C-104-120-50-150 0-150C50-150 104-120 104-40C80-70 60-80 40-84L30-40L12-86L-6-36L-24-86L-40-42L-48-84C-70-78-90-64-104-40Z" fill="url(#phair)"/>` +
+        // blissful closed eyes, blush, open smile, drool
+        `<path d="M-70 4Q-44-22-18 4M18 4Q44-22 70 4" stroke="#3a2a4a" stroke-width="9" fill="none" stroke-linecap="round"/>` +
+        `<path d="M-72 0L-82-8M72 0L82-8" stroke="#3a2a4a" stroke-width="6" stroke-linecap="round"/>` +
+        `<ellipse cx="-62" cy="36" rx="22" ry="12" fill="#ff8aa0" opacity=".55"/><ellipse cx="62" cy="36" rx="22" ry="12" fill="#ff8aa0" opacity=".55"/>` +
+        `<path d="M-26 48Q0 46 26 48Q22 86 0 88Q-22 86-26 48Z" fill="#9a2a40"/><path d="M-14 76Q0 68 14 76Q8 86 0 86Q-8 86-14 76Z" fill="#ff7a90"/>` +
+        `<path d="M22 66C26 76 26 86 22 92C18 86 18 76 22 66Z" fill="#bfe8ff"/>` +
+        `</g>` +
+        // star halo/crown
+        `<g transform="translate(14 -248) rotate(-12)"><path d="M0-34L9-11L34-11L14 4L22 30L0 15L-22 30L-14 4L-34-11L-9-11Z" fill="#1c2254"/><path d="M0-34L9-11L34-11L14 4L22 30L0 15L-22 30L-14 4L-34-11L-9-11Z" fill="none" stroke="#6a78d8" stroke-width="2"/></g>` +
+        // drumstick hug
+        `<g transform="translate(-6 -10) rotate(-30)"><path d="M-20-6C-46-30-40-62-10-62C20-62 30-34 12-10L40 30C50 30 56 40 48 46C46 54 34 54 32 44Z" fill="#c8742a"/><path d="M-26-40C-20-54-4-58 8-52" stroke="#f0b060" stroke-width="5" fill="none"/><path d="M36 34l14-6 4 10-12 6z" fill="#fff4e0"/></g>` +
+        `<path d="M-46-14C-56 0-50 16-34 18L-20 0ZM46-14C56 0 50 16 34 18L20 0Z" fill="url(#pskin)"/>` +
+        `</g>` +
+        // hearts + sparkles
+        `<g fill="#ff5a7a">${[[470, 130, 1], [760, 110, 0.8], [800, 220, 0.6]].map(([x, y, k]) => `<path transform="translate(${x} ${y}) scale(${k})" d="M0 10C-20-6-16-24-4-22C0-21 0-18 0-16C0-18 0-21 4-22C16-24 20-6 0 10Z"/>`).join('')}</g>` +
+        `<g fill="#fff">${[[420, 210], [790, 300], [370, 380]].map(([x, y]) => `<path transform="translate(${x} ${y})" d="M0-16L4-4L16 0L4 4L0 16L-4 4L-16 0L-4-4Z"/>`).join('')}</g>` +
+        // ---- the phone: CARD DECLINED ----
+        `<g transform="translate(1010 640) rotate(10)">` +
+        `<rect x="-120" y="-220" width="240" height="440" rx="40" fill="#000" opacity=".25" transform="translate(12 14)"/>` +
+        phoneFront(200, 410, screen, '#2a2a30') +
+        `<path d="M100 40C120 36 132 46 130 58C128 68 116 72 100 70ZM100 90C122 86 134 96 132 108C130 118 116 122 100 120ZM98 140C118 138 128 146 126 158C124 168 112 170 98 168Z" fill="url(#hand)"/>` +
+        `<path d="M-100 80C-124 90-138 120-134 160C-130 200-114 226-92 236L-100 140Z" fill="url(#hand)"/>` +
+        `<path d="M-96 190C-90 230-60 250-20 256C20 260 60 250 100 230L114 330C60 350 0 360-60 350Z" fill="url(#hand)"/>` +
+        `<path d="M-70 340C-10 354 60 346 120 320L134 430H-80Z" fill="#3a5a8a"/>` +
+        `</g>` +
+        `<g fill="#ff3b30" opacity=".9">${[[880, 380], [1150, 420], [860, 470]].map(([x, y]) => `<path transform="translate(${x} ${y})" d="M-3-14h6v16h-6zM-3 6h6v6h-6z"/>`).join('')}</g>`,
+        0.05, 0.5);
+    },
+  });
 })();

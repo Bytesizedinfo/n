@@ -307,14 +307,6 @@
     return s;
   };
 
-  def('zz_lineup', {
-    title: 'lineup (temp)', w: 1200, h: 900, tags: [],
-    svg: (w, h) => wrap(w, h, skinDef(SK.fair) + lg('skT', [[0, SK.tan[0]], [1, SK.tan[2]]]) + peopleDefs(),
-      `<rect width="1200" height="900" fill="#cfd8e0"/>` +
-      at(150, 200, 1.6, childeHead()) + at(400, 200, 1.6, teucerHead()) + at(650, 200, 1.6, toniaHead()) + at(900, 200, 1.6, anthonHead({ headset: true })) +
-      at(150, 600, 1.6, mamaHead()) + at(400, 600, 1.6, papaHead().replace(/url\(#sk\)/g, 'url(#skT)')) + at(650, 600, 1.6, xianglingHead()) + at(900, 600, 1.6, teucerHead({ eyes: 'happy', mouth: 'laugh' })) + at(1100, 600, 1.6, toniaHead({ eyes: 'shut', mouth: 'soft' }))),
-  });
-
   /* =====================================================================================
      FISHING
      ===================================================================================== */
@@ -565,11 +557,12 @@
       // Teucer's seat back
       `<path d="M170 420Q380 360 600 420L640 1200H140Z" fill="url(#seat)"/>` +
       // Teucer: hoodie + selfie arm
-      at(400, 640, 3.4,
+      at(420, 630, 3.6,
         `<path d="M-30 52C-80 56-118 84-128 140L-140 260H140L128 140C118 84 80 56 30 52Z" fill="url(#hood)"/><path d="M-40 52Q0 90 40 52" stroke="#9b3f1c" stroke-width="5" fill="none"/>` +
         `<path d="M-10 70v40M10 70v40" stroke="#fff" stroke-width="3"/>` +
-        teucerHead({ mouth: 'gap', eyes: 'open', brows: 'up', gx: 1 }), -5) +
-      `<path d="M0 880Q150 860 250 950Q290 1060 230 1200H0Z" fill="#e57a3e"/><path d="M60 930Q170 940 220 1040M30 1010Q120 1030 160 1120" stroke="#b9531f" stroke-width="5" fill="none" opacity=".6"/>` +
+        teucerHead({ mouth: 'gap', eyes: 'open', brows: 'up', gx: 1 }), -8) +
+      `<path d="M0 860Q160 840 262 940Q300 1060 236 1200H0Z" fill="#c9622a"/><path d="M0 860Q160 840 262 940Q300 1060 236 1200" stroke="#8e3a16" stroke-width="5" fill="none"/><path d="M20 890Q150 880 230 960Q262 1040 230 1120" stroke="#f0a070" stroke-width="10" fill="none" opacity=".5" stroke-linecap="round"/>` +
+      `<path d="M40 1000Q120 990 170 1060M20 1080Q90 1080 130 1150" stroke="#8e3a16" stroke-width="4" fill="none" opacity=".6"/>` +
       // phone-screen glow on his face
       `<circle cx="380" cy="760" r="300" fill="url(#scr)" style="mix-blend-mode:screen"/>` +
       vig(w, h) + grain(w, h, 0.3)
@@ -915,5 +908,291 @@
       `<rect width="1200" height="900" fill="#ffd9a0" opacity=".14" style="mix-blend-mode:multiply"/><rect width="1200" height="900" fill="#fff" opacity=".06"/>` +
       vig(w, h) + grain(w, h, 0.28)
     )),
+  });
+  /* =====================================================================================
+     FISHING LOG
+     ===================================================================================== */
+
+  // ---- Sea bass on the wet pier at dawn ----
+  def('p_catch_1', {
+    title: 'Sea bass at dawn',
+    w: 1200, h: 900, tags: ['fishing', 'dawn', 'pier', 'liyue'],
+    svg: (w, h) => {
+      let planks = '';
+      for (let i = 1; i < 16; i++) {
+        const t = Math.pow(i / 16, 1.8), y = 430 + 470 * t, xl = 430 - 430 * t, xr = 700 + 500 * t;
+        planks += `M${R0(xl)} ${R0(y)}H${R0(xr)}`;
+      }
+      let glit = '';
+      const R = rng(17);
+      for (let i = 0; i < 40; i++) { const y = 404 + Math.pow(R(), 1.5) * 40, x = 760 + (R() - 0.5) * (40 + (y - 400) * 4); glit += `M${R0(x - 8)} ${R0(y)}h${R0(10 + R() * 20)}`; }
+      let scales = '';
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 9; c++) scales += `M${-150 + c * 34 + (r % 2) * 17} ${-18 + r * 16}q8 8 16 0`;
+      return wrap(w, h,
+        grainDef(0.9) + vigDef(0.5, '#1a0c18') +
+        lg('sky', [[0, '#26386a'], [0.45, '#6a5f98'], [0.78, '#e88f7c'], [1, '#ffd49a']], 0, 0, 0, 410, US) +
+        lg('sea', [[0, '#c98d8a'], [0.08, '#4f6a8c'], [1, '#1d3150']], 0, 400, 0, 900, US) + glow('sun', '#ffe2a0', 1) +
+        lg('pier', [[0, '#6b5a6a'], [0.4, '#7a5f58'], [1, '#4a342c']], 0, 430, 0, 900, US) + lg('wet', [[0, '#ffd49a', 0], [0.5, '#ffd49a', 0.45], [1, '#ffd49a', 0]], 0, 0, 1, 0) +
+        lg('bass', [[0, '#3c4c5e'], [0.35, '#7f93a6'], [0.6, '#d9e2ea'], [1, '#f6f8fa']]) + lg('rod', [[0, '#1b2230'], [1, '#3a4658']], 0, 0, 1, 0),
+        `<rect width="1200" height="410" fill="url(#sky)"/><circle cx="760" cy="400" r="260" fill="url(#sun)"/><circle cx="760" cy="404" r="40" fill="#fff4d6"/>` +
+        `<path d="${fluffP(300, 200, 220, 24, 10, 12, 4)}" fill="#f7b49a" opacity=".45"/><path d="${fluffP(1000, 150, 200, 20, 10, 10, 5)}" fill="#f3a8a0" opacity=".35"/>` +
+        `<path d="M0 404V300Q20 250 44 300Q60 210 90 296Q110 260 130 310Q160 230 190 320Q220 300 250 404ZM980 404Q1000 330 1030 350Q1050 260 1080 340Q1110 300 1130 350Q1160 290 1200 330V404Z" fill="#6c5f8e" opacity=".8"/>` +
+        `<rect y="396" width="1200" height="20" fill="#f7c7a0" opacity=".25"/>` +
+        `<rect y="402" width="1200" height="498" fill="url(#sea)"/><path d="${glit}" stroke="#ffe7b4" stroke-width="3" opacity=".8" stroke-linecap="round"/>` +
+        // pier
+        `<path d="M430 430H700L1200 900H0Z" fill="url(#pier)"/><path d="${planks}" stroke="#2e1f1c" stroke-width="3" opacity=".7"/>` +
+        `<path d="M560 430L520 900M600 430L760 900" stroke="#2e1f1c" stroke-width="2" opacity=".35"/>` +
+        `<path d="M640 430Q720 600 760 900H560Q620 600 640 430Z" fill="url(#wet)"/>` +
+        `<path d="M430 430V380M700 430V380M340 520V420M790 520V420M200 650V480M940 650V480" stroke="#2a1d1a" stroke-width="12" stroke-linecap="round"/><path d="M430 384L200 484M700 384L940 484" stroke="#2a1d1a" stroke-width="6"/>` +
+        dots(8, 40, 100, 600, 1100, 890, 1.5, 4, '#ffe9cc', 0.4, 0.8) +
+        // rod lying beside
+        `<path d="M40 880L1120 520" stroke="url(#rod)" stroke-width="7" stroke-linecap="round"/><path d="M40 880L250 810" stroke="#b98a52" stroke-width="18" stroke-linecap="round"/><path d="M1120 520Q900 640 760 650" stroke="#fff" stroke-width="1.4" fill="none" opacity=".6"/>` +
+        `<g transform="translate(270 820) rotate(-18)"><rect x="-10" y="0" width="20" height="26" fill="#9aa4b0"/><circle cx="0" cy="44" r="32" fill="#c9d0d8"/><circle cx="0" cy="44" r="22" fill="#7d8896"/><circle cx="0" cy="44" r="6" fill="#e9eef3"/><path d="M0 44l34 18" stroke="#2a313c" stroke-width="5"/></g>` +
+        // sea bass
+        `<g transform="translate(600 690) rotate(-10)"><ellipse cx="10" cy="70" rx="250" ry="30" fill="#140c0c" opacity=".35"/>` +
+        `<path d="M-60-58L-30-104L-10-62L10-98L30-60L50-92L60-58ZM60-56Q100-90 150-56Z" fill="#4f5d6e"/><path d="M50 56L90 92L120 54Z" fill="#7f8ea0"/>` +
+        `<path d="M230 0L290-60Q280 0 290 60Z" fill="#5a6878"/>` +
+        `<path d="M-230 6Q-200-56-80-62Q80-66 236-10V12Q80 66-80 64Q-200 60-230 6Z" fill="url(#bass)"/>` +
+        `<path d="${scales}" stroke="#2c3a4a" stroke-width="2" fill="none" opacity=".35"/>` +
+        `<path d="M-150 0Q20-14 230 2" stroke="#3c4c5e" stroke-width="3" fill="none" opacity=".6"/>` +
+        `<path d="M-150-48Q-128 0-152 50" stroke="#55677a" stroke-width="4" fill="none"/><path d="M-142-36q8 12 2 26" stroke="#2c3440" stroke-width="6" fill="none" opacity=".6"/>` +
+        `<circle cx="-188" cy="-14" r="11" fill="#c9b98a" stroke="#4a5568" stroke-width="2"/><circle cx="-187" cy="-14" r="7" fill="#0d1218"/><circle cx="-185" cy="-16" r="2" fill="#fff"/>` +
+        `<path d="M-232 6L-200 14L-226 22" fill="#4a3a3a" stroke="#2c3a4a" stroke-width="3"/>` +
+        `<path d="M-90-44Q40-56 180-24" stroke="#fff" stroke-width="6" opacity=".45" fill="none" stroke-linecap="round"/><path d="M-120 34Q0 46 140 26" stroke="#fff" stroke-width="3" opacity=".5" fill="none"/>` +
+        `<path d="M-96 10L-50 30L-90 40Z" fill="#9fb0c0"/></g>` +
+        vig(w, h) + grain(w, h, 0.2)
+      );
+    },
+  });
+
+  // ---- A weird deep-sea fish under the lantern ----
+  def('p_catch_2', {
+    title: 'Something from the deep',
+    w: 1200, h: 900, tags: ['fishing', 'night', 'lantern', 'weird'],
+    svg: (w, h) => {
+      let teeth = '';
+      for (let i = 0; i < 11; i++) { const x = 470 + i * 26; teeth += `M${x} ${R0(560 - Math.sin(i / 10 * Math.PI) * 30)}l8 ${R0(38 + (i % 3) * 10)}l8-${R0(38 + (i % 3) * 10)}`; }
+      let low = '';
+      for (let i = 0; i < 10; i++) { const x = 480 + i * 26; low += `M${x} ${R0(690 + Math.sin(i / 9 * Math.PI) * 26)}l8-${R0(34 + (i % 2) * 14)}l8 ${R0(34 + (i % 2) * 14)}`; }
+      return wrap(w, h,
+        grainDef(1) + vigDef(0.75, '#000', 0.4) +
+        rg('bg', [[0, '#2a1d14'], [0.5, '#0d0c12'], [1, '#04050a']], 0.2, 0.15, 0.9) + glow('lan', '#ffb85a', 0.9) + glow('lure', '#7ff6ff', 1) +
+        lg('skin', [[0, '#5a3f5c'], [0.5, '#2e2032'], [1, '#160f18']], 0, 0, 1, 1) + lg('glv', [[0, '#f58a3a'], [1, '#c4561a']], 0, 0, 1, 1) +
+        lg('fin', [[0, '#6a4e70', 0.8], [1, '#6a4e70', 0.15]]),
+        `<rect width="1200" height="900" fill="url(#bg)"/>` +
+        // sea and rail
+        `<path d="M0 640H1200V900H0Z" fill="#06080e"/><path d="M60 700h120M90 730h160M40 770h200M120 810h140" stroke="#ffb85a" stroke-width="3" opacity=".35"/>` +
+        `<path d="M0 600H1200" stroke="#2a2024" stroke-width="14"/><path d="M0 594H1200" stroke="#6a4a36" stroke-width="3" opacity=".7"/>` +
+        // lantern
+        `<circle cx="200" cy="200" r="420" fill="url(#lan)"/><path d="M200 0V70" stroke="#3a2a1a" stroke-width="5"/>` +
+        `<path d="M160 90h80l-10 20h-60z" fill="#8a6a2a"/><rect x="164" y="110" width="72" height="110" rx="8" fill="#ffd796" opacity=".9"/><path d="M164 110v110M200 110v110M236 110v110" stroke="#6a4a1a" stroke-width="6"/>` +
+        `<path d="M200 140q-14 30 0 50q14-20 0-50z" fill="#fff2c4"/><path d="M156 220h88l-14 18h-60z" fill="#8a6a2a"/><circle cx="200" cy="82" r="10" fill="none" stroke="#8a6a2a" stroke-width="5"/>` +
+        // the fish
+        `<path d="M840 600Q960 520 1010 430Q1000 560 1060 640Q980 650 900 700Z" fill="url(#fin)"/><path d="M620 470Q660 380 720 400Q700 440 700 480Z" fill="url(#fin)"/>` +
+        `<path d="M420 600Q420 440 560 420Q720 400 860 520Q920 580 880 660Q820 760 640 760Q470 760 430 680Z" fill="url(#skin)"/>` +
+        dots(4, 30, 560, 450, 860, 720, 2, 6, '#7a5c80', 0.4, 0.7) +
+        `<path d="M440 590Q560 520 740 560Q760 640 740 700Q600 740 450 690Z" fill="#12070c"/>` +
+        `<path d="${teeth}" fill="#efe6cf" stroke="#b9ad90" stroke-width="1"/><path d="${low}" fill="#e6dcc2" stroke="#b9ad90" stroke-width="1"/>` +
+        `<path d="M560 630q30-10 60 4" stroke="#3a1420" stroke-width="10" fill="none" stroke-linecap="round" opacity=".7"/>` +
+        `<circle cx="640" cy="482" r="15" fill="#b9c9c6"/><circle cx="641" cy="483" r="8" fill="#5f6f72"/><circle cx="636" cy="477" r="4" fill="#fff" opacity=".9"/><path d="M618 474q22-22 44 0" stroke="#160f18" stroke-width="5" fill="none"/>` +
+        `<path d="M424 600Q420 440 560 420Q700 404 820 480" stroke="#ffb85a" stroke-width="5" fill="none" opacity=".55" stroke-linecap="round"/>` +
+        `<path d="M600 430Q560 300 470 300Q420 302 410 340" stroke="#3a2a40" stroke-width="7" fill="none" stroke-linecap="round"/>` +
+        `<circle cx="410" cy="350" r="110" fill="url(#lure)"/><circle cx="410" cy="350" r="18" fill="#cffcff"/><circle cx="404" cy="344" r="6" fill="#fff"/>` +
+        `<path d="M520 450Q640 420 800 470" stroke="#fff" stroke-width="8" opacity=".25" fill="none" stroke-linecap="round"/><path d="M760 520q40 10 60 40" stroke="#fff" stroke-width="5" opacity=".2" fill="none" stroke-linecap="round"/>` +
+        // gloved hand from below-right
+        `<path d="M1200 900L1200 760Q1080 760 980 800L1000 900Z" fill="#1d242e"/>` +
+        `<path d="M990 800Q900 780 820 760Q760 740 720 750Q690 770 720 790Q680 800 690 820Q660 840 700 856Q690 880 730 884Q800 896 880 880Q960 870 1010 860Z" fill="url(#glv)"/>` +
+        `<path d="M720 790Q780 790 820 800M700 820Q760 826 820 828M710 856Q770 860 830 856" stroke="#a8461a" stroke-width="4" fill="none"/><path d="M760 744Q800 700 820 730Q810 760 790 770" fill="url(#glv)"/>` +
+        `<path d="M840 770q40 0 70 20" stroke="#ffc08a" stroke-width="5" fill="none" opacity=".7"/>` +
+        vig(w, h) + grain(w, h, 0.3)
+      );
+    },
+  });
+
+  // ---- The birthday rod from Zhongli ----
+  def('p_rod_gift', {
+    title: 'The birthday rod',
+    w: 1200, h: 900, tags: ['fishing', 'zhongli', 'gift', 'rod', 'birthday'],
+    svg: (w, h) => {
+      let grainL = '';
+      const R = rng(6);
+      for (let i = 0; i < 26; i++) { const y = R() * 900; grainL += `M0 ${R0(y)}Q${R0(400 + R() * 400)} ${R0(y + (R() - 0.5) * 40)} 1200 ${R0(y + (R() - 0.5) * 30)}`; }
+      // rod axis from (130,800) to (1200,170)
+      const ax = (t) => [130 + 1070 * t, 800 - 630 * t];
+      let bands = '', guides = '';
+      for (const t of [0.42, 0.55, 0.68, 0.8, 0.9]) {
+        const [x, y] = ax(t);
+        bands += `M${R0(x - 5)} ${R0(y - 9)}l10 18`;
+        guides += `<circle cx="${R0(x + 6)}" cy="${R0(y + 12)}" r="${R0(9 - t * 5)}" fill="none" stroke="#c9a24a" stroke-width="3"/>`;
+      }
+      const [hx, hy] = ax(0.3);
+      return wrap(w, h,
+        grainDef(0.85) + vigDef(0.55, '#140603') +
+        lg('tbl', [[0, '#5a2a1a'], [1, '#3a170e']]) + lg('rod', [[0, '#2a1410'], [0.5, '#5a2a1e'], [1, '#2a1410']], 0, 0, 0, 1) +
+        lg('rat', [[0, '#e3c48c'], [1, '#b08a52']]) + lg('rib', [[0, '#e5434c'], [1, '#a81f2b']], 0, 0, 1, 1) + lg('card', [[0, '#fbf6e8'], [1, '#efe4c8']], 0, 0, 1, 1) +
+        rg('brass', [[0, '#ffe7a0'], [0.6, '#c9a24a'], [1, '#8a6a22']], 0.4, 0.4, 0.6) + lg('cel', [[0, '#cfe3cf'], [1, '#8fb49a']]) +
+        `<pattern id="lat" width="120" height="120" patternUnits="userSpaceOnUse" patternTransform="rotate(-24) skewX(-20) scale(1.6)"><path d="M0 0h120v120H0z" fill="#ffcf8a" opacity=".2"/><path d="M60 0v120M0 60h120M30 30h60v60H30z" stroke="#000" stroke-width="16" fill="none"/></pattern>` +
+        rg('lm', [[0, '#fff'], [0.55, '#fff', 0.8], [1, '#fff', 0]], 0.7, 0.25, 0.65) + `<mask id="lmk"><rect width="1200" height="900" fill="url(#lm)"/></mask>`,
+        `<rect width="1200" height="900" fill="url(#tbl)"/><path d="${grainL}" stroke="#2a0e06" stroke-width="2" fill="none" opacity=".5"/>` +
+        `<rect width="1200" height="900" fill="url(#lat)" mask="url(#lmk)" style="mix-blend-mode:screen"/>` +
+        // teacup + osmanthus
+        `<ellipse cx="210" cy="240" rx="120" ry="70" fill="#000" opacity=".3" transform="translate(14 16)"/><ellipse cx="210" cy="240" rx="120" ry="70" fill="url(#cel)"/><ellipse cx="210" cy="226" rx="84" ry="44" fill="#a7c7ad"/><ellipse cx="210" cy="226" rx="70" ry="34" fill="#c98a3a"/><ellipse cx="190" cy="216" rx="24" ry="8" fill="#fff" opacity=".35"/>` +
+        `<path d="M380 120q60 40 120 30" stroke="#5a3a1a" stroke-width="5" fill="none"/>` + dots(9, 14, 390, 100, 520, 170, 4, 7, '#f6b93b', 0.85, 1) +
+        // rod shadow, blank, bands, guides
+        `<path d="M150 830L1200 210" stroke="#000" stroke-width="22" opacity=".3" stroke-linecap="round"/>` +
+        `<path d="M${R0(hx)} ${R0(hy)}L1200 170" stroke="url(#rod)" stroke-width="13" stroke-linecap="round"/><path d="M${R0(hx)} ${R0(hy - 4)}L1200 166" stroke="#c46a50" stroke-width="2" opacity=".6"/>` +
+        `<path d="${bands}" stroke="#d8b25a" stroke-width="5"/>` + guides +
+        // handle: rattan wrap, jade cap, gold ferrules
+        `<path d="M130 800L${R0(hx)} ${R0(hy)}" stroke="url(#rat)" stroke-width="34" stroke-linecap="butt"/>` +
+        `<path d="M130 800L${R0(hx)} ${R0(hy)}" stroke="#7a5a2a" stroke-width="34" stroke-dasharray="3 9" opacity=".45"/>` +
+        `<circle cx="122" cy="806" r="26" fill="#3f9a72"/><circle cx="116" cy="800" r="9" fill="#9fe0c0" opacity=".7"/>` +
+        `<path d="M${R0(hx - 10)} ${R0(hy - 14)}l14 22M150 772l14 22" stroke="#d8b25a" stroke-width="8"/>` +
+        // reel
+        `<g transform="translate(300 720) rotate(-30)"><rect x="-14" y="-40" width="28" height="30" fill="#8a6a22"/><circle r="56" fill="url(#brass)" stroke="#6a4e18" stroke-width="4"/>` +
+        `<circle r="36" fill="none" stroke="#8a6a22" stroke-width="3"/><path d="M-24 6q8-16 22-6q12-14 26 4M-20 18q10-8 20 0q10-8 20 0" stroke="#6a4e18" stroke-width="3" fill="none"/>` +
+        `<circle r="8" fill="#6a4e18"/><path d="M0 0l48 34" stroke="#6a4e18" stroke-width="7" stroke-linecap="round"/><circle cx="50" cy="36" r="10" fill="#2a1410"/></g>` +
+        // ribbon + bow + card
+        `<path d="M410 640L470 600L500 650L440 690Z" fill="url(#rib)"/>` +
+        `<path d="M470 640Q520 560 580 600Q560 650 470 640ZM470 640Q440 560 380 560Q390 620 470 640Z" fill="url(#rib)"/><path d="M470 640Q520 560 580 600M470 640Q440 560 380 560" stroke="#7a121a" stroke-width="3" fill="none"/>` +
+        `<path d="M470 640Q500 720 470 800L500 790Q520 720 486 642ZM466 644Q420 720 430 780L400 770Q400 700 462 640Z" fill="#c22a35"/>` +
+        `<ellipse cx="470" cy="640" rx="18" ry="14" fill="#d7323d"/>` +
+        `<g transform="translate(560 690) rotate(-6)"><rect x="6" y="10" width="330" height="170" fill="#000" opacity=".3"/><rect width="330" height="170" fill="url(#card)"/><rect x="10" y="10" width="310" height="150" fill="none" stroke="#c9a24a" stroke-width="2.5"/>` +
+        `<path d="M24 24h18M24 24v18M306 146h-18M306 146v-18" stroke="#c9a24a" stroke-width="3"/>` +
+        `<text x="165" y="78" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="31" fill="#3a2a1a">For your birthday.</text>` +
+        `<text x="296" y="132" text-anchor="end" font-family="Georgia, 'Times New Roman', serif" font-style="italic" font-size="31" fill="#3a2a1a">— Z.</text></g>` +
+        `<path d="M600 700q-40-40-90-50" stroke="#c22a35" stroke-width="6" fill="none"/>` +
+        vig(w, h) + grain(w, h, 0.2)
+      );
+    },
+  });
+
+  /* =====================================================================================
+     LIYUE
+     ===================================================================================== */
+
+  // ---- Wanmin Restaurant kitchen ----
+  def('p_wanmin_kitchen', {
+    title: 'Wanmin kitchen',
+    w: 1200, h: 900, tags: ['liyue', 'wanmin', 'xiangling', 'guoba', 'kitchen', 'fire'],
+    svg: (w, h) => {
+      const flame = (x, y, s, rot = 0) => `<g transform="translate(${x} ${y}) rotate(${rot}) scale(${s})"><path d="M0 0Q-60-40-30-120Q-20-80 0-90Q-10-150 30-200Q20-120 60-100Q70-140 60-170Q110-100 70 0Z" fill="url(#fl1)"/><path d="M10 0Q-20-40 0-90Q10-60 30-70Q30-100 40-120Q70-60 50 0Z" fill="url(#fl2)"/></g>`;
+      let chili = '';
+      for (let i = 0; i < 9; i++) chili += `M${1040 + (i % 2) * 14} ${110 + i * 30}q-12 10-6 28`;
+      let tiles = '';
+      for (let x = 0; x <= 1200; x += 60) tiles += `M${x} 420V640`;
+      for (let y = 420; y <= 640; y += 60) tiles += `M0 ${y}H1200`;
+      return wrap(w, h,
+        grainDef(0.9) + vigDef(0.6, '#120402') + skinDef(SK.fair) + peopleDefs() +
+        lg('wall', [[0, '#2a120c'], [1, '#4a2216']]) + glow('lan', '#ff9a4a', 0.7) + glow('fire', '#ffb347', 0.85) +
+        lg('fl1', [[0, '#ff4a1a'], [0.6, '#ff9a2a'], [1, '#ffd25a']], 0, 1, 0, 0) + lg('fl2', [[0, '#ffd25a'], [1, '#fff6c4']], 0, 1, 0, 0) +
+        rg('stm', [[0, '#fff6ea', 0.6], [0.55, '#ffeedd', 0.3], [1, '#ffeedd', 0]]) + lg('top', [[0, '#e0503a'], [1, '#a8281e']], 0, 0, 1, 1) + lg('gb', [[0, '#ff8a4a'], [1, '#d4501e']], 0, 0, 1, 1) + lg('wok', [[0, '#1a1a1e'], [1, '#3a3a44']]),
+        `<rect width="1200" height="900" fill="url(#wall)"/>` +
+        `<rect y="420" width="1200" height="220" fill="#d9c7a6" opacity=".22"/><path d="${tiles}" stroke="#1a0a06" stroke-width="3" opacity=".4"/>` +
+        // shelves, jars, lanterns, chilies
+        `<rect x="40" y="250" width="320" height="14" fill="#5a2e1a"/><rect x="60" y="196" width="50" height="54" rx="8" fill="#c97a3c"/><rect x="124" y="206" width="44" height="44" rx="6" fill="#7aa36a"/><rect x="182" y="190" width="56" height="60" rx="10" fill="#d9c7a6"/><rect x="252" y="210" width="40" height="40" rx="6" fill="#a8281e"/>` +
+        `<circle cx="150" cy="80" r="200" fill="url(#lan)"/><path d="M150 0v30" stroke="#2a120c" stroke-width="4"/><ellipse cx="150" cy="80" rx="40" ry="50" fill="#d8322a"/><path d="M130 34h40M130 126h40" stroke="#c9a24a" stroke-width="8"/><path d="M150 130v40" stroke="#c9a24a" stroke-width="4"/>` +
+        `<path d="${chili}" stroke="#d8322a" stroke-width="12" fill="none" stroke-linecap="round"/><path d="M1047 90v290" stroke="#5a3a1a" stroke-width="3"/>` +
+        // sign
+        `<rect x="470" y="40" width="260" height="100" rx="8" fill="#a8281e" stroke="#c9a24a" stroke-width="6"/><text x="600" y="120" text-anchor="middle" font-family="serif" font-size="74" font-weight="700" fill="#f2c94c">万民</text>` +
+        // order tickets
+        `<path d="M780 200H980" stroke="#8a8a8a" stroke-width="5"/><g fill="#f5efe0"><rect x="790" y="204" width="44" height="66" transform="rotate(-4 812 204)"/><rect x="846" y="204" width="44" height="74"/><rect x="902" y="204" width="44" height="60" transform="rotate(5 924 204)"/></g>` +
+        `<g transform="translate(-70 0)">` +
+        // stove + fire glow
+        `<circle cx="470" cy="600" r="420" fill="url(#fire)"/>` +
+        `<path d="M200 700H760V900H200Z" fill="#26201e"/><path d="M200 700H760" stroke="#5a4a44" stroke-width="10"/>` +
+        flame(380, 700, 1.1, -10) + flame(470, 710, 1.4) + flame(560, 700, 1.05, 12) +
+        // wok + flying food
+        `<path d="M300 600Q470 720 640 600Z" fill="url(#wok)"/><path d="M290 598H650" stroke="#55555f" stroke-width="10" stroke-linecap="round"/><path d="M640 604L690 592" stroke="#2a1a14" stroke-width="16" stroke-linecap="round"/>` +
+        `<g fill="#ff8a4a"><path d="M420 470q20-20 40 0q-10 20-30 10z"/><path d="M520 430q20-24 44-6q-12 22-34 14z"/><path d="M470 380q16-18 34-2q-10 16-26 10z"/></g>` +
+        `<g fill="#3aa84a"><rect x="380" y="430" width="22" height="10" rx="4" transform="rotate(-30 390 435)"/><rect x="560" y="500" width="22" height="10" rx="4" transform="rotate(40 570 505)"/></g><g fill="#e8322a"><circle cx="440" cy="530" r="8"/><circle cx="600" cy="420" r="7"/><circle cx="500" cy="500" r="6"/></g>` +
+        `<path d="M380 520q40-80 120-100M560 540q20-60-10-110" stroke="#ffe7b4" stroke-width="3" fill="none" opacity=".6" stroke-dasharray="12 10"/>` +
+        // steam
+        `<g fill="url(#stm)"><path d="${fluffP(480, 300, 170, 80, 12, 22, 3)}"/><path d="${fluffP(540, 180, 130, 60, 10, 18, 4)}" opacity=".7"/><path d="${fluffP(430, 380, 100, 46, 9, 12, 5)}"/></g></g>` +
+        // Xiangling
+        at(870, 380, 1.8,
+          `<path d="M-30 52C-84 58-110 84-116 140L-120 300H120L116 140C110 84 84 58 30 52Z" fill="url(#top)"/><path d="M-60 100Q0 130 60 100L70 300H-70Z" fill="#f4efe6"/><path d="M-30 52Q0 72 30 52" stroke="#1d2242" stroke-width="8" fill="none"/>` +
+          `<path d="M-100 100Q-130 112-148 118L-142 146Q-120 146-90 140Z" fill="url(#top)"/><circle cx="-150" cy="130" r="15" fill="#f8d3ba"/>` +
+          `<path d="M100 100Q140 40 150-10L176 0Q166 70 116 130Z" fill="url(#top)"/><circle cx="162" cy="-12" r="15" fill="#f8d3ba"/><path d="M162-12L190-80" stroke="#8a8a90" stroke-width="7" stroke-linecap="round"/><ellipse cx="194" cy="-92" rx="18" ry="10" fill="#b0b0b8" transform="rotate(-20 194 -92)"/>` +
+          xianglingHead({ mouth: 'grin', gx: -2 })) +
+        // Guoba
+        `<g transform="translate(150 560)"><path d="M70 120Q150 110 160 40Q150 0 120 10Q130 60 70 80Z" fill="url(#gb)"/><path d="M128 20l20 6M142 60l16-4M120 96l14 8" stroke="#7a2a10" stroke-width="10"/>` +
+          `<ellipse cx="40" cy="110" rx="70" ry="80" fill="url(#gb)"/><ellipse cx="40" cy="126" rx="40" ry="50" fill="#5a2a14"/>` +
+          `<path d="M-14 170h30v28h-30zM64 170h30v28h-30z" fill="#4a1e0c"/><path d="M-20 80Q-50 60-60 40" stroke="#4a1e0c" stroke-width="22" stroke-linecap="round"/><path d="M100 80Q130 50 150 50" stroke="#4a1e0c" stroke-width="22" stroke-linecap="round"/>` +
+          `<circle cx="-30" cy="-20" r="22" fill="#d4501e"/><circle cx="110" cy="-20" r="22" fill="#d4501e"/><circle cx="-30" cy="-20" r="11" fill="#3a1408"/><circle cx="110" cy="-20" r="11" fill="#3a1408"/>` +
+          `<ellipse cx="40" cy="20" rx="66" ry="56" fill="url(#gb)"/><path d="M0 26q14-22 30 0q-8 18-30 0zM50 26q14-22 30 0q-8 18-30 0z" fill="#fff4e8"/>` +
+          `<circle cx="16" cy="22" r="6" fill="#1a0a04"/><circle cx="64" cy="22" r="6" fill="#1a0a04"/><circle cx="18" cy="20" r="2" fill="#fff"/><circle cx="66" cy="20" r="2" fill="#fff"/>` +
+          `<ellipse cx="40" cy="50" rx="22" ry="14" fill="#fff4e8"/><ellipse cx="40" cy="44" rx="8" ry="5" fill="#1a0a04"/><path d="M40 50v6M32 58q8 6 16 0" stroke="#1a0a04" stroke-width="3" fill="none"/>` +
+          `<path d="M40-30q-14-20 0-50q6 20 16 10q4 24-16 40z" fill="url(#fl1)"/></g>` +
+        `<path d="M260 610q40-30 70-10" stroke="#ffd25a" stroke-width="10" fill="none" stroke-linecap="round" opacity=".7"/>` +
+        // counter edge with chopped chilies
+        `<path d="M0 820H1200V900H0Z" fill="#6b3a1e"/><path d="M0 820H1200" stroke="#8a5230" stroke-width="8"/><rect x="860" y="760" width="240" height="70" rx="10" fill="#c9945a"/>` + dots(13, 26, 880, 770, 1080, 816, 4, 8, '#e8322a', 0.9, 1) +
+        `<ellipse cx="90" cy="806" rx="70" ry="22" fill="#e9e2d6"/><ellipse cx="90" cy="800" rx="52" ry="14" fill="#f2c94c"/>` +
+        vig(w, h) + grain(w, h, 0.22)
+      );
+    },
+  });
+
+  // ---- The Alcor's deck at night, ring cleared for a duel ----
+  def('p_alcor_deck', {
+    title: 'The Alcor, rematch night',
+    w: 1200, h: 900, tags: ['liyue', 'alcor', 'beidou', 'night', 'ship', 'rematch'],
+    svg: (w, h) => {
+      const R = rng(27);
+      let city = '', wins = '', refl = '';
+      for (let i = 0; i < 22; i++) {
+        const x = i * 56 + R() * 20, bw = 30 + R() * 40, bh = 30 + R() * 110, y = 430 - bh;
+        city += `M${R0(x)} 430V${R0(y)}h${R0(bw)}V430Z`;
+        for (let j = 0; j < 3; j++) wins += `M${R0(x + 6 + R() * (bw - 12))} ${R0(y + 8 + R() * (bh - 16))}h5v4h-5z`;
+        refl += `M${R0(x + bw / 2)} ${R0(440 + R() * 20)}v${R0(20 + R() * 40)}`;
+      }
+      // crew silhouettes around the ring (x, y, scale, arms up?)
+      const crew = [[330, 590, 0.62, 1, 1], [410, 560, 0.55, 2], [500, 545, 0.52, 1], [600, 540, 0.5, 0, 2], [700, 545, 0.52, 2, 1], [790, 560, 0.55, 1], [870, 590, 0.62, 0, 2],
+        [250, 660, 0.85, 2], [950, 660, 0.85, 1, 1], [160, 800, 1.3, 0, 2], [1040, 800, 1.3, 2], [380, 900, 1.6, 1], [820, 900, 1.6, 0, 1]];
+      const fig = ([x, y, s, pose, hat]) => {
+        const arms = pose === 1 ? 'M-40-116Q-54-80-52-36M40-116Q62-150 66-200' : pose === 2 ? 'M-40-116Q-74-92-50-62M40-116Q74-92 50-62' : 'M-40-116Q-54-80-52-36M40-116Q54-80 52-36';
+        return `<g transform="translate(${x} ${y}) scale(${s})"><path d="${arms}" stroke="#140f18" stroke-width="17" stroke-linecap="round" fill="none"/>` +
+          `<path d="M-36-128Q-46-122-46-104L-44-40Q-44 0-36 0H36Q44 0 44-40L46-104Q46-122 36-128Q0-138-36-128Z" fill="#140f18"/><rect x="-8" y="-140" width="16" height="14" fill="#140f18"/><circle cy="-156" r="21" fill="#140f18"/>` +
+          (hat === 1 ? `<path d="M-24-164Q0-186 24-164Q30-158 34-150L22-156Q0-168-22-156L-34-150Q-30-158-24-164Z" fill="#140f18"/>` : hat === 2 ? `<path d="M-22-166Q0-182 22-166L30-152Q0-160-30-152Z" fill="#7a1f26"/>` : '') +
+          `<path d="M-19-166q12-14 30-4M-44-104L-44-40M36-128Q44-124 46-104" stroke="#ffb45a" stroke-width="3.5" fill="none" opacity=".8"/></g>`;
+      };
+      const lantern = (x, y) => `<circle cx="${x}" cy="${y}" r="40" fill="url(#lg)"/><rect x="${x - 8}" y="${y - 11}" width="16" height="22" rx="6" fill="#ffcc6e"/>`;
+      let lans = '';
+      for (let i = 0; i <= 8; i++) { const t = i / 8, x = 120 + t * 640, y = 260 + Math.sin(t * Math.PI) * 70 - t * 120; lans += lantern(R0(x), R0(y)); }
+      for (let i = 1; i <= 5; i++) { const t = i / 6, x = 760 + t * 440, y = 140 + Math.sin(t * Math.PI) * 50 + t * 100; lans += lantern(R0(x), R0(y)); }
+      let planks = '';
+      for (let i = -12; i <= 12; i++) planks += `M${600 + i * 18} 520L${600 + i * 110} 900`;
+      return wrap(w, h,
+        grainDef(0.9) + vigDef(0.65, '#02030a', 0.45) +
+        lg('sky', [[0, '#05081a'], [0.6, '#16204a'], [1, '#3a3462']], 0, 0, 0, 440, US) + glow('lg', '#ffb04a', 0.75) + glow('moon', '#fff3d0', 0.6) +
+        lg('deck', [[0, '#5a3a24'], [1, '#2e1c12']], 0, 520, 0, 900, US) + glow('pool', '#ffb45a', 0.55) + lg('sea', [[0, '#1a2448'], [1, '#070a18']]),
+        `<rect width="1200" height="440" fill="url(#sky)"/>` + dots(9, 60, 0, 0, 1200, 300, 0.6, 1.6, '#fff', 0.35, 0.9) +
+        `<circle cx="980" cy="90" r="120" fill="url(#moon)"/><circle cx="980" cy="90" r="30" fill="#fff5d8"/>` +
+        // Liyue harbor across the water
+        `<path d="M0 430L0 300Q120 260 240 330L380 280Q460 240 560 300L700 250Q800 220 900 290L1040 260Q1120 250 1200 290V430Z" fill="#141a33"/>` +
+        `<path d="M700 250l-30 18h60zM560 300l-26 14h52zM640 236h120l-60-30z" fill="#2a2040"/>` +
+        `<path d="${city}" fill="#0e1228"/><path d="${wins}" fill="#ffc66e" opacity=".85"/>` +
+        `<g fill="#0e1228"><path d="M180 430V330h60v100zM150 336q60-30 120 0l-14 6q-46-18-92 0zM160 300q50-24 100 0l-12 6q-38-16-76 0zM196 300v-24h28v24z"/><path d="M880 430V300h70v130zM846 306q70-34 140 0l-16 8q-54-22-108 0zM860 268q56-28 112 0l-14 8q-42-18-84 0z"/></g>` +
+        `<path d="M150 336q60-30 120 0M160 300q50-24 100 0M846 306q70-34 140 0M860 268q56-28 112 0" stroke="#e8b84a" stroke-width="3" fill="none" opacity=".75"/>` +
+        `<g fill="#ff5a3a"><circle cx="160" cy="350" r="6"/><circle cx="260" cy="350" r="6"/><circle cx="858" cy="322" r="7"/><circle cx="974" cy="322" r="7"/></g>` +
+        `<rect y="430" width="1200" height="120" fill="url(#sea)"/><path d="${refl}" stroke="#ffb45a" stroke-width="4" opacity=".4"/>` +
+        // masts, rigging, sails
+        `<path d="M760 0V560" stroke="#2a1a12" stroke-width="26"/><path d="M640 120H900M660 260H880" stroke="#2a1a12" stroke-width="12"/>` +
+        `<path d="M650 112Q770 150 890 112L890 126Q770 170 650 126Z M666 252Q770 284 874 252L874 266Q770 300 666 266Z" fill="#e8dcc0"/>` +
+        `<path d="M760 20L80 520M760 20L1180 520M760 140L240 520M760 140L1060 520" stroke="#3a2a20" stroke-width="3" opacity=".8"/>` +
+        `<path d="M770 30h90l-10 26 10 26h-90z" fill="#1d2a4a"/><path d="M800 44l10 12 14-6-6 14 10 10-14 2-4 14-6-14-14 0 10-10z" fill="#e8b84a"/>` +
+        `<path d="M120 260Q440 420 760 140M760 140Q980 300 1200 240" stroke="#3a2a20" stroke-width="2" fill="none"/>` + lans +
+        // deck
+        `<path d="M0 520H1200V900H0Z" fill="url(#deck)"/><path d="${planks}" stroke="#1d120c" stroke-width="3" opacity=".7"/>` +
+        `<path d="M0 520H1200" stroke="#6a4a30" stroke-width="10"/><path d="M0 505H1200" stroke="#4a3020" stroke-width="16"/>` +
+        `<ellipse cx="600" cy="700" rx="420" ry="150" fill="url(#pool)"/>` +
+        `<ellipse cx="600" cy="690" rx="300" ry="90" fill="none" stroke="#e8dcc0" stroke-width="10" opacity=".85"/><ellipse cx="600" cy="690" rx="300" ry="90" fill="none" stroke="#b9a37a" stroke-width="10" stroke-dasharray="6 14" opacity=".9"/>` +
+        crew.map(fig).join('') +
+        // lifebuoy with the ship's name
+        `<g transform="translate(1100 440)"><circle r="54" fill="none" stroke="#e8dcc0" stroke-width="30"/><path d="M-54 0a54 54 0 0 1 54-54M54 0a54 54 0 0 1-54 54" fill="none" stroke="#c8323c" stroke-width="30"/>` +
+        `<text y="5" text-anchor="middle" font-family="${FONT}" font-size="13" font-weight="800" fill="#1d2a4a" letter-spacing="1">ALCOR</text></g>` +
+        `<text x="1176" y="540" text-anchor="end" font-family="serif" font-size="22" font-weight="700" fill="#e8b84a" letter-spacing="3" opacity=".9">THE ALCOR</text>` +
+        vig(w, h) + grain(w, h, 0.25)
+      );
+    },
   });
 })();

@@ -462,10 +462,10 @@
       }
       for (let i = 0; i < 9; i++) sky += lantern(f(rr(120, 1100)), f(rr(140, 420)), n2(rr(0.12, 0.22)));
       // Childe from behind (local), Tonia leaning her head on his shoulder
-      const childe = backT(62, 186, '#5a5f6a') + P('M-62 84C-40 70 40 70 62 84', 'none', 'stroke="#7c818c" stroke-width="3"') +
+      const childe = backT(62, 186, '#5a5f6a') + ST('M-62 84C-40 70 40 70 62 84M0 66V186M-40 120Q-20 130-6 120', '#7c818c', 3, op(0.7)) +
         neck(11, 50) + BACK.childe() + ST('M40-30Q52-6 44 20M62 90Q66 130 66 186', '#b8c8ff', 3, op(0.5)) +
         P('M-26 40C-14 54 14 54 26 40L32 60C14 74-14 74-32 60Z', u('sC')) + P('M14 62C24 90 18 140 28 186H48C36 140 44 92 30 58Z', u('sC'));
-      const toniaB = backT(48, 183, '#5b4e6e') + ST('M-50 90Q-54 140-52 183', '#ffb070', 3, op(0.55)) + braid(4, 46, 9, '#b4502a') + `<rect x="-3" y="152" width="14" height="7" rx="2" fill="#4f8f9a"/>`;
+      const toniaB = backT(48, 159, '#5b4e6e') + ST('M-50 90Q-54 130-52 159', '#ffb070', 3, op(0.55)) + braid(4, 46, 9, '#b4502a') + `<rect x="-3" y="152" width="14" height="7" rx="2" fill="#4f8f9a"/>`;
       const toniaH = neck(9, 64) + P('M-26 52C-14 66 14 66 26 52L30 72C14 84-14 84-30 72Z', '#4f8f9a') + ST('M-24 64Q0 76 24 64', '#e9dfc6', 3, op(0.6)) +
         BACK.tonia() + ST('M-44-20Q-50 6-40 30', '#ffb070', 3, op(0.6));
       return svg(
@@ -489,13 +489,136 @@
         `<circle cx="250" cy="330" r="420" fill="url(#pool)"/>` + ST('M250 900V260M250 262Q250 230 290 230', '#1a1418', 10) + lantern(290, 300, 1.15) +
         // the two of them
         G(704, 472, 1.55, childe) +
-        G(548, 528, 1.32, toniaB) + `<g transform="translate(566 600) rotate(22) scale(1.32) translate(0 -50)">${toniaH}</g>` +
-        ST('M612 592Q560 590 500 610', '#5a5f6a', 30) + ST('M612 580Q560 578 506 594', '#7c818c', 3, op(0.6)) + hand(492, 614, 13, SKIN[1]) +
+        G(520, 552, 1.32, toniaB) + `<g transform="translate(540 624) rotate(22) scale(1.32) translate(0 -50)">${toniaH}</g>` +
+        ST('M616 600Q540 600 470 632', '#5a5f6a', 30) + ST('M616 588Q540 588 474 616', '#7c818c', 3, op(0.6)) + hand(462, 636, 13, SKIN[1]) +
+        `<ellipse cx="300" cy="800" rx="300" ry="70" fill="url(#pool)"/>` + ST('M932 790L1110 360', '#2a2024', 5) + ST('M1110 360Q1150 600 1130 660', '#cfd8ff', 1, op(0.6)) + `<circle cx="958" cy="736" r="11" fill="#3a3a46" stroke="#8a8aa0" stroke-width="2"/>` + ST('M0 812H1200M0 870H1200M150 760L60 900M450 760L420 900M750 760L780 900M1050 760L1140 900', '#5a5a70', 2, op(0.35)) +
         // bench (backrest closest to us)
         P('M320 680H930V708H320ZM320 720H930V748H320Z', 'url(#wood)') + ST('M320 681H930M320 721H930', '#c09070', 2, op(0.7)) +
         ST('M340 680V900M910 680V900', '#1e1a20', 14) + ST('M330 840H920', '#1e1a20', 8) +
         P('M320 756H930V770H320Z', '#1e1a20')
       , 0.3, 0.5);
+    }),
+  });
+
+  // ---- 6. The Scapegoat -----------------------------------------------------------------------
+  def('end_scapegoat', {
+    title: 'The Scapegoat', w: 1200, h: 900, tags: ['ending', 'fatui', 'rain', 'night', 'wanted'],
+    svg: pic(6, () => {
+      setSkin(['#f2e6cc', '#e8d8b6', '#cbb48e', '#a08a66']);
+      OVR = { hC: '#5a4432', sC: '#7a4030' };
+      let refl = '', cobble = '';
+      for (let i = 0; i < 6; i++) cobble += `M${f(700 + i * 110)} 900L${f(880 + i * 8)} 600`;
+      for (let i = 0; i < 16; i++) refl += `M${f(rr(980, 1140))} ${f(rr(720, 890))}v${f(rr(20, 70))}`;
+      // the hooded figure, walking away (local: feet at 0)
+      const hood =
+        `<ellipse cx="0" cy="4" rx="70" ry="10" fill="#000" opacity=".35"/>` +
+        ST('M-14-150L-20-76L-24-12M14-150L22-80L10-24', '#1e2230', 26) + P('M-38-16H-10V0H-40Z', '#14161e') + P('M-2-40L22-30L18-14L-6-22Z', '#14161e') +
+        P('M-48-296C-56-260-54-200-46-146H46C54-200 56-260 48-296C30-310-30-310-48-296Z', '#5c6372') +
+        P('M-50-280C-62-240-60-196-50-166L-36-170C-42-200-42-240-36-276ZM50-280C62-240 60-196 50-166L36-170C42-200 42-240 36-276Z', '#4a505e') +
+        P('M-34-292C-44-330-32-370 0-374C32-370 44-330 34-292C20-284-20-284-34-292Z', '#5c6372') + ST('M-26-298Q0-286 26-298M0-372Q-6-330 0-290', '#3a3f4c', 4) +
+        P('M-32-300L-40-282L-28-288ZM30-300L40-280L26-288Z', '#c4562a') +
+        P('M10-288C26-268 44-250 72-248L76-232C46-236 24-254 4-278Z', '#c8323c') + ST('M-46-150H46', '#3a3f4c', 6);
+      return svg(
+        lg('sky', [[0, '#1a2430'], [1, '#3a4a58']]) + lg('wall', [[0, '#5a6a72'], [1, '#3a464e']], 0, 0, 1, 0.3) +
+        lg('street', [[0, '#4a5560'], [1, '#1c2228']]) + rg('lamp', [[0, '#ffd690', 0.85], [0.3, '#ffb060', 0.3], [1, '#ff9040', 0]]) +
+        lg('paper', [[0, '#efe3c6'], [1, '#d8c69e']]) + lg('fog', [[0, '#8a9aa8', 0], [1, '#8a9aa8', 0.5]]),
+        `<rect width="1200" height="900" fill="url(#sky)"/>` +
+        // far buildings down the street
+        P('M700 470V300H760V250H830V320H900V280H980V330H1060V240H1200V470Z', '#26303a') + ST('M780 290h14M800 330h14M920 310h12M1080 280h14M1120 320h14', '#ffc878', 6, op(0.7)) +
+        ST('M700 200Q850 250 1000 210', '#14181e', 2) + lantern(760, 250, 0.5) + lantern(900, 262, 0.42) +
+        `<rect x="640" y="300" width="560" height="200" fill="url(#fog)"/>` +
+        `<path d="M640 470H1200V900H640Z" fill="url(#street)"/>` + ST(cobble, '#141a20', 2, op(0.3)) + ST('M690 540H1200M690 620H1200M690 730H1200M690 860H1200', '#141a20', 2, op(0.35)) +
+        // street lamp
+        `<circle cx="1070" cy="250" r="260" fill="url(#lamp)"/>` + ST('M1070 900V250', '#1a1e24', 10) + P('M1048 236H1092L1084 270H1056Z', '#ffe6a8') + P('M1044 230H1096L1070 214Z', '#1a1e24') +
+        ST(refl, '#ffc878', 6, op(0.35)) + `<ellipse cx="1070" cy="820" rx="80" ry="12" fill="#ffc878" opacity=".25"/>` +
+        G(860, 712, 1, hood) + `<g transform="translate(860 716) scale(1 -.45)" opacity=".12">${hood}</g>` +
+        // the wall
+        P('M0 0H660V900H0Z', 'url(#wall)') + P('M0 0H680V40L640 60H0Z', '#1e262c') + ST('M0 54H650', '#121820', 8) + ST(Array.from({ length: 17 }, (_, i) => `M${i * 40} 44q20 14 40 0`).join(''), '#3a464e', 4) +
+        ST('M0 700H660M0 760H660M0 820H660M120 700V760M300 700V760M480 700V760M210 760V820M390 760V820M570 760V820', '#2a343a', 3, op(0.6)) +
+        P('M660 0V900H690V0Z', '#2c363c') +
+        // old torn poster
+        `<g transform="translate(560 300) rotate(4)"><path d="M-70-90H70V40L40 60L10 40L-20 70L-70 50Z" fill="#cfc4aa" opacity=".7"/>${ST('M-50-60H50M-50-40H30M-50-20H40', '#6a6050', 4, op(0.5))}</g>` +
+        // WANTED poster
+        `<g transform="translate(290 380) rotate(-2)">` +
+        `<rect x="-170" y="-250" width="340" height="460" fill="#000" opacity=".25" transform="translate(6 8)"/>` +
+        P('M-170-250H170V170L150 200L170 210H-170Z', 'url(#paper)') + P('M150 200L170 170V210Z', '#a8987a') +
+        txt(0, -184, 'WANTED', { size: 62, weight: 900, anchor: 'middle', fill: '#3a2a20', font: SERIF, ls: 2 }) +
+        ST('M-140-160H140', '#3a2a20', 3) +
+        `<rect x="-100" y="-146" width="200" height="200" fill="#e8dcbc" stroke="#5a4a3a" stroke-width="3"/>` +
+        `<g transform="translate(0 -36) scale(1.35)">${CH.childe({ body: false, mo: 'smirk', eye: '#4a3a2a', brow: '#4a3a2a', blush: 0 })}</g>` +
+        P('M-100-146H100V54H-100Z', '#6a5a40', op(0.12)) +
+        txt(0, 106, 'TARTAGLIA', { size: 42, weight: 900, anchor: 'middle', fill: '#3a2a20', font: SERIF, ls: 2 }) +
+        txt(0, 140, 'alias “Childe” · Fatui Harbinger', { size: 16, anchor: 'middle', fill: '#4a3a2a', font: SERIF }) +
+        txt(0, 168, 'REWARD: 5,000,000 MORA', { size: 18, weight: 800, anchor: 'middle', fill: '#8a2a20', font: SERIF, ls: 1 }) +
+        `<g transform="translate(70 20) rotate(-10)"><rect x="-26" y="-26" width="52" height="52" fill="none" stroke="#b82a2a" stroke-width="4" opacity=".8"/>${ST('M-14-12H14M0-18V18M-12 4H12M-10 14L10 14', '#b82a2a', 4, op(0.8))}</g>` +
+        P('M-170-100C-140-90-120-60-130 0C-136 40-160 60-170 80Z', '#4a3a2a', op(0.12)) + ST('M60-250V-170M100-250V-200M-120 170V210', '#5a6a72', 3, op(0.35)) + '</g>' +
+        // drips from the eaves
+        ST('M80 60v40M220 60v26M400 60v50M560 60v30', '#9ab0c0', 2, op(0.6)) +
+        // rain
+        ST(rain(150, -100, 1250, -50, 880, 34, -0.25), '#c8d8e8', 1.6, op(0.45)) + ST(rain(40, -100, 1250, -50, 880, 60, -0.25), '#e0ecf8', 2.4, op(0.35)) +
+        ST(sd(40, 640, 1200, 760, 900), '#c8d8e8', 3, op(0.4)) +
+        `<rect width="1200" height="900" fill="#1c3448" opacity=".25" style="mix-blend-mode:multiply"/>`
+      , 0.35, 0.6);
+    }),
+  });
+
+  // ---- 8. The Eleventh Resigns ----------------------------------------------------------------
+  def('end_defector', {
+    title: 'The Eleventh Resigns', w: 1200, h: 900, tags: ['ending', 'fatui', 'dawn', 'pier'],
+    svg: pic(8, () => {
+      setSkin(['#ffe0c8', '#f2bc98', '#c98a6e', '#a06a56']);
+      let rays = '', glit = '';
+      for (let i = 0; i < 16; i++) {
+        const a = Math.PI + (i / 15) * Math.PI, b = a + 0.05;
+        rays += `M790 520L${f(790 + 1400 * Math.cos(a))} ${f(520 + 1400 * Math.sin(a))}L${f(790 + 1400 * Math.cos(b))} ${f(520 + 1400 * Math.sin(b))}Z`;
+      }
+      for (let i = 0; i < 46; i++) {
+        const y = rr(526, 760), w = (y - 515) * 0.7;
+        glit += `M${f(790 + rr(-1, 1) * w)} ${f(y)}h${f(rr(10, 40))}`;
+      }
+      // Childe in profile, facing the sunrise (local: feet at 0)
+      const head =
+        P('M-6-452H14V-418H-6Z', SKIN[2]) +
+        P('M-26-476C-26-500-10-516 8-516C26-516 36-504 38-490L40-484Q38-478 45-467L41-462Q41-458 43-456Q40-453 42-451Q40-446 34-443Q22-438 10-440C-8-442-26-456-26-476Z', SKIN[1]) +
+        ST('M21-483q6-3 12 0', '#2a1a1c', 3) + `<ellipse cx="29" cy="-479" rx="2.6" ry="3.6" fill="#2a5fa0"/>` + ST('M23-492q6-3 12-1', '#8a3a1c', 2.4) +
+        ST('M36-454l4 0', '#9a4a42', 2) + `<ellipse cx="18" cy="-462" rx="7" ry="4" fill="#ff7a7a" opacity=".3"/>` +
+        P(jag([[-34, -440], [-40, -462], [-34, -476], [-42, -494], [-30, -506], [-26, -524], [-6, -528], [4, -542], [18, -528], [34, -528], [40, -512], [54, -506], [44, -496], [50, -484], [38, -488], [36, -478], [28, -492], [20, -482], [10, -496], [4, -470], [-4, -480], [-14, -456], [-20, -462], [-34, -440]], 0.12) + 'Z', u('hC')) +
+        `<ellipse cx="-4" cy="-470" rx="7" ry="10" fill="${SKIN[2]}"/>` + ST('M54-506L40-512M40-484L45-467', '#ffd8a0', 2.4, op(0.9));
+      const fig =
+        `<path d="M-30 0Q-200 60-420 150L-330 160Q-160 70 40 0Z" fill="#1a1020" opacity=".35"/>` +
+        ST('M18-410L94-396L150-390', '#3c4049', 28) + P('M146-398C160-400 172-396 174-390C168-382 156-380 146-382Z', SKIN[2]) +
+        ST('M-18-236L-22-120L-26-16M12-236L22-124L32-16', '#252834', 30) + P('M-44-20H-10V0H-46ZM18-22H54V-2H16Z', '#16181e') +
+        P('M-38-418C-46-380-44-300-42-226H40C42-260 36-300 34-330C40-370 42-400 32-424C10-438-22-436-38-418Z', u('jC')) +
+        ST('M-40-296H36', '#1e2026', 9) + P('M-32-292l8-12 8 12-8 12Z', u('hy')) + `<circle cx="-24" cy="-292" r="16" fill="#8ad8ff" opacity=".3"/>` +
+        `<g transform="translate(8 -478) scale(1.15) translate(-8 478)">${head}</g>` +
+        P('M-24-440C-8-430 18-430 30-442L32-420C14-408-10-410-28-422Z', u('sC')) +
+        P(ribbon([[-20, -430], [-72, -428], [-122, -444], [-172, -434], [-216, -450]], (t) => 13 - t * 6).d, u('sC')) +
+        ST('M-12-412L-24-330L-12-262', u('jC'), 30) + P('M-22-262C-22-248-8-244-2-252C2-262-4-270-14-270Z', SKIN[1]) +
+        `<g transform="translate(-10 -232) rotate(10) scale(1.3)">${P('M-25-2C-23-13-11-16-3-13L0-26L3-13C11-16 23-13 25-2C23 7 13 11 0 9C-13 11-23 7-25-2Z', '#c8323c', 'stroke="#5e1018" stroke-width="2"')}${P('M-18-3Q-11-9-5-3Q-11 2-18-3ZM18-3Q11-9 5-3Q11 2 18-3Z', '#1e060a')}</g>` +
+        ST('M32-424C42-400 40-370 34-330M40-226L42-260', '#ffd8a0', 3, op(0.85));
+      return svg(
+        lg('sky', [[0, '#252a58'], [0.3, '#5a4f88'], [0.48, '#c47e9a'], [0.56, '#f4a88e'], [0.6, '#ffd59a']]) +
+        lg('sea', [[0, '#e9a888'], [0.08, '#7a6a94'], [1, '#262850']]) +
+        rg('sun', [[0, '#fffbe6'], [0.08, '#fff0c0', 0.95], [0.3, '#ffc890', 0.45], [1, '#ff9a80', 0]]) +
+        lg('deck', [[0, '#5a3e3a'], [1, '#2a1c20']]) + lg('rayg', [[0, '#fff2c8', 0.35], [1, '#fff2c8', 0]]),
+        `<rect width="1200" height="900" fill="url(#sky)"/>` + P(rays, '#fff2c8', op(0.07)) +
+        `<circle cx="790" cy="520" r="520" fill="url(#sun)"/>` +
+        P(cloud(300, 300, 170, 26, 18) + cloud(980, 250, 200, 30, 20) + cloud(640, 180, 120, 18, 12), '#f4b4a8', op(0.55)) +
+        P('M0 520V470H30V440H44V470H80V420H100V380H110V420H150V470H200V450H260V470H300V520Z', '#3a2f58') + ST('M110 380L200 330M200 330V470M150 380H230', '#3a2f58', 6) +
+        `<rect y="520" width="1200" height="380" fill="url(#sea)"/>` + `<ellipse cx="790" cy="522" rx="120" ry="6" fill="#fff8e0"/>` +
+        `<path d="M730 520A60 60 0 0 1 850 520Z" fill="#fff8e6"/>` + ST(glit, '#ffe6b0', 3, op(0.8)) +
+        ST('M300 300q14-12 28 0q14-12 28 0M380 260q10-8 20 0q10-8 20 0M1000 330q12-10 24 0q12-10 24 0', '#3a2f58', 3.5, op(0.8)) +
+        // pier
+        P('M0 740H650L730 900H0Z', 'url(#deck)') + ST('M0 772H664M0 812H684M0 856H706M110 740L90 900M260 740L250 900M410 740L420 900M560 740L590 900', '#1e1416', 3, op(0.6)) + P('M650 740L730 900H750L668 740Z', '#1e1416') +
+        ST('M640 700V770M120 700V760', '#2a1c20', 18) + ST('M640 700V770', '#ffcf9a', 3, op(0.5)) +
+        `<path d="M70 780q40-14 80 0q-40 14-80 0Z" fill="none" stroke="#8a6a4a" stroke-width="6"/>` +
+        G(548, 760, 1.04, fig) +
+        // the falling pin
+        ST('M718 376v34M714 392v24', '#fff2c8', 2, op(0.5)) + `<circle cx="718" cy="430" r="22" fill="#fff2c8" opacity=".35"/>` +
+        `<g transform="translate(718 430) rotate(-20)"><circle r="11" fill="#d8b860" stroke="#8a6a2a" stroke-width="2"/>${ST('M0-7V7M-6-3.5L6 3.5M-6 3.5L6-3.5', '#fff6d8', 1.8)}</g>` +
+        ST('M700 440l-8-8M736 440l8-8M718 452v10', '#fff6d8', 2, op(0.8)) +
+        `<rect width="1200" height="900" fill="url(#rayg)" style="mix-blend-mode:screen"/>`
+      , 0.3, 0.55);
     }),
   });
 
