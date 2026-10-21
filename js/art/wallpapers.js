@@ -100,7 +100,9 @@
     const posts = [40, 330, 620, 910, 1180];
     let fg = '';
     fg += Rr(0, 2390, w, h - 2390, 'url(#deck)');
-    for (let i = 0; i < 9; i++) fg += S(`M${603 + (i - 4) * 70} 2392L${603 + (i - 4) * 300} ${h}`, '#05080c', 4, 0.5);
+    let pl = '';
+    for (let i = 0; i < 9; i++) pl += `M${603 + (i - 4) * 70} 2392L${603 + (i - 4) * 300} ${h}`;
+    fg += S(pl, '#05080c', 4, 0.5);
     fg += Rr(0, 2384, w, 14, '#3a2a22');
     posts.forEach((x) => { fg += Rr(x - 20, 2140, 40, 260, 'url(#post)') + Rr(x - 26, 2128, 52, 18, '#4a3428'); });
     fg += Rr(0, 2150, w, 30, 'url(#rail)') + S('M0 2152H1206', '#ffbf6a', 3, 0.55) + Rr(0, 2268, w, 18, 'url(#rail)') + S('M0 2270H1206', '#ffbf6a', 2, 0.35);
@@ -110,17 +112,17 @@
     // the cup of osmanthus tea on the rail
     fg += G('translate(800 2150)', P('M-24-40H24L18-4Q0 2-18-4Z', '#f2ece0') + E(0, -40, 24, 6, '#c8a058') + S('M24-30Q38-28 34-16Q30-8 20-10', '#f2ece0', 5) + E(0, -1, 30, 5, '#e8e0d0'));
     // the rod: cork grip, reel, guides, line
-    const A = [196, 2600], B = [1040, 470];
+    const A = [196, 2600], B = [990, 470];
     fg += P(pole(A, B, 10, 2.2, 14), 'url(#rod)') + P(pole(A, [A[0] + 66, A[1] - 166], 11, 9.5, 0), '#b8895a') +
       S(`M${A[0] + 4} ${A[1] - 40}l60 -150`, '#8a6440', 2, 0.6) +
       G(`translate(${A[0] + 88} ${A[1] - 226}) rotate(22)`, Rr(-4, 0, 8, 26, '#5a5e66') + C(-26, 28, 26, '#3a3e46') + C(-26, 28, 15, '#7a808a') + C(-26, 28, 5, '#c8cdd4'));
     [0.32, 0.5, 0.66, 0.8, 0.91].forEach((t) => { const x = A[0] + (B[0] - A[0]) * t, y = A[1] + (B[1] - A[1]) * t; fg += C(f1(x + 9), f1(y + 4), 6, 'none', ' stroke="#9aa2ac" stroke-width="2.5"'); });
-    fg += S(`M${B[0]} ${B[1]}Q1160 1100 1128 1880`, '#e8eef6', 2, 0.55);
+    fg += S(`M${B[0]} ${B[1]}Q1130 1100 1100 1880`, '#e8eef6', 2, 0.55);
     if (fgOnly) return wrap(w, h, harborFgDefs(), fg);
 
     const R = rng(7);
     let s = Rr(0, 0, w, 1640, 'url(#sky)') + E(260, 1560, 700, 260, 'url(#warm)');
-    s += stars(R, 64, 0, 0, w, 1300, 1, 2.6, '#fff', 0.85);
+    s += stars(R, 54, 0, 0, w, 1300, 1, 2.6, '#fff', 0.85);
     // moon, halo, wisps
     s += C(840, 1040, 560, 'url(#halo)') + C(840, 1040, 168, 'url(#moon)') +
       E(800, 990, 30, 22, '#d8c8a0', op(0.25)) + E(880, 1090, 44, 30, '#d8c8a0', op(0.2)) + E(780, 1110, 18, 14, '#d8c8a0', op(0.22)) +
@@ -303,16 +305,16 @@
       s += E(603, 1450, 800, 60, '#fff4ec', op(0.5));
       // terraced hills: nested contour steps, each a water mirror with an earth wall behind it
       s += P('M0 1500Q300 1440 620 1480Q900 1510 1206 1460V2622H0Z', '#5f8c58');
-      const hill = (cx, cy, top, n, rx0, rxk) => {
-        let o = '';
-        for (let i = n - 1; i >= 0; i--) {
-          const t = top + i * (i + 4) * 7.5, ry = cy - t, rx = rx0 + i * rxk;
-          o += E(cx, cy, r0(rx), r0(ry), '#4f7e4c') + E(cx, cy + 9 + i, r0(rx - 6), r0(ry - 9 - i), 'url(#pad)') +
-            S(`M${r0(cx - rx * 0.7)} ${r0(cy - ry * 0.72 + 9)}Q${cx} ${r0(t - ry * 0.05 + 12)} ${r0(cx + rx * 0.7)} ${r0(cy - ry * 0.72 + 9)}`, '#fff8e4', 2, 0.45);
-        }
-        return o;
-      };
-      s += hill(1040, 2900, 1500, 11, 260, 120) + hill(130, 2860, 1478, 12, 300, 110);
+      const domes = [];
+      for (let i = 0; i < 12; i++) {
+        domes.push([180, 1488 + i * (i + 5) * 6, 230 + i * 120]);
+        domes.push([1010, 1512 + i * (i + 5) * 6.4, 210 + i * 116]);
+      }
+      domes.sort((a, b) => a[1] - b[1]).forEach(([cx, t, rx]) => {
+        const ry = r0(rx * 0.28), d = (k) => `M${cx - rx} ${t + ry + k}A${rx} ${ry} 0 0 1 ${cx + rx} ${t + ry + k}V2622H${cx - rx}Z`;
+        const k = r0(8 + (t - 1480) / 60);
+        s += P(d(0), '#4c7a48') + P(d(k), 'url(#pad)') + S(`M${cx - r0(rx * 0.8)} ${r0(t + ry * 0.42 + k + 3)}A${rx} ${ry} 0 0 1 ${cx + r0(rx * 0.8)} ${r0(t + ry * 0.42 + k + 3)}`, '#fff6e0', 2, 0.35);
+      });
       // Qingce: windwheel and a pavilion on the left hill, the old tree on the right
       s += P('M0 1500Q120 1420 280 1450Q330 1470 360 1500Z', '#4a7a4c') +
         P('M204 1460L214 1330H226L236 1460Z', '#6a5040') + G('translate(220 1334)', S('M-62-40L62 40M-62 40L62-40', '#7a5a40', 6) + P('M0 0L-58-60L-40-66ZM0 0L58 60L40 66ZM0 0L58-60L66-40ZM0 0L-58 60L-66 40Z', '#f2ead8', op(0.9)) + C(0, 0, 8, '#4a3428')) +
@@ -345,7 +347,7 @@
         lgu('sky', [[0, '#5070b0'], [0.28, '#7f98cc'], [0.52, '#c4b6da'], [0.72, '#f4c4c4'], [0.88, '#ffd9b0'], [1, '#fff0cc']], 0, 0, 0, 1500) +
         rg('sun', [[0, '#fff8e0', 0.9], [0.25, '#ffe8c0', 0.45], [1, '#ffd8c0', 0]]) +
         lgu('m1', [[0, '#a0a4d4'], [1, '#e8cad4']], 0, 940, 0, 1500) + lgu('m2', [[0, '#8890c4'], [1, '#d8c4d4']], 0, 1160, 0, 1520) +
-        lg('pad', [[0, '#ffe6c4'], [0.06, '#f6cccc'], [0.16, '#c4c8e6'], [0.4, '#9ab0d8']]) + lg('leaf', [[0, '#7aa86a'], [1, '#2f5a38']]) +
+        lgu('pad', [[0, '#ffe8c8'], [0.25, '#f6d0cc'], [0.6, '#c8cce6'], [1, '#a8bcdc']], 0, 1480, 0, 2622) + lg('leaf', [[0, '#7aa86a'], [1, '#2f5a38']]) +
         lg('pb', [[0, '#cfe2f8'], [0.6, '#9cc0ea'], [1, '#e8f2ff']]) + lg('pf', [[0, '#ffffff'], [0.6, '#e4f0ff'], [1, '#bcd6f4']]) +
         rg('lglow', [[0, '#eaf4ff', 0.55], [1, '#eaf4ff', 0]]) + lilyDef,
         s);
@@ -359,61 +361,51 @@
     title: 'Hydro', w: 1206, h: 2622, tags: ['wallpaper', 'abstract', 'hydro', 'blue'],
     svg: (w, h) => {
       const R = rng(31);
-      const cx = 603, cy = 1640;
-      let s = Rr(0, 0, w, h, 'url(#bg)') + C(cx, cy, 900, 'url(#core)');
+      const cx = 603, cy = 1660;
+      let s = Rr(0, 0, w, h, 'url(#bg)') + C(cx, cy, 980, 'url(#core)');
       // light rays from the surface
-      [[200, 120, -0.18], [520, 160, -0.08], [820, 110, 0.06], [1050, 140, 0.16]].forEach(([x, wd, k]) => {
-        s += P(`M${x - wd / 2} 0H${x + wd / 2}L${f1(x + wd * 1.6 + k * 2600)} 2622H${f1(x - wd * 1.6 + k * 2600)}Z`, 'url(#ray)');
+      [[180, 130, -0.16], [470, 180, -0.07], [790, 120, 0.05], [1060, 150, 0.15]].forEach(([x, wd, k]) => {
+        s += P(`M${x - wd / 2} 0H${x + wd / 2}L${r0(x + wd * 1.8 + k * 2600)} 2622H${r0(x - wd * 1.8 + k * 2600)}Z`, 'url(#ray)');
       });
-      // spiral arms
-      const arm = (a0, k, r0s, turns, width, col, o) => {
-        let d = '';
-        const n = Math.round(turns * 16);
+      // caustic web near the surface (turbulence creases), fading with depth
+      s += `<rect width="${w}" height="1700" filter="url(#cau)" mask="url(#fade)"/>`;
+      // spiral arms: smooth log spirals, broken into flowing streaks
+      const arm = (a0, k, rs, turns, width, col, o, dash) => {
+        const pts = [], n = Math.round(turns * 14);
         for (let i = 0; i <= n; i++) {
-          const th = (i / n) * turns * Math.PI * 2;
-          const r = r0s * Math.exp(k * th);
-          const x = cx + Math.cos(th + a0) * r, y = cy + Math.sin(th + a0) * r * 0.86;
-          d += (i ? 'L' : 'M') + f1(x) + ' ' + f1(y);
+          const th = (i / n) * turns * Math.PI * 2, r = rs * Math.exp(k * th);
+          pts.push([cx + Math.cos(th + a0) * r, cy + Math.sin(th + a0) * r * 0.82]);
         }
-        return S(d, col, width, o);
+        let d = `M${r0(pts[0][0])} ${r0(pts[0][1])}`;
+        for (let i = 1; i < pts.length - 1; i++) d += `Q${r0(pts[i][0])} ${r0(pts[i][1])} ${r0((pts[i][0] + pts[i + 1][0]) / 2)} ${r0((pts[i][1] + pts[i + 1][1]) / 2)}`;
+        return S(d, col, width, o, dash ? ` stroke-dasharray="${dash}"` : '');
       };
-      for (let i = 0; i < 6; i++) {
-        const a0 = (i / 6) * Math.PI * 2;
-        s += arm(a0, 0.2, 34, 2.3, 70, 'url(#sw)', 0.28) + arm(a0 + 0.12, 0.2, 34, 2.3, 18, '#9be3ff', 0.22) + arm(a0 - 0.2, 0.2, 30, 2.1, 6, '#e2f8ff', 0.3);
+      for (let i = 0; i < 5; i++) {
+        const a0 = (i / 5) * Math.PI * 2;
+        s += arm(a0, 0.19, 40, 2.4, 110, 'url(#sw)', 0.2) + arm(a0 + 0.18, 0.19, 38, 2.3, 34, 'url(#sw)', 0.35) +
+          arm(a0 + 0.08, 0.19, 36, 2.25, 9, '#bff0ff', 0.45, `${160 + i * 30} ${60 + i * 14}`) + arm(a0 - 0.22, 0.19, 34, 2.1, 4, '#e8fbff', 0.5, `${90 + i * 20} ${120 - i * 10}`);
       }
-      s += C(cx, cy, 120, 'url(#glow)') + C(cx, cy, 26, '#e8fbff', op(0.9));
-      // caustic net near the surface, fading with depth
-      s += `<rect width="${w}" height="1500" fill="url(#cau)" mask="url(#fade)"/>`;
-      // bubbles
-      for (let i = 0; i < 26; i++) {
-        const x = 880 + R() * 220 + Math.sin(i) * 30, y = 900 + R() * 1500, r = 4 + R() * R() * 22;
-        s += C(f1(x), f1(y), f1(r), '#bfefff', op(0.12) + ` stroke="#bfefff" stroke-width="2" stroke-opacity=".55"`) + C(f1(x - r * 0.35), f1(y - r * 0.35), f1(r * 0.25), '#fff', op(0.7));
+      s += C(cx, cy, 170, 'url(#glow)') + C(cx, cy, 30, '#effcff', op(0.95));
+      // bubbles rising on the right
+      const bb = [], bs = [];
+      for (let i = 0; i < 22; i++) {
+        const x = 900 + R() * 200 + Math.sin(i) * 30, y = 1000 + R() * 1300, r = 5 + R() * R() * 22;
+        s += C(r0(x), r0(y), r0(r), '#bfefff', op(0.1) + ' stroke="#bfefff" stroke-width="2" stroke-opacity=".5"');
+        bs.push([x - r * 0.35, y - r * 0.35]);
       }
-      for (let i = 0; i < 40; i++) s += C(f1(R() * w), f1(600 + R() * 2000), f1(1 + R() * 2.5), '#cfefff', op(f1(0.2 + R() * 0.5)));
-      // caustic tile: soft cells whose rims make the light web
-      const T = 300;
-      let cells = '';
-      const pts = [];
-      for (let j = 0; j < 3; j++) for (let i = 0; i < 3; i++) pts.push([i * 100 + 50 + (R() - 0.5) * 40, j * 100 + 50 + (R() - 0.5) * 40]);
-      pts.forEach(([x, y]) => {
-        let d = '';
-        const n = 6;
-        for (let i = 0; i <= n; i++) {
-          const a = (i / n) * Math.PI * 2 + R() * 0.3, rr = 40 + R() * 16;
-          const px = x + Math.cos(a) * rr, py = y + Math.sin(a) * rr;
-          d += (i ? 'L' : 'M') + f1(px) + ' ' + f1(py);
-        }
-        cells += S(d + 'Z', '#bff4ff', f1(3 + R() * 4), 0.6);
-      });
+      s += dots(bs, '#fff', 5, 0.7);
+      for (let i = 0; i < 46; i++) bb.push([R() * w, 700 + R() * 1900]);
+      s += dots(bb, '#cfefff', 4, 0.4);
       return wrap(w, h,
-        lgu('bg', [[0, '#020c1e'], [0.35, '#04234e'], [0.7, '#0a3f80'], [1, '#05224a']], 0, 0, 0, 2622) +
-        rg('core', [[0, '#3aa0e6', 0.55], [0.45, '#1d5fa8', 0.25], [1, '#1d5fa8', 0]]) +
-        rg('glow', [[0, '#e8fbff', 0.9], [0.4, '#7fd4ff', 0.4], [1, '#3aa0e6', 0]]) +
-        `<radialGradient id="sw" gradientUnits="userSpaceOnUse" cx="${cx}" cy="${cy}" r="760">${stops([[0, '#c9f2ff'], [0.4, '#3aa0e6'], [1, '#1d5fa8', 0]])}</radialGradient>` +
-        lg('ray', [[0, '#bfefff', 0.16], [0.6, '#bfefff', 0.04], [1, '#bfefff', 0]]) +
-        `<pattern id="cau" width="${T}" height="${T}" patternUnits="userSpaceOnUse" patternTransform="scale(1.6 1) rotate(-8)">${cells}</pattern>` +
-        `<mask id="fade"><rect width="${w}" height="1500" fill="url(#fm)"/></mask>` +
-        lgu('fm', [[0, '#fff', 0.35], [0.45, '#fff', 0.6], [1, '#fff', 0]], 0, 0, 0, 1500),
+        lgu('bg', [[0, '#021026'], [0.35, '#05285a'], [0.68, '#0b4386'], [1, '#04203f']], 0, 0, 0, 2622) +
+        rg('core', [[0, '#3aa0e6', 0.6], [0.45, '#1d5fa8', 0.25], [1, '#1d5fa8', 0]]) +
+        rg('glow', [[0, '#e8fbff', 0.95], [0.35, '#7fd4ff', 0.45], [1, '#3aa0e6', 0]]) +
+        `<radialGradient id="sw" gradientUnits="userSpaceOnUse" cx="${cx}" cy="${cy}" r="820">${stops([[0, '#d6f6ff'], [0.35, '#5ab8f0'], [0.75, '#2a78c8', 0.6], [1, '#1d5fa8', 0]])}</radialGradient>` +
+        lg('ray', [[0, '#bfefff', 0.1], [0.6, '#bfefff', 0.03], [1, '#bfefff', 0]]) +
+        `<filter id="cau" x="0" y="0" width="100%" height="100%"><feTurbulence type="turbulence" baseFrequency=".0048 .0085" numOctaves="1" seed="3"/>` +
+        `<feColorMatrix values="0 0 0 0 .78 0 0 0 0 .95 0 0 0 0 1 -11 0 0 0 1.12"/></filter>` +
+        `<mask id="fade"><rect width="${w}" height="1700" fill="url(#fm)"/></mask>` +
+        lgu('fm', [[0, '#fff', 0.1], [0.3, '#fff', 0.18], [0.55, '#fff', 0.42], [1, '#fff', 0]], 0, 0, 0, 1700),
         s);
     },
   });
@@ -427,15 +419,16 @@
     R: 'M2 100V0H34Q60 2 60 26Q60 50 32 50H2M28 50L60 100', O: 'M30 0C70 0 70 100 30 100C-10 100-10 0 30 0Z', T: 'M0 2H60M30 2V100',
     H: 'M2 0V100M58 0V100M2 50H58', E: 'M58 2H2V100H58M2 50H44', S: 'M58 14Q50 0 30 0Q2 0 2 24Q2 46 30 50Q60 54 60 78Q60 100 30 100Q8 100 0 86',
     L: 'M2 0V100H56', U: 'M2 0V70Q2 100 30 100Q58 100 58 70V0', C: 'M58 16Q50 0 30 0Q0 0 0 50Q0 100 30 100Q50 100 58 84',
+    I: 'M30 0V100M12 0H48M12 100H48', F: 'M58 2H2V100M2 50H44', A: 'M0 100L30 0L60 100M12 64H48', N: 'M2 100V0L58 100V0', G: 'M58 16Q50 0 30 0Q0 0 0 50Q0 100 30 100Q58 100 58 60H32',
   };
-  function word(str, x, y, size, cols, R, mirror = -1) {
+  function word(str, x, y, size, cols, R, mirror = -1, sw = 15) {
     let s = '';
     const k = size / 100;
     [...str].forEach((ch, i) => {
       if (ch === ' ') { x += 50 * k; return; }
       const rot = f1((R() - 0.5) * 16), dy = f1((R() - 0.5) * 18 * k), sc = f1(k * (0.92 + R() * 0.16) * 100) / 100;
       const flip = i === mirror ? ' scale(-1 1) translate(-60 0)' : '';
-      s += `<path d="${GLYPH[ch]}" fill="none" stroke="${cols[i % cols.length]}" stroke-width="${f1(15 / sc)}" stroke-linecap="round" stroke-linejoin="round" transform="translate(${f1(x)} ${f1(y + dy)}) rotate(${rot} 30 50) scale(${sc})${flip}"/>`;
+      s += `<path d="${GLYPH[ch]}" fill="none" stroke="${cols[i % cols.length]}" stroke-width="${f1(sw / sc)}" stroke-linecap="round" stroke-linejoin="round" transform="translate(${f1(x)} ${f1(y + dy)}) rotate(${rot} 30 50) scale(${sc})${flip}"/>`;
       x += 84 * k;
     });
     return s;
@@ -453,12 +446,12 @@
       let paper = Rr(0, 0, w, h, '#fbf6ea') + Rr(0, 0, w, h, 'url(#pv)') + S('M0 1310Q603 1300 1206 1316', '#d8cfbc', 3, 0.5);
       let d = '';
       // sky coloured in blue, with the sun in the corner
-      d += scrib(-10, -10, 1216, 820, 30, '#4a86dc', 46, 0.85) + scrib(-10, 20, 1216, 760, 44, '#6aa0ec', 30, 0.5);
+      d += scrib(-90, -10, 1296, 880, 22, '#2f68c4', 46, 0.9) + scrib(-90, 20, 1296, 830, 40, '#1f52a8', 30, 0.55);
       d += `<circle cx="1050" cy="200" r="118" fill="#ffd23a"/>` + scrib(950, 110, 1150, 300, 22, '#ffb21a', 22, 0.8) + crayon('M1050 200m-118 0a118 118 0 1 0 236 0a118 118 0 1 0 -236 0', '#ff9a1a', 12);
       for (let i = 0; i < 9; i++) { const a = (90 + i * 22) * Math.PI / 180; d += crayon(`M${f1(1050 + Math.cos(a) * 140)} ${f1(200 + Math.sin(a) * 140)}L${f1(1050 + Math.cos(a) * 210)} ${f1(200 + Math.sin(a) * 210)}`, '#ffb21a', 14); }
       d += C(1016, 180, 10, '#7a4a1a') + C(1084, 180, 10, '#7a4a1a') + crayon('M1010 228Q1050 262 1090 228', '#d8502a', 9);
       // the words
-      d += word('MY BROTHER', 120, 930, 108, ['#e2302a', '#ff8a1a', '#2a7ad8', '#2aa04a', '#8a3ac8'], R) + word('SELLS TOYS', 150, 1100, 108, ['#2a7ad8', '#e2302a', '#2aa04a', '#ff8a1a', '#8a3ac8'], R, 9);
+      d += word('MY BROTHER', 120, 960, 108, ['#e2302a', '#ff8a1a', '#2a7ad8', '#2aa04a', '#8a3ac8'], R) + word('SELLS TOYS', 150, 1124, 108, ['#2a7ad8', '#e2302a', '#2aa04a', '#ff8a1a', '#8a3ac8'], R, 9);
       // big brother: orange hair, red scarf, blue eyes, big smile
       const hx = 520, hy = 1450;
       d += `<circle cx="${hx}" cy="${hy}" r="104" fill="#ffd8b8" opacity=".9"/>` + crayon(`M${hx} ${hy}m-104 0a104 104 0 1 0 208 0a104 104 0 1 0 -208 0`, '#7a4a2a', 9);
@@ -481,10 +474,12 @@
       // heart between them
       d += P('M700 1580C700 1540 650 1530 640 1570C630 1530 580 1540 580 1580C580 1630 640 1660 640 1680C640 1660 700 1630 700 1580Z', '#e2302a', op(0.9));
       // toys: Sir Fang the ice wolf, a toy boat, a robot, a ball
-      d += G('translate(210 1880)', `<ellipse cx="0" cy="0" rx="110" ry="60" fill="#cfe4ff"/>` + crayon('M-110 0a110 60 0 1 0 220 0a110 60 0 1 0 -220 0', '#2a6ad8', 8) + `<circle cx="96" cy="-60" r="48" fill="#cfe4ff"/>` + crayon('M96-60m-48 0a48 48 0 1 0 96 0a48 48 0 1 0 -96 0', '#2a6ad8', 8) +
-        crayon('M64-96L70-150L98-104M110-102L136-146L140-92', '#2a6ad8', 8) + C(84, -64, 7, '#1a1a2a') + C(112, -64, 7, '#1a1a2a') + crayon('M-108-10Q-170-60-150-110', '#2a6ad8', 12) + crayon('M-70 50V96M-30 54V96M40 54V96M80 50V96', '#2a6ad8', 10)) +
-        word('SIR FANG', 90, 2040, 40, ['#2a6ad8'], R);
-      d += G('translate(190 1330)', P('M-90 0H90L60 50H-60Z', '#e2302a', op(0.85)) + crayon('M0 0V-130', '#7a4a2a', 8) + P('M6-126L80-20H6Z', '#ffd23a', op(0.9)) + crayon('M-120 70Q-60 50 0 70T120 70', '#4a86dc', 8));
+      const wolf = 'M60-60Q70-110 110-104L120-150L136-100Q150-96 196-70Q176-50 132-44Q120-20 96-10';
+      d += G('translate(190 1880)', `<ellipse cx="0" cy="0" rx="110" ry="58" fill="#cfe4ff"/>` + P(wolf + 'L60-20Z', '#cfe4ff') + crayon('M-110 0a110 58 0 1 0 220 0a110 58 0 1 0 -220 0', '#2a6ad8', 8) + crayon(wolf, '#2a6ad8', 8) +
+        crayon('M92-102L96-150L116-108', '#2a6ad8', 8) + C(124, -82, 7, '#1a1a2a') + C(192, -70, 8, '#1a1a2a') +
+        P('M-104-14Q-190-40-176-130Q-150-70-96 4Z', '#cfe4ff') + crayon('M-104-14Q-190-40-176-130Q-150-70-96 4', '#2a6ad8', 8) + crayon('M-70 50V96M-30 54V96M40 54V96M80 50V96', '#2a6ad8', 10)) +
+        word('SIR FANG', 70, 2010, 52, ['#2a6ad8'], R, -1, 8);
+      d += G('translate(170 1400)', P('M-90 0H90L60 50H-60Z', '#e2302a', op(0.85)) + crayon('M0 0V-110', '#7a4a2a', 8) + P('M6-106L76-16H6Z', '#ffd23a', op(0.9)) + crayon('M-120 70Q-60 50 0 70T120 70', '#4a86dc', 8));
       d += G('translate(990 1400)', `<rect x="-60" y="-40" width="120" height="130" fill="#b8c4d8" opacity=".9"/>` + crayon('M-60-40H60V90H-60Z', '#5a5a7a', 8) + `<rect x="-44" y="-130" width="88" height="80" fill="#b8c4d8" opacity=".9"/>` + crayon('M-44-130H44V-50H-44Z', '#5a5a7a', 8) +
         C(-18, -94, 9, '#e2302a') + C(18, -94, 9, '#e2302a') + crayon('M0-130V-170M-60 0L-110 40M60 0L110-40M-30 90V140M30 90V140', '#5a5a7a', 8) + C(0, -176, 10, '#ffd23a') + C(0, 20, 16, '#2aa04a'));
       d += `<circle cx="1000" cy="2010" r="56" fill="#ffd23a" opacity=".9"/>` + crayon('M944 2010a56 56 0 1 0 112 0a56 56 0 1 0 -112 0M948 1990Q1000 2030 1052 1990M1000 1954V2066', '#e2302a', 8);
@@ -496,7 +491,7 @@
       for (let x = 20; x < 1190; x += 34) gr += `L${x + 17} ${2070 + R() * 20}L${x + 34} ${2112 + R() * 10}`;
       d += crayon(gr, '#2aa04a', 9, 0.85);
       // signature
-      d += word('TEUCER', 820, 2210, 48, ['#e2302a', '#ff8a1a', '#2a7ad8'], R);
+      d += word('TEUCER', 800, 2200, 56, ['#e2302a', '#ff8a1a', '#2a7ad8'], R, -1, 10);
       const tape = (x, y, r) => `<rect x="${x - 90}" y="${y - 28}" width="180" height="56" fill="#f4e8c0" opacity=".7" transform="rotate(${r} ${x} ${y})"/>`;
       return wrap(w, h,
         rg('pv', [[0, '#fff', 0], [0.75, '#e8dcc4', 0.25], [1, '#c8b896', 0.6]], 0.5, 0.5, 0.75) +
@@ -510,62 +505,78 @@
   /* =====================================================================
      wp_guyun_storm: Guyun Stone Forest in a storm; something vast beneath
      ===================================================================== */
-  function pillar(x, top, wd, base, col, rim, R) {
-    const l = [], r = [];
-    for (let y = top; y <= base; y += 70) {
-      const t = (y - top) / (base - top);
-      l.push([f1(x - wd / 2 - t * wd * 0.12 + (R() - 0.5) * wd * 0.08), y]);
-      r.push([f1(x + wd / 2 + t * wd * 0.1 + (R() - 0.5) * wd * 0.08), y]);
+  // Guyun stone pillar: stacked, jagged rock column lit on one side by the lightning (lit = 1 right edge, -1 left edge)
+  function pillar(x, top, wd, base, dark, mid, rim, lit, R) {
+    const L = [], Rt = [];
+    let ox = 0;
+    for (let y = top + 30; y < base; y += 50 + R() * 50) {
+      const t = (y - top) / (base - top), k = wd / 2 * (1 + t * 0.22);
+      ox += (R() - 0.5) * wd * 0.08;
+      const step = R() > 0.7 ? wd * 0.08 : 0;
+      L.push([r0(x - k + ox - R() * wd * 0.07), r0(y)], [r0(x - k + ox - step), r0(y + 14)]);
+      Rt.push([r0(x + k + ox + R() * wd * 0.07), r0(y)], [r0(x + k + ox + step), r0(y + 14)]);
     }
-    l.push([f1(x - wd * 0.6), base]); r.push([f1(x + wd * 0.6), base]);
-    const d = 'M' + l.map((p) => p.join(' ')).join('L') + 'L' + r.reverse().map((p) => p.join(' ')).join('L') + 'Z';
-    let s = P(d, col);
-    s += P(`M${f1(x - wd / 2)} ${top}Q${x} ${top - wd * 0.18} ${f1(x + wd / 2)} ${top}Q${x} ${top + 10} ${f1(x - wd / 2)} ${top}Z`, '#2a3a30');
-    s += S(`M${f1(x + wd * 0.38)} ${top + 10}L${f1(x + wd * 0.44)} ${base}`, rim, f1(wd * 0.08), 0.55);
-    for (let i = 0; i < 3; i++) s += S(`M${f1(x - wd * 0.3 + i * wd * 0.25)} ${f1(top + 40 + R() * 80)}V${f1(base - R() * 200)}`, '#000', 3, 0.25);
+    L.push([r0(x - wd * 0.66), base]); Rt.push([r0(x + wd * 0.66), base]);
+    const crown = `${r0(x - wd * 0.5)} ${top + 34}L${r0(x - wd * 0.42)} ${top + 6}L${r0(x - wd * 0.2)} ${top + 14}L${r0(x - wd * 0.04)} ${top - 8}L${r0(x + wd * 0.2)} ${top + 10}L${r0(x + wd * 0.44)} ${top + 2}L${r0(x + wd * 0.5)} ${top + 34}`;
+    const edge = (pts) => pts.map((p) => p.join(' ')).join('L');
+    const d = `M${crown}L${edge(Rt)}L${edge(L.slice().reverse())}Z`;
+    let s = P(d, `url(#${lit > 0 ? 'pr' : 'pl'})`);
+    // strata and cracks
+    let st = '';
+    for (let y = top + 80; y < base - 40; y += 70 + R() * 70) st += `M${r0(x - wd * 0.45)} ${r0(y)}l${r0(wd * (0.3 + R() * 0.5))} ${r0((R() - 0.5) * 10)}`;
+    st += `M${r0(x + (R() - 0.5) * wd * 0.4)} ${top + 60}l${r0((R() - 0.5) * 20)} ${r0((base - top) * 0.5)}`;
+    s += S(st, '#000', 4, 0.35);
+    // rim light on the side facing the bolt
+    s += S('M' + edge(lit > 0 ? Rt.slice(0, -1) : L.slice(0, -1)), rim, r0(Math.max(3, wd * 0.03)), 0.5);
+    // trees and shrubs on top
+    s += P(`M${r0(x - wd * 0.52)} ${top + 30}Q${r0(x - wd * 0.4)} ${top - 30} ${r0(x - wd * 0.12)} ${top - 4}Q${r0(x)} ${top - 50} ${r0(x + wd * 0.2)} ${top - 2}Q${r0(x + wd * 0.42)} ${top - 30} ${r0(x + wd * 0.54)} ${top + 26}Z`, mid);
     return s;
   }
   def('wp_guyun_storm', {
     title: 'Guyun Stone Forest, storm', w: 1206, h: 2622, tags: ['wallpaper', 'liyue', 'storm', 'guyun', 'osial'],
     svg: (w, h) => {
       const R = rng(13);
-      let s = Rr(0, 0, w, 1720, 'url(#sky)') + C(760, 980, 700, 'url(#flash)');
+      let s = Rr(0, 0, w, 1720, 'url(#sky)') + C(760, 1000, 720, 'url(#flash)');
       // heavy clouds
-      for (let i = 0; i < 26; i++) { const x = R() * w, y = 600 + R() * 760, rx = 140 + R() * 260; s += E(f1(x), f1(y), f1(rx), f1(rx * 0.34), i % 3 ? '#1a2632' : '#26364a', op(f1(0.5 + R() * 0.4))); }
-      s += E(740, 900, 300, 70, '#5a6a8e', op(0.35)) + E(820, 960, 200, 40, '#8a9ac0', op(0.3));
+      for (let i = 0; i < 24; i++) { const x = R() * w, y = 620 + R() * 740, rx = 150 + R() * 260; s += E(r0(x), r0(y), r0(rx), r0(rx * 0.32), i % 3 ? '#1a2632' : '#283850', op(f1(0.5 + R() * 0.4))); }
+      s += E(740, 900, 320, 70, '#5a6a8e', op(0.35)) + E(820, 960, 200, 40, '#8a9ac0', op(0.3));
       // lightning
-      const bolt = 'M720 860L760 980L726 1000L800 1130L770 1146L850 1300';
-      const fork = 'M760 980L700 1090L716 1100L680 1180M800 1130L870 1180';
-      s += S(bolt, '#a8b8ff', 40, 0.12) + S(bolt, '#c8d4ff', 16, 0.35) + S(fork, '#c8d4ff', 8, 0.3) + S(bolt, '#fff', 5) + S(fork, '#f0f4ff', 2.5);
+      const bolt = 'M720 860L760 980L726 1000L800 1130L770 1146L842 1268';
+      const fork = 'M760 980L700 1090L716 1100L680 1180M800 1130L870 1180L896 1240';
+      s += S(bolt, '#a8b8ff', 44, 0.12) + S(bolt, '#c8d4ff', 16, 0.35) + S(fork, '#c8d4ff', 8, 0.3) + S(bolt, '#fff', 5) + S(fork, '#f0f4ff', 2.5);
       // far pillars in rain haze
-      s += P(ridge(w, 1720, 1760, [{ x: 70, h: 260, w: 26, p: 6 }, { x: 260, h: 180, w: 22, p: 6 }, { x: 470, h: 300, w: 28, p: 6 }, { x: 640, h: 200, w: 20, p: 6 }, { x: 980, h: 240, w: 24, p: 6 }, { x: 1120, h: 170, w: 22, p: 6 }], 2, 6, 3), '#24323e');
+      s += P(ridge(w, 1720, 1760, [{ x: 70, h: 260, w: 26, p: 6 }, { x: 250, h: 180, w: 22, p: 6 }, { x: 480, h: 320, w: 30, p: 6 }, { x: 610, h: 200, w: 20, p: 6 }, { x: 1000, h: 250, w: 24, p: 6 }, { x: 1120, h: 170, w: 22, p: 6 }], 2, 8, 6), '#22303c');
       // the sea
       s += Rr(0, 1700, w, h - 1700, 'url(#sea)');
-      // something vast beneath the surface
-      s += `<g filter="url(#bl)" opacity=".85"><path d="M-100 2560C100 2380 220 2180 420 2120C640 2050 820 2200 900 2360C960 2480 1100 2520 1300 2440V2622H-100Z" fill="#010304"/>` +
-        `<path d="M260 2150C330 2080 470 2060 560 2100L520 2140C440 2120 350 2140 300 2190Z" fill="#000"/></g>` +
-        E(470, 2160, 64, 11, 'url(#eye)') + E(470, 2160, 8, 9, '#000') +
-        E(470, 2160, 200, 26, 'none', ' stroke="#8ab0b0" stroke-width="2" opacity=".18"') + E(470, 2160, 300, 40, 'none', ' stroke="#8ab0b0" stroke-width="2" opacity=".1"');
-      // waves
-      for (let i = 0; i < 70; i++) {
-        const y = 1720 + Math.pow(R(), 1.4) * 860, x = R() * w, l = 30 + (y - 1700) * 0.12 * (0.6 + R());
-        s += S(`M${f1(x)} ${f1(y)}q${f1(l / 2)} ${f1(-l * 0.16)} ${f1(l)} 0`, '#c8d4dc', f1(1.5 + (y - 1700) / 260), f1(0.15 + R() * 0.35));
+      // mid pillars, then the near ones framing the view
+      s += pillar(330, 1430, 120, 1770, '', '#1c2a24', '#6a7aa0', 1, R) + pillar(1010, 1500, 90, 1770, '', '#1c2a24', '#7a8ab0', -1, R) +
+        pillar(850, 1270, 160, 1800, '', '#22302a', '#c8d4ff', -1, R);
+      s += pillar(60, 1020, 250, 1920, '', '#16221c', '#8a9ac8', 1, R) + pillar(1170, 1150, 220, 1920, '', '#16221c', '#9aaad8', -1, R);
+      s += E(60, 1914, 240, 24, '#d4e0e8', op(0.3)) + E(1160, 1914, 210, 22, '#d4e0e8', op(0.3)) + E(850, 1796, 170, 14, '#d4e0e8', op(0.3)) + E(330, 1768, 110, 10, '#d4e0e8', op(0.25));
+      // something vast beneath the surface: a coiled body, its spines, one eye
+      s += `<g filter="url(#bl)" opacity=".9"><path d="M-120 2622C-40 2420 120 2230 330 2150C520 2080 700 2150 760 2280C820 2410 960 2470 1100 2400C1180 2360 1240 2300 1320 2280V2622Z" fill="#010304"/></g>` +
+        S('M40 2470C140 2310 260 2200 400 2150M600 2140C690 2170 740 2250 780 2330C830 2420 940 2450 1060 2410', '#4a8a8a', 6, 0.12) +
+        P('M150 2350l30-70l20 64zM250 2250l36-74l18 66zM370 2180l34-70l22 60zM520 2140l20-60l26 58zM700 2210l40-50l6 64zM800 2380l44-40l-2 62zM960 2440l40-50l4 62z', '#020506', op(0.75)) +
+        E(470, 2160, 66, 12, 'url(#eye)') + E(470, 2160, 7, 10, '#000') +
+        E(470, 2160, 210, 28, 'none', ' stroke="#8ab0b0" stroke-width="2.5" opacity=".2"') + E(470, 2160, 330, 46, 'none', ' stroke="#8ab0b0" stroke-width="2" opacity=".12"');
+      // wave crests, thicker toward the viewer
+      const wv = ['', '', ''];
+      for (let i = 0; i < 64; i++) {
+        const y = 1730 + Math.pow(R(), 1.5) * 820, x = R() * w, l = 30 + (y - 1700) * 0.12 * (0.6 + R()), b = y < 1950 ? 0 : y < 2250 ? 1 : 2;
+        wv[b] += `M${r0(x)} ${r0(y)}q${r0(l / 2)} ${r0(-l * 0.16)} ${r0(l)} 0`;
       }
-      // mid pillars
-      s += pillar(360, 1440, 110, 1760, '#18222c', '#5a6a8a', R) + pillar(860, 1300, 150, 1790, '#141e28', '#9aaad8', R) + pillar(1010, 1520, 80, 1760, '#1a2430', '#5a6a8a', R);
-      // near pillars framing the view
-      s += pillar(70, 1040, 230, 1900, '#0c1218', '#6a7a9a', R) + pillar(1150, 1180, 200, 1900, '#0a1016', '#8a9ac0', R);
-      s += E(70, 1900, 220, 26, '#d4e0e8', op(0.35)) + E(1150, 1900, 200, 22, '#d4e0e8', op(0.35)) + E(860, 1790, 150, 14, '#d4e0e8', op(0.3));
+      s += S(wv[0], '#c8d4dc', 2, 0.4) + S(wv[1], '#c8d4dc', 3, 0.3) + S(wv[2], '#c8d4dc', 4, 0.22);
       // rain
       let rain = '';
-      for (let i = 0; i < 110; i++) { const x = R() * (w + 300) - 150, y = R() * h, l = 50 + R() * 90; rain += `M${f1(x)} ${f1(y)}l${f1(-l * 0.22)} ${f1(l)}`; }
-      s += S(rain, '#c8d8e8', 2, 0.22);
+      for (let i = 0; i < 110; i++) { const x = R() * (w + 300) - 150, y = R() * h, l = 50 + R() * 90; rain += `M${r0(x)} ${r0(y)}l${r0(-l * 0.22)} ${r0(l)}`; }
+      s += S(rain, '#c8d8e8', 2, 0.2);
       return wrap(w, h,
         lgu('sky', [[0, '#04070c'], [0.35, '#0a121a'], [0.62, '#16202c'], [0.86, '#24303c'], [1, '#1e2a34']], 0, 0, 0, 1720) +
         rg('flash', [[0, '#9aa8d8', 0.45], [0.35, '#4a5a8a', 0.18], [1, '#4a5a8a', 0]]) +
         lgu('sea', [[0, '#22323e'], [0.25, '#121e28'], [1, '#04080c']], 0, 1700, 0, 2622) +
+        lg('pr', [[0, '#0a1016'], [0.6, '#18222e'], [1, '#3a4a64']], 0, 0, 1, 0) + lg('pl', [[0, '#3a4a64'], [0.4, '#18222e'], [1, '#0a1016']], 0, 0, 1, 0) +
         rg('eye', [[0, '#ffe9a0'], [0.4, '#f0a030'], [1, '#6a3a10', 0]]) +
-        `<filter id="bl" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="22"/></filter>`,
+        `<filter id="bl" x="-10%" y="-10%" width="120%" height="120%"><feGaussianBlur stdDeviation="14"/></filter>`,
         s);
     },
   });
