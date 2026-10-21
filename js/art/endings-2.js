@@ -26,7 +26,9 @@
   // Gradients requested by helpers are collected and emitted with each picture.
   let NEED = new Set();
   const GR = {};
-  const u = (id) => { if (GR[id]) NEED.add(id); return `url(#${id})`; };
+  // OVR maps a gradient id to a flat colour for one picture (saves bytes where the gradient would not show).
+  let OVR = {};
+  const u = (id) => { if (OVR[id]) return OVR[id]; if (GR[id]) NEED.add(id); return `url(#${id})`; };
   let SKIN = ['#ffe7d6', '#f7cdb0', '#e3a586', '#c98468'];
   const setSkin = (k) => { SKIN = k; };
   GR.sk = () => lg('sk', [[0, SKIN[0]], [0.6, SKIN[1]], [1, SKIN[2]]], 0.2, 0, 0.8, 1);
@@ -44,7 +46,7 @@
   const GRAIN =
     `<filter id="grain" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch" result="n"/>` +
     `<feColorMatrix in="n" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 .7 0 0 0 -.4"/></filter>`;
-  const pic = (sd, fn) => () => { NEED = new Set(); S = sd; return fn(); };
+  const pic = (sd, fn) => () => { NEED = new Set(); OVR = {}; S = sd; return fn(); };
   // Path data and opacity minifier (keeps every picture well under the 25 KB budget)
   const mini = (x) => x.replace(/ d="([^"]*)"/g, (m, d) => ' d="' + d.replace(/ -/g, '-').replace(/([^\d])0\./g, '$1.') + '"')
     .replace(/(opacity|offset)="0\./g, '$1=".').replace(/ y="0"/g, '');
@@ -150,7 +152,7 @@
     `<path d="M-37-6C-37-33-21-47 0-47C21-47 37-33 37-6C37 16 27 31 14 40C8 44 3 46 0 46C-3 46-8 44-14 40C-27 31-37 16-37-6Z" fill="url(#sk)"/>` +
     `<path d="M37-6C37 16 27 31 14 40C8 44 3 46 0 46C22 34 29 14 33-8Z" fill="${SKIN[2]}" opacity=".4"/></g>`;
   GR.bw = () => `<path id="bw" class="s" d="M-22-10Q-15-15-8-11M8-11Q15-15 22-10" stroke="currentColor" stroke-width="2.6"/>`;
-  GR.ns = () => `<path id="ns" class="s" d="M1.5 14q-2 4 1.5 5" stroke="${SKIN[3]}" stroke-width="2"/>`;
+  GR.bk = () => rg('bl', [[0, '#ff6f6f', 0.45], [1, '#ff6f6f', 0]]) + `<g id="bk"><ellipse cx="-22" cy="19" rx="10" ry="6" fill="url(#bl)"/><ellipse cx="22" cy="19" rx="10" ry="6" fill="url(#bl)"/><path class="s" d="M1.5 14q-2 4 1.5 5" stroke="${SKIN[3]}" stroke-width="2"/></g>`;
   const MO = {
     smile: ST('M-7 26Q0 32 7 26', '#9a3c3c', 2.6),
     soft: ST('M-5 28Q0 31 5 28', '#9a4848', 2.4),
@@ -177,30 +179,30 @@
     const sc = (o.lr ? -1 : 1) * (o.round ? 1.06 : 1);
     let s = use('fb', 0, 0, sc !== 1 ? ` transform="scale(${sc} 1)"` : '');
     if (o.fr) s += ST(sd(7, -30 + dx, -14 + dx, 13, 21) + sd(7, 14 + dx, 30 + dx, 13, 21), '#c0703e', 2.2, op(0.7));
-    s += use('bk', dx, 0, o.blush != null ? ` opacity="${o.blush}"` : '') + use('ns', dx, 0);
+    s += use('bk', dx, 0, o.blush != null ? ` opacity="${o.blush}"` : '');
     s += eyeU(-15 + dx, sL) + eyeU(15 + dx, sR);
     if (o.liner) s += ST(`M${-25 + dx} 0l-5 1M${25 + dx} 0l5 1`, o.liner, 2.4);
     s += use('bw', dx, 0, ` color="${o.brow || '#6a3020'}"`) + use('m' + (o.mo || 'smile'), dx, 0);
     return s;
   }
   const neck = (w = 11, y1 = 66) => P(`M-${w} 26V${y1}H${w}V26Z`, u('nk'));
-  GR.nk = () => lg('nk', [[0, SKIN[3]], [0.5, SKIN[3]], [0.7, SKIN[2]], [1, SKIN[1]]]);
+  GR.nk = () => lg('nk', [[0.5, SKIN[3]], [0.8, SKIN[2]]]);
 
   // Hair locks: quadratic curves between points, bowed sideways by b (swept, strand-like edges)
   function jag(pts, b = 0.18, m = 'M') {
-    let d = `${m}${pts[0][0]} ${pts[0][1]}`;
+    let d = `${m}${pts[0][0]} ${pts[0][1]}q`;
     for (let i = 1; i < pts.length; i++) {
       const a = pts[i - 1], c = pts[i];
-      d += `Q${f((a[0] + c[0]) / 2 - (c[1] - a[1]) * b)} ${f((a[1] + c[1]) / 2 + (c[0] - a[0]) * b)} ${c[0]} ${c[1]}`;
+      d += `${f((c[0] - a[0]) / 2 - (c[1] - a[1]) * b)} ${f((c[1] - a[1]) / 2 + (c[0] - a[0]) * b)} ${c[0] - a[0]} ${c[1] - a[1]} `;
     }
-    return d;
+    return d.trim();
   }
   const HAIR = {
     // Childe: shaggy outline; fringe swept to his right with a long lock between the eyes
     childeF: jag([[-42, 30], [-40, 12], [-50, 2], [-44, -10], [-52, -24], [-44, -34], [-44, -50], [-26, -56], [-14, -68], [2, -60], [20, -66], [34, -54], [48, -46], [46, -32], [54, -18], [46, -8], [50, 8], [42, 12], [44, 30],
       [38, 8], [36, -6], [30, 6], [27, -14], [17, 2], [13, -18], [3, 8], [-2, -16], [-12, 0], [-17, -17], [-27, -4], [-31, -15], [-37, 6], [-40, -6], [-42, 30]], 0.15) + 'Z',
     childeB: 'M-46 0C-52 24-44 40-34 48L-28 20H28L34 48C44 40 52 24 46 0Z',
-    mask: '<g transform="translate(-38 -47) rotate(-28)"><path d="M-24 0C-24-10-12-14-4-11L0-23L4-11C12-14 24-10 24 0C22 8 12 12 4 8L0 2L-4 8C-12 12-22 8-24 0Z" fill="#c8323c" stroke="#6e141c" stroke-width="2"/><path d="M-18-2L-6-5L-8 2ZM18-2L6-5L8 2Z" fill="#2a080c"/><path class="s" d="M-20-3C-17-9-11-11-5-9" stroke="#ffa090" stroke-width="2.4"/></g>',
+    mask: '<g transform="translate(-40 -44) rotate(-34)"><path d="M-25-2C-23-13-11-16-3-13L0-26L3-13C11-16 23-13 25-2C23 7 13 11 0 9C-13 11-23 7-25-2Z" fill="#c8323c" stroke="#5e1018" stroke-width="2.4"/><path d="M-18-3Q-11-9-5-3Q-11 2-18-3ZM18-3Q11-9 5-3Q11 2 18-3Z" fill="#1e060a"/><path class="s" d="M-21-6C-17-11-11-12-5-11" stroke="#ff9a8a" stroke-width="2.4"/></g>',
     // Zhongli: sleek crown, side part, long front locks with amber tips
     zlB: 'M-42-14C-46 26-42 56-34 74L-20 70L-22 30H22L20 70L34 74C42 56 46 26 42-14Z',
     zlF: jag([[-38, 46], [-42, 10], [-44, -24], [-34, -48], [-12, -60], [14, -58], [34, -46], [44, -22], [42, 10], [38, 46], [34, 18], [32, 0], [28, -12], [24, -2], [18, -18], [12, -2], [6, -22], [-2, 0], [-6, -20], [-14, -4], [-20, -18], [-28, -6], [-31, -10], [-33, 14], [-38, 46]], 0.12) + 'Z',
@@ -249,7 +251,7 @@
         face(mg({ round: 1, fr: 1, eye: '#3a7ad0', brow: '#b0582a', mo: 'grin' }, o)) +
         P('M-42-4C-48 10-44 20-38 22L-34 4ZM42-4C48 10 44 20 38 22L34 4Z', u('hG')) + P(HAIR.teuF + 'L42-20H-42Z', u('hG')) +
         P('M-42-18C-44-58 44-58 42-18Z', '#3f80d4') + P('M-46-20C-30-30 30-30 46-20L46-4C30-12-30-12-46-4Z', '#2c62ad') +
-        ST('M-36-24V-8M-24-27V-11M-12-28V-12M0-28V-12M12-28V-12M24-27V-11M36-24V-8', '#4a8ae0', 2.4, op(0.6)) +
+        ST('M-30-25V-9M-15-28V-12M0-28V-12M15-28V-12M30-25V-9', '#4a8ae0', 2.4, op(0.6)) +
         `<circle cy="-60" r="13" fill="#f4f1ea"/><circle cx="-4" cy="-64" r="5" fill="#fff"/>`;
     },
     tonia(o) {
@@ -281,7 +283,7 @@
       const b = o.body !== false;
       return (b ? torso(64, 190, '#2e3f5a') + P('M-18 48Q0 60 18 48L20 58Q0 72-20 58Z', '#3e5274') : '') + neck(11, 56) +
         face(mg({ eye: '#3a6aa0', brow: '#b8a090', mo: 'flat', blush: 0.4 }, o)) +
-        ST('M-28-2q4 4 9 3M28-2q-4 4-9 3M-16-24h12M4-24h12', SKIN[3], 1.8, op(0.6)) +
+        ST('M-28-2q4 4 9 3M28-2q-4 4-9 3', SKIN[3], 1.8, op(0.6)) +
         P('M-39-6C-42 4-40 14-36 20L-33-4ZM39-6C42 4 40 14 36 20L33-4Z', '#b09888') +
         P('M-38 4C-40 34-24 58 0 60C24 58 40 34 38 4C34 16 28 22 18 24Q8 18 0 20Q-8 18-18 24C-28 22-34 16-38 4Z', '#b48a72') +
         ST('M-26 32q2 10 8 16M26 32q-2 10-8 16', '#d8c8b8', 2, op(0.6)) +
@@ -304,7 +306,7 @@
       return P('M-42-10C-48 20-44 40-38 50L36 50C44 40 48 20 42-10Z', u('hL')) +
         (b ? torso(50, 190, '#f2f0ea') + P('M-22 50Q0 66 22 50L24 60Q0 76-24 60Z', '#d4a63c') + ST('M-50 100Q0 120 50 100', '#3a4a7a', 3, op(0.5)) : '') + neck(10, 56) +
         face(mg({ eye: '#d4a23a', brow: '#b8903a', blush: 0.6, mo: 'soft' }, o)) +
-        P(HAIR.lumF, u('hL')) + ST('M-24-48Q0-58 24-50', '#fff8d8', 3, op(0.7)) +
+        P(HAIR.lumF, u('hL')) +
         `<g transform="translate(36 -30)"><circle r="8" fill="#fff"/><circle cx="-8" cy="4" r="7" fill="#f4f4f4"/><circle cx="6" cy="8" r="7" fill="#eee"/><circle cx="-2" cy="2" r="3.5" fill="#9ad0f0"/></g>`;
     },
     ekat(o) {
@@ -354,14 +356,155 @@
   const lantern = (x, y, s = 1) => { u('lglow'); return `<use href="#${u('lan').slice(5, -1)}" transform="translate(${f(x)} ${f(y)})${s !== 1 ? ` scale(${s})` : ''}"/>`; };
   GR.lglow = () => rg('lglow', [[0, '#ffd080', 0.75], [0.4, '#ffa040', 0.25], [1, '#ff8030', 0]]);
 
+  // Back views (head seen from behind; canonical head coords)
+  const BACK = {
+    childe: () => P('M-38 4C-46 12-44 26-34 26ZM38 4C46 12 44 26 34 26Z', SKIN[2]) +
+      P(jag([[-36, 40], [-44, 20], [-52, 6], [-46, -8], [-54, -24], [-44, -36], [-42, -52], [-24, -58], [-12, -68], [4, -60], [20, -66], [34, -54], [48, -44], [46, -30], [54, -18], [46, -6], [50, 8], [42, 20], [36, 40], [26, 30], [16, 46], [6, 34], [-4, 48], [-14, 32], [-24, 44], [-30, 30], [-36, 40]], 0.13) + 'Z', u('hC')) +
+      ST('M-20-40Q0-50 22-40M-30-10Q-20-24-8-30M30-6Q22-20 10-28', '#f39a62', 3, op(0.45)) +
+      '<g transform="scale(-1 1)">' + HAIR.mask + '</g>',
+    tonia: () => P('M-38 4C-46 12-44 26-34 26ZM38 4C46 12 44 26 34 26Z', SKIN[2]) +
+      P(jag([[-36, 40], [-46, 10], [-44, -24], [-30, -50], [0, -58], [30, -50], [44, -24], [46, 10], [36, 40], [16, 50], [-16, 50], [-36, 40]], 0.08) + 'Z', u('hG')) +
+      ST('M0-56Q-4-20 0 44M-24-44Q-30-10-24 30M24-44Q30-10 24 30', '#8c3418', 2, op(0.35)),
+  };
+  // Back torso: shoulders seen from behind (cut at yb)
+  const backT = (w, yb, fill) => P(`M-16 40C-36 46-${w - 4} 54-${w} 84L-${w + 4} ${yb}H${w + 4}L${w} 84C${w - 4} 54 36 46 16 40Z`, fill);
+
   JC.art._a7 = { CH, face, HAIR, lantern, setSkin, reset: () => { NEED = new Set(); } };
   const who = (name, x, y, s, o = {}) => G(x, y, s, CH[name](o), o.flip ? -s : null);
+
+  // ---- 2. The Toy Factory ----------------------------------------------------------------------
+  GR.bal = () => `<g id="bal"><path class="s" d="M0 34Q8 70-4 110" stroke="#fff" stroke-width="1.5" opacity=".7"/><ellipse rx="26" ry="32"/><path d="M-4 31h8l-4 6Z"/><ellipse cx="-9" cy="-12" rx="6" ry="10" fill="#fff" opacity=".45" transform="rotate(25 -9 -12)"/></g>`;
+  const balloon = (x, y, c, s = 1) => `<use href="#${u('bal').slice(5, -1)}" transform="translate(${x} ${y})${s !== 1 ? ` scale(${s})` : ''}" fill="${c}"/>`;
+  def('end_teucer', {
+    title: 'The Toy Factory', w: 1200, h: 900, tags: ['ending', 'family', 'northland', 'teucer', 'zhongli'],
+    svg: pic(2, () => {
+      setSkin(['#fff0e2', '#f9d4b6', '#e8aa88', '#c98466']);
+      let bunt = '', conf = '';
+      const cols = ['#e04848', '#3a8ae0', '#f2c14e', '#4ab070'];
+      for (let i = 0; i < 14; i++) {
+        const x = 40 + i * 82, y = 2 + Math.sin(((x - 40) / 1066) * Math.PI) * 70;
+        bunt += `<path d="M${x} ${f(y)}l34 2-16 34Z" fill="${cols[i % 4]}"/>`;
+      }
+      for (let i = 0; i < 4; i++) conf += ST(sd(14, 0, 1200, 740, 900), cols[i], 7);
+      const grunt = (o) => CH.grunt(Object.assign({ hat: 'elf' }, o));
+      // Childe carrying Teucer on his shoulders (local coords of a bust at scale 1)
+      const teucer = `<g transform="translate(0 -132) scale(.85)">` +
+        ST('M-38 64L-74-40M38 64L80-46', '#3b6fb8', 22) + hand(-76, -48, 11) + hand(82, -54, 11) +
+        `<g transform="translate(84 -80) rotate(12)">${P('M-13-12L-15-32L-3-16ZM13-12L15-32L3-16Z', '#9cb8d8')}<circle r="17" fill="#dce8f6"/><ellipse cy="9" rx="9" ry="7" fill="#f4f8fc"/><circle cx="-6" cy="-3" r="2.6" fill="#1e2a40"/><circle cx="6" cy="-3" r="2.6" fill="#1e2a40"/><ellipse cy="5" rx="3.4" ry="2.4" fill="#1e2a40"/></g>` +
+        torso(48, 150, '#3b6fb8') + CH.teucer({ body: false, ex: 'happy', mo: 'laugh', t: 0.15 }) + '</g>';
+      const childe =
+        torso(60, 360, u('jC')) + P('M-16 52L0 124L16 52Z', '#23262d') + ST('M0 124V360', '#5a5f69', 3) + ST('M-16 52L-30 70L-4 140M16 52L30 70L4 140', '#5a5f69', 3) +
+        ST('M-62 248H62', '#1e2026', 10) + P('M-46 256l9-14 9 14-9 14Z', u('hy')) + `<circle cx="-37" cy="256" r="20" fill="#8ad8ff" opacity=".22"/>` +
+        teucer + P(HAIR.childeB, u('hC')) + neck() +
+        P('M-24 44C-14 58 14 58 24 44L30 60C14 76-14 76-30 60Z', u('sC')) + P('M8 64C16 92 10 128 18 170L36 166C26 126 32 92 26 60Z', u('sC')) +
+        face({ ex: 'happy', mo: 'laugh', brow: '#8a3a1c' }) + P(HAIR.childeF, u('hC')) + ST('M-30-48Q-8-60 22-56', '#f39a62', 3, op(0.55)) + HAIR.mask +
+        // Teucer's legs draped over the shoulders, held at the ankles
+        ST('M-22 46L-50 58L-46 150M22 46L50 58L46 150', '#2c3e66', 24) + P('M-60 146h28v24h-34ZM60 146h-28v24h34Z', '#6a4028') +
+        ST('M-64 92L-94 192L-52 126M64 92L94 192L52 126', u('jC'), 28) + hand(-50, 124, 12) + hand(50, 124, 12);
+      const zhongli =
+        torso(58, 380, u('cZ')) + ST('M-6 72L-12 380M6 72L12 380', '#c9a24a', 3) + P('M-58 86L-64 380H-40L-30 120Z', '#2a1d16', op(0.6)) +
+        neck(10, 50) + P('M-15 34L-17 66Q0 74 17 66L15 34Q0 40-15 34Z', '#2a1d16') + ST('M-17 66Q0 74 17 66', '#c9a24a', 3) + `<circle cy="74" r="5" fill="#e0a83a"/>` +
+        P(HAIR.zlB, u('hZ')) + face({ t: -0.25, eye: '#d99a32', liner: '#b8402a', brow: '#3a2418', blush: 0.35, ey: 0.86, mo: 'smile' }) + P(HAIR.zlF, u('hZ')) +
+        `<g transform="translate(41 16)">${ST('M0 0V26', '#c9a24a', 1.6)}<circle cy="27" r="3" fill="#e0b84a"/>${P('M-3 29L-4 52H4L3 29Z', '#d4a63c')}</g>` +
+        ST('M-56 96Q-70 180-62 256', '#2a1d16', 24) + hand(-62, 262, 10, '#1e1a1c') +
+        ST('M56 96Q76 180 40 218', '#2a1d16', 24) + hand(36, 222, 10, '#1e1a1c') + P('M20 198h32q-2 22-16 22q-14 0-16-22Z', '#bfe0cf', 'stroke="#7fa890" stroke-width="2"') + `<ellipse cx="36" cy="199" rx="15" ry="3" fill="#c98a3a"/>` +
+        ST('M-12 60L-22 118M12 60L14 118', '#c8323c', 2.5) +
+        `<g transform="translate(-4 154) rotate(-4)"><rect x="-44" y="-36" width="80" height="58" rx="5" fill="#fffdf6" stroke="#c9a24a" stroke-width="2"/><rect x="-44" y="-36" width="80" height="14" rx="5" fill="#c8323c"/>` +
+        txt(-4, -6, 'FACTORY', { size: 13, weight: 800, anchor: 'middle', fill: '#2a1d16', ls: 0.5 }) + txt(-4, 12, 'MANAGER', { size: 13, weight: 800, anchor: 'middle', fill: '#2a1d16', ls: 0.5 }) + '</g>';
+      let flake = '';
+      for (let i = 0; i < 6; i++) flake += `<g transform="rotate(${i * 60})"><path d="M0 0V-46M0-22l-10-10M0-22l10-10M0-36l-7-7M0-36l7-7"/></g>`;
+      return svg(
+        lg('wall', [[0, '#c7cfda'], [0.6, '#dfe3e8'], [1, '#c3c8cf']]) + lg('floor', [[0, '#d8cfc2'], [1, '#9c9184']]) +
+        lg('col', [[0, '#e9e4da'], [0.5, '#fbf8f2'], [1, '#cfc8bb']], 0, 0, 1, 0) + rg('lamp', [[0, '#fff3d0', 0.85], [1, '#ffe2a0', 0]]) +
+        lg('beam', [[0, '#fff6dc', 0.5], [1, '#fff6dc', 0]]),
+        `<rect width="1200" height="900" fill="url(#wall)"/>` +
+        P('M0 300H1200M0 620H1200', 'none', 'stroke="#b4bcc8" stroke-width="4"') + ST('M200 320V600M400 320V600M800 320V600M1000 320V600', '#b9c1cc', 3, op(0.6)) +
+        `<rect x="90" width="90" height="760" fill="url(#col)"/><rect x="1020" width="90" height="760" fill="url(#col)"/>` + ST('M110 0V760M135 0V760M160 0V760M1040 0V760M1065 0V760M1090 0V760', '#c6beb0', 3, op(0.7)) +
+        `<circle cx="600" cy="150" r="260" fill="url(#lamp)"/>` +
+        `<rect x="250" y="96" width="700" height="84" rx="6" fill="#3a4a66" stroke="#e0c070" stroke-width="4"/>` +
+        `<g transform="translate(300 138) scale(.42)" fill="none" stroke="#e8eef6" stroke-width="7" stroke-linecap="round">${flake}</g>` +
+        txt(560, 156, 'NORTHLAND', { size: 52, weight: 700, anchor: 'middle', fill: '#e8cf86', ls: 6, font: SERIF }) + txt(840, 156, 'BANK', { size: 52, weight: 700, anchor: 'middle', fill: '#e8cf86', ls: 6, font: SERIF }) +
+        `<g transform="translate(846 140) rotate(-6)"><rect x="-96" y="-50" width="192" height="94" fill="#fffaf0" stroke="#e8dcc0" stroke-width="2"/>` + P('M-110-50l30 10v-16ZM110 40l-30-6v16Z', '#f2d58a', op(0.9)) +
+        txt(0, 22, 'TOYS!', { size: 66, weight: 900, anchor: 'middle', fill: '#e04848', font: '"Comic Sans MS", "Chalkboard SE", ' + SANS }) + ST('M-70 34l140-2', '#3a8ae0', 4) + '</g>' +
+        `<path d="M0 0Q600 160 1200 0" fill="none" stroke="#7a6a5a" stroke-width="2"/>` + bunt +
+        `<g transform="translate(1065 430) rotate(-5)"><rect x="-52" y="-34" width="104" height="70" fill="#fff3a8"/>${txt(0, -6, 'TOY', { size: 22, weight: 900, anchor: 'middle', fill: '#3a8ae0', font: '"Comic Sans MS", ' + SANS })}${txt(0, 22, 'FACTORY →', { size: 18, weight: 900, anchor: 'middle', fill: '#3a8ae0', font: '"Comic Sans MS", ' + SANS })}</g>` +
+        `<g transform="translate(135 360) rotate(4)"><rect x="-50" y="-26" width="100" height="56" fill="#fff"/>${txt(0, -2, 'NO BANKING', { size: 14, weight: 900, anchor: 'middle', fill: '#c8323c' })}${txt(0, 18, 'TODAY!!', { size: 14, weight: 900, anchor: 'middle', fill: '#c8323c' })}</g>` +
+        P('M0 0L260 0L160 760H0ZM1200 0H980L1060 760H1200Z', 'url(#beam)', op(0.5)) +
+        `<rect y="700" width="1200" height="200" fill="url(#floor)"/>` + ST('M0 760L300 700M260 900L560 700M640 900L760 700M1040 900L960 700', '#fff', 3, op(0.25)) +
+        // boxes of toys
+        `<g transform="translate(330 560)"><rect x="-70" y="-60" width="140" height="120" fill="#c89a5a"/><rect x="-70" y="-60" width="140" height="20" fill="#b0844a"/><rect x="-50" y="-160" width="110" height="100" fill="#d4a86a"/>${txt(5, -100, 'TOYS', { size: 24, weight: 900, anchor: 'middle', fill: '#8a5a2a' })}${txt(0, 10, 'FRAGILE', { size: 16, weight: 800, anchor: 'middle', fill: '#c8323c' })}</g>` +
+        balloon(80, 200, '#e04848') + balloon(140, 170, '#3a8ae0') + balloon(110, 120, '#f2c14e') + balloon(1110, 170, '#4ab070') + balloon(1160, 210, '#e04848') + balloon(1060, 130, '#f2c14e') +
+        balloon(330, 260, '#3a8ae0', 0.8) + balloon(990, 270, '#e04848', 0.8) +
+        // grunts in elf hats
+        G(110, 460, 1, grunt({ t: 0.3 }) + ST('M70 90Q120 40 120-60', u('gr'), 30) + hand(120, -70, 13) + ST('M120-70V-200', '#fff', 1.5, op(0.7))) +
+        balloon(230, 236, '#f2c14e', 1.1) +
+        `<ellipse cx="560" cy="905" rx="200" ry="30" fill="#5a4a3a" opacity=".3"/><ellipse cx="880" cy="905" rx="150" ry="24" fill="#5a4a3a" opacity=".3"/>` +
+        G(880, 404, 1.42, zhongli) +
+        G(230, 520, 1.25, grunt({ t: 0.35, ex: 'closed', mo: 'laugh' }) + `<g transform="translate(10 160)"><rect x="-62" y="-50" width="124" height="96" fill="#e04848"/><rect x="-10" y="-50" width="20" height="96" fill="#f2c14e"/><rect x="-62" y="-10" width="124" height="18" fill="#f2c14e"/>${P('M0-50C-30-80-50-60-30-50ZM0-50C30-80 50-60 30-50Z', '#f2c14e')}</g>` +
+          ST('M-74 96Q-80 150-56 170M74 96Q84 150 66 170', u('gr'), 30) + hand(-54, 170, 13) + hand(66, 170, 13)) +
+        G(1110, 560, 1.2, grunt({ t: -0.4, mo: 'laugh' }) + ST('M-74 96Q-110 60-100-40', u('gr'), 30) + hand(-100, -50, 13) + ST('M-100-50l-12-30M-100-50l4-32', SKIN[1], 6)) +
+        G(560, 452, 1.4, childe) +
+        conf + ST(sd(10, 0, 1200, 0, 700), '#f2c14e', 6, op(0.8)) + ST(sd(10, 0, 1200, 0, 700), '#e04848', 6, op(0.7)) +
+        `<rect width="1200" height="900" fill="#ffb060" opacity=".08"/>`
+      , 0.3, 0.5);
+    }),
+  });
+
+  // ---- 3. What Big Brother Does -----------------------------------------------------------------
+  def('end_tonia', {
+    title: 'What Big Brother Does', w: 1200, h: 900, tags: ['ending', 'family', 'night', 'harbor', 'tonia'],
+    svg: pic(3, () => {
+      setSkin(['#f0c8b0', '#d9a690', '#b07e72', '#8a5e58']);
+      let path = '', sky = '';
+      for (let i = 0; i < 36; i++) {
+        const y = rr(500, 640), w = (y - 480) * 0.5;
+        path += `M${f(905 + rr(-1, 1) * w)} ${f(y)}h${f(rr(8, 30))}`;
+      }
+      for (let i = 0; i < 9; i++) sky += lantern(f(rr(120, 1100)), f(rr(140, 420)), n2(rr(0.12, 0.22)));
+      // Childe from behind (local), Tonia leaning her head on his shoulder
+      const childe = backT(62, 186, '#5a5f6a') + P('M-62 84C-40 70 40 70 62 84', 'none', 'stroke="#7c818c" stroke-width="3"') +
+        neck(11, 50) + BACK.childe() + ST('M40-30Q52-6 44 20M62 90Q66 130 66 186', '#b8c8ff', 3, op(0.5)) +
+        P('M-26 40C-14 54 14 54 26 40L32 60C14 74-14 74-32 60Z', u('sC')) + P('M14 62C24 90 18 140 28 186H48C36 140 44 92 30 58Z', u('sC'));
+      const toniaB = backT(48, 183, '#5b4e6e') + ST('M-50 90Q-54 140-52 183', '#ffb070', 3, op(0.55)) + braid(4, 46, 9, '#b4502a') + `<rect x="-3" y="152" width="14" height="7" rx="2" fill="#4f8f9a"/>`;
+      const toniaH = neck(9, 64) + P('M-26 52C-14 66 14 66 26 52L30 72C14 84-14 84-30 72Z', '#4f8f9a') + ST('M-24 64Q0 76 24 64', '#e9dfc6', 3, op(0.6)) +
+        BACK.tonia() + ST('M-44-20Q-50 6-40 30', '#ffb070', 3, op(0.6));
+      return svg(
+        lg('sky', [[0, '#070d22'], [0.5, '#16234a'], [0.85, '#33426e'], [1, '#4a5582']]) +
+        lg('sea', [[0, '#26375e'], [0.3, '#152648'], [1, '#08122a']]) +
+        rg('moon', [[0, '#fff8e0', 0.9], [0.1, '#e8eeff', 0.5], [0.4, '#a8b8e8', 0.12], [1, '#8090c0', 0]]) +
+        rg('pool', [[0, '#ffb060', 0.55], [0.5, '#ff9040', 0.18], [1, '#ff8030', 0]]) +
+        lg('stone', [[0, '#3a3a4a'], [1, '#1a1a26']]) + lg('wood', [[0, '#6a4a3a'], [1, '#3a2620']]),
+        `<rect width="1200" height="900" fill="url(#sky)"/>` +
+        ST(sd(70, 0, 1200, 0, 420), '#fff', 2.2, op(0.7)) + ST(sd(20, 0, 1200, 0, 300), '#fff', 3.4, op(0.9)) +
+        `<circle cx="905" cy="190" r="300" fill="url(#moon)"/><circle cx="905" cy="190" r="38" fill="#fff6e2"/><circle cx="893" cy="182" r="7" fill="#e8dcc0" opacity=".6"/><circle cx="918" cy="200" r="5" fill="#e8dcc0" opacity=".5"/>` +
+        sky +
+        P('M0 488L70 450L150 470L230 420L300 456L380 440L460 472L560 462L640 480L740 452L820 476L940 446L1040 470L1120 444L1200 460V500H0Z', '#1b2546') +
+        P('M210 430V404H198L232 380L266 404H254V430Z', '#1b2546') + ST(sd(26, 0, 1200, 470, 494), '#ffc070', 3, op(0.75)) +
+        `<rect y="496" width="1200" height="180" fill="url(#sea)"/>` + ST(path, '#e8ecff', 3, op(0.55)) +
+        ST('M0 540Q300 532 600 542T1200 536M0 600Q300 590 600 602T1200 596', '#6a7ab0', 2, op(0.25)) +
+        // promenade + railing
+        P('M0 660H1200V900H0Z', 'url(#stone)') + P('M0 640H1200V666H0Z', '#4a4a5c') + ST('M0 642H1200', '#8a8aa8', 2, op(0.6)) +
+        ST('M60 666V740M200 666V740M340 666V740M860 666V740M1000 666V740M1140 666V740', '#2a2a38', 14) + P('M0 736H1200V752H0Z', '#34344a') +
+        // lantern post and its warm pool of light
+        `<circle cx="250" cy="330" r="420" fill="url(#pool)"/>` + ST('M250 900V260M250 262Q250 230 290 230', '#1a1418', 10) + lantern(290, 300, 1.15) +
+        // the two of them
+        G(704, 472, 1.55, childe) +
+        G(548, 528, 1.32, toniaB) + `<g transform="translate(566 600) rotate(22) scale(1.32) translate(0 -50)">${toniaH}</g>` +
+        ST('M612 592Q560 590 500 610', '#5a5f6a', 30) + ST('M612 580Q560 578 506 594', '#7c818c', 3, op(0.6)) + hand(492, 614, 13, SKIN[1]) +
+        // bench (backrest closest to us)
+        P('M320 680H930V708H320ZM320 720H930V748H320Z', 'url(#wood)') + ST('M320 681H930M320 721H930', '#c09070', 2, op(0.7)) +
+        ST('M340 680V900M910 680V900', '#1e1a20', 14) + ST('M330 840H920', '#1e1a20', 8) +
+        P('M320 756H930V770H320Z', '#1e1a20')
+      , 0.3, 0.5);
+    }),
+  });
 
   // ---- 12. Ajax (true ending) ------------------------------------------------------------------
   def('end_true', {
     title: 'Ajax', w: 1200, h: 900, tags: ['ending', 'pier', 'family', 'golden'],
     svg: pic(12, () => {
       setSkin(['#ffeedd', '#f9d2b2', '#e8a886', '#c98466']);
+      OVR = { hG: 'url(#hC)', jC: '#6f747e', cZ: '#33251c', sC: '#c8323c' };
       let rail = '', lan = '', glit = '';
       for (let x = 20; x < 1200; x += 118) rail += `M${x} 512V600`;
       for (let i = 0; i < 7; i++) {
@@ -372,16 +515,15 @@
       const T = (id, x, y, sc) => `<use href="#${id}" transform="translate(${x} ${y})${sc ? ` scale(${sc})` : ''}"/>`;
       // table, from the back edge (y 600) to the front edge (y 690)
       const table =
-        P('M40 600H1160L1200 690H0Z', '#fbf3e4') + P('M0 690H1200V800H0Z', u('drop')) +
-        ST('M100 700V796M300 700V796M500 700V796M700 700V796M900 700V796M1100 700V796', '#cdb894', 6, op(0.3)) +
+        P('M40 600H1160L1200 690H0Z', '#fbf3e4') + P('M0 690H1200V800H0Z', u('drop')) + P('M0 762H1200V772H0Z', '#e7c06a', op(0.5)) + ST('M0 792H1200', '#c9a860', 5, 'stroke-dasharray="1 12"') +
         P('M26 632H1174L1180 652H20Z', '#b8302f', op(0.85)) + ST('M26 632H1174M20 652H1180', '#e7b84a', 2);
       const props =
-        T('tp', 196, 626) + T('cu', 250, 640) + T('gl', 316, 640) +
+        T('cu', 196, 640) + T('pl', 120, 664, 0.8) + T('gl', 316, 640) +
         T('pl', 410, 650, 1.3) + P('M374 646C382 632 420 626 446 636L462 628L460 652L446 646C420 660 386 658 374 646Z', '#c88a4a') + `<circle cx="386" cy="642" r="3" fill="#2a1a1c"/>` + ST('M400 638l4 10M414 636l4 12M428 638l4 10', '#8a5a2a', 2, op(0.6)) +
         T('pl', 512, 662) + ST('M490 656h0M506 654h0M522 656h0M498 666h0M514 666h0M530 664h0', '#e0cfa8', 14) + ST('M490 656h0M506 654h0M522 656h0M498 666h0M514 666h0M530 664h0', '#fff8e8', 10) +
         T('pl', 604, 640, 0.8) + T('cu', 632, 640) +
         `<g transform="translate(572 666)">${P('M-28 0L-24-22H24L28 0Z', '#fffdf6', 'stroke="#d8c8a6" stroke-width="1.5"')}${txt(0, -6, 'for you', { size: 15, font: SERIF, anchor: 'middle', fill: '#9a3a2a', tr: 'skewX(-8)' })}</g>` +
-        P('M664 618Q706 604 748 618V646Q706 662 664 646Z', '#6a4030') + ST('M660 626h-8M752 626h8', '#4a2a1e', 7) + `<ellipse cx="706" cy="618" rx="42" ry="12" fill="#b8283a"/><ellipse cx="712" cy="616" rx="9" ry="4" fill="#fff4ea"/>` + ST('M700 614h0M722 618h0M694 620h0', '#6aa84a', 4) +
+        P('M664 618Q706 604 748 618V646Q706 662 664 646Z', '#6a4030') + ST('M660 626h-8M752 626h8', '#4a2a1e', 7) + `<ellipse cx="706" cy="618" rx="42" ry="12" fill="#b8283a"/><ellipse cx="712" cy="616" rx="9" ry="4" fill="#fff4ea"/>` + 
         T('cu', 804, 650) + P('M846 650Q834 624 844 604H860Q870 624 858 650Z', '#e6eef6', 'stroke="#9ab0c8" stroke-width="1.5"') +
         `<g fill="#eaf2ff" stroke="#8aa8d8" stroke-width="1.5"><path d="M852 604L836 572L852 584L856 564L862 586L876 576Z"/><path d="M846 608L822 594L840 590Z"/></g>` + ST('M852 606V590M848 610L838 598', '#5a8a4a', 2.5) +
         T('gl', 960, 646) + T('pl', 1050, 664, 1.1) + ST('M1026 660h0M1042 654h0M1058 660h0M1074 656h0M1050 666h0', '#c8743a', 16) + ST('M1028 656h0M1044 650h0M1072 652h0', '#f0a860', 6);
@@ -392,8 +534,8 @@
         P('M514 684Q600 668 686 684L682 712Q600 698 518 712Z', u('wood')) + ST('M560 708V800M600 702V800M640 708V800', '#8a5430', 9) +
         ST('M520 686V812M680 686V812', '#7a4626', 14) +
         P('M492 800H708L728 848H472Z', u('wood')) + P('M472 848H728V862H472Z', '#5a3418') +
-        P('M506 800Q600 786 694 800L710 834Q600 852 490 834Z', '#c8403a') + ST('M512 816Q600 808 690 816', '#e88070', 3, op(0.6)) +
-        ST('M484 860L478 900M716 860L722 900', '#6a3c1e', 15) + ST('M514 686Q600 670 686 686', '#ffd7a0', 3, op(0.8));
+        P('M506 800Q600 786 694 800L710 834Q600 852 490 834Z', '#c8403a') +
+        ST('M484 860L478 900M716 860L722 900', '#6a3c1e', 15);
       return svg(
         lg('sky', [[0, '#8fbfdc'], [0.3, '#cfd8c8'], [0.5, '#f8d7a2'], [0.62, '#ffc884'], [1, '#ffb070']]) +
         lg('sea', [[0, '#f0b47c'], [0.1, '#8eb0ac'], [1, '#3e7c8c']]) +
@@ -402,17 +544,16 @@
         rg('halo', [[0, '#fff2c0', 0.7], [1, '#ffd890', 0]]) + lg('warm', [[0, '#ff9a40', 0], [1, '#ff8a30', 0.5]], 0, 0, 1, 0.3) +
         `<g id="pl"><ellipse cy="3" rx="44" ry="15" fill="#000" opacity=".12"/><ellipse rx="40" ry="13" fill="#fbf7ee" stroke="#d9cdb4" stroke-width="2"/></g>` +
         `<g id="cu"><path d="M-11-14H11Q10 0 0 0Q-10 0-11-14Z" fill="#e8efe6" stroke="#9ab8a4" stroke-width="1.5"/><ellipse cy="-14" rx="11" ry="3" fill="#c98a3a"/></g>` +
-        `<g id="gl"><path d="M-8-34H8L6 0H-6Z" fill="#ffd27a" opacity=".75"/><path class="s" d="M-5-30V-6" stroke="#fff" stroke-width="2" opacity=".7"/></g>` +
-        `<g id="tp"><path d="M-22 0Q-22-20 0-20Q22-20 22 0L26 14H-26Z" fill="#8fc4ac"/><ellipse cy="-22" rx="8" ry="4" fill="#6aa58c"/><path class="s" d="M22-2Q36-8 36 6" stroke="#8fc4ac" stroke-width="4"/></g>`,
+        `<g id="gl"><path d="M-8-34H8L6 0H-6Z" fill="#ffd27a" opacity=".75"/><path class="s" d="M-5-30V-6" stroke="#fff" stroke-width="2" opacity=".7"/></g>`,
         `<rect width="1200" height="900" fill="url(#sky)"/>` +
         `<circle cx="990" cy="330" r="330" fill="url(#sun)"/><circle cx="990" cy="330" r="46" fill="#fffbea"/>` +
-        P('M0 430L40 370L80 396L130 330L180 392L230 360L290 420L330 400L380 432ZM1080 432L1110 400L1140 414L1180 380L1200 390V432Z', '#c99a92', op(0.55)) +
+        P('M0 430L60 370L130 330L230 360L330 400L380 432ZM1080 432L1180 380L1200 390V432Z', '#c99a92', op(0.55)) +
         P('M120 432V404H110L150 386L190 404H180V432ZM250 432V396H238L280 370L322 396H310V432Z', '#a87a74', op(0.6)) +
         `<rect y="430" width="1200" height="180" fill="url(#sea)"/>` + ST(glit, '#fff6d8', 3, op(0.8)) +
-        ST('M380 220q12-10 24 0q12-10 24 0M470 180q8-7 16 0q8-7 16 0M760 150q10-8 20 0q10-8 20 0', '#6a5a5a', 3, op(0.6)) +
+        ST('M380 230q12-10 24 0q12-10 24 0M780 160q10-8 20 0q10-8 20 0', '#6a5a5a', 3, op(0.6)) +
         ST('M0 110Q600 290 1200 110', '#5a3a2a', 2) + lan +
-        `<rect y="600" width="1200" height="300" fill="url(#deck)"/>` + ST('M0 820H1200M0 860H1200', '#4a2c18', 3, op(0.4)) +
-        ST(rail, '#6a3e22', 12) + P('M0 504H1200V518H0Z', '#7a4a2a') + ST('M0 506H1200', '#e8b07a', 2, op(0.7)) +
+        `<rect y="600" width="1200" height="300" fill="url(#deck)"/>` +
+        ST(rail, '#6a3e22', 12) + P('M0 504H1200V518H0Z', '#7a4a2a') +
         // family & friends (back to front)
         who('papa', 388, 396, 0.95, { t: 0.1, ex: 'happy', mo: 'laugh' }) + arm('M440 470Q470 430 468 372', '#2e3f5a', 22) + hand(468, 364) + T('gl', 470, 362) +
         who('hutao', 92, 470, 0.9, { t: 0.3 }) + arm('M118 540Q150 520 146 470', '#4a2e26', 18) + hand(146, 462, 8) + ST('M142 456l-4-16M148 456l3-16', SKIN[1], 5) +
@@ -420,7 +561,7 @@
         who('anthon', 292, 470, 0.9, { t: 0.25, mo: 'grin' }) +
         who('lumine', 954, 474, 0.9, { t: -0.25, mo: 'smile' }) +
         who('tonia', 852, 476, 0.88, { t: -0.2, mo: 'smile', ex: 'happy' }) +
-        who('zhongli', 748, 466, 0.96, { t: -0.35, ex: 'soft', mo: 'smile' }) +
+        who('zhongli', 748, 466, 0.96, { t: -0.35, mo: 'smile' }) +
         who('mama', 470, 478, 0.9, { t: 0.25 }) +
         who('childe', 644, 468, 0.98, { t: -0.25, ex: 'happy', mo: 'laugh' }) + arm('M604 552Q560 540 524 548', '#6c717c', 18) +
         who('teucer', 553, 500, 0.78, { t: 0.3, ex: 'happy', mo: 'laugh' }) + hand(522, 552, 8) +
@@ -428,8 +569,7 @@
         table + props +
         `<circle cx="600" cy="790" r="190" fill="url(#halo)"/>` + chair +
         `<rect width="1200" height="900" fill="url(#warm)" style="mix-blend-mode:soft-light"/>` +
-        P('M1200 120L620 900H760L1200 300ZM1200 360L900 900H980L1200 480Z', '#fff4d0', op(0.08)) +
-        ST(sd(16, 640, 1200, 100, 600), '#fff6d0', 5, op(0.6))
+                ST(sd(16, 640, 1200, 100, 600), '#fff6d0', 5, op(0.6))
       , 0.3, 0.45);
     }),
   });

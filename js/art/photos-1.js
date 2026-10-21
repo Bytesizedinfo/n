@@ -5,7 +5,7 @@
 
   /* ---------- kit ---------- */
   const FONT = 'Inter, -apple-system, Helvetica, Arial, sans-serif';
-  const SERIF = 'Georgia, "Times New Roman", serif';
+  const SERIF = "Georgia, 'Times New Roman', serif";
   const r0 = Math.round;
   const rng = (seed) => {
     let s = seed >>> 0;
@@ -43,11 +43,14 @@
     return P(`M${r0(cx - a - w * 0.06)} ${r0(y - h * 0.32)}Q${r0(cx - a * 0.7)} ${r0(y + h * 0.05)} ${r0(cx - a * 0.3)} ${r0(y - h * 0.55)}L${r0(cx - a * 0.18)} ${r0(y - h)}H${r0(cx + a * 0.18)}L${r0(cx + a * 0.3)} ${r0(y - h * 0.55)}Q${r0(cx + a * 0.7)} ${r0(y + h * 0.05)} ${r0(cx + a + w * 0.06)} ${r0(y - h * 0.32)}Q${r0(cx + a * 0.6)} ${r0(y - h * 0.12)} ${r0(cx)} ${r0(y - h * 0.18)}Q${r0(cx - a * 0.6)} ${r0(y - h * 0.12)} ${r0(cx - a - w * 0.06)} ${r0(y - h * 0.32)}Z`, fill) +
       (edge ? S(`M${r0(cx - a - w * 0.06)} ${r0(y - h * 0.32)}Q${r0(cx - a * 0.7)} ${r0(y + h * 0.05)} ${r0(cx - a * 0.3)} ${r0(y - h * 0.55)}M${r0(cx + a + w * 0.06)} ${r0(y - h * 0.32)}Q${r0(cx + a * 0.7)} ${r0(y + h * 0.05)} ${r0(cx + a * 0.3)} ${r0(y - h * 0.55)}`, edge, Math.max(1.5, h * 0.06)) : '');
   };
-  // simple Liyue roof with a straighter profile (main halls): eave y, width, height
+  // Liyue hall roof, front view: eave line at y, width w, height h, flared corners
   const hall = (cx, y, w, h, fill, edge) => {
-    const a = w / 2;
-    return P(`M${r0(cx - a)} ${r0(y - h * 0.15)}Q${r0(cx - a * 0.55)} ${r0(y)} ${r0(cx - a * 0.42)} ${r0(y - h * 0.62)}L${r0(cx - a * 0.3)} ${r0(y - h)}H${r0(cx + a * 0.3)}L${r0(cx + a * 0.42)} ${r0(y - h * 0.62)}Q${r0(cx + a * 0.55)} ${r0(y)} ${r0(cx + a)} ${r0(y - h * 0.15)}Q${r0(cx)} ${r0(y - h * 0.2)} ${r0(cx - a)} ${r0(y - h * 0.15)}Z`, fill) +
-      (edge ? S(`M${r0(cx - a)} ${r0(y - h * 0.15)}Q${r0(cx)} ${r0(y - h * 0.2)} ${r0(cx + a)} ${r0(y - h * 0.15)}`, edge, Math.max(1.5, h * 0.07)) : '');
+    const a = w / 2, X = (k) => r0(cx + a * k), Y = (k) => r0(y - h * k);
+    return P(`M${X(-1)} ${Y(0.24)}Q${X(-0.82)} ${Y(0)} ${X(-0.62)} ${Y(0)}H${X(0.62)}Q${X(0.82)} ${Y(0)} ${X(1)} ${Y(0.24)}Q${X(0.72)} ${Y(0.3)} ${X(0.52)} ${Y(0.8)}L${X(0.46)} ${Y(1)}H${X(-0.46)}L${X(-0.52)} ${Y(0.8)}Q${X(-0.72)} ${Y(0.3)} ${X(-1)} ${Y(0.24)}Z`, fill) +
+      S(`M${X(-0.5)} ${Y(0.42)}Q${cx} ${Y(0.46)} ${X(0.5)} ${Y(0.42)}`, '#000', r0(h * 0.62), ' stroke-linecap="butt" stroke-dasharray="1.6 5.5" opacity=".18"') +
+      (edge ? S(`M${X(-1)} ${Y(0.24)}Q${X(-0.82)} ${Y(0)} ${X(-0.62)} ${Y(0)}H${X(0.62)}Q${X(0.82)} ${Y(0)} ${X(1)} ${Y(0.24)}`, edge, Math.max(1.5, h * 0.07)) +
+        S(`M${X(-0.5)} ${Y(1)}H${X(0.5)}`, edge, Math.max(2, h * 0.09)) +
+        P(`M${X(-0.5)} ${Y(1)}q${r0(-a * 0.06)} ${r0(-h * 0.2)} ${r0(a * 0.04)} ${r0(-h * 0.24)}l${r0(a * 0.02)} ${r0(h * 0.24)}ZM${X(0.5)} ${Y(1)}q${r0(a * 0.06)} ${r0(-h * 0.2)} ${r0(-a * 0.04)} ${r0(-h * 0.24)}l${r0(-a * 0.02)} ${r0(h * 0.24)}Z`, edge) : '');
   };
 
   /* ---------- Zhongli (shared look) ---------- */
@@ -71,7 +74,7 @@
     lg('ztp', [[0, Z.hair], [0.55, Z.hair], [0.8, Z.tip], [1, Z.tipL]]) +
     rg('zir', [[0, Z.tipL], [0.55, Z.eye], [1, Z.eyeD]], 0.5, 0.62, 0.6);
   // Front head, face centre at 0,0, face half-width ~88. closed = sleeping eyes.
-  const zlHead = (Z, closed) => {
+  const zlHead = (Z, closed, noRing) => {
     const eye = (s) => {
       const x = 40 * s, y = 6;
       if (closed) {
@@ -107,7 +110,7 @@
       S('M5 40Q10 56 1 61', Z.sk[3], 3.4) +
       S(closed ? 'M-14 94Q0 99 14 94' : 'M-16 93Q0 97 16 92', Z.lip, 3.6) +
       // earring (his left ear: viewer right)
-      `<circle cx="100" cy="44" r="4" fill="${Z.trim}"/>` + P('M96 50h8l2 14h-12Z', Z.trim) + P('M95 64h12l3 96q-9 6 -18 0Z', Z.hairD) + S('M98 70v84M104 70v84', Z.trimD, 1.4) +
+      (noRing ? '' : `<circle cx="100" cy="44" r="4" fill="${Z.trim}"/>` + P('M96 50h8l2 14h-12Z', Z.trim) + P('M95 64h12l3 96q-9 6 -18 0Z', Z.hairD) + S('M98 70v84M104 70v84', Z.trimD, 1.4)) +
       // side locks with amber tips (in front of the ears)
       P('M-96 -70C-112 -10 -108 60 -96 128L-84 168L-76 120C-70 60 -72 0 -66 -48Z', 'url(#ztp)') +
       P('M96 -70C112 -10 108 60 98 124L86 162L80 116C74 60 74 0 68 -48Z', 'url(#ztp)') +
@@ -178,13 +181,13 @@
         // high collar
         P('M688 362Q712 372 738 362L744 394Q712 404 682 394Z', Z.coatD) + S('M688 362Q712 372 738 362', Z.trim, 2.5) +
         // head: lost profile to the left
-        P('M678 314C668 336 670 358 682 372L696 378C690 358 686 336 688 316Z', Z.sk[2]) +
-        P('M675 322C676 312 680 306 686 304L688 322Z', Z.sk[1]) +
-        P('M676 326C670 292 692 270 716 270C744 270 760 292 756 326C752 352 740 370 716 372C696 372 682 356 676 326Z', 'url(#zhr)') +
-        S('M700 276C714 296 718 330 714 366M724 274C736 294 742 320 738 350M690 286C696 310 696 340 700 364', Z.hairL, 2, ' opacity=".5"') +
-        P('M682 290C670 322 670 362 678 396L686 410L690 382C690 356 692 322 698 296Z', 'url(#ztp)') +
-        P('M690 334C683 330 679 340 681 349C683 357 690 359 694 353Z', Z.sk[2]) +
-        disc(689, 359, 2.6, Z.trim) + P('M686 362h7l1 7h-9Z', Z.trim) + P('M685 369h10l3 54q-8 4 -16 0Z', Z.hairD) + S('M690 373v46', Z.trim, 1.2) +
+        P('M676 326C670 292 692 268 718 268C746 268 762 292 758 326C754 352 742 372 716 374C696 374 682 358 676 326Z', 'url(#zhr)') +
+        P('M680 300C670 318 666 340 670 356C674 368 684 376 696 380L700 360C690 346 684 324 686 302Z', Z.sk[2]) +
+        P('M672 336C670 348 674 362 684 372', 'none', ` stroke="${Z.sk[3]}" stroke-width="2" opacity=".6"`) +
+        S('M700 274C714 294 720 330 716 368M726 272C738 292 744 320 740 352M690 284C694 300 696 320 698 340', Z.hairL, 2, ' opacity=".5"') +
+        P('M688 280C674 314 672 360 680 398L688 412L692 384C692 352 694 316 700 290Z', 'url(#ztp)') +
+        P('M694 338C689 335 686 342 688 349C690 355 694 356 697 352Z', Z.sk[2]) +
+        disc(692, 358, 2.6, Z.trim) + P('M689 361h7l1 7h-9Z', Z.trim) + P('M688 368h10l3 54q-8 4 -16 0Z', Z.hairD) + S('M693 372v46', Z.trim, 1.2) +
         // ponytail past the waist
         P('M700 366C726 368 736 400 736 450C736 512 730 562 722 604L714 624L706 602C698 556 692 502 692 446C692 404 692 374 700 366Z', 'url(#pony)') +
         `<rect x="697" y="366" width="32" height="10" rx="4" fill="${Z.coatD}"/><rect x="697" y="369" width="32" height="2.6" fill="${Z.trim}"/>` +
@@ -375,19 +378,13 @@
   // two-tier Liyue hall: centre x, ground y, width. o: {wall, gold, edge, stone, dark}
   const palace = (cx, by, ww, o = {}) => {
     const hh = ww * 0.62, wall = o.wall || '#a8322a', gold = o.gold || 'url(#gold)', edge = o.edge || '#fff2c0', dark = o.dark || '#3a1a12';
-    let s = `<rect x="${r0(cx - ww * 0.46)}" y="${r0(by - hh * 0.07)}" width="${r0(ww * 0.92)}" height="${r0(hh * 0.07) + 2}" fill="${o.stone || '#ddd3c2'}"/>` +
-      `<rect x="${r0(cx - ww * 0.38)}" y="${r0(by - hh * 0.38)}" width="${r0(ww * 0.76)}" height="${r0(hh * 0.31)}" fill="${wall}"/>`;
-    for (let i = 0; i < 7; i++) s += `<rect x="${r0(cx - ww * 0.37 + i * ww * 0.12)}" y="${r0(by - hh * 0.38)}" width="${Math.max(2, r0(ww * 0.018))}" height="${r0(hh * 0.31)}" fill="${dark}" opacity=".45"/>`;
-    s += `<rect x="${r0(cx - ww * 0.1)}" y="${r0(by - hh * 0.3)}" width="${r0(ww * 0.2)}" height="${r0(hh * 0.23)}" fill="#e2b04a" opacity=".55"/>` +
-      `<rect x="${r0(cx - ww * 0.38)}" y="${r0(by - hh * 0.38)}" width="${r0(ww * 0.76)}" height="${r0(hh * 0.06)}" fill="#000" opacity=".35"/>` +
-      `<rect x="${r0(cx - ww * 0.25)}" y="${r0(by - hh * 0.64)}" width="${r0(ww * 0.5)}" height="${r0(hh * 0.2)}" fill="${wall}"/>` +
-      `<rect x="${r0(cx - ww * 0.25)}" y="${r0(by - hh * 0.64)}" width="${r0(ww * 0.5)}" height="${r0(hh * 0.05)}" fill="#000" opacity=".35"/>` +
-      hall(cx, by - hh * 0.35, ww, hh * 0.2, gold, edge) +
-      S(`M${r0(cx - ww * 0.3)} ${r0(by - hh * 0.43)}Q${cx} ${r0(by - hh * 0.45)} ${r0(cx + ww * 0.3)} ${r0(by - hh * 0.43)}`, dark, r0(hh * 0.07), ' stroke-linecap="butt" stroke-dasharray="1.5 6" opacity=".35"') +
-      hall(cx, by - hh * 0.61, ww * 0.74, hh * 0.36, gold, edge) +
-      S(`M${r0(cx - ww * 0.18)} ${r0(by - hh * 0.75)}Q${cx} ${r0(by - hh * 0.77)} ${r0(cx + ww * 0.18)} ${r0(by - hh * 0.75)}`, dark, r0(hh * 0.12), ' stroke-linecap="butt" stroke-dasharray="1.5 6" opacity=".3"') +
-      P(`M${r0(cx - ww * 0.13)} ${r0(by - hh * 0.97)}q${r0(-ww * 0.03)} ${r0(-hh * 0.1)} ${r0(ww * 0.02)} ${r0(-hh * 0.12)}l${r0(ww * 0.01)} ${r0(hh * 0.12)}ZM${r0(cx + ww * 0.13)} ${r0(by - hh * 0.97)}q${r0(ww * 0.03)} ${r0(-hh * 0.1)} ${r0(-ww * 0.02)} ${r0(-hh * 0.12)}l${r0(-ww * 0.01)} ${r0(hh * 0.12)}Z`, edge);
-    return s;
+    const R = (x0, y0, x1, y1, f, op) => `<rect x="${r0(cx + ww * x0)}" y="${r0(by - hh * y1)}" width="${r0(ww * (x1 - x0))}" height="${r0(hh * (y1 - y0)) + 1}" fill="${f}"${op ? ` opacity="${op}"` : ''}/>`;
+    let s = R(-0.46, 0, 0.46, 0.07, o.stone || '#ddd3c2') + R(-0.38, 0.07, 0.38, 0.36, wall);
+    for (let i = 0; i < 7; i++) s += R(-0.37 + i * 0.12, 0.07, -0.355 + i * 0.12, 0.36, dark, '.45');
+    s += R(-0.1, 0.07, 0.1, 0.28, '#e2b04a', '.5') + R(-0.4, 0.3, 0.4, 0.37, dark, '.55') +
+      R(-0.26, 0.5, 0.26, 0.66, wall) + R(-0.26, 0.6, 0.26, 0.67, dark, '.55');
+    for (let i = 0; i < 5; i++) s += R(-0.25 + i * 0.12, 0.5, -0.24 + i * 0.12, 0.66, dark, '.4');
+    return s + hall(cx, by - hh * 0.34, ww, hh * 0.22, gold, edge) + hall(cx, by - hh * 0.62, ww * 0.72, hh * 0.32, gold, edge);
   };
 
   /* =================================================================================== */
@@ -494,8 +491,8 @@
       P('M94 -262C100 -308 42 -334 -20 -324C-78 -316 -132 -288 -154 -238C-128 -204 -66 -186 -8 -188C50 -190 88 -220 94 -262Z', 'url(#cw)') +
       S('M-110 -262C-64 -286 0 -298 58 -286M-96 -236C-54 -254 0 -262 46 -252M-70 -212C-36 -222 4 -224 34 -216', '#cbc4b9', 3, ' opacity=".7"') +
       // drooping black bustle
-      P('M-36 -302C-92 -308 -152 -286 -180 -232C-188 -214 -186 -196 -176 -180C-166 -204 -150 -220 -132 -228C-146 -206 -150 -186 -144 -166C-130 -192 -114 -210 -94 -220C-98 -204 -96 -190 -90 -178C-78 -204 -58 -226 -42 -240C-32 -260 -28 -284 -36 -302Z', '#1b1819') +
-      S('M-64 -288C-112 -280 -150 -254 -170 -220M-76 -264C-112 -248 -136 -222 -146 -190M-64 -246C-86 -228 -98 -206 -100 -188', '#5c5554', 2.5, ' opacity=".8"') +
+      P('M-30 -300C-80 -302 -132 -282 -152 -240C-162 -218 -164 -194 -158 -166C-150 -180 -142 -190 -132 -198C-134 -180 -132 -164 -124 -150C-116 -170 -106 -186 -94 -196C-92 -182 -86 -170 -78 -162C-72 -190 -56 -216 -40 -236C-30 -256 -26 -280 -30 -300Z', '#1b1819') +
+      S('M-56 -286C-104 -276 -136 -248 -150 -206M-62 -262C-96 -246 -118 -220 -126 -186M-56 -244C-76 -226 -88 -206 -92 -188', '#5c5554', 2.5, ' opacity=".8"') +
       S('M94 -262C100 -308 42 -334 -20 -324', '#ffe2a8', 4.5, ' opacity=".85"') + S('M98 -470C110 -482 118 -476 116 -462', '#ffe2a8', 3, ' opacity=".5"') +
       head + '</g>';
   };
@@ -524,6 +521,7 @@
       const body =
         `<rect width="1200" height="900" fill="url(#sky)"/>` +
         disc(900, 320, 540, 'url(#sun)') + disc(900, 320, 52, '#fff8e4', 0.95) +
+        P('M900 320L180 900H420ZM900 320L620 900H760ZM900 320L1000 900H1120ZM900 320L0 560V680Z', 'url(#rays)') +
         streak(300, 150, 560, 30, '#fff3e6', 0.55) + streak(700, 90, 700, 36, '#f9e6e2', 0.5) + streak(1100, 220, 360, 16, '#fff1d8', 0.6) + streak(560, 250, 300, 12, '#fff5e6', 0.5) +
         // karst layers dissolving in mist
         karst(60, 520, 110, 300, '#c7bccf') + karst(170, 520, 90, 380, '#bfb3c9') + karst(270, 520, 100, 260, '#c9bed0') + karst(380, 520, 80, 200, '#cdc2d2') +
@@ -547,17 +545,321 @@
         crane(330, top(330) - 2, 1, 'up') +
         `<rect width="1200" height="900" fill="url(#haze)"/>`;
       return wrap(w, h,
-        lg('sky', [[0, '#9fb0cc'], [0.28, '#d6c2cc'], [0.46, '#f6d0b2'], [0.6, '#ffd99c'], [1, '#f3d8b8']]) +
-        glowDef('sun', '#fff1c6', 0.9) +
+        lg('sky', [[0, '#8aa0c4'], [0.28, '#d2bccb'], [0.46, '#f6d0b2'], [0.6, '#ffd99c'], [1, '#f3d8b8']]) +
+        glowDef('sun', '#fff1c6', 0.9) + rg('rays', [[0, '#fff6dc', 0.45], [1, '#fff6dc', 0]], 900, 320, 720, US) +
         lg('mist', [[0, '#fff6ea', 0], [0.5, '#fff4e6', 0.9], [1, '#fff6ea', 0]]) +
         lg('gold', [[0, '#ffe38e'], [0.5, '#e4aa3a'], [1, '#a8641c']]) +
         lg('bud', [[0, '#cfc5b4'], [0.6, '#f4eee2'], [1, '#fffaf0']], 0, 0, 1, 0) +
         lg('railg', [[0, '#e8dfcf'], [1, '#b9ae9b']]) +
         lg('floor', [[0, '#cfc5b4'], [1, '#9c907e']]) +
         lg('cw', [[0, '#ffffff'], [0.7, '#f1ede6'], [1, '#cfc8bd']], 1, 0, 0, 1) +
-        lg('haze', [[0, '#fff3dc', 0.12], [0.5, '#fff3dc', 0], [1, '#fff3dc', 0.08]], 1, 0, 0, 0) +
+        lg('haze', [[0, '#fff3dc', 0.06], [0.5, '#fff3dc', 0], [1, '#fff3dc', 0.04]], 1, 0, 0, 0) +
         vigDef(0.32) + grainDef(),
         body + vig(w, h) + grain(w, h, 0.08));
+    },
+  });
+
+  /* =================================================================================== */
+  /* 5. Celadon tea set, listing photo                                                    */
+  /* =================================================================================== */
+  // glaze lily mark, small, painted in deep celadon
+  const lilyMark = (x, y, s, c) => `<g transform="translate(${x} ${y}) scale(${s})" fill="none" stroke="${c}" stroke-width="2.2" stroke-linecap="round">` +
+    `<path d="M-14 -16C-6 -24 6 -22 10 -12"/><path d="M-2 -18C2 -26 14 -26 18 -18"/>` +
+    `<path d="M10 -12C2 -14 -8 -8 -8 2L-4 -1L-1 5L3 0L7 4C9 -4 12 -10 10 -12Z" fill="${c}" fill-opacity=".85"/>` +
+    `<path d="M18 -18C12 -10 14 -2 20 4L22 -1L26 3C28 -6 24 -14 18 -18Z" fill="${c}" fill-opacity=".7"/>` +
+    `<path d="M-14 -16C-18 -4 -14 8 -8 16M-12 4C-20 2 -24 8 -24 12C-18 12 -14 10 -12 4Z"/></g>`;
+  def('p_teaset', {
+    title: 'Celadon tea set (listing photo)',
+    w: 1200, h: 900, tags: ['teaset', 'celadon', 'auction', 'market', 'tonight'],
+    svg: (w, h) => {
+      const R = rng(1016);
+      let crack = '';
+      for (let i = 0; i < 26; i++) {
+        let x = -140 + R() * 280, y = -110 + R() * 200;
+        crack += `M${r0(x)} ${r0(y)}`;
+        for (let j = 0; j < 3; j++) { x += (R() - 0.5) * 40; y += (R() - 0.5) * 34; crack += `L${r0(x)} ${r0(y)}`; }
+      }
+      const cup = (x, y, s, mark) => `<g transform="translate(${x} ${y}) scale(${s})">` +
+        ell(4, 84, 78, 12, '#000', ' opacity=".5"') + ell(0, 96, 60, 10, '#9fbfa8', ' opacity=".12"') +
+        P('M-64 0C-62 52 -32 80 0 82C32 80 62 52 64 0Z', 'url(#glz)') + ell(0, 80, 26, 6, '#6f9480') +
+        ell(0, 0, 64, 16, '#a9cbb2') + ell(0, 2, 58, 13, 'url(#inr)') +
+        `<ellipse cx="0" cy="0" rx="64" ry="16" fill="none" stroke="#e8f4ea" stroke-width="2.5" opacity=".9"/>` +
+        P('M-48 14C-46 40 -30 62 -14 70', 'none', ' stroke="#fff" stroke-width="7" stroke-linecap="round" opacity=".55"') +
+        (mark ? lilyMark(14, 44, 1, '#2f6f68') : '') + '</g>';
+      const body =
+        `<rect width="1200" height="900" fill="url(#bg)"/>` + ell(560, 380, 520, 360, 'url(#spot)') +
+        // dark wood surface with grain and a sheen
+        `<rect y="560" width="1200" height="340" fill="url(#wood)"/>` +
+        S('M0 610Q300 600 600 612T1200 606M0 660Q320 652 640 664T1200 656M0 724Q300 716 620 728T1200 718M0 800Q340 792 660 806T1200 796M0 868Q320 860 640 874T1200 864', '#000', 3, ' opacity=".35"') +
+        S('M0 634Q260 628 520 638T1200 632M0 694Q300 688 600 698T1200 690M0 762Q320 756 640 766T1200 758', '#a8714a', 2, ' opacity=".25"') +
+        ell(580, 650, 520, 70, 'url(#sheen)') + `<rect y="556" width="1200" height="10" fill="#000" opacity=".4"/>` +
+        // teapot
+        `<g transform="translate(470 470)">` +
+        ell(10, 120, 200, 26, '#000', ' opacity=".55"') + ell(0, 148, 150, 26, '#9fbfa8', ' opacity=".1"') +
+        `<path d="M140 -70C240 -104 248 44 140 52" fill="none" stroke="#8fb39b" stroke-width="26" stroke-linecap="round"/>` +
+        `<path d="M146 -62C222 -88 228 30 146 40" fill="none" stroke="#c5ddc9" stroke-width="8" stroke-linecap="round" opacity=".6"/>` +
+        P('M-146 -34C-190 -44 -222 -76 -248 -122L-228 -130C-206 -96 -184 -76 -140 6Z', 'url(#glz)') + ell(-238, -126, 13, 6, '#7a9e88') +
+        S('M-150 -28C-188 -40 -214 -70 -234 -110', '#fff', 5, ' opacity=".5"') +
+        P('M-162 0C-162 -92 -92 -132 0 -132C92 -132 162 -92 162 0C162 70 102 112 0 114C-102 112 -162 70 -162 0Z', 'url(#pot)') +
+        `<path d="${crack}" fill="none" stroke="#6c8f79" stroke-width="1" opacity=".35"/>` +
+        ell(0, 112, 92, 13, '#76987f') +
+        ell(0, -122, 74, 17, '#a5c7ae') + P('M-70 -124C-64 -166 64 -166 70 -124Z', 'url(#pot)') + ell(0, -164, 16, 9, '#b9d5be') + disc(0, -172, 10, 'url(#glz)') +
+        `<ellipse cx="0" cy="-124" rx="70" ry="15" fill="none" stroke="#6f9480" stroke-width="2"/>` +
+        P('M-118 -64C-104 -100 -62 -120 -20 -122C-60 -108 -96 -90 -110 -50Z', '#fff', ' opacity=".6"') + ell(-40, -146, 22, 6, '#fff', ' opacity=".55"') +
+        P('M-150 20C-140 60 -100 92 -50 104C-100 100 -146 70 -150 20Z', '#fff', ' opacity=".25"') +
+        '</g>' +
+        // cups (the front one turned to show its mark)
+        cup(930, 560, 0.82) + cup(780, 640, 0.95) + cup(250, 690, 1) + cup(590, 726, 1.08, true) +
+        // soft-box reflection + watermark
+        `<rect x="160" y="0" width="880" height="40" fill="#fff" opacity=".03"/>` +
+        T(1176, 880, 'FEIYUN MARKET · LOT 1016', 15, '#fff', ' text-anchor="end" letter-spacing="2" opacity=".35"');
+      return wrap(w, h,
+        rg('bg', [[0, '#3a3430'], [0.6, '#1c1916'], [1, '#0c0a09']], 0.47, 0.4, 0.75) +
+        rg('spot', [[0, '#f4ead8', 0.22], [1, '#f4ead8', 0]]) +
+        lg('wood', [[0, '#3b2416'], [0.4, '#2a170d'], [1, '#160b06']]) +
+        rg('sheen', [[0, '#d9a878', 0.28], [1, '#d9a878', 0]]) +
+        rg('pot', [[0, '#eef7ee'], [0.35, '#c4dfc8'], [0.75, '#98bea2'], [1, '#6f9480']], 0.36, 0.3, 0.75) +
+        lg('glz', [[0, '#7fa58c'], [0.3, '#cfe5d2'], [0.6, '#a9cbb2'], [1, '#6f9480']], 0, 0, 1, 0) +
+        rg('inr', [[0, '#9cc0a5'], [0.7, '#c8e0cc'], [1, '#e6f2e7']], 0.5, 0.6, 0.6) +
+        vigDef(0.5) + grainDef(1.1),
+        body + vig(w, h) + grain(w, h, 0.06));
+    },
+  });
+
+  /* =================================================================================== */
+  /* 6. Zhongli asleep at the teahouse table                                              */
+  /* =================================================================================== */
+  const latticeDef = (id, c, sw) => `<pattern id="${id}" width="60" height="60" patternUnits="userSpaceOnUse"><path d="M0 0H60V60H0ZM30 0V18M30 42V60M0 30H18M42 30H60M18 18H42V42H18Z" fill="none" stroke="${c}" stroke-width="${sw}"/></pattern>`;
+  def('p_zl_teahouse', {
+    title: 'Xiansheng asleep at the teahouse',
+    w: 1200, h: 900, tags: ['zhongli', 'teahouse', 'tea', 'asleep', 'afternoon'],
+    svg: (w, h) => {
+      const R = rng(1530);
+      const Z = ZL;
+      let motes = '';
+      for (let i = 0; i < 26; i++) motes += disc(160 + R() * 700, 120 + R() * 560, 1.2 + R() * 2.2, '#fff4d0', 0.3 + R() * 0.5);
+      const body =
+        // wall, lattice window full of afternoon sun, hanging scroll
+        `<rect width="1200" height="900" fill="url(#wall)"/>` +
+        S('M0 120H1200M0 300H1200M0 480H1200', '#2a1a10', 3, ' opacity=".4"') +
+        `<rect x="40" y="36" width="400" height="430" fill="url(#win)"/><rect x="40" y="36" width="400" height="430" fill="url(#lat)"/>` +
+        `<rect x="40" y="36" width="400" height="430" fill="none" stroke="#2e1c10" stroke-width="22"/>` + `<rect x="30" y="462" width="420" height="18" fill="#3a2414"/>` +
+        disc(240, 250, 330, 'url(#glow)') +
+        `<rect x="900" y="40" width="170" height="400" fill="#efe2c4"/><rect x="900" y="40" width="170" height="400" fill="none" stroke="#7a5432" stroke-width="10"/>` +
+        S('M920 330C960 300 1000 300 1040 250M980 300C990 280 1010 270 1020 268', '#4a3a2a', 3) + P('M1010 262c8 -8 20 -6 22 2c-6 6 -16 8 -22 -2Z', '#c6a640') + disc(1022, 262, 1.5, '#222') +
+        P('M940 330q6 -8 12 0q-6 8 -12 0ZM968 310q6 -8 12 0q-6 8 -12 0Z', '#c86a6a', ' opacity=".7"') + `<rect x="890" y="30" width="190" height="12" fill="#5a3a22"/>` +
+        // beam of light across the room
+        P('M70 60L440 50L1200 640V900H520Z', 'url(#beam)') +
+        // table
+        P('M0 590H1200V900H0Z', 'url(#tbl)') + `<rect y="586" width="1200" height="8" fill="#000" opacity=".3"/>` +
+        S('M0 650Q400 640 800 652T1200 646M0 740Q420 730 820 744T1200 736M0 840Q380 832 780 846T1200 838', '#1e0f07', 2.5, ' opacity=".35"') +
+        `<g transform="matrix(1 0 .8 .45 0 0)" opacity=".22"><rect x="-900" y="1334" width="700" height="666" fill="url(#latL)"/></g>` +
+        // him: shoulders and back
+        P('M470 610C490 470 590 370 720 356C850 344 970 410 1012 520C1030 568 1022 600 1010 612Z', 'url(#coat)') +
+        S('M560 470C620 400 690 372 760 366', '#ffd79a', 4, ' opacity=".35"') +
+        S('M760 366C820 380 870 420 900 470M820 610C840 540 840 470 812 410', Z.trim, 3, ' opacity=".8"') +
+        // ponytail falling over his shoulder onto the table
+        P('M560 480C600 470 640 500 650 560C660 620 640 680 600 730C580 752 556 766 530 770C552 740 574 700 582 650C590 600 576 540 552 500Z', 'url(#pony)') +
+        S('M574 500C600 540 610 600 596 660M590 498C618 540 626 600 614 660', Z.hairL, 2, ' opacity=".5"') +
+        // forearms folded on the table, gloved hand
+        P('M210 596C360 584 600 590 790 606L800 676C600 670 360 668 214 664Z', 'url(#slv)') +
+        S('M240 600C400 592 600 598 780 612', '#ffd79a', 3, ' opacity=".35"') +
+        P('M196 594L232 592L236 666L198 668Z', Z.coatD) + S('M214 594V668M226 594V668', Z.trim, 3) +
+        P('M196 604C160 600 120 612 104 632C96 646 112 658 136 656C156 664 180 662 198 656Z', Z.glove) +
+        S('M120 640Q140 634 162 640M124 650Q146 646 170 650', '#4a4244', 2, ' opacity=".6"') +
+        // head on the arm, cheek down, asleep
+        `<g transform="translate(436 520) rotate(-80) scale(.86)">${zlHead(Z, true)}</g>` +
+        ell(392, 556, 34, 16, '#ff8a7a', ' opacity=".2"') +
+        S('M330 548C318 570 316 590 324 606M352 560C344 580 344 596 352 610', Z.hair, 3.5) +
+        // tea: cup with steam, teapot, osmanthus cakes
+        ell(1060, 676, 120, 26, '#000', ' opacity=".4"') + P('M968 650C962 580 1150 580 1146 650C1140 690 974 690 968 650Z', 'url(#clay)') +
+        P('M970 620C940 610 924 588 916 572L928 566C938 584 950 598 972 606Z', '#5a2e1c') + ell(1058, 590, 54, 12, '#7a4028') + disc(1058, 580, 12, '#5a2e1c') +
+        S('M1146 610C1186 600 1188 650 1146 656', '#5a2e1c', 12) + S('M990 620Q1010 600 1040 596', '#e0a070', 4, ' opacity=".4"') +
+        ell(860, 768, 80, 18, '#000', ' opacity=".4"') + P('M804 690Q808 760 860 764Q912 760 916 690Z', 'url(#cup)') + ell(860, 690, 56, 14, '#f4efe2') + ell(860, 692, 49, 11, '#c98a3a') +
+        S('M816 704Q820 744 846 756', '#fff', 4, ' opacity=".55"') +
+        S('M846 676C826 640 870 616 850 576C836 548 864 520 852 488', '#fff', 9, ' opacity=".2"') + S('M876 676C864 646 896 626 880 596C870 576 888 556 882 532', '#fff', 7, ' opacity=".15"') +
+        ell(250, 810, 120, 30, '#000', ' opacity=".35"') + ell(246, 800, 118, 30, '#f2ece0') + ell(246, 802, 96, 22, '#e2d8c6') +
+        [[206, 792], [276, 796]].map(([x, y]) => P(`M${x - 34} ${y}Q${x - 34} ${y - 26} ${x} ${y - 28}Q${x + 34} ${y - 26} ${x + 34} ${y}Q${x} ${y + 12} ${x - 34} ${y}Z`, '#e9b45a') + ell(x, y - 18, 24, 7, '#f6cf7a') + disc(x, y - 18, 4, '#d9772a')).join('') +
+        motes +
+        `<rect width="1200" height="900" fill="url(#warm)" style="mix-blend-mode:soft-light"/>`;
+      return wrap(w, h,
+        lg('wall', [[0, '#5e3d24'], [0.6, '#43291a'], [1, '#2a170c']], 0, 0, 1, 1) +
+        lg('win', [[0, '#fff9e4'], [0.6, '#ffe2a0'], [1, '#f6b860']], 0, 0, 0.6, 1) +
+        latticeDef('lat', '#3a2414', 6) + latticeDef('latL', '#fff1c8', 18) +
+        glowDef('glow', '#ffd892', 0.5) +
+        lg('beam', [[0, '#fff1c8', 0.32], [0.6, '#ffe0a0', 0.12], [1, '#ffe0a0', 0]], 0, 0, 1, 1) +
+        lg('tbl', [[0, '#7a4a2a'], [0.5, '#5a321b'], [1, '#3a1e0e']], 0, 0, 1, 0.3) +
+        lg('coat', [[0, ZL.coatL], [0.5, ZL.coat], [1, ZL.coatD]], 0, 0, 1, 0.6) +
+        lg('slv', [[0, ZL.coatL], [1, ZL.coatD]], 0, 0, 0, 1) +
+        lg('pony', [[0, ZL.hair], [0.5, ZL.hair], [0.85, ZL.tip], [1, ZL.tipL]], 0, 0, 0, 1) +
+        lg('clay', [[0, '#a85c38'], [0.6, '#7a3a22'], [1, '#4a2014']], 0, 0, 0, 1) +
+        lg('cup', [[0, '#c9d9c4'], [0.5, '#f4f5ee'], [1, '#a9b8a6']], 0, 0, 1, 0) +
+        rg('warm', [[0, '#ffcf80', 0.8], [1, '#4a1a00', 0.5]], 0.2, 0.2, 1) +
+        zlDefs(ZL) + vigDef(0.5) + grainDef(),
+        body + vig(w, h) + grain(w, h, 0.09));
+    },
+  });
+
+  /* =================================================================================== */
+  /* 7. Zhongli at the open window with his bird                                          */
+  /* =================================================================================== */
+  def('p_zl_birds', {
+    title: 'Xiansheng and the bird',
+    w: 1200, h: 900, tags: ['zhongli', 'bird', 'window', 'harbor'],
+    svg: (w, h) => {
+      const R = rng(42);
+      const Z = ZL;
+      let roofsNear = '', boats = '';
+      [[420, 560, 220, 70], [640, 600, 260, 80], [880, 570, 230, 70], [1100, 610, 260, 80], [520, 660, 300, 90], [800, 680, 320, 90], [1080, 700, 280, 80]].forEach(([x, y, ww, hh]) => {
+        roofsNear += `<rect x="${x - ww * 0.36}" y="${y - 4}" width="${ww * 0.72}" height="80" fill="#9a3a2c"/>` + hall(x, y, ww, hh, 'url(#gold)', '#ffeeb0');
+      });
+      for (let i = 0; i < 9; i++) {
+        const x = 420 + R() * 700, y = 400 + R() * 90, s = 0.4 + (y - 400) / 160;
+        boats += `<g transform="translate(${r0(x)} ${r0(y)}) scale(${s.toFixed(2)})">` + P('M-26 0H26L18 8H-18Z', '#5a3a2a') + (R() < 0.6 ? P('M-2 0V-40Q16 -26 18 -4Z', '#f2ead8') : P('M-12 0V-14H10V0Z', '#e8dcc4')) + '</g>';
+      }
+      const bird = `<g transform="translate(884 206)">` +
+        P('M-26 6C-30 -14 -14 -28 4 -26C20 -24 28 -10 24 6C20 20 2 26 -12 22L-38 34L-26 16Z', 'url(#yb)') +
+        P('M-6 -2C4 -10 18 -6 20 6C10 10 -2 8 -6 -2Z', '#e8b51a') + S('M-4 2C6 -4 14 -2 18 6', '#c48a10', 1.5) +
+        disc(-12, -14, 3.2, '#1a1410') + disc(-11, -15, 1, '#fff') + P('M-24 -12L-34 -8L-24 -6Z', '#f08a3a') +
+        S('M-4 22l-4 10M4 22l2 10', '#d08a5a', 2) + '</g>';
+      const cage = `<g transform="translate(330 0)">` +
+        S('M0 388V414', '#c9a24a', 4) + `<circle cx="0" cy="382" r="9" fill="none" stroke="#c9a24a" stroke-width="4"/>` +
+        P('M-92 480C-92 440 -50 414 0 414C50 414 92 440 92 480Z', 'url(#bamboo)') +
+        S('M-92 480C-92 440 -50 414 0 414C50 414 92 440 92 480', '#6a4a22', 3) +
+        `<path d="M-84 480V634M-60 470V640M-36 462V644M-12 458V646M12 458V646M36 462V644M60 470V640M84 480V634" stroke="#a87a3a" stroke-width="3.5" fill="none"/>` +
+        `<path d="M-60 470Q-40 430 0 418M60 470Q40 430 0 418M-36 462Q-20 432 0 418M36 462Q20 432 0 418" stroke="#8a5e2a" stroke-width="3" fill="none"/>` +
+        `<rect x="-96" y="478" width="192" height="10" rx="3" fill="#7a5226"/><rect x="-100" y="632" width="200" height="22" rx="4" fill="url(#bamboo)"/>` +
+        S('M-70 590H70', '#7a5226', 4) + S('M-24 534L18 528', '#c9a24a', 3) +
+        P('M40 540L84 532V600L40 604Z', 'none', ' stroke="#a87a3a" stroke-width="3"') +
+        S('M0 654V690', '#b3261e', 5) + P('M-8 690H8L12 740Q0 748 -12 740Z', '#c42d22') +
+        S('M-92 480V634', '#fff1c8', 2, ' opacity=".35"') + '</g>';
+      const fig =
+        // left arm holding the cage up
+        P('M452 352C420 380 396 430 392 486C398 500 418 502 428 490C432 446 446 410 470 384Z', 'url(#coat)') +
+        P('M392 486C380 452 360 420 346 400L366 386C384 410 406 444 426 486Z', 'url(#coat)') + S('M346 400L366 386', Z.trim, 6) +
+        P('M346 400C334 396 322 388 322 378C324 368 336 366 344 372L362 386Z', Z.glove) +
+        // back
+        P('M512 316C480 324 452 336 440 356C432 450 446 560 468 660L470 900H660L662 660C684 560 700 450 690 356C680 338 650 324 618 316Z', 'url(#coat)') +
+        S('M565 340V900', '#000', 3, ' opacity=".25"') +
+        S('M446 360C470 352 500 350 520 352M684 360C660 352 630 350 610 352', Z.trim, 3) +
+        P('M462 640Q565 656 668 640V668Q565 684 462 668Z', Z.coatD) + S('M462 640Q565 656 668 640M462 668Q565 684 668 668', Z.trim, 3) +
+        `<g transform="translate(565 655)"><rect x="-14" y="-14" width="28" height="28" transform="rotate(45)" fill="${Z.coatD}" stroke="${Z.trim}" stroke-width="3"/><rect x="-5" y="-5" width="10" height="10" transform="rotate(45)" fill="${Z.tip}"/></g>` +
+        S('M468 672L476 900M662 672L656 900M565 690V900', Z.trim, 3, ' opacity=".85"') +
+        // right arm raised to the bird
+        P('M680 354C720 352 760 342 792 326L812 352C780 376 736 392 690 396Z', 'url(#coat)') +
+        P('M792 326C812 300 830 268 846 240L868 252C856 284 836 320 812 352Z', 'url(#coat)') + S('M846 240L868 252', Z.trim, 6) +
+        P('M848 238C852 224 862 214 874 214L900 214C906 216 906 222 900 224L878 226C876 236 868 246 858 250Z', Z.glove) +
+        // collar, head (turned a little to the bird), earring
+        P('M528 296Q565 308 604 296L610 330Q565 342 520 330Z', Z.coatD) + S('M528 296Q565 308 604 296', Z.trim, 3) +
+        P('M600 236C612 252 614 272 606 290L592 300C598 280 598 258 592 240Z', Z.sk[2]) +
+        P('M508 236C502 186 530 158 564 158C600 158 624 186 618 236C614 272 596 300 564 302C534 302 514 280 508 236Z', 'url(#zhr)') +
+        S('M548 166C540 200 540 250 548 296M574 164C584 200 586 250 580 296M530 180C522 210 520 250 528 286M598 176C606 206 608 240 600 276', Z.hairL, 2.4, ' opacity=".5"') +
+        P('M512 214C504 250 508 290 520 320L528 334L530 300C528 270 528 240 532 216Z', 'url(#ztp)') +
+        disc(516, 274, 3, Z.trim) + P('M512 278h8l1 9h-10Z', Z.trim) + P('M511 287h11l4 66q-10 5 -19 0Z', Z.hairD) + S('M516 292v58', Z.trim, 1.3) +
+        // ponytail
+        P('M552 298C584 300 594 340 594 400C594 500 588 600 580 700L572 740L560 700C548 600 540 500 540 400C540 340 542 304 552 298Z', 'url(#pony)') +
+        `<rect x="546" y="296" width="40" height="12" rx="5" fill="${Z.coatD}"/><rect x="546" y="300" width="40" height="3" fill="${Z.trim}"/>` +
+        S('M558 320C564 420 566 520 562 640M576 322C582 420 582 520 574 640', Z.hairL, 2, ' opacity=".45"') +
+        // backlight rim
+        S('M612 196C620 220 618 250 610 276M690 360C700 450 686 560 664 660M684 356C720 354 762 344 794 328M796 326C814 300 832 268 848 240', '#fff4d6', 3.5, ' opacity=".7"') +
+        S('M512 200C506 230 510 262 520 290M440 360C434 450 446 560 466 660', '#fff4d6', 3, ' opacity=".45"');
+      const body =
+        // the view: sky, cliffs, sea and harbor
+        `<rect width="1200" height="900" fill="url(#sky)"/>` +
+        streak(600, 140, 500, 26, '#ffffff', 0.7) + streak(980, 200, 380, 18, '#ffffff', 0.6) +
+        karst(980, 380, 90, 200, '#8fa8b8') + karst(1060, 380, 120, 260, '#86a0b2') + karst(1140, 380, 90, 180, '#93acbb') + karst(470, 380, 100, 150, '#93acbb') +
+        `<rect y="376" width="1200" height="300" fill="url(#sea)"/>` + S('M360 378H1150', '#fff', 2, ' opacity=".5"') +
+        `<path d="M400 420h40M520 452h60M700 430h50M860 470h70M980 440h40M640 500h60" stroke="#e8fbff" stroke-width="2" opacity=".6"/>` +
+        boats +
+        P('M380 520L560 500L720 520L920 504L1150 520V700H380Z', '#7a5a46') + roofsNear +
+        disc(760, 300, 420, 'url(#day)') +
+        // interior wall around the opening, frame, opened lattice shutters
+        P('M0 0H1200V900H0ZM360 70V650H1150V70Z', 'url(#wall)', ' fill-rule="evenodd"') +
+        `<rect x="360" y="70" width="790" height="580" fill="none" stroke="#24160d" stroke-width="18"/>` +
+        P('M350 640H1160L1180 680H330Z', '#4a3020') + P('M350 640H1160L1164 648H346Z', '#ffe9b8', ' opacity=".6"') +
+        P('M352 66L270 30V720L352 660Z', '#3a2618') + P('M352 66L270 30V720L352 660Z', 'url(#lat)', ' opacity=".9"') +
+        P('M1158 66L1200 46V700L1158 660Z', '#3a2618') +
+        // a potted orchid on the sill
+        P('M1036 600H1100L1092 644H1044Z', '#e8e2d6') + S('M1068 600C1060 560 1040 540 1010 530M1068 600C1080 556 1100 540 1130 534M1068 600C1066 560 1070 530 1078 500', '#4f7a3a', 4) +
+        disc(1076, 498, 7, '#f4eef8') + disc(1012, 528, 6, '#f4eef8') +
+        // floor light
+        P('M300 900L380 680H1160L1200 760V900Z', '#ffe7b0', ' opacity=".08"') +
+        cage + fig + bird +
+        `<rect width="1200" height="900" fill="url(#bloom)"/>`;
+      return wrap(w, h,
+        lg('sky', [[0, '#7fb2df'], [0.5, '#b8d8ef'], [1, '#e9f2f4']], 0, 0, 0, 0.45) +
+        lg('sea', [[0, '#5fa7b0'], [0.5, '#3a8a97'], [1, '#2b6f7c']]) +
+        rg('day', [[0, '#fff', 0.35], [1, '#fff', 0]]) +
+        lg('gold', [[0, '#ffe08a'], [0.5, '#e2a838'], [1, '#a8641c']]) +
+        lg('wall', [[0, '#3a281c'], [0.5, '#2a1b12'], [1, '#160d08']], 0, 0, 1, 1) +
+        latticeDef('lat', '#1e120a', 5) +
+        lg('coat', [[0, '#2a1c14'], [0.5, ZL.coat], [1, '#5c4232']], 0, 0, 1, 0) +
+        lg('pony', [[0, ZL.hair], [0.55, ZL.hair], [0.85, ZL.tip], [1, ZL.tipL]], 0, 0, 0, 1) +
+        lg('bamboo', [[0, '#d9b071'], [0.5, '#b88a48'], [1, '#7a5226']], 0, 0, 1, 0) +
+        rg('yb', [[0, '#fff27a'], [0.6, '#ffd21e'], [1, '#e6a210']], 0.4, 0.3, 0.7) +
+        rg('bloom', [[0, '#fff6dc', 0.18], [0.6, '#fff6dc', 0], [1, '#000', 0.25]], 0.65, 0.35, 0.8) +
+        zlDefs(ZL) + vigDef(0.45) + grainDef(),
+        body + vig(w, h) + grain(w, h, 0.08));
+    },
+  });
+
+  /* =================================================================================== */
+  /* 8. Two opera tickets for Yun Jin's matinee                                           */
+  /* =================================================================================== */
+  def('p_zl_opera_tickets', {
+    title: 'Opera tickets, Heyu Tea House',
+    w: 1200, h: 900, tags: ['opera', 'tickets', 'yunjin', 'heyu', 'zhongli'],
+    svg: (w, h) => {
+      const R = rng(1500);
+      const G = '#e9c46a';
+      const scroll = (x, y, sx, sy) => `<path transform="translate(${x} ${y}) scale(${sx} ${sy})" d="M0 26C0 10 10 0 26 0M8 30C8 18 16 10 28 10C34 10 38 14 38 20C38 26 32 28 28 24M30 0C42 0 50 8 50 18" fill="none" stroke="${G}" stroke-width="2.4" stroke-linecap="round"/>`;
+      const ticket = (seat, no) =>
+        `<path d="M0 0H440A16 16 0 0 0 472 0H600V250H472A16 16 0 0 0 440 250H0Z" fill="url(#red)"/>` +
+        `<path d="M0 0H440A16 16 0 0 0 472 0H600V250H472A16 16 0 0 0 440 250H0Z" fill="url(#dam)" opacity=".5"/>` +
+        `<rect x="12" y="12" width="420" height="226" fill="none" stroke="${G}" stroke-width="3"/><rect x="20" y="20" width="404" height="210" fill="none" stroke="${G}" stroke-width="1.2"/>` +
+        `<rect x="480" y="12" width="108" height="226" fill="none" stroke="${G}" stroke-width="2"/>` +
+        scroll(24, 24, 1, 1) + scroll(420, 24, -1, 1) + scroll(24, 226, 1, -1) + scroll(420, 226, -1, -1) +
+        `<path d="M456 18V232" stroke="#f3d78e" stroke-width="2.5" stroke-dasharray="2 7" opacity=".9"/>` +
+        `<text x="48" y="74" font-family="${SERIF}" font-size="21" letter-spacing="5" fill="${G}">HEYU TEA HOUSE</text>` +
+        `<text x="46" y="148" font-family="${SERIF}" font-size="66" font-weight="700" letter-spacing="3" fill="url(#foil)">YUN JIN</text>` +
+        `<path d="M48 166H300" stroke="${G}" stroke-width="1.5"/>` +
+        `<text x="48" y="204" font-family="${SERIF}" font-size="22" letter-spacing="3" fill="${G}">SAT 15:00 · BOX 2</text>` +
+        // emblem: plumed headdress in a roundel
+        `<g transform="translate(352 120)"><circle r="54" fill="#8e1715" stroke="${G}" stroke-width="2.5"/><circle r="46" fill="none" stroke="${G}" stroke-width="1"/>` +
+        `<path d="M-6 10C-30 -10 -30 -40 -14 -52M6 10C30 -10 30 -40 14 -52" fill="none" stroke="${G}" stroke-width="3" stroke-linecap="round"/>` +
+        `<path d="M-22 18Q0 0 22 18Q0 30 -22 18Z" fill="${G}"/><circle cx="0" cy="4" r="7" fill="${G}"/><circle cx="-24" cy="10" r="5" fill="#f3d78e"/><circle cx="24" cy="10" r="5" fill="#f3d78e"/></g>` +
+        `<text x="534" y="58" font-family="${SERIF}" font-size="13" letter-spacing="3" fill="${G}" text-anchor="middle">ADMIT ONE</text>` +
+        `<text x="534" y="128" font-family="${SERIF}" font-size="34" font-weight="700" fill="url(#foil)" text-anchor="middle">BOX 2</text>` +
+        `<text x="534" y="166" font-family="${SERIF}" font-size="18" letter-spacing="2" fill="${G}" text-anchor="middle">SEAT ${seat}</text>` +
+        `<text x="534" y="214" font-family="${FONT}" font-size="12" letter-spacing="2" fill="#f3d78e" text-anchor="middle" opacity=".8">No. ${no}</text>` +
+        `<path d="M0 0H600V250H0Z" fill="url(#shine)"/>`;
+      let petals = '';
+      for (let i = 0; i < 14; i++) petals += disc(R() * 1200, 600 + R() * 300, 3 + R() * 3, R() < 0.5 ? '#f2a640' : '#e88a2a', 0.85);
+      const body =
+        `<rect width="1200" height="900" fill="url(#cloth)"/>` + `<rect width="1200" height="900" fill="url(#weave)" opacity=".5"/>` +
+        ell(560, 420, 700, 520, 'url(#light)') +
+        // teacup in the corner
+        ell(1090, 120, 150, 96, '#5a3a20', ' opacity=".18"') + ell(1070, 96, 130, 84, '#c8dccd') + ell(1070, 92, 110, 70, 'url(#tea)') + ell(1040, 70, 30, 10, '#fff', ' opacity=".4"') +
+        `<ellipse cx="1070" cy="96" rx="130" ry="84" fill="none" stroke="#eef6ef" stroke-width="4"/>` +
+        // osmanthus sprig
+        S('M40 820C120 780 200 770 300 740M150 784C170 760 200 750 230 748', '#5a4a2a', 4) +
+        P('M210 760C230 730 270 726 290 736C270 756 240 764 210 760ZM120 796C130 770 160 760 180 764C168 786 144 798 120 796Z', '#4f7a3a') +
+        [[240, 742], [258, 752], [290, 740], [196, 770], [176, 778], [304, 734], [272, 760]].map(([x, y]) => disc(x, y, 6, '#f0a03a') + disc(x, y, 2.5, '#ffd27a')).join('') +
+        petals +
+        // the two tickets
+        `<g transform="translate(150 150) rotate(-7)"><rect x="12" y="18" width="600" height="250" fill="#3a1a0a" opacity=".22"/><rect x="6" y="9" width="600" height="250" fill="#3a1a0a" opacity=".18"/>${ticket(1, '071820')}</g>` +
+        `<g transform="translate(330 420) rotate(5)"><rect x="14" y="20" width="600" height="250" fill="#3a1a0a" opacity=".22"/><rect x="7" y="10" width="600" height="250" fill="#3a1a0a" opacity=".18"/>${ticket(2, '071821')}</g>`;
+      return wrap(w, h,
+        lg('cloth', [[0, '#f4ecdc'], [1, '#e2d4bb']], 0, 0, 1, 1) +
+        `<pattern id="weave" width="80" height="80" patternUnits="userSpaceOnUse"><path d="M40 8C56 24 56 56 40 72C24 56 24 24 40 8ZM0 40C16 24 24 40 40 40M80 40C64 56 56 40 40 40" fill="none" stroke="#cdbb98" stroke-width="2"/></pattern>` +
+        rg('light', [[0, '#fff8e8', 0.6], [1, '#fff8e8', 0]]) +
+        rg('tea', [[0, '#e8c070'], [0.8, '#b98234'], [1, '#8a5a1c']]) +
+        lg('red', [[0, '#c72a22'], [0.5, '#a91d19'], [1, '#7e1210']], 0, 0, 1, 1) +
+        `<pattern id="dam" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M20 4C28 12 28 28 20 36C12 28 12 12 20 4Z" fill="none" stroke="#e05040" stroke-width="1.2"/></pattern>` +
+        lg('foil', [[0, '#fff0b0'], [0.45, '#e9c46a'], [0.55, '#c99a3a'], [1, '#f3d78e']], 0, 0, 1, 1) +
+        lg('shine', [[0, '#fff', 0], [0.42, '#fff', 0], [0.5, '#fff', 0.14], [0.58, '#fff', 0], [1, '#fff', 0]], 0, 0, 1, 1) +
+        vigDef(0.35) + grainDef(1.2),
+        body + vig(w, h) + grain(w, h, 0.07));
     },
   });
 })();

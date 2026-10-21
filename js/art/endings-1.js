@@ -74,6 +74,13 @@
       `<path d="M${P(-0.5, -0.7)}Q${P(0, -0.98)} ${P(0.45, -0.75)}" stroke="${CH.hi}" stroke-width="${(r * 0.1).toFixed(1)}" fill="none" opacity=".8" stroke-linecap="round"/>` +
       `<g transform="translate(${P(-0.62, -0.62).replace(' ', ' ')}) rotate(-35) scale(${(r / 38).toFixed(2)})">${MASK()}</g></g>`;
   };
+  // fur-collar shape between two shoulder points (bumpy top edge)
+  const fluffEdge = (x0, y0, x1, y1) => {
+    const n = 8, w = (x1 - x0) / n;
+    let d = `M${x0 - 10} ${y0 + 30}`;
+    for (let i = 0; i <= n; i++) d += `Q${f(x0 + w * (i - 0.5))} ${f(y0 - 22)} ${f(x0 + w * i)} ${f(y0 - 6 + (i % 2) * 6)}`;
+    return d + `L${x1 + 10} ${y1 + 30}Q${f((x0 + x1) / 2)} ${y1 + 50} ${x0 - 10} ${y0 + 30}Z`;
+  };
   // soft steam
   const steam = (x, y, h, c = '#fff', o = 0.5) => {
     const d = `M${x} ${y}c-14 ${-h * 0.25} 14 ${-h * 0.45} 0 ${-h * 0.65}s-12 ${-h * 0.25} 4 ${-h * 0.35}`;
@@ -559,6 +566,427 @@
         `<g fill="#ffb84a"><circle cx="-4" cy="-30" r="2"/><circle cx="-1" cy="-31.5" r="2"/><circle cx="2" cy="-30" r="2"/><circle cx="-1" cy="-28.5" r="2"/></g></g>` +
         `<rect width="1200" height="900" fill="#1a2a6a" opacity=".1"/>`,
         0.07, 0.75);
+    },
+  });
+
+  // Childe's phone from the back: matte Hydro-blue case, camera, child's sticker. Needs PHONE_DEFS.
+  const PHONE_DEFS = lg('case', [[0, '#4fb2ee'], [0.5, '#3aa0e6'], [1, '#1d5fa8']], 0, 0, 1, 1) + rg('lens', [[0, '#5a6a9a'], [0.55, '#10121c'], [1, '#05060a']], 0.35, 0.35, 0.7);
+  const phoneBack = (w, h, sticker = 1) => {
+    const x = -w / 2, y = -h / 2, m = w * 0.4;
+    return `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${f(w * 0.17)}" fill="url(#case)"/>` +
+      `<rect x="${x + 4}" y="${y + 4}" width="${w - 8}" height="${h - 8}" rx="${f(w * 0.15)}" fill="none" stroke="#9fd8ff" stroke-width="2" opacity=".5"/>` +
+      `<rect x="${f(x + w * 0.08)}" y="${f(y + w * 0.08)}" width="${f(m)}" height="${f(m)}" rx="${f(m * 0.26)}" fill="#1e5a96"/>` +
+      [[0.27, 0.27], [0.27, 0.62], [0.62, 0.45]].map(([u, v]) => `<circle cx="${f(x + w * 0.08 + m * u)}" cy="${f(y + w * 0.08 + m * v)}" r="${f(m * 0.17)}" fill="url(#lens)" stroke="#5a8ac0" stroke-width="2"/>`).join('') +
+      `<circle cx="${f(x + w * 0.08 + m * 0.75)}" cy="${f(y + w * 0.08 + m * 0.18)}" r="${f(m * 0.06)}" fill="#fff4d0"/>` +
+      (sticker ? `<g transform="translate(${f(w * 0.06)} ${f(h * 0.14)}) rotate(-7)"><rect x="${f(-w * 0.36)}" y="${f(-w * 0.15)}" width="${f(w * 0.72)}" height="${f(w * 0.3)}" rx="${f(w * 0.06)}" fill="#fffaf0" stroke="#ffd25a" stroke-width="3"/>` +
+        `<path d="M${f(-w * 0.29)} ${f(-w * 0.09)}l3 6 7 1-5 5 1 7-6-3-6 3 1-7-5-5 7-1z" fill="#ffc83a"/>` +
+        text(f(w * 0.04), f(-w * 0.02), "WORLD'S BEST", { size: f(w * 0.075), weight: 800, anchor: 'middle', fill: '#e0453c' }) +
+        text(f(w * 0.04), f(w * 0.08), 'BIG BROTHER', { size: f(w * 0.075), weight: 800, anchor: 'middle', fill: '#2f6fb8' }) + `</g>` : '') +
+      `<path d="M${x + 10} ${y + h * 0.3}C${x + 30} ${y + h * 0.1} ${x + w * 0.5} ${y + 8} ${x + w - 20} ${y + 6}" stroke="#fff" stroke-width="5" fill="none" opacity=".18" stroke-linecap="round"/>`;
+  };
+  // red fish charm hanging from (0,0)
+  const fishCharm = (len = 40, s = 1) =>
+    `<path d="M0 0C3 ${len * 0.4}-3 ${len * 0.7} 0 ${len}" stroke="#3a2a2a" stroke-width="2.5" fill="none"/><circle cx="0" cy="${len}" r="5" fill="none" stroke="#d9aa55" stroke-width="3"/>` +
+    `<g transform="translate(0 ${len + 30}) scale(${s}) rotate(80)"><path d="M-24 0C-16-14 8-16 18-4L30-14L28 0L30 14L18 4C8 16-16 14-24 0Z" fill="#c8323c"/>` +
+    `<path d="M-8-9C-4-3-4 3-8 9M0-10C4-3 4 3 0 10" stroke="#ff8a7a" stroke-width="2" fill="none"/><circle cx="-15" cy="-2" r="3" fill="#fff"/><circle cx="-15" cy="-2" r="1.4" fill="#2a1416"/>` +
+    `<path d="M-14-10C-6-14 4-14 10-10" stroke="#ffb0a0" stroke-width="2" fill="none" opacity=".8"/></g>`;
+
+  // ==== Return to Sender ====================================================================
+  def('end_honest', {
+    title: 'Return to Sender',
+    w: 1200, h: 900, tags: ['ending', 'me', 'wangsheng'],
+    svg: () => {
+      seed(5);
+      let beams = '';
+      for (const [a, b] of [[60, 150], [190, 260], [300, 400], [440, 500]]) beams += `M${a} 60L${b} 60L${b + 760} 900L${a + 640} 900Z`;
+      let lat = '';
+      for (let i = 0; i <= 6; i++) lat += `M${70 + i * 66} 40V430M60 ${50 + i * 62}H470`;
+      return svg(
+        lg('wall', [[0, '#4a2a22'], [1, '#2a1612']]) +
+        lg('win', [[0, '#fff8e2'], [1, '#ffdca0']]) +
+        lg('beam', [[0, '#fff2c8', 0.55], [1, '#fff2c8', 0]], 0, 0, 0.6, 1) +
+        lg('pillar', [[0, '#8a1e1e'], [0.4, '#c23a2e'], [1, '#6a1414']], 0, 0, 1, 0) +
+        lg('ctr', [[0, '#5a2e1e'], [1, '#2e160e']]) +
+        lg('ctop', [[0, '#8a4a2e'], [1, '#4a2416']]) +
+        lg('sleeve', [[0, '#e6dccb'], [1, '#b8aa94']], 0, 0, 1, 1) +
+        lg('skin', [[0, '#f8dcc6'], [1, '#e2b296']], 0, 0, 1, 1) +
+        lg('coat', [[0, '#4a3226'], [1, '#22150e']], 0, 0, 1, 1) +
+        lg('glove', [[0, '#3a3440'], [1, '#0e0c12']], 0, 0, 1, 1) +
+        rg('bglow', [[0, '#ffb04a', 0.7], [1, '#ff7a2a', 0]]) + rg('pglow', [[0, '#ffe2a8', 0.45], [1, '#ffe2a8', 0]]) + PHONE_DEFS,
+        `<rect width="1200" height="900" fill="url(#wall)"/>` +
+        // lattice window, morning light
+        `<rect x="60" y="40" width="410" height="390" fill="url(#win)"/>` +
+        `<path d="${lat}" stroke="#4a2a1e" stroke-width="10"/>` +
+        `<path d="M60 40h410v390H60z" fill="none" stroke="#3a1e14" stroke-width="18"/>` +
+        `<path d="M120 100l40 40-40 40-40-40zM380 280l40 40-40 40-40-40z" fill="none" stroke="#4a2a1e" stroke-width="6"/>` +
+        // vermilion pillar + plaque
+        `<rect x="1040" y="0" width="110" height="900" fill="url(#pillar)"/><rect x="1030" y="0" width="130" height="30" fill="#d9aa55"/>` +
+        `<rect x="600" y="70" width="380" height="120" rx="6" fill="#1a0e0c" stroke="#d9aa55" stroke-width="6"/>` +
+        text(790, 156, '往生堂', { size: 70, weight: 700, anchor: 'middle', fill: '#e8c070', font: 'serif', ls: 16 }) +
+        `<path d="M620 40V70M960 40V70" stroke="#3a2a20" stroke-width="4"/>` +
+        // shelves with urns
+        `<rect x="620" y="300" width="380" height="10" fill="#2a1410"/><rect x="620" y="420" width="380" height="10" fill="#2a1410"/>` +
+        `<g fill="#3e221a">${[650, 720, 800, 880, 950].map((x, i) => `<path d="M${x - 18} 300C${x - 24} 270 ${x - 14} 250 ${x - 8} 246H${x + 8}C${x + 14} 250 ${x + 24} 270 ${x + 18} 300Z"/>`).join('')}</g>` +
+        `<g fill="#4a2a20">${[680, 760, 900].map((x) => `<rect x="${x - 22}" y="370" width="44" height="50" rx="6"/>`).join('')}</g>` +
+        // light beams
+        `<path d="${beams}" fill="url(#beam)" opacity=".7"/>` +
+        `<path d="${dots(40, 100, 900, 100, 700, 1.2, 3)}" fill="#fff6dc" opacity=".55"/>` +
+        // counter
+        `<path d="M0 640H1200V700H0Z" fill="url(#ctop)"/><path d="M0 640H1200" stroke="#d99a6a" stroke-width="3" opacity=".6"/>` +
+        `<rect y="700" width="1200" height="200" fill="url(#ctr)"/><path d="M0 704H1200" stroke="#d9aa55" stroke-width="5"/>` +
+        `<path d="${[100, 400, 700, 1000].map((x) => `M${x} 740h220v130h-220z`).join('')}" fill="none" stroke="#7a3e26" stroke-width="5"/>` +
+        `<path d="${[210, 510, 810, 1110].map((x) => `M${x} 770l36 36-36 36-36-36z`).join('')}" fill="none" stroke="#d9aa55" stroke-width="3" opacity=".6"/>` +
+        // bell + incense on the counter
+        `<g transform="translate(820 652)"><ellipse cx="0" cy="0" rx="40" ry="8" fill="#000" opacity=".25"/><path d="M-30 0C-30-30-18-44 0-44C18-44 30-30 30 0Z" fill="#c99a40"/><circle cx="0" cy="-48" r="7" fill="#e8c070"/><path d="M-20-30C-14-38-6-40 4-40" stroke="#fff2c0" stroke-width="4" fill="none" opacity=".7"/></g>` +
+        `<g transform="translate(960 652)"><ellipse cx="0" cy="0" rx="46" ry="9" fill="#000" opacity=".25"/><path d="M-38-30H38L30 0H-30Z" fill="#2e2a2a"/><rect x="-42" y="-36" width="84" height="8" rx="3" fill="#4a4040"/><path d="M-8-36V-90M6-36V-80" stroke="#8a5a3a" stroke-width="3"/><circle cx="-8" cy="-92" r="3" fill="#ff7a3a"/><circle cx="6" cy="-82" r="3" fill="#ff7a3a"/></g>` +
+        steam(952, -0 + 560, 160, '#e8dccc', 0.5) +
+        // shadow of the hands on the counter
+        `<ellipse cx="610" cy="672" rx="300" ry="20" fill="#1a0a06" opacity=".35"/>` +
+        `<circle cx="600" cy="420" r="300" fill="url(#pglow)"/>` +
+        // ---- the handover (phone group, tilted) ----
+        `<g transform="translate(600 420) rotate(-9)">` +
+        // giver's arm (knit cardigan) from the left
+        `<path d="M-232 36C-360 44-520 70-700 110V270C-520 236-360 200-226 182Z" fill="url(#sleeve)"/>` +
+        `<path d="M-480 76C-420 110-380 140-330 186M-600 112C-520 150-470 186-420 222" stroke="#b8aa94" stroke-width="4" fill="none" opacity=".6"/>` +
+        `<path d="M-252 34L-226 30L-214 184L-240 190Z" fill="#cfc2ac"/><path d="M-246 34L-234 188M-236 32L-224 186" stroke="#a8987e" stroke-width="3"/>` +
+        // receiver's arm (coat) from the right
+        `<path d="M232-150C380-164 520-184 700-206V-30C520-14 380 0 236 4Z" fill="url(#coat)"/>` +
+        `<path d="M420-150C440-100 450-40 440 20" stroke="#140c08" stroke-width="5" fill="none" opacity=".5"/>` +
+        `<path d="M214-152L240-154L246 6L220 8Z" fill="#2a1a12"/><path d="M214-150L222 8M238-152L246 6" stroke="#d9aa55" stroke-width="4"/>` +
+        // gloved hand behind the phone's right edge
+        `<path d="M86-150C120-162 170-164 214-150L222 6C180 16 130 18 88 10Z" fill="url(#glove)"/>` +
+        `<path d="M120-120C150-128 180-128 210-120M118-70C150-76 182-74 214-66M118-24C150-28 184-26 216-20" stroke="#55505e" stroke-width="2.5" fill="none" opacity=".7"/>` +
+        `<path d="M90-150C130-160 176-160 214-150" stroke="#7a7486" stroke-width="3" fill="none" opacity=".8"/>` +
+        // giver's hand behind the phone's left edge
+        `<path d="M-84 22C-120 14-180 22-232 36L-226 182C-180 178-130 168-86 150Z" fill="url(#skin)"/>` +
+        `<path d="M-150 60C-130 90-126 120-130 160M-200 70C-184 100-182 130-186 170" stroke="#d29a7e" stroke-width="3" fill="none" opacity=".5"/>` +
+        // the phone
+        phoneBack(180, 350) +
+        // gloved thumb on the case
+        `<path d="M104-108C86-122 62-134 40-140C24-144 16-128 26-120C46-104 74-90 98-78Z" fill="url(#glove)"/>` +
+        `<path d="M36-138C52-134 72-124 94-110" stroke="#8a8496" stroke-width="3" fill="none" stroke-linecap="round"/>` +
+        `<path d="M98-78C106-90 108-100 104-108" stroke="#0a080c" stroke-width="3" fill="none"/>` +
+        // fingertip curling over the right edge
+        `<path d="M92-40C80-44 74-36 78-28C82-20 92-20 98-24Z" fill="#1c1822"/>` +
+        // giver's thumb on the case
+        `<path d="M-100 76C-84 54-62 36-40 26C-24 20-14 34-24 44C-44 58-70 76-88 96Z" fill="url(#skin)"/>` +
+        `<path d="M-38 26C-28 22-20 28-24 38C-32 38-38 34-38 26Z" fill="#fde8dc"/>` +
+        `<path d="M-100 76C-92 82-88 90-88 96" stroke="#d29a7e" stroke-width="3" fill="none"/>` +
+        // fingertip curling over the left edge
+        `<path d="M-94 110C-80 106-74 114-78 122C-82 130-92 130-98 126Z" fill="#f2c8ac"/>` +
+        // fish charm swinging from the bottom corner
+        `<g transform="translate(-50 172) rotate(14)">${fishCharm(36, 1.1)}</g>` +
+        `</g>` +
+        // ghost-fire butterflies in the light
+        bfly(330, 250, 0.9, -20, '#ff8a3a', 0.95, 'url(#bglow)') + bfly(860, 260, 0.7, 15, '#ff7a2a', 0.9, 'url(#bglow)') +
+        bfly(980, 470, 0.55, -10, '#ffb04a', 0.8, 'url(#bglow)') + bfly(240, 470, 0.5, 25, '#fff0c8', 0.8) + bfly(520, 170, 0.45, 5, '#fff0c8', 0.7) +
+        `<rect width="1200" height="900" fill="#ffcf8a" opacity=".05"/>`,
+        0.06, 0.6);
+    },
+  });
+
+  // chat bubble (right = outgoing)
+  const bubble = (x, y, w, h, c, txt, o) =>
+    `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${f(Math.min(h / 2, 22))}" fill="${c}"/>` + text(x + 16, y + h / 2 + (o.size * 0.36), txt, o);
+
+  // ==== The Balladeer's Gossip ==============================================================
+  def('end_caught_scara', {
+    title: "The Balladeer's Gossip",
+    w: 1200, h: 900, tags: ['ending', 'scara'],
+    svg: () => {
+      seed(66);
+      const FACE = 'M0-130C70-130 108-82 108-16C108 40 88 80 54 106C36 120 18 127 0 127C-18 127-36 120-54 106C-88 80-108 40-108-16C-108-82-70-130 0-130Z';
+      let bolts = '';
+      for (const [x, y, k] of [[150, 120, 1], [1060, 200, -1], [1000, 620, 1], [120, 560, -1]]) bolts += `M${x} ${y}l${30 * k} 50l${-18 * k} 6l${34 * k} 60`;
+      const screen =
+        `<rect x="-109" y="-229" width="218" height="458" rx="30" fill="url(#scr)"/>` +
+        `<rect x="-109" y="-229" width="218" height="74" rx="30" fill="#1c1a26"/><rect x="-109" y="-170" width="218" height="15" fill="#1c1a26"/>` +
+        `<circle cx="0" cy="-196" r="17" fill="#c8642f"/><path d="M-12-202C-6-214 10-214 14-200C8-206-4-206-12-202Z" fill="#8f3c1c"/>` +
+        text(0, -164, 'Tartaglia', { size: 12, weight: 600, anchor: 'middle', fill: '#d8d4e8' }) +
+        bubble(-96, -130, 150, 40, '#2a2836', "it's me lol", { size: 15, fill: '#e8e4f4' }) +
+        bubble(-96, -80, 168, 40, '#2a2836', 'who else would it be', { size: 15, fill: '#e8e4f4' }) +
+        bubble(-34, -10, 130, 54, '#8a4fd8', 'who is this.', { size: 22, weight: 700, fill: '#fff' }) +
+        text(94, 64, 'Read 00:14', { size: 11, anchor: 'end', fill: '#8a86a0' }) +
+        `<rect x="-96" y="180" width="192" height="30" rx="15" fill="none" stroke="#3a3848" stroke-width="2"/>` + text(-80, 200, 'iMessage', { size: 12, fill: '#5a5670' });
+      return svg(
+        rg('bg', [[0, '#3a2160'], [0.6, '#1c1030'], [1, '#0a0614']], 0.55, 0.45, 0.75) +
+        lg('hat', [[0, '#5a3a8a'], [1, '#22123e']]) +
+        lg('brim', [[0, '#3e2466'], [0.5, '#2a1648'], [1, '#160a26']]) +
+        lg('veil', [[0, '#c8b8f0', 0.5], [1, '#c8b8f0', 0.08]]) +
+        lg('face', [[0, '#2a1e40'], [0.35, '#5a4672'], [0.7, '#b8a4cc'], [1, '#efe4f8']]) +
+        lg('hair', [[0, '#1e1a3e'], [1, '#2e2a62']]) +
+        lg('scr', [[0, '#0e0d14'], [1, '#14121c']]) +
+        rg('sglow', [[0, '#c8b0ff', 0.55], [1, '#8a4fd8', 0]]) +
+        lg('hand', [[0, '#d8c8e8'], [1, '#9a84b4']], 0, 0, 1, 1),
+        `<rect width="1200" height="900" fill="url(#bg)"/>` +
+        `<path d="${bolts}" stroke="#b07aff" stroke-width="4" fill="none" opacity=".35" stroke-linejoin="bevel"/>` +
+        `<circle cx="690" cy="430" r="330" fill="none" stroke="#8a4fd8" stroke-width="2" opacity=".25"/><circle cx="690" cy="430" r="300" fill="none" stroke="#8a4fd8" stroke-width="1" opacity=".2" stroke-dasharray="4 10"/>` +
+        // veil (behind), hanging from the brim all around
+        `<path d="M290 270C280 420 300 580 340 700C420 740 500 700 560 660L600 330ZM1090 270C1100 420 1080 580 1040 700C960 740 880 700 820 660L780 330Z" fill="url(#veil)"/>` +
+        `<path d="M320 300C318 450 330 580 356 690M370 310C366 450 376 560 400 680M1060 300C1062 450 1050 580 1024 690M1010 310C1014 450 1004 560 980 680" stroke="#e8dcff" stroke-width="2.5" fill="none" opacity=".22"/>` +
+        // body: dark coat, purple cord
+        `<path d="M420 900C440 740 530 640 610 616H770C850 640 940 740 960 900Z" fill="#14101e"/>` +
+        `<path d="M610 616C640 676 670 716 690 736C710 716 740 676 770 616Z" fill="#e8e0f0" opacity=".85"/><path d="M650 644C670 682 710 682 730 644" stroke="#8a4fd8" stroke-width="8" fill="none"/>` +
+        `<circle cx="690" cy="688" r="10" fill="#8a4fd8"/><path d="M690 698L676 766M690 698L704 766" stroke="#8a4fd8" stroke-width="6"/>` +
+        // neck
+        `<path d="M658 520V626Q690 640 722 626V520Z" fill="#6a5280"/><path d="M658 560Q690 580 722 560" stroke="#3a2a52" stroke-width="10" fill="none" opacity=".5"/>` +
+        // hair back: short bob ending at the jaw
+        `<path d="M556 360C556 280 616 236 690 236C764 236 824 280 824 360C826 420 830 480 838 540C820 530 806 520 796 500L788 540C776 520 770 500 768 470H612C610 500 604 520 592 540L584 500C574 520 560 530 542 540C550 480 554 420 556 360Z" fill="url(#hair)"/>` +
+        // face
+        `<g transform="translate(690 418)"><path d="${FACE}" fill="url(#face)"/>` +
+        // eyes: half-lidded, smug, with red marks at the outer corners
+        `<path d="M-74-6Q-48-20-22-8Q-48 0-74-6Z" fill="#e8e0f0" opacity=".9"/><path d="M22-8Q48-20 74-6Q48 0 22-8Z" fill="#e8e0f0" opacity=".9"/>` +
+        `<ellipse cx="-44" cy="-8" rx="13" ry="11" fill="#4a3aa8"/><ellipse cx="46" cy="-8" rx="13" ry="11" fill="#4a3aa8"/>` +
+        `<ellipse cx="-44" cy="-7" rx="6" ry="7" fill="#140c2e"/><ellipse cx="46" cy="-7" rx="6" ry="7" fill="#140c2e"/>` +
+        `<circle cx="-39" cy="-11" r="3.4" fill="#e0d4ff"/><circle cx="51" cy="-11" r="3.4" fill="#e0d4ff"/>` +
+        `<path d="M-78-12Q-50-24-20-14L-22-6Q-50-14-76-4ZM20-14Q50-24 78-12L76-4Q50-14 22-6Z" fill="#1a1030" opacity=".55"/>` +
+        `<path d="M-80-8Q-50-26-18-12M18-12Q50-26 80-8" stroke="#120a1e" stroke-width="7" fill="none" stroke-linecap="round"/>` +
+        `<path d="M-80-6C-90-4-96 2-98 10C-88 6-80 4-72 2ZM80-6C90-4 96 2 98 10C88 6 80 4 72 2Z" fill="#e0303c"/>` +
+        `<path d="M-74 4Q-58 10-40 6M74 4Q58 10 40 6" stroke="#e0303c" stroke-width="3" fill="none" opacity=".7" stroke-linecap="round"/>` +
+        // nose + smirk
+        `<path d="M2 18Q-4 34 6 40" stroke="#8a6a9a" stroke-width="3" fill="none"/>` +
+        `<path d="M-30 72Q4 80 34 64Q42 58 46 50" stroke="#4a2a4a" stroke-width="5" fill="none" stroke-linecap="round"/>` +
+        `<path d="M44 52Q50 56 48 62" stroke="#4a2a4a" stroke-width="3" fill="none"/>` +
+        `</g>` +
+        // bangs and side locks
+        `<path d="M568 350C576 290 626 258 690 258C756 258 804 290 812 350C760 320 620 320 568 350Z" fill="url(#hair)"/>` +
+        `<path d="${[[592, 106, 84], [622, 100, 80], [652, 95, 72], [684, 90, 84], [714, 85, 70], [744, 80, 80], [774, 74, 82]].map(([x, a, l]) => lock(x, 316, a, l, 44, a < 90 ? 6 : -6)).join('')}" fill="url(#hair)"/>` +
+        `<path d="${lock(574, 340, 96, 200, 34, -10)}${lock(806, 340, 84, 200, 34, 10)}" fill="#22204a"/>` +
+        `<path d="M620 300C650 288 700 286 740 296" stroke="#4a4890" stroke-width="5" fill="none" opacity=".6" stroke-linecap="round"/>` +
+        // hat: low cone crown, wide brim
+        `<path d="M604 254C616 196 654 152 690 140C726 152 764 196 776 254Z" fill="url(#hat)"/>` +
+        `<path d="M606 236C650 246 730 246 774 236L778 260C730 270 650 270 602 260Z" fill="#8a4fd8" opacity=".75"/>` +
+        `<ellipse cx="690" cy="264" rx="420" ry="72" fill="url(#brim)"/>` +
+        `<path d="M270 264C300 302 500 336 690 336C880 336 1080 302 1110 264C1080 290 880 318 690 318C500 318 300 290 270 264Z" fill="#0c0618" opacity=".6"/>` +
+        `<path d="M300 236C400 206 560 192 690 192C820 192 980 206 1080 236" stroke="#7a54b8" stroke-width="3" fill="none" opacity=".5"/>` +
+        `<g fill="#d9aa55">${[[300, 300], [1080, 300], [460, 326], [920, 326]].map(([x, y]) => `<path d="M${x} ${y}V${y + 40}" stroke="#d9aa55" stroke-width="2"/><circle cx="${x}" cy="${y + 46}" r="7"/>`).join('')}</g>` +
+        // the phone, turned toward us
+        `<circle cx="400" cy="640" r="300" fill="url(#sglow)"/>` +
+        `<g transform="translate(410 650) rotate(-8)">${phoneFront(232, 472, screen, '#2a2836')}` +
+        // fingers wrapping the phone
+        `<path d="M114 50C130 46 144 52 144 64C144 74 132 80 116 78ZM114 100C132 96 146 102 146 114C146 124 132 130 114 128ZM112 150C128 148 140 154 140 164C140 174 128 178 112 176Z" fill="url(#hand)"/>` +
+        `<path d="M126 52Q136 54 138 62M126 102Q138 104 140 112" stroke="#7a6494" stroke-width="2" fill="none"/>` +
+        `<path d="M-116 70C-140 80-156 110-152 160C-148 200-130 230-104 240L-114 150Z" fill="url(#hand)"/><path d="M-124 110C-136 130-138 160-130 190" stroke="#7a6494" stroke-width="2" fill="none"/>` +
+        `<path d="M-140 240C-120 260-60 280 0 290L-20 360H-200Z" fill="#14101e"/>` +
+        `</g>` +
+        `<path d="${dots(30, 0, 1200, 0, 900, 1, 2.5)}" fill="#c8a8ff" opacity=".35"/>`,
+        0.08, 0.8);
+    },
+  });
+
+  // lock-screen notification card (local, centred on x)
+  const notif = (y, w, app, title, body, c = '#c8323c') =>
+    `<rect x="${-w / 2}" y="${y}" width="${w}" height="74" rx="18" fill="#ffffff" opacity=".2"/>` +
+    `<rect x="${-w / 2 + 12}" y="${y + 14}" width="26" height="26" rx="7" fill="${c}"/>` +
+    text(-w / 2 + 48, y + 26, app, { size: 11, fill: '#fff', op: 0.75 }) + text(w / 2 - 12, y + 26, 'now', { size: 11, anchor: 'end', fill: '#fff', op: 0.7 }) +
+    text(-w / 2 + 48, y + 46, title, { size: 14, weight: 700, fill: '#fff' }) + text(-w / 2 + 48, y + 64, body, { size: 14, fill: '#fff' });
+
+  // ==== Fatui Hospitality ===================================================================
+  def('end_caught_fatui', {
+    title: 'Fatui Hospitality',
+    w: 1200, h: 900, tags: ['ending', 'fatui'],
+    svg: () => {
+      seed(77);
+      const DK = '#0b121f', RIM = '#cfeeff';
+      const mask = (x, y, s) => `<g transform="translate(${x} ${y}) scale(${s})"><path d="M-18-22C-8-28 8-28 18-22C22-6 18 14 8 28L0 34L-8 28C-18 14-22-6-18-22Z" fill="#c9d8e6"/>` +
+        `<path d="M-14-8L-4-4L-14-1ZM14-8L4-4L14-1Z" fill="#7ad0ff"/><path d="M0-26V30" stroke="#8aa0b8" stroke-width="2"/><path d="M-18-22C-8-28 8-28 18-22" stroke="#fff" stroke-width="2" fill="none"/></g>`;
+      const screen =
+        `<rect x="-89" y="-189" width="178" height="378" rx="26" fill="url(#lock)"/>` +
+        text(0, -112, '23:58', { size: 52, weight: 300, anchor: 'middle', fill: '#fff' }) +
+        text(0, -154, 'Friday 16 October', { size: 12, anchor: 'middle', fill: '#fff', op: 0.85 }) +
+        `<g transform="translate(0 0)">${notif(-74, 164, 'MESSAGES', 'La Signora', "Don't run.")}</g>` +
+        `<g transform="translate(0 0)">${notif(10, 164, 'NORTHLAND', 'Security alert', 'Device located.', '#2f6fb8')}</g>`;
+      return svg(
+        lg('hall', [[0, '#e8f6ff'], [0.5, '#9fd2f2'], [1, '#5a94c4']]) +
+        lg('hallFloor', [[0, '#7ab0d8'], [1, '#c8e8fa']]) +
+        lg('spill', [[0, '#a8daf8', 0.55], [1, '#a8daf8', 0.05]]) +
+        lg('room', [[0, '#141a26'], [1, '#07090f']]) +
+        lg('door', [[0, '#2a2420'], [1, '#141010']], 0, 0, 1, 0) +
+        lg('lock', [[0, '#2a3a6a'], [0.5, '#1a2a4e'], [1, '#3a1a2e']]) +
+        rg('pglow', [[0, '#d8e8ff', 0.5], [1, '#d8e8ff', 0]]) +
+        lg('skin', [[0, '#e8c8b4'], [1, '#b08a7a']], 0, 0, 1, 1) +
+        rg('cic', [[0, '#e8f8ff'], [0.4, '#8ad8ff', 0.6], [1, '#8ad8ff', 0]]),
+        `<rect width="1200" height="900" fill="url(#room)"/>` +
+        // hallway seen through the door
+        `<rect x="420" y="140" width="360" height="560" fill="url(#hall)"/>` +
+        `<path d="M420 140L530 250H670L780 140Z" fill="#f4fbff"/><path d="M560 196H640" stroke="#fff" stroke-width="10"/><rect x="540" y="190" width="120" height="12" rx="6" fill="#fff"/>` +
+        `<path d="M420 700L530 560H670L780 700Z" fill="url(#hallFloor)"/>` +
+        `<path d="M530 250V560M670 250V560" stroke="#7aa8cc" stroke-width="3"/>` +
+        `<path d="M440 290L500 320V540L440 590ZM760 290L700 320V540L760 590Z" fill="#6a9cc4" opacity=".7"/>` +
+        // door frame + open door
+        `<path d="M410 130H790V710H410Z" fill="none" stroke="#1c1612" stroke-width="22"/>` +
+        `<path d="M410 130L250 70V790L410 710Z" fill="url(#door)"/><circle cx="275" cy="440" r="9" fill="#8a7a5a"/><path d="M262 120V740" stroke="#000" stroke-width="3" opacity=".4"/>` +
+        `<path d="M250 70L410 130V710L250 790" stroke="${RIM}" stroke-width="2" fill="none" opacity=".25"/>` +
+        // light spilling into the dark room
+        `<path d="M420 710H780L1120 900H80Z" fill="url(#spill)"/>` +
+        // long shadows of the three agents
+        `<path d="M440 710L300 900H420L510 710ZM540 710L520 900H680L660 710ZM700 710L840 900H1000L790 710Z" fill="${DK}" opacity=".75"/>` +
+        // frost creeping in
+        `<path d="M420 712C460 730 500 720 540 740C580 756 640 744 680 760C720 772 760 756 800 770" stroke="#e8f8ff" stroke-width="3" fill="none" opacity=".35"/>` +
+        `<path d="${dots(30, 420, 820, 700, 780, 1, 3)}" fill="#e8f8ff" opacity=".5"/>` +
+        // ---- agents (backlit) ----
+        // left: Cryo Cicin mage, pointed hood, lantern staff
+        `<path d="M468 244C450 248 442 270 444 292L428 306C418 386 416 520 410 700H528C524 560 520 420 510 316L496 294C500 268 490 244 468 244Z" fill="${DK}"/>` +
+        `<path d="M452 256C456 228 468 210 492 196C486 214 488 232 494 262Z" fill="${DK}"/><circle cx="494" cy="196" r="6" fill="#7ad0ff"/>` +
+        `<path d="M444 292C428 306 418 386 416 520M496 294C510 316 520 420 524 560M452 256C456 228 468 210 492 196" stroke="${RIM}" stroke-width="2.5" fill="none" opacity=".7"/>` +
+        mask(470, 280, 0.66) +
+        `<path d="M410 330L392 700" stroke="#1a2232" stroke-width="7"/><path d="M386 300h14l4 34h-22z" fill="#1a2232"/><circle cx="394" cy="318" r="9" fill="#bfeaff"/><circle cx="394" cy="318" r="30" fill="url(#cic)"/>` +
+        // right: heavy agent, ushanka, broad
+        `<path d="M716 226C688 226 674 246 676 266L640 286C612 306 600 370 600 430L596 700H800L796 430C796 370 786 306 760 286L756 266C758 246 744 226 716 226Z" fill="${DK}"/>` +
+        `<path d="M676 252C672 220 692 200 716 200C740 200 760 220 756 252L766 296C760 300 752 298 748 292L748 262C728 254 704 254 684 262L684 292C680 298 672 300 666 296Z" fill="#1c2638"/>` +
+        `<path d="M676 252C672 220 692 200 716 200C740 200 760 220 756 252" stroke="${RIM}" stroke-width="3" fill="none" opacity=".8"/>` +
+        `<path d="M760 286C786 306 796 370 796 430L800 700M640 286C612 306 600 370 600 430" stroke="${RIM}" stroke-width="2.5" fill="none" opacity=".7"/>` +
+        mask(716, 280, 0.8) +
+        // centre: agent in a fur-ringed hood, long coat, reaching for the phone
+        `<path d="M600 192C570 192 552 216 552 244C552 262 558 276 568 286L534 306C522 366 520 520 524 700H676C680 520 678 366 666 306L632 286C642 276 648 262 648 244C648 216 630 192 600 192Z" fill="#0f1828"/>` +
+        `<path d="M600 204C578 204 566 222 566 246C566 268 580 284 600 288C620 284 634 268 634 246C634 222 622 204 600 204Z" fill="none" stroke="#3a4a62" stroke-width="12"/>` +
+        `<path d="M600 204C578 204 566 222 566 246C566 268 580 284 600 288C620 284 634 268 634 246C634 222 622 204 600 204Z" fill="none" stroke="${RIM}" stroke-width="3" stroke-dasharray="3 5" opacity=".7"/>` +
+        `<path d="M552 244C552 216 570 192 600 192C630 192 648 216 648 244" stroke="${RIM}" stroke-width="3" fill="none" opacity=".8"/>` +
+        `<path d="M534 306C522 366 520 520 524 700M666 306C678 366 680 520 676 700" stroke="${RIM}" stroke-width="2.5" fill="none" opacity=".6"/>` +
+        `<path d="M540 310Q600 340 660 310" stroke="#2e3c54" stroke-width="14" fill="none"/>` +
+        `<path d="M530 470H670" stroke="#24304a" stroke-width="10"/><rect x="590" y="462" width="20" height="16" fill="#8aa0b8"/>` +
+        mask(600, 248, 0.92) +
+        // a gloved hand held out, palm up
+        `<path d="M656 380C690 390 716 398 738 402L742 428C716 430 682 424 650 416Z" fill="#0f1828"/>` +
+        `<path d="M738 398C756 396 774 402 782 412C776 424 758 428 742 430Z" fill="#1c2436"/><path d="M742 398C756 396 772 402 782 412" stroke="${RIM}" stroke-width="2" fill="none" opacity=".7"/>` +
+        // cicins (little ice butterflies) around the mage
+        `<g>${[[530, 350, 1], [440, 420, 0.8], [360, 260, 0.6], [450, 540, 0.7]].map(([x, y, k]) => `<circle cx="${x}" cy="${y}" r="${f(26 * k)}" fill="url(#cic)"/>` + bfly(x, y, 0.28 * k, 20, '#f0fbff', 0.95)).join('')}</g>` +
+        // cold breath mist in the doorway
+        `<path d="M420 640C500 620 560 650 640 630S760 640 780 620V700H420Z" fill="#e8f6ff" opacity=".18"/>` +
+        // ---- your hand + the phone ----
+        `<circle cx="990" cy="640" r="320" fill="url(#pglow)"/>` +
+        `<g transform="translate(990 650) rotate(7)">${phoneFront(190, 390, screen, '#22262e')}` +
+        `<path d="M96 40C116 36 128 46 126 58C124 68 112 72 96 70ZM96 90C118 86 130 96 128 108C126 118 112 122 96 120ZM94 140C114 138 124 146 122 158C120 168 108 170 94 168Z" fill="url(#skin)"/>` +
+        `<path d="M-96 80C-120 90-134 120-130 160C-126 200-110 226-88 236L-96 140Z" fill="url(#skin)"/>` +
+        `<path d="M-96 190C-90 230-60 250-20 256C20 260 60 250 96 230L110 320C60 340 0 350-60 340Z" fill="url(#skin)"/>` +
+        `<path d="M-70 330C-10 344 60 336 116 310L130 420H-80Z" fill="#2a2e3e"/>` +
+        `</g>` +
+        // dark room details (coat hook, shoes)
+        `<path d="M120 200h70M140 200v40M170 200v40" stroke="#1a2030" stroke-width="8"/><path d="M128 240C110 300 120 400 140 430H190C200 380 200 300 180 240Z" fill="#141a26"/>` +
+        `<path d="M130 760h80l10 20h-90zM230 770h80l10 20h-90z" fill="#141a26"/>`,
+        0.08, 0.85);
+    },
+  });
+
+  // anime face outline (front), scaled from the avatar face
+  const FACE_F = 'M0-130C70-130 108-82 108-16C108 40 88 80 54 106C36 120 18 127 0 127C-18 127-36 120-54 106C-88 80-108 40-108-16C-108-82-70-130 0-130Z';
+  // plum-blossom pupil
+  const plum = (r, c) => {
+    let d = '';
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2 - Math.PI / 2;
+      d += `M0 0Q${f(Math.cos(a - 0.5) * r * 1.3)} ${f(Math.sin(a - 0.5) * r * 1.3)} ${f(Math.cos(a) * r)} ${f(Math.sin(a) * r)}Q${f(Math.cos(a + 0.5) * r * 1.3)} ${f(Math.sin(a + 0.5) * r * 1.3)} 0 0Z`;
+    }
+    return `<path d="${d}" fill="${c}"/>`;
+  };
+  // coffin, side view, foot at left (x,y = bottom-left)
+  const coffin = (x, y, w, h, c, c2) =>
+    `<path d="M${x} ${y}L${x + w * 0.04} ${y - h * 0.7}Q${x + w * 0.5} ${y - h * 0.82} ${x + w} ${y - h}L${x + w * 0.98} ${y}Z" fill="${c}"/>` +
+    `<path d="M${x + w * 0.04} ${y - h * 0.7}Q${x + w * 0.5} ${y - h * 0.82} ${x + w} ${y - h}L${x + w} ${y - h * 0.82}Q${x + w * 0.5} ${y - h * 0.64} ${x + w * 0.05} ${y - h * 0.54}Z" fill="${c2}"/>` +
+    `<path d="M${x + w * 0.1} ${y - h * 0.2}H${x + w * 0.9}" stroke="#d9aa55" stroke-width="3" opacity=".7"/>`;
+
+  // ==== Wangsheng Is Hiring =================================================================
+  def('end_wangsheng', {
+    title: 'Wangsheng Is Hiring',
+    w: 1200, h: 900, tags: ['ending', 'ht', 'comedy'],
+    svg: () => {
+      seed(88);
+      const HT = { hair: '#3a221e', hair2: '#24140f', coat: '#4a2a1e', red: '#b02a2a' };
+      return svg(
+        lg('wall', [[0, '#3a1612'], [1, '#1e0a08']]) +
+        lg('floor', [[0, '#4a2418'], [1, '#1e0c08']]) +
+        lg('sk', [[0, '#fff0e4'], [1, '#f2ccb4']], 0, 0, 1, 1) +
+        lg('hth', [[0, HT.hair], [0.75, HT.hair2], [1, '#5a1e1a']]) +
+        lg('coat', [[0, '#3e2a22'], [1, '#1e1410']]) +
+        lg('pcoat', [[0, '#2e2420'], [1, '#141010']]) +
+        rg('bglow', [[0, '#ffb04a', 0.75], [1, '#ff6a2a', 0]]) +
+        rg('warm', [[0, '#ff9a4a', 0.35], [1, '#ff6a2a', 0]]) +
+        rg('iris', [[0, '#ff6a5a'], [0.6, '#c8202a'], [1, '#6a0e14']], 0.5, 0.35, 0.6),
+        `<rect width="1200" height="900" fill="url(#wall)"/>` +
+        `<rect y="600" width="1200" height="300" fill="url(#floor)"/>` +
+        `<circle cx="600" cy="420" r="560" fill="url(#warm)"/>` +
+        // banner
+        `<path d="M160 60H1040V150C900 170 300 170 160 150Z" fill="#c8323c"/><path d="M160 60H1040" stroke="#d9aa55" stroke-width="8"/>` +
+        text(600, 128, 'WELCOME, NEW HIRE!', { size: 54, weight: 800, anchor: 'middle', fill: '#fff4dc', ls: 4 }) +
+        `<g transform="translate(200 108) scale(.5)"><path d="M-30 30C-34 0-26-30 0-30C26-30 34 0 30 30L20 22L10 32L0 22L-10 32L-20 22Z" fill="#fff4dc"/><circle cx="-9" cy="-4" r="4" fill="#c8323c"/><circle cx="9" cy="-4" r="4" fill="#c8323c"/></g>` +
+        `<g transform="translate(1000 108) scale(.5)"><path d="M-30 30C-34 0-26-30 0-30C26-30 34 0 30 30L20 22L10 32L0 22L-10 32L-20 22Z" fill="#fff4dc"/><circle cx="-9" cy="-4" r="4" fill="#c8323c"/><circle cx="9" cy="-4" r="4" fill="#c8323c"/></g>` +
+        // paper lanterns
+        `<g fill="#f2e6d0">${[100, 1100].map((x) => `<path d="M${x} 180v30" stroke="#3a2a20" stroke-width="3"/><ellipse cx="${x}" cy="260" rx="40" ry="54"/><circle cx="${x}" cy="260" r="90" fill="url(#bglow)" opacity=".5"/>`).join('')}</g>` +
+        text(100, 276, '奠', { size: 44, anchor: 'middle', fill: '#3a1a14', font: 'serif' }) + text(1100, 276, '奠', { size: 44, anchor: 'middle', fill: '#3a1a14', font: 'serif' }) +
+        // coffins in rows
+        coffin(40, 600, 300, 120, '#2a120e', '#4a2018') + coffin(880, 590, 300, 120, '#2a120e', '#4a2018') +
+        coffin(-40, 700, 380, 150, '#3a1610', '#5e2a1e') + coffin(830, 720, 400, 160, '#3a1610', '#5e2a1e') +
+        // sale tag on the right coffin
+        `<g transform="translate(110 640) rotate(-6)"><path d="M-80-30H60L80 0L60 30H-80Z" fill="#fff4dc"/><circle cx="64" cy="0" r="6" fill="#3a1a14"/>` +
+        text(-8, -6, '2nd COFFIN', { size: 18, weight: 800, anchor: 'middle', fill: '#c8323c' }) + text(-8, 18, '50% OFF!', { size: 20, weight: 900, anchor: 'middle', fill: '#3a1a14' }) + `</g>` +
+        // candles
+        `<g>${[[360, 610], [400, 616], [1150, 600]].map(([x, y]) => `<rect x="${x - 6}" y="${y - 40}" width="12" height="40" fill="#f2e6d0"/><path d="M${x} ${y - 40}c-6-8 0-18 0-22c0 4 6 14 0 22z" fill="#ffc04a"/><circle cx="${x}" cy="${y - 50}" r="24" fill="url(#bglow)"/>`).join('')}</g>` +
+        // ---- you, from behind, in the uniform ----
+        `<path d="M220 900C230 720 260 560 330 520C370 500 470 500 510 520C580 560 610 720 620 900Z" fill="url(#pcoat)"/>` +
+        `<path d="M300 560C340 600 340 700 330 900M540 560C500 600 500 700 510 900" stroke="#0e0a08" stroke-width="5" fill="none" opacity=".6"/>` +
+        `<path d="M372 470V520Q420 536 468 520V470Z" fill="#1e1612"/><path d="M372 474Q420 466 468 474" stroke="#d9aa55" stroke-width="4" fill="none"/>` +
+        `<path d="M330 520C370 506 470 506 510 520" stroke="#d9aa55" stroke-width="4" fill="none"/>` +
+        // butterfly emblem on the back
+        `<g transform="translate(420 680) scale(1.2)"><circle r="44" fill="none" stroke="#d9aa55" stroke-width="3"/><path d="${BF}" fill="#d9aa55"/></g>` +
+        // head: short dark hair, borrowed pork-pie hat, talisman stuck on the back
+        `<path d="M420 330C468 330 494 366 492 408C490 440 476 466 450 480H390C364 466 350 440 348 408C346 366 372 330 420 330Z" fill="#221a24"/>` +
+        `<path d="M372 360C390 350 450 350 470 362M360 410C380 400 460 400 482 412" stroke="#3a3040" stroke-width="4" fill="none"/>` +
+        `<path d="${lock(380, 470, 100, 22, 26, 4)}${lock(420, 476, 90, 20, 26, 0)}${lock(458, 470, 80, 22, 26, -4)}" fill="#221a24"/>` +
+        `<g transform="rotate(-8 420 330)"><ellipse cx="420" cy="336" rx="92" ry="20" fill="#141014"/><path d="M366 334V286C366 276 380 270 420 270C460 270 474 276 474 286V334Z" fill="#1c181c"/><path d="M366 312H474" stroke="#6a2a2a" stroke-width="10"/>` +
+        `<circle cx="470" cy="300" r="10" fill="#e04a5a"/><circle cx="458" cy="294" r="7" fill="#f07080"/></g>` +
+        `<g transform="rotate(4 420 352)"><path d="M398 352H442V452L420 444L398 452Z" fill="#f2d870"/><path d="M412 366L428 376L412 388L428 400L412 412L426 424" stroke="#c8323c" stroke-width="4" fill="none"/></g>` +
+        // ---- Hu Tao ----
+        // twin tails (behind)
+        `<path d="M640 330C600 420 590 560 610 700C620 780 640 860 650 900H700C680 800 666 680 670 560C674 460 690 380 700 340Z" fill="url(#hth)"/>` +
+        `<path d="M880 330C920 420 930 560 910 700C900 780 880 860 870 900H820C840 800 854 680 850 560C846 460 830 380 820 340Z" fill="url(#hth)"/>` +
+        `<path d="M672 380Q660 390 668 404M848 380Q860 390 852 404" stroke="#c8323c" stroke-width="10" stroke-linecap="round"/>` +
+        // body: brown coat
+        `<path d="M640 900C650 740 680 620 716 590H804C840 620 870 740 880 900Z" fill="url(#coat)"/>` +
+        `<path d="M728 590L760 670L792 590Z" fill="#1a1010"/><path d="M746 604H774" stroke="${HT.red}" stroke-width="8"/>` +
+        `<path d="M680 720C700 760 740 780 760 790C780 780 820 760 840 720" stroke="#d9aa55" stroke-width="3" fill="none" opacity=".6"/>` +
+        `<circle cx="760" cy="740" r="6" fill="#d9aa55"/><circle cx="760" cy="790" r="6" fill="#d9aa55"/>` +
+        // neck + face
+        `<path d="M738 540V600Q760 610 782 600V540Z" fill="#ecc0a6"/>` +
+        `<g transform="translate(760 450) scale(.82)"><path d="${FACE_F}" fill="url(#sk)"/>` +
+        // wink (left) + plum-blossom eye (right)
+        `<path d="M-78 2Q-50-26-22 2" stroke="#2a1416" stroke-width="9" fill="none" stroke-linecap="round"/>` +
+        `<path d="M-80-14L-90-24M-66-22L-70-34" stroke="#2a1416" stroke-width="5" stroke-linecap="round"/>` +
+        `<ellipse cx="48" cy="-2" rx="27" ry="33" fill="url(#iris)"/><g transform="translate(48 2)">${plum(13, '#3a0608')}</g>` +
+        `<circle cx="58" cy="-16" r="8" fill="#fff"/><circle cx="38" cy="14" r="3.5" fill="#fff" opacity=".8"/>` +
+        `<path d="M14-30Q48-50 84-30" stroke="#2a1416" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M84-30L96-38" stroke="#2a1416" stroke-width="6" stroke-linecap="round"/>` +
+        `<ellipse cx="-58" cy="40" rx="24" ry="12" fill="#ff8a8a" opacity=".45"/><ellipse cx="62" cy="44" rx="24" ry="12" fill="#ff8a8a" opacity=".45"/>` +
+        // big grin with a fang
+        `<path d="M-40 56Q0 62 40 52Q30 100 0 104Q-30 100-40 56Z" fill="#8a1e2a"/><path d="M-32 60Q0 64 34 56L32 66Q0 72-30 68Z" fill="#fff"/>` +
+        `<path d="M20 64L26 78L30 62Z" fill="#fff"/><path d="M-16 96Q0 88 16 96Q8 102 0 102Q-8 102-16 96Z" fill="#e85a6a"/>` +
+        `</g>` +
+        // bangs
+        `<path d="M672 396C664 330 702 288 760 286C818 288 856 330 848 396C800 360 720 360 672 396Z" fill="url(#hth)"/>` +
+        `<path d="${[[690, 112, 70], [712, 104, 76], [736, 96, 66], [760, 90, 74], [784, 84, 64], [808, 78, 72], [830, 70, 64]].map(([x, a, l]) => lock(x, 340, a, l, 36, a < 90 ? 7 : -7)).join('')}" fill="${HT.hair}"/>` +
+        `<path d="${lock(684, 380, 100, 150, 30, -10)}${lock(836, 380, 80, 150, 30, 10)}" fill="${HT.hair}"/>` +
+        `<path d="M700 316C730 300 790 300 820 318" stroke="#6a3a30" stroke-width="5" fill="none" opacity=".7" stroke-linecap="round"/>` +
+        // pork-pie hat, plum blossoms, talisman
+        `<g transform="rotate(12 770 290)"><ellipse cx="770" cy="292" rx="86" ry="20" fill="#141014"/><path d="M712 290V244C712 234 732 228 770 228C808 228 828 234 828 244V290Z" fill="#1c181c"/><path d="M712 268H828" stroke="#6a2a2a" stroke-width="10"/>` +
+        `<path d="M820 262C840 244 852 224 856 204" stroke="#3a2418" stroke-width="5" fill="none"/>` +
+        `<g fill="#e04a5a">${[[826, 256, 10], [842, 236, 9], [856, 212, 8], [810, 266, 7]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}"/><circle cx="${x}" cy="${y}" r="${f(r / 3)}" fill="#ffd25a"/>`).join('')}</g>` +
+        `<path d="M716 292L700 380L726 374L740 296Z" fill="#f2d870"/><path d="M718 310L708 362" stroke="#c8323c" stroke-width="4"/></g>` +
+        // peace sign
+        `<g transform="translate(900 470) rotate(-14)"><path d="M-30 30C-34 10-30-4-20-8L-20-60C-20-70-6-70-6-60L-4-14L4-14L10-62C12-72 26-70 24-60L18-6C30-2 34 14 30 30C26 46 10 52-6 50C-20 48-28 42-30 30Z" fill="url(#sk)"/><circle cx="-4" cy="22" r="6" fill="#d9aa55"/></g>` +
+        `<path d="M830 560C850 540 870 520 886 500L912 520C890 550 866 576 840 596Z" fill="url(#coat)"/>` +
+        // contract held up
+        `<g transform="translate(980 640) rotate(10)"><rect x="-70" y="-90" width="140" height="180" rx="4" fill="#f6ecd4"/>` +
+        text(0, -62, 'EMPLOYMENT', { size: 15, weight: 800, anchor: 'middle', fill: '#3a1a14' }) + text(0, -44, 'CONTRACT', { size: 15, weight: 800, anchor: 'middle', fill: '#3a1a14' }) +
+        `<path d="M-50-24H50M-50-10H40M-50 4H50M-50 18H30" stroke="#a89878" stroke-width="3"/>` +
+        `<circle cx="34" cy="56" r="20" fill="#c8323c" opacity=".9"/>` + text(34, 62, '胡', { size: 18, anchor: 'middle', fill: '#fff', font: 'serif' }) +
+        `<path d="M-50 64H10" stroke="#3a1a14" stroke-width="2"/>` + text(-50, 58, 'sign here ✕', { size: 11, fill: '#c8323c' }) +
+        `<path d="M-60 90C-70 80-76 60-66 50L-50 54Z" fill="url(#sk)"/></g>` +
+        // Boo Tao
+        `<g transform="translate(600 300) rotate(-10)"><path d="M-36 40C-40 0-30-36 0-36C30-36 40 0 36 40L24 30L12 42L0 30L-12 42L-24 30Z" fill="#fff4ec" opacity=".92"/>` +
+        `<ellipse cx="-11" cy="-6" rx="5" ry="7" fill="#3a1a14"/><ellipse cx="11" cy="-6" rx="5" ry="7" fill="#3a1a14"/><path d="M-8 10Q0 16 8 10" stroke="#3a1a14" stroke-width="3" fill="none"/>` +
+        `<rect x="-14" y="-50" width="28" height="16" rx="3" fill="#1c181c"/><ellipse cx="0" cy="-36" rx="22" ry="5" fill="#1c181c"/></g>` +
+        // ghost-fire butterflies
+        bfly(540, 230, 0.8, -15, '#ff8a3a', 1, 'url(#bglow)') + bfly(980, 300, 0.9, 20, '#ff7a2a', 1, 'url(#bglow)') + bfly(260, 330, 0.6, 10, '#ffb04a', 0.9, 'url(#bglow)') +
+        bfly(700, 820, 0.6, -25, '#ff8a3a', 0.9, 'url(#bglow)') + bfly(1100, 460, 0.5, 0, '#ffb04a', 0.85, 'url(#bglow)') + bfly(140, 520, 0.55, 30, '#ff7a2a', 0.85, 'url(#bglow)'),
+        0.06, 0.6);
     },
   });
 })();

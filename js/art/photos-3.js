@@ -33,7 +33,7 @@
   const FONT = 'Inter, -apple-system, Helvetica, Arial, sans-serif';
   const SERIF = 'Georgia, Times New Roman, serif';
   const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const wrap = (w, h, defs, body) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" font-family="${FONT}"><defs>${defs}</defs>${body}</svg>`;
+  const wrap = (w, h, defs, body) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${h}" font-family="${FONT}" stroke-linecap="round" stroke-linejoin="round"><defs>${defs}</defs>${body}</svg>`;
   const grainDef = (fr) =>
     `<filter id="gr" x="0" y="0" width="100%" height="100%"><feTurbulence type="fractalNoise" baseFrequency="${fr || 0.85}" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0.33 0.33 0.33 0 0 0.33 0.33 0.33 0 0 0.33 0.33 0.33 0 0 0 0 0 0 1"/></filter>`;
   const grain = (w, h, op) => `<rect width="${w}" height="${h}" filter="url(#gr)" opacity="${op || 0.22}" style="mix-blend-mode:overlay"/>`;
@@ -44,7 +44,7 @@
   // six-armed snowflake
   const flake = (x, y, r, c, sw) => {
     const a = f1(r * 0.5), b = f1(r * 0.866);
-    return `<path d="M${f1(x - r)} ${y}H${f1(x + r)}M${f1(x - a)} ${f1(y - b)}L${f1(x + a)} ${f1(y + b)}M${f1(x - a)} ${f1(y + b)}L${f1(x + a)} ${f1(y - b)}" stroke="${c}" stroke-width="${sw}" stroke-linecap="round"/>`;
+    return `<path d="M${f1(x - r)} ${y}H${f1(x + r)}M${f1(x - a)} ${f1(y - b)}L${f1(x + a)} ${f1(y + b)}M${f1(x - a)} ${f1(y + b)}L${f1(x + a)} ${f1(y - b)}" stroke="${c}" stroke-width="${sw}"/>`;
   };
   // Northland Bank crest: snowflake in a ring
   const crest = (x, y, r, c, sw) =>
@@ -64,15 +64,33 @@
     `<rect x="453" y="34" width="300" height="88" rx="44" fill="#000"/>`;
   const homeBar = (w, h, c) => `<rect x="${w / 2 - 140}" y="${h - 34}" width="280" height="11" rx="5.5" fill="${c}"/>`;
 
+  // irregular Guyun stone pillar: jagged tapering sides, rounded top
+  const pillarD = (R, cx, top, base, wd) => {
+    const L = [], Rt = [];
+    for (let i = 0; i <= 8; i++) {
+      const t = i / 8, y = base + (top - base) * t, hw = (wd / 2) * (1 - t * 0.16);
+      L.push(`${r0(cx - hw + (R() - 0.5) * wd * 0.17)} ${r0(y)}`);
+      Rt.push(`${r0(cx + hw + (R() - 0.5) * wd * 0.17)} ${r0(y)}`);
+    }
+    return `M${L.join('L')}Q${r0(cx)} ${r0(top - wd * 0.2)} ${Rt.reverse().join('L')}Z`;
+  };
+  // trees and shrubs on a pillar top
+  const tuft = (R, cx, top, wd, c) => {
+    let d = `M${r0(cx - wd * 0.52)} ${r0(top + wd * 0.02)}`;
+    for (let i = 0; i < 4; i++) { const r = (wd / 8) * (0.9 + R() * 0.6); d += `a${f1(r)} ${f1(r * 0.9)} 0 0 1 ${f1(wd * 0.26)} 0`; }
+    return `<path d="${d}Z" fill="${c}"/>`;
+  };
+
   /* ---------- people (anime-adjacent heads; head-local units, face ≈ 94 wide) ---------- */
   const skinDefs = () =>
     lin('sk', '0 0 0 1', '#fff3ea 0|#fcdcc8 .55|#f1c1a6 1') +
     rad('bl', '.5 .5 .5', '#ff6b78 0 .5|#ff6b78 1 0') +
     lin('ish', '0 0 0 1', '#000 0 .62|#000 .55 0');
   const FACE = 'M-47 -16C-47 -60 47 -60 47 -16C47 18 31 45 0 56C-31 45 -47 18 -47 -16Z';
-  const eye = (x, y, c, k) => {
-    if (k === 'shut') return `<path d="M${x - 12} ${y + 3}Q${x} ${y - 11} ${x + 12} ${y + 3}" fill="none" stroke="#3a2026" stroke-width="4.6" stroke-linecap="round"/>`;
-    let p = `<ellipse cx="${x}" cy="${y}" rx="10.5" ry="13.5" fill="${c}"/><ellipse cx="${x}" cy="${y}" rx="10.5" ry="13.5" fill="url(#ish)"/>`;
+  // d: -1 for the left eye (outer corner on the left), 1 for the right eye
+  const eye = (x, y, c, k, d) => {
+    if (k === 'shut') return `<path d="M${x - 12} ${y + 3}Q${x} ${y - 11} ${x + 12} ${y + 3}" fill="none" stroke="#3a2026" stroke-width="4.6"/>`;
+    let p = `<ellipse cx="${x}" cy="${y + 1}" rx="13" ry="12.5" fill="#fff"/><ellipse cx="${x}" cy="${y}" rx="10.5" ry="13.5" fill="${c}"/><ellipse cx="${x}" cy="${y}" rx="10.5" ry="13.5" fill="url(#ish)"/>`;
     if (k === 'plum') {
       p += '<g fill="#3a0a10">';
       for (let i = 0; i < 5; i++) {
@@ -83,10 +101,11 @@
     } else p += `<ellipse cx="${x}" cy="${y + 2}" rx="4.6" ry="6.6" fill="#1d1216" opacity=".7"/>`;
     if (k === 'star') p += `<path d="M${x + 3} ${y - 11}l1.6 3.6 3.6 1.6-3.6 1.6-1.6 3.6-1.6-3.6-3.6-1.6 3.6-1.6z" fill="#fff"/><circle cx="${x - 3.6}" cy="${y + 6}" r="2" fill="#fff" opacity=".9"/>`;
     else p += `<circle cx="${x + 3.6}" cy="${y - 5}" r="3.8" fill="#fff"/><circle cx="${x - 3.6}" cy="${y + 6}" r="1.8" fill="#fff" opacity=".85"/>`;
-    return p + `<path d="M${x - 14} ${y - 7}Q${x - 3} ${y - 19} ${x + 14} ${y - 10}" fill="none" stroke="#2b1a1e" stroke-width="4.2" stroke-linecap="round"/>`;
+    return p + `<path d="M${x - d * 11} ${y - 11}Q${x + d * 3} ${y - 19} ${x + d * 14} ${y - 6}L${x + d * 17} ${y - 2}" fill="none" stroke="#2b1a1e" stroke-width="4.2"/>` +
+      `<path d="M${x - 5} ${y + 15}Q${x} ${y + 16} ${x + 5} ${y + 15}" stroke="#7a4a4a" stroke-width="1.6" fill="none" opacity=".6"/>`;
   };
   const MOUTH = {
-    smile: '<path d="M-8 32Q0 38 8 32" fill="none" stroke="#a5444f" stroke-width="3.2" stroke-linecap="round"/>',
+    smile: '<path d="M-8 32Q0 38 8 32" fill="none" stroke="#a5444f" stroke-width="3.2"/>',
     open: '<path d="M-12 28Q0 31 12 28Q10 46 0 47Q-10 46-12 28Z" fill="#8c2a35"/><path d="M-7 40Q0 35 7 40Q4 46 0 46Q-4 46-7 40Z" fill="#f08a95"/>',
     grin: '<path d="M-15 26Q0 32 15 25Q9 43 0 43Q-9 43-15 26Z" fill="#7d2230"/><path d="M-14 27Q0 32 14 26L13 30Q0 35-13 31Z" fill="#fff"/><path d="M6 30l2.5 5 2.5-5z" fill="#fff"/><path d="M-6 38Q0 34 6 38Q3 42 0 42Q-3 42-6 38Z" fill="#ef7f8c"/>',
   };
@@ -96,25 +115,29 @@
       (o.back || '') +
       `<path d="${FACE}" fill="url(#sk)"/><path d="M47 -16C47 18 31 45 0 56C24 40 38 14 40 -16Z" fill="#e3a68b" opacity=".35"/>` +
       `<ellipse cx="-27" cy="24" rx="12" ry="7" fill="url(#bl)"/><ellipse cx="27" cy="24" rx="12" ry="7" fill="url(#bl)"/>` +
-      eye(-19, 6, o.ec, e[0]) + eye(19, 6, o.ec, e[1]) +
-      `<path d="M1 18l-2 4h3" fill="none" stroke="#d4917a" stroke-width="2" stroke-linecap="round"/>` +
+      eye(-19, 6, o.ec, e[0], -1) + eye(19, 6, o.ec, e[1], 1) +
+      `<path d="M1 18l-2 4h3" fill="none" stroke="#d4917a" stroke-width="2"/>` +
       MOUTH[o.m || 'smile'] + (o.front || '') + (o.acc || '') + '</g>';
   };
   // neck + shoulders block (head-local), fill = garment
   const torso = (fill, wd, extra) =>
-    `<path d="M-13 36H13V96H-13Z" fill="#e8b398"/>` +
-    `<path d="M-${wd} 300C-${wd - 6} 160 -84 104 -30 90Q0 108 30 90C84 104 ${wd - 6} 160 ${wd} 300Z" fill="${fill}"/>` + (extra || '');
+    `<path d="M-13 36H13V90H-13Z" fill="#e8b398"/><path d="M-13 40Q0 54 13 40V50Q0 62-13 50Z" fill="#c98a74" opacity=".5"/>` +
+    `<g transform="translate(0 -12)"><path d="M-${wd} 300C-${wd - 6} 160 -84 104 -30 90Q0 108 30 90C84 104 ${wd - 6} 160 ${wd} 300Z" fill="${fill}"/>${extra || ''}</g>`;
   const flower = (x, y, r, c, cc) => {
-    let p = `<g transform="translate(${x} ${y})" fill="${c}">`;
-    for (let i = 0; i < 5; i++) p += `<ellipse cx="0" cy="${-r * 0.55}" rx="${f1(r * 0.42)}" ry="${f1(r * 0.6)}" transform="rotate(${i * 72})"/>`;
-    return p + `<circle r="${f1(r * 0.28)}" fill="${cc}"/></g>`;
+    let d = '';
+    const q = f1(r * 0.42);
+    for (let i = 0; i < 5; i++) {
+      const a = (i * 72 - 90) * Math.PI / 180;
+      d += `M${f1(Math.cos(a) * r * 0.55 - q)} ${f1(Math.sin(a) * r * 0.55)}a${q} ${q} 0 1 0 ${2 * q} 0a${q} ${q} 0 1 0-${2 * q} 0Z`;
+    }
+    return `<g transform="translate(${x} ${y})"><path d="${d}" fill="${c}"/><circle r="${f1(r * 0.26)}" fill="${cc}"/></g>`;
   };
   // Paimon (head-local): hair back, fringe, star halo
   const PAIMON = {
     back: `<path d="M-58 -6C-68 -66 -28 -82 0 -82C28 -82 68 -66 58 -6L62 40Q52 52 42 42L-42 42Q-52 52-62 40Z" fill="url(#hrP)"/>`,
     front: `<path d="M-54 6C-60 -58 -24 -78 2 -76C30 -76 60 -56 54 6Q50 -18 42 -26Q42 -8 36 0Q32 -24 18 -34Q20 -18 12 -6Q6 -28-6 -36Q-4 -20-12 -6Q-16 -28-28 -32Q-28 -16-34 0Q-40 -20-46 -22Q-48 -6-54 6Z" fill="url(#hrP)"/>` +
       `<path d="M-50 -8Q-62 40-52 92Q-44 64-38 4ZM50 -8Q62 40 52 92Q44 64 38 4Z" fill="#eceaf6"/>`,
-    acc: `<g transform="translate(-14 -96) rotate(-18)"><path d="M0 -30L8 -9 30 -9 12 4 19 26 0 13-19 26-12 4-30-9-8-9Z" fill="#1f2650" stroke="#4b5aa8" stroke-width="2.5" stroke-linejoin="round"/><circle cx="-4" cy="-4" r="2.4" fill="#cdd6ff"/><circle cx="6" cy="6" r="1.6" fill="#cdd6ff"/></g>`,
+    acc: `<g transform="translate(-14 -96) rotate(-18)"><path d="M0 -30L8 -9 30 -9 12 4 19 26 0 13-19 26-12 4-30-9-8-9Z" fill="#1f2650" stroke="#4b5aa8" stroke-width="2.5"/><circle cx="-4" cy="-4" r="2.4" fill="#cdd6ff"/><circle cx="6" cy="6" r="1.6" fill="#cdd6ff"/></g>`,
   };
 
   /* =========================================================================================
@@ -139,8 +162,8 @@
         lin('fl', '0 0 0 1', '#76817f 0|#4d5654 1') +
         lin('cb', '0 0 0 1', '#434a52 0|#262a30 1') +
         lin('wat', '0 0 0 1', '#bfe8f3 0|#8fcde0 .7|#7bb8cc 1') +
-        lin('ice', '0 0 1 1', '#f6fdff 0 .5|#cdeefa .38 .3|#a7dcf0 .7 .42|#e8f8ff 1 .6') +
-        rad('ie', '.5 .5 .65', '#fff .5 0|#fff 1 .9') +
+        lin('ice', '0 0 1 1', '#f6fdff 0 .66|#cdeefa .38 .42|#a7dcf0 .7 .5|#e8f8ff 1 .72') +
+        rad('ie', '.5 .5 .62', '#fff .42 0|#fff 1 .95') + glow('fz', '#ffffff', 0.85) +
         lin('dome', '0 0 0 1', '#ffffff 0|#dff4fc .5|#b1def1 1') +
         lin('icl', '0 0 0 1', '#f4fcff 0|#a8d9ee 1 .6') +
         lin('nt', '0 0 0 1', '#fff47a 0|#f5d63c 1') +
@@ -176,7 +199,7 @@
       s += `<path d="M256 600Q330 588 420 596T600 592T780 598T904 590V632H256Z" fill="#cdb48c"/>`;
       const pc = ['#e6d2a6', '#a88d64', '#d9805c', '#7fa7c9', '#f0e7d3', '#8a7356'];
       for (let i = 0; i < 34; i++) s += `<ellipse cx="${r0(262 + R() * 636)}" cy="${r0(602 + R() * 26)}" rx="${r0(4 + R() * 6)}" ry="${r0(3 + R() * 3)}" fill="${pc[i % 6]}"/>`;
-      s += `<g fill="none" stroke-linecap="round"><path d="M320 600C300 540 340 500 318 440M340 600C352 540 330 500 352 456" stroke="#3f9a5a" stroke-width="10"/><path d="M842 600C860 530 820 480 846 410M866 600C870 560 900 520 880 470" stroke="#2f8a50" stroke-width="12"/></g>`;
+      s += `<g fill="none"><path d="M320 600C300 540 340 500 318 440M340 600C352 540 330 500 352 456" stroke="#3f9a5a" stroke-width="10"/><path d="M842 600C860 530 820 480 846 410M866 600C870 560 900 520 880 470" stroke="#2f8a50" stroke-width="12"/></g>`;
       s += `<g fill="#4fae66"><ellipse cx="312" cy="470" rx="9" ry="22" transform="rotate(-20 312 470)"/><ellipse cx="350" cy="500" rx="8" ry="20" transform="rotate(24 350 500)"/><ellipse cx="850" cy="450" rx="10" ry="26" transform="rotate(14 850 450)"/><ellipse cx="884" cy="500" rx="9" ry="22" transform="rotate(-18 884 500)"/></g>`;
       // castle
       s += `<path d="M722 600V528H734V516H746V528H758V516H770V528H782V600Z" fill="#8f97a1"/><path d="M742 600V572Q752 556 762 572V600Z" fill="#3b424b"/><rect x="738" y="540" width="8" height="12" fill="#3b424b"/>`;
@@ -186,20 +209,22 @@
       s += '</g>';
       // confused fish (eyes looking every which way)
       s += goldfish(480, 430, 1.25, -8, 'url(#gf)', '#ff9d3c', -4, -4) + goldfish(690, 510, 1.05, 4, '#2f5fd6', '#ffd23f', 4, 3) +
-        `<g transform="translate(1380 0) scale(-1 1)">${goldfish(810, 412, 0.62, 26, '#ff7a2e', '#fff', 0, -5)}</g>` +
+        `<g transform="translate(1380 0) scale(-1 1)">${goldfish(610, 392, 0.62, 26, '#ff7a2e', '#fff', 0, -5)}</g>` +
         goldfish(600, 590, 0.5, 30, '#c9d6e2', '#9fb0c2', 3, 2);
-      s += `<g stroke-linecap="round" stroke-width="7"><path d="M760 370h22" stroke="#46c7ff"/><path d="M790 392h20" stroke="#46c7ff"/><path d="M748 404h18" stroke="#46c7ff"/></g>`;
+      s += `<g stroke-width="7"><path d="M560 352h22M590 372h20M548 384h18" stroke="#46c7ff"/></g>`;
       // ice: body, frosted edges, cracks, sheen
       s += `<rect x="256" y="318" width="648" height="314" fill="url(#ice)"/><rect x="256" y="318" width="648" height="314" fill="url(#ie)"/>`;
-      s += `<g fill="none" stroke="#fff" stroke-linecap="round"><path d="M256 420L330 446L372 418L452 470L520 452M520 452L560 380L640 360M520 452L590 520L700 548L760 620M700 548L812 520L904 540M640 360L700 318M330 446L300 540L262 560" stroke-width="3" opacity=".85"/>` +
+      s += `<g fill="none" stroke="#fff"><path d="M256 420L330 446L372 418L452 470L520 452M520 452L560 380L640 360M520 452L590 520L700 548L760 620M700 548L812 520L904 540M640 360L700 318M330 446L300 540L262 560" stroke-width="3" opacity=".85"/>` +
         `<path d="M372 418L392 360M452 470L430 560M812 520L840 440L904 420M590 520L570 610" stroke-width="2" opacity=".6"/></g>`;
       s += `<path d="M256 420L330 446L372 418L452 470L520 452L560 380L640 360" fill="none" stroke="#6fb6d4" stroke-width="1.5" opacity=".6" transform="translate(2 3)"/>`;
+      s += `<ellipse cx="300" cy="600" rx="90" ry="60" fill="url(#fz)"/><ellipse cx="880" cy="350" rx="80" ry="50" fill="url(#fz)"/><ellipse cx="640" cy="625" rx="130" ry="36" fill="url(#fz)"/><ellipse cx="600" cy="460" rx="60" ry="40" fill="url(#fz)" opacity=".5"/>`;
       s += `<path d="M300 318H380L300 632H256V500Z" fill="#fff" opacity=".22"/><path d="M420 318H448L368 632H340Z" fill="#fff" opacity=".14"/>`;
       // tank trims + ice dome pushing the lid up
       s += `<path d="M262 318C292 252 378 232 440 256C500 216 610 222 664 250C730 230 840 246 898 318Z" fill="url(#dome)"/>` +
-        `<path d="M300 300C330 268 380 258 420 268M520 246C580 236 620 240 650 256" fill="none" stroke="#fff" stroke-width="6" stroke-linecap="round" opacity=".9"/>`;
+        `<path d="M300 300C330 268 380 258 420 268M520 246C580 236 620 240 650 256" fill="none" stroke="#fff" stroke-width="6" opacity=".9"/>`;
       s += `<rect x="250" y="300" width="660" height="20" fill="#1c1f24"/><rect x="250" y="630" width="660" height="22" fill="#1c1f24"/><rect x="250" y="300" width="7" height="352" fill="#1c1f24"/><rect x="903" y="300" width="7" height="352" fill="#1c1f24"/>`;
       s += `<g transform="rotate(-7 610 226)"><rect x="300" y="210" width="620" height="20" rx="4" fill="#25292f"/><rect x="300" y="210" width="620" height="5" rx="2" fill="#4a5058"/></g>`;
+      s += `<path d="M310 300q14 22 30 4q12 18 26 0q18 26 40 2q10 14 22 0M560 300q16 20 34 2q12 14 24 0M760 300q16 26 36 4q14 16 30-2" fill="#eef9ff" stroke="#c9e9f6" stroke-width="2"/><path d="M250 420q12 30 0 60M910 380q-12 40 0 80" stroke="#eef9ff" stroke-width="9" fill="none"/>`;
       // icicles over the front of the cabinet
       let ic = '';
       let x = 262;
@@ -214,16 +239,16 @@
         T(306, 366, 19, 'SIR’S FISH') + T(306, 392, 16, 'please do NOT') + T(306, 414, 16, 'freeze them') + T(360, 436, 15, '— E.') + `</g></g>`;
       s += `<rect x="256" y="318" width="648" height="314" fill="#fff" opacity=".1"/>`;
       // Cryo mage's gloved hand from the right edge
-      s += `<ellipse cx="1000" cy="450" rx="140" ry="120" fill="url(#cg)" opacity=".7"/>`;
+      s += `<ellipse cx="1000" cy="450" rx="140" ry="120" fill="url(#cg)" opacity=".7"/><ellipse cx="930" cy="440" rx="110" ry="60" fill="url(#cg)" opacity=".8"/>`;
       s += `<path d="M1200 372C1160 380 1124 396 1100 410L1110 512C1140 520 1170 530 1200 548Z" fill="#253463"/>` +
         `<path d="M1108 402C1094 430 1096 490 1112 520C1124 500 1122 430 1108 402Z" fill="#f4f8ff"/><path d="M1104 412Q1090 460 1108 512" stroke="#c9d8ee" stroke-width="5" fill="none"/>`;
       const fingers = 'M1044 424L994 404L966 410M1040 446L982 440L954 448M1042 468L988 476L964 488M1050 490L1010 506L992 518M1078 418L1050 390L1024 384';
-      s += `<g fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="${fingers}" stroke="#90a8c4" stroke-width="29"/><path d="${fingers}" stroke="#e9f1fa" stroke-width="23"/></g>`;
+      s += `<g fill="none"><path d="${fingers}" stroke="#90a8c4" stroke-width="29"/><path d="${fingers}" stroke="#e9f1fa" stroke-width="23"/></g>`;
       s += `<ellipse cx="1068" cy="456" rx="50" ry="56" fill="#e9f1fa" stroke="#90a8c4" stroke-width="3"/><path d="M1032 430Q1050 456 1036 486" stroke="#bfd0e3" stroke-width="4" fill="none"/>`;
       s += `<path d="M1072 438l10 16-10 16-10-16z" fill="#7fe3ff"/><circle cx="1072" cy="454" r="22" fill="url(#cg)"/>`;
       // cryo breath: snowflakes drifting from fingertips to the tank
       s += `<g opacity=".95">` + flake(930, 400, 9, '#d8fbff', 2.5) + flake(912, 446, 6, '#d8fbff', 2) + flake(940, 488, 7, '#d8fbff', 2) + flake(892, 372, 5, '#fff', 2) + flake(960, 360, 5, '#fff', 2) + flake(880, 470, 4, '#fff', 1.6) + '</g>';
-      s += `<path d="M960 410C920 400 900 420 860 412M958 452C920 450 900 470 870 462" stroke="#e9fdff" stroke-width="3" fill="none" stroke-linecap="round" opacity=".7"/>`;
+      s += `<path d="M960 410C920 400 900 420 860 412M958 452C920 450 900 470 870 462" stroke="#e9fdff" stroke-width="3" fill="none" opacity=".7"/>`;
       // fluorescent cast + finish
       s += `<rect width="${w}" height="${h}" fill="#d8fff2" opacity=".07"/>` + vig(w, h) + grain(w, h, 0.2);
       return wrap(w, h, D + lin('gf', '0 0 1 0', '#ffd26b 0|#ff8a2a .6|#e8571c 1'), s);
@@ -243,12 +268,13 @@
         lin('lw', '1 0 0 0', '#141c2b 0|#202a3d 1') +
         lin('bd', '0 0 1 0', '#7c1a20 0|#a8252c .5|#6a1219 1') +
         lin('gl', '0 0 0 1', '#f3fbff 0|#cfe6f4 1') +
-        lin('fr', '0 0 1 0', '#fff 0 .95|#eef9ff .3 .8|#eef9ff .55 0') +
+        lin('fr', '0 0 1 0', '#fff 0 .97|#eef9ff .35 .85|#eef9ff .62 0') +
         lin('nt', '0 0 0 1', '#fff36e 0|#f2cf34 1') +
         rad('pool', '.5 .5 .5', '#bfe8ff 0 .55|#bfe8ff 1 0') +
         glow('ex', '#3dff8a', 0.9) + glow('mg', '#cfefff', 0.6) +
         rad('sc', '.5 .5 .5', '#000 0 .85|#3a1206 .55 .7|#ff7a1a .8 .35|#ff7a1a 1 0') +
-        vigDef(0.7, 0.7) + grainDef(0.9);
+        lin('rf', '0 0 0 1', '#cfe6f4 0 .2|#cfe6f4 1 0') +
+        vigDef(0.7, 0.7) + grainDef(0.9) + '<clipPath id="gc"><rect x="146" y="238" width="252" height="456"/></clipPath>';
       let s = `<rect width="${w}" height="${h}" fill="#0c121d"/>`;
       // corridor (one-point perspective, VP ≈ 800,425)
       s += `<path d="M0 0H1200L900 350H700Z" fill="#111827"/><path d="M0 900H1200L900 500H700Z" fill="url(#fl)"/>` +
@@ -266,7 +292,7 @@
       // machine glow onto wall and floor
       s += `<ellipse cx="330" cy="470" rx="420" ry="420" fill="url(#mg)" opacity=".55"/><ellipse cx="330" cy="850" rx="360" ry="80" fill="url(#pool)"/>`;
       // reflection of the lit window on the floor
-      s += `<rect x="150" y="812" width="240" height="88" fill="#cfe6f4" opacity=".14"/>`;
+      s += `<rect x="146" y="808" width="252" height="92" fill="url(#rf)"/>`;
       // machine body + side panel
       s += `<path d="M512 128L552 168V756L512 806Z" fill="#4a0d12"/>` +
         `<rect x="120" y="128" width="392" height="678" rx="8" fill="url(#bd)"/><rect x="120" y="784" width="392" height="22" fill="#3a0a0e"/>`;
@@ -294,10 +320,10 @@
       // pickup flap
       s += `<rect x="150" y="712" width="248" height="58" rx="6" fill="#1a0b0d"/><rect x="160" y="718" width="228" height="22" rx="4" fill="#3a1418"/>`;
       // pyro side: scorch mark
-      s += `<ellipse cx="460" cy="742" rx="70" ry="52" fill="url(#sc)"/>`;
+      s += `<path d="M420 790C404 760 420 730 440 724C446 690 470 680 478 700C492 680 506 700 500 720C516 740 506 780 494 790Z" fill="#120806" opacity=".85"/><path d="M440 724C446 690 470 680 478 700C492 680 506 700 500 720" fill="none" stroke="#ff7a1a" stroke-width="3" opacity=".6"/><path d="M452 700L446 640M470 690L474 610M488 700L496 650" stroke="#120806" stroke-width="6" opacity=".35"/>`;
       // cryo side: frost + cracks over the left half of the glass
-      s += `<rect x="146" y="238" width="252" height="456" fill="url(#fr)"/>`;
-      s += `<g fill="none" stroke="#fff" stroke-linecap="round" stroke-width="2.4" opacity=".9"><path d="M150 300L190 320L200 300M190 320L206 360L230 362M206 360L196 410L214 440M196 410L160 430M160 540L196 560L210 540M196 560L222 600L250 598M222 600L206 650L230 680"/></g>`;
+      s += `<g clip-path="url(#gc)"><rect x="146" y="238" width="252" height="456" fill="url(#fr)"/>`;
+      s += `<g fill="none" stroke="#fff" stroke-width="2.4" opacity=".9"><path d="M150 300L190 320L200 300M190 320L206 360L230 362M206 360L196 410L214 440M196 410L160 430M160 540L196 560L210 540M196 560L222 600L250 598M222 600L206 650L230 680"/></g>`;
       let cr = '';
       for (let i = 0; i < 11; i++) {
         const a = (i / 11) * Math.PI * 2 + R() * 0.3, l = 70 + R() * 110;
@@ -305,7 +331,7 @@
         cr += `M236 372L${r0(mx)} ${r0(my)}L${r0(236 + Math.cos(a) * l)} ${r0(372 + Math.sin(a) * l)}`;
       }
       s += `<path d="${cr}" fill="none" stroke="#3b4a5c" stroke-width="2" opacity=".6" transform="translate(1.5 1.5)"/><path d="${cr}" fill="none" stroke="#fff" stroke-width="2"/>` +
-        `<path d="M206 354L236 340L268 356L270 392L240 406L208 390Z" fill="none" stroke="#fff" stroke-width="2"/><path d="M180 332L236 310L296 336L300 410L240 440L178 410Z" fill="none" stroke="#fff" stroke-width="1.5" opacity=".7"/><circle cx="236" cy="372" r="10" fill="#fff" opacity=".85"/>`;
+        `<path d="M206 354L236 340L268 356L270 392L240 406L208 390Z" fill="none" stroke="#fff" stroke-width="2"/><path d="M180 332L236 310L296 336L300 410L240 440L178 410Z" fill="none" stroke="#fff" stroke-width="1.5" opacity=".7"/><circle cx="236" cy="372" r="10" fill="#fff" opacity=".85"/></g>`;
       // the sticky note
       s += `<g transform="rotate(5 340 560)"><rect x="282" y="508" width="118" height="108" fill="url(#nt)"/><path d="M282 508h118v14h-118z" fill="#000" opacity=".05"/>` +
         `<g fill="#222" font-weight="800" text-anchor="middle">${T(341, 546, 22, 'OUT OF')}${T(341, 574, 22, 'ORDER')}${T(341, 602, 17, '(PYOTR)', 'font-weight="600" font-style="italic"')}</g></g>`;
@@ -354,9 +380,9 @@
       s += `<path d="${fl}" stroke="#aeb9c6" stroke-width="1.6" opacity=".55"/>`;
       s += `<rect x="560" y="580" width="80" height="320" fill="url(#rf)" opacity=".5"/>`;
       // logo + crest
-      s += crest(600, 210, 42, '#dce7f5', 4) + `<circle cx="600" cy="210" r="70" fill="url(#cs)" opacity=".25"/>` +
-        T(600, 300, 40, 'NORTHLAND BANK', `fill="#e4ebf5" font-family="${SERIF}" letter-spacing="9" text-anchor="middle"`) +
-        T(600, 334, 16, 'LIYUE BRANCH · EST. 1789', 'fill="#9fb3d6" letter-spacing="5" text-anchor="middle"');
+      s += crest(600, 236, 36, '#dce7f5', 4) + `<circle cx="600" cy="236" r="64" fill="url(#cs)" opacity=".25"/>` +
+        T(600, 318, 34, 'NORTHLAND BANK', `fill="#e4ebf5" font-family="${SERIF}" letter-spacing="5" text-anchor="middle"`) +
+        T(600, 350, 15, 'LIYUE BRANCH · EST. 1789', 'fill="#9fb3d6" letter-spacing="5" text-anchor="middle"');
       // Snezhnayan banners (two on the back wall, two in the foreground)
       const banner = (x, y, wd, ht) => {
         const cx = x + wd / 2;
@@ -377,10 +403,10 @@
       s += `<g transform="translate(600 444)">` +
         `<path d="M-30 -18C-34 -50 -14 -62 0 -62C14 -62 34 -50 30 -18L32 6H-32Z" fill="url(#hrE)"/>` +
         `<path d="M-74 70C-72 30 -50 14 -20 10H20C50 14 72 30 74 70Z" fill="#1e2a4a"/>` +
-        `<path d="M-46 22C-30 6 -10 18 0 26C10 18 30 6 46 22C40 36 20 34 0 40C-20 34 -40 36 -46 22Z" fill="#f4f6fb"/><path d="M-6 26L0 44 6 26Z" fill="#c8323c"/>` +
+        `<path d="M-58 24C-56 10-46 4-38 8C-32 0-20 2-14 10C-8 4 0 8 0 16C0 8 8 4 14 10C20 2 32 0 38 8C46 4 56 10 58 24C52 36 42 40 34 38C24 46 10 44 0 40C-10 44-24 46-34 38C-42 40-52 36-58 24Z" fill="#f4f6fb"/><path d="M-6 30L0 46 6 30Z" fill="#c8323c"/>` +
         `<path d="M-7 4H7V18H-7Z" fill="#e7b69c"/>` +
         `<path d="M-23 -26C-23 -46 23 -46 23 -26C23 -6 12 8 0 12C-12 8 -23 -6 -23 -26Z" fill="url(#sk)"/>` +
-        `<ellipse cx="-9" cy="-22" rx="3.6" ry="4.6" fill="#3a3a5a"/><ellipse cx="9" cy="-22" rx="3.6" ry="4.6" fill="#3a3a5a"/><path d="M-4 -4Q0 -2 4 -4" stroke="#a5444f" stroke-width="2" fill="none" stroke-linecap="round"/>` +
+        `<ellipse cx="-9" cy="-22" rx="3.6" ry="4.6" fill="#3a3a5a"/><ellipse cx="9" cy="-22" rx="3.6" ry="4.6" fill="#3a3a5a"/><path d="M-4 -4Q0 -2 4 -4" stroke="#a5444f" stroke-width="2" fill="none"/>` +
         `<path d="M-26 -14C-30 -46 -10 -56 2 -54C20 -54 30 -40 26 -14L22 -26Q10 -38 -6 -40Q-14 -30 -26 -14Z" fill="url(#hrE)"/></g>`;
       // desk
       s += `<path d="M352 498Q600 470 848 498V590Q600 566 352 590Z" fill="url(#dk)"/><path d="M344 488Q600 458 856 488V504Q600 476 344 504Z" fill="url(#dt)"/>` +
@@ -395,9 +421,9 @@
       s += `<rect x="150" y="700" width="46" height="160" fill="url(#col)" opacity=".18"/><rect x="1004" y="700" width="46" height="160" fill="url(#col)" opacity=".18"/>`;
       s += banner(86, 20, 60, 360) + banner(1054, 20, 60, 360);
       // chandelier: ice-blue crystal tiers
-      s += `<circle cx="600" cy="150" r="230" fill="url(#ch)" opacity=".6"/><path d="M600 0V66" stroke="#9aa8b8" stroke-width="3"/>`;
+      s += `<circle cx="600" cy="100" r="230" fill="url(#ch)" opacity=".6"/><path d="M600 0V30" stroke="#9aa8b8" stroke-width="3"/>`;
       let dr = '';
-      const tiers = [[90, 160, 26, 20], [128, 112, 18, 15], [158, 68, 11, 10], [180, 30, 6, 6]];
+      const tiers = [[44, 170, 26, 24], [82, 124, 19, 18], [112, 80, 12, 12], [134, 38, 7, 7]];
       tiers.forEach(([y, rx, ry, n]) => {
         s += `<ellipse cx="600" cy="${y}" rx="${rx}" ry="${ry}" fill="none" stroke="#e6f8ff" stroke-width="4" opacity=".9"/>`;
         for (let i = 0; i < n; i++) {
@@ -408,8 +434,8 @@
         }
       });
       s += `<path d="${dr}" fill="#dff6ff" stroke="#9fdcff" stroke-width="1" opacity=".95"/>`;
-      s += `<circle cx="600" cy="130" r="52" fill="url(#cs)"/>`;
-      s += bokeh(R, 14, 440, 70, 760, 220, 2, 4, '#fff', 0.6, 1);
+      s += `<circle cx="600" cy="90" r="56" fill="url(#cs)"/>`;
+      s += bokeh(R, 14, 440, 30, 760, 170, 2, 4, '#fff', 0.6, 1);
       s += vig(w, h) + grain(w, h, 0.14);
       return wrap(w, h, D + skinDefs(), s);
     },
@@ -430,7 +456,7 @@
         glow('rg', '#3ab6ff', 0.9);
       let s = `<rect width="${w}" height="${h}" fill="#1c1c1e"/>` + statusBar('02:14', '#fff');
       s += T(60, 214, 46, 'Done', 'fill="#0a84ff" font-weight="600"') + T(603, 214, 42, 'osial_protocol.pdf', 'fill="#fff" font-weight="600" text-anchor="middle"') +
-        `<g fill="none" stroke="#0a84ff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M1080 196v-40M1064 172l16-16 16 16M1058 186h-10v38h64v-38h-10"/></g>`;
+        `<g fill="none" stroke="#0a84ff" stroke-width="5"><path d="M1080 196v-40M1064 172l16-16 16 16M1058 186h-10v38h64v-38h-10"/></g>`;
       // page
       const X0 = 40, X1 = 1166, M = 110;
       s += `<rect x="${X0}" y="276" width="${X1 - X0}" height="2196" fill="#fff"/>`;
@@ -455,14 +481,14 @@
       ]);
       // ---- diagram ----
       const DY = 880, DH = 900;
-      s += `<rect x="${M}" y="${DY}" width="986" height="${DH}" fill="#f1f5f9" stroke="#c4ccd6" stroke-width="3"/>`;
+      s += `<clipPath id="dc"><rect x="${M}" y="${DY}" width="986" height="${DH}"/></clipPath><rect x="${M}" y="${DY}" width="986" height="${DH}" fill="#f1f5f9" stroke="#c4ccd6" stroke-width="3"/><g clip-path="url(#dc)">`;
       s += `<rect x="${M}" y="${DY + 230}" width="986" height="320" fill="url(#sea)"/>` +
         `<path d="M${M} ${DY + 230}q30 -12 60 0t60 0t60 0t60 0t60 0t60 0t60 0t60 0t60 0t60 0t60 0t60 0t60 0t60 0t60 0t60 0t26 0" fill="none" stroke="#3b6f99" stroke-width="3"/>`;
       s += `<path d="M${M} ${DY + 550}Q300 ${DY + 530} 500 ${DY + 548}T900 ${DY + 540}T1096 ${DY + 550}V${DY + DH}H${M}Z" fill="url(#rk)"/>` +
         `<g fill="none" stroke="#8a7758" stroke-width="2" opacity=".6"><path d="M${M} ${DY + 600}Q400 ${DY + 586} 700 ${DY + 604}T1096 ${DY + 596}M${M} ${DY + 650}Q500 ${DY + 640} 800 ${DY + 656}T1096 ${DY + 650}"/></g>`;
       // the entity
       s += `<path d="M180 ${DY + 860}C200 ${DY + 760} 320 ${DY + 700} 460 ${DY + 720}C520 ${DY + 660} 600 ${DY + 668} 640 ${DY + 704}C700 ${DY + 650} 800 ${DY + 660} 830 ${DY + 712}C920 ${DY + 700} 1020 ${DY + 760} 1040 ${DY + 860}Z" fill="url(#ent)"/>` +
-        `<path d="M460 ${DY + 720}C440 ${DY + 680} 470 ${DY + 640} 500 ${DY + 650}M640 ${DY + 704}C630 ${DY + 660} 660 ${DY + 630} 690 ${DY + 646}M830 ${DY + 712}C840 ${DY + 670} 870 ${DY + 660} 890 ${DY + 676}" fill="none" stroke="#141826" stroke-width="22" stroke-linecap="round"/>` +
+        `<path d="M460 ${DY + 720}C440 ${DY + 680} 470 ${DY + 640} 500 ${DY + 650}M640 ${DY + 704}C630 ${DY + 660} 660 ${DY + 630} 690 ${DY + 646}M830 ${DY + 712}C840 ${DY + 670} 870 ${DY + 660} 890 ${DY + 676}" fill="none" stroke="#141826" stroke-width="22"/>` +
         `<path d="M160 ${DY + 872}C180 ${DY + 740} 330 ${DY + 680} 470 ${DY + 700}C540 ${DY + 640} 610 ${DY + 646} 645 ${DY + 684}C710 ${DY + 630} 820 ${DY + 640} 840 ${DY + 694}C940 ${DY + 684} 1040 ${DY + 750} 1062 ${DY + 872}" fill="none" stroke="#c8323c" stroke-width="3" stroke-dasharray="14 10"/>` +
         `<path d="M590 ${DY + 780}q22 -16 44 0q-22 14 -44 0z" fill="#f2c14e"/><circle cx="612" cy="${DY + 780}" r="5" fill="#3a0a10"/>`;
       // pillars + resonators + field
@@ -480,8 +506,9 @@
         `<g fill="#4b5563" font-size="22">${T(M + 16, DY + 260, 22, '0 m')}${T(M + 16, DY + 540, 22, '−60 m')}${T(M + 16, DY + 640, 22, '−140 m')}</g>` +
         T(1080, DY + 470, 24, 'resonance field ↓', 'fill="#1d6fb0" font-weight="600" text-anchor="end"') +
         T(1080, DY + 500, 22, '+0.4 Hz / day', 'fill="#1d6fb0" text-anchor="end"') +
-        `<path d="M760 ${DY + 820}L940 ${DY + 820}" stroke="#c8323c" stroke-width="2"/>` +
-        T(950, DY + 812, 24, 'ENTITY', 'fill="#c8323c" font-weight="800"') + T(950, DY + 840, 20, '(dormant)', 'fill="#c8323c"');
+
+        `</g><rect x="${M}" y="${DY}" width="986" height="${DH}" fill="none" stroke="#c4ccd6" stroke-width="3"/>`;
+      s += `<path d="M900 ${DY + 700}L940 ${DY + 668}H1000" stroke="#c8323c" stroke-width="2" fill="none"/>` + T(1080, DY + 650, 24, 'ENTITY “OSIAL”', 'fill="#c8323c" font-weight="800" text-anchor="end"') + T(1080, DY + 676, 20, '(dormant)', 'fill="#c8323c" text-anchor="end"');
       // ---- text after the diagram ----
       s += para(1850, '2. METHOD', [
         'Units run phase-locked. The field rises daily until',
@@ -489,15 +516,15 @@
         'compelled to answer in person.',
         'Projected collateral:',
       ]);
-      s += `<rect x="360" y="1994" width="420" height="34" fill="#111"/>`;
+      s += `<rect x="400" y="2012" width="380" height="34" fill="#111"/>`;
       s += T(M, 2120, 36, '3. AUTHORIZATION', 'fill="#1b2a4a" font-weight="800"') +
         T(M, 2180, 28, 'Release on the signatory’s code only.', 'fill="#26272b"') +
         T(M, 2250, 36, 'Signatory: Tartaglia (11)', 'fill="#111" font-weight="700"') +
-        `<path d="M130 2330c30-50 50-40 40 0s30-60 50-30-10 40 20 20 40-40 60-10 20 10 50-10 30 0 60-20" fill="none" stroke="#1d3a8a" stroke-width="4" stroke-linecap="round"/>` +
+        `<path d="M130 2330c30-50 50-40 40 0s30-60 50-30-10 40 20 20 40-40 60-10 20 10 50-10 30 0 60-20" fill="none" stroke="#1d3a8a" stroke-width="4"/>` +
         `<path d="M110 2350H520" stroke="#9ca3af" stroke-width="2"/>` + T(M, 2384, 22, 'Countersignature: — (removed, rev. 4)', 'fill="#6b7280"');
       // red stamp
       s += `<g transform="rotate(-11 850 2280)" fill="none" stroke="#c8323c" opacity=".82"><rect x="660" y="2200" width="380" height="150" rx="10" stroke-width="7"/><rect x="674" y="2214" width="352" height="122" rx="6" stroke-width="2.5"/>` +
-        `<g fill="#c8323c" stroke="none" text-anchor="middle" font-weight="900">${T(850, 2286, 64, 'APPROVED', 'letter-spacing="4"')}${T(850, 2320, 20, 'OFFICE OF THE EIGHTH · 09.10', 'letter-spacing="3" font-weight="700"')}</g></g>`;
+        `<g fill="#c8323c" stroke="none" text-anchor="middle" font-weight="900">${T(850, 2284, 52, 'APPROVED', 'letter-spacing="2"')}${T(850, 2318, 16, 'OFFICE OF THE EIGHTH · 09.10', 'letter-spacing="2" font-weight="700"')}</g></g>`;
       s += `<path d="M${M} 2420H1096" stroke="#e5e7eb" stroke-width="2"/>` + T(M, 2452, 20, 'NORTHLAND BANK GROUP · INTERNAL · NB-SC/OSL-3', 'fill="#9ca3af" letter-spacing="1"') + T(1096, 2452, 20, '3 / 7', 'fill="#9ca3af" text-anchor="end"');
       // viewer chrome bottom
       s += `<rect x="503" y="2500" width="200" height="54" rx="27" fill="#3a3a3c"/>` + T(603, 2536, 26, '3 of 7', 'fill="#fff" text-anchor="middle" font-weight="600"') + homeBar(w, h, '#fff');
@@ -515,43 +542,46 @@
       const R = rng(53);
       const D =
         lin('sky', '0 0 0 1', '#050a16 0|#0d1d31 .55|#1b3b4d 1') +
-        lin('sea', '0 0 0 1', '#11303f 0|#081a24 .5|#040d13 1') +
-        lin('rk', '0 0 1 0', '#56708a 0|#344658 .3|#1d2833 .7|#0f151c 1') +
+        lin('sea', '0 0 0 1', '#12303e 0|#081a24 .5|#040d13 1') +
+        lin('rk', '0 0 1 0', '#3e5368 0|#28384a .25|#151f2a .7|#0a0f15 1') +
         lin('mt', '0 0 1 0', '#e9eef3 0|#aab4c0 .3|#5d6875 .7|#2b323b 1') +
         rad('core', '.5 .5 .5', '#e6fbff 0|#5fd4ff .35|#1478d8 .7|#06243f 1') +
-        glow('bg', '#3ab0ff', 0.8) + glow('mn', '#e8f2ff', 0.9) +
-        lin('mist', '0 0 0 1', '#6f8fa3 0 0|#6f8fa3 1 .5') +
+        glow('bg', '#3ab0ff', 0.75) + glow('mn', '#e8f2ff', 0.9) +
+        lin('mist', '0 0 0 1', '#6f8fa3 0 0|#6f8fa3 1 .45') +
         vigDef(0.6) + grainDef(0.9);
       let s = `<rect width="${w}" height="${h}" fill="url(#sky)"/>`;
-      s += bokeh(R, 40, 0, 0, 1200, 360, 1, 2, '#dfe8ff', 0.3, 0.9);
+      s += bokeh(R, 36, 0, 0, 1200, 340, 1, 2, '#dfe8ff', 0.3, 0.9);
       s += `<circle cx="250" cy="150" r="140" fill="url(#mn)" opacity=".5"/><circle cx="250" cy="150" r="38" fill="#eef4ff"/>` +
-        `<path d="M60 170C140 150 200 176 280 160S420 150 500 170C420 196 300 186 220 196S100 196 60 170Z" fill="#0c1a2b" opacity=".85"/>` +
-        `<path d="M0 260C120 236 260 262 380 244S560 240 640 262V300H0Z" fill="#0d1d2e" opacity=".7"/>`;
-      // distant pillars
-      const pil = (x, wd, top, base, c) => `<path d="M${x} ${base}L${x + 4} ${top + 10}Q${x + wd * 0.2} ${top - 8} ${x + wd * 0.5} ${top}Q${x + wd * 0.8} ${top - 10} ${x + wd - 4} ${top + 8}L${x + wd} ${base}Z" fill="${c}"/>`;
-      s += pil(40, 70, 330, 530, '#22384a') + pil(150, 46, 380, 530, '#22384a') + pil(420, 90, 260, 530, '#1d3142') + pil(530, 50, 340, 530, '#22384a') + pil(330, 60, 400, 530, '#2a4254');
-      s += pil(-20, 110, 250, 530, '#152634') + pil(210, 80, 300, 530, '#172938');
-      s += `<rect x="0" y="440" width="1200" height="95" fill="url(#mist)"/>`;
+        `<path d="M60 170C140 150 200 176 280 160S420 150 500 170C420 196 300 186 220 196S100 196 60 170Z" fill="#0c1a2b" opacity=".85"/>`;
+      // distant pillars, two depths, with trees on top
+      [[70, 330, 64, '#22384a'], [180, 380, 44, '#22384a'], [330, 400, 54, '#2a4254'], [455, 270, 80, '#1d3142'], [560, 350, 46, '#22384a']].forEach(([x, t, wd, c]) => {
+        s += `<path d="${pillarD(R, x, t, 540, wd)}" fill="${c}"/>` + tuft(R, x, t, wd, '#16242c');
+      });
+      [[10, 240, 100], [250, 300, 76]].forEach(([x, t, wd]) => { s += `<path d="${pillarD(R, x, t, 540, wd)}" fill="#142331"/>` + tuft(R, x, t, wd, '#0e1a20'); });
+      s += `<rect x="0" y="430" width="1200" height="110" fill="url(#mist)"/>`;
       // sea + moon glitter
       s += `<rect x="0" y="526" width="1200" height="374" fill="url(#sea)"/>`;
       let gl = '';
-      for (let i = 0; i < 46; i++) {
+      for (let i = 0; i < 44; i++) {
         const y = 532 + i * i * 0.17, wd = 8 + i * 2.2 * R();
         gl += `M${r0(250 + (R() - 0.5) * (40 + i * 6) - wd / 2)} ${r0(y)}h${r0(wd)}`;
       }
-      s += `<path d="${gl}" stroke="#cfe2ff" stroke-width="2.4" opacity=".55" stroke-linecap="round"/>`;
+      s += `<path d="${gl}" stroke="#cfe2ff" stroke-width="2.4" opacity=".55"/>`;
       let wv = '';
-      for (let i = 0; i < 40; i++) wv += `M${r0(R() * 1200)} ${r0(560 + R() * 330)}q14 -5 28 0`;
+      for (let i = 0; i < 36; i++) wv += `M${r0(R() * 1200)} ${r0(560 + R() * 330)}q14 -5 28 0`;
       s += `<path d="${wv}" fill="none" stroke="#5f8ea8" stroke-width="2" opacity=".35"/>`;
       // resonance rings on the water around the pillar
-      s += `<g fill="none" stroke="#4fc6ff">` + [[160, 26, 0.5], [250, 40, 0.32], [350, 56, 0.18]].map(([rx, ry, o]) => `<ellipse cx="880" cy="820" rx="${rx}" ry="${ry}" stroke-width="3" opacity="${o}"/>`).join('') + '</g>';
-      // the pillar
-      s += `<path d="M628 900L660 600L640 420L668 180L650 0H1130L1110 220L1140 470L1120 700L1160 900Z" fill="url(#rk)"/>`;
-      s += `<g fill="none" stroke="#0b1118" stroke-width="3" opacity=".55"><path d="M660 120Q800 108 940 130T1120 120M648 300Q760 284 880 304T1130 300M662 640Q800 626 940 650T1124 640M650 760Q820 740 980 770T1140 760"/><path d="M760 0L748 160L770 300M1000 300L1010 420M720 660L740 780L728 900M1040 650L1060 800"/></g>`;
-      s += `<g fill="none" stroke="#9dc1dc" stroke-width="2" opacity=".35"><path d="M660 126Q760 116 860 128M648 306Q720 296 800 304M662 646Q740 636 820 650"/></g>`;
-      s += `<g fill="#1f3a2c"><path d="M650 120q20 -18 40 -4q16 -14 34 0q-36 12 -74 4z"/><path d="M1080 296q18 -16 36 -2q-18 8 -36 2z"/></g>`;
+      s += `<g fill="none" stroke="#4fc6ff">` + [[180, 30, 0.5], [270, 46, 0.3], [370, 62, 0.16]].map(([rx, ry, o]) => `<ellipse cx="880" cy="836" rx="${rx}" ry="${ry}" stroke-width="3" opacity="${o}"/>`).join('') + '</g>';
+      // the pillar: jagged, stratified, wet
+      const P = pillarD(R, 890, -200, 920, 500);
+      s += `<path d="${P}" fill="#5b7c98" transform="translate(-5 0)"/><path d="${P}" fill="url(#rk)"/>`;
+      let st = '';
+      for (let i = 0; i < 16; i++) { const y = r0(20 + i * 56 + R() * 20), x = r0(650 + R() * 160); st += `M${x} ${y}q${r0(60 + R() * 80)} ${r0((R() - 0.5) * 14)} ${r0(160 + R() * 200)} ${r0((R() - 0.5) * 10)}`; }
+      s += `<path d="${st}" fill="none" stroke="#05080c" stroke-width="3" opacity=".6"/><path d="${st}" fill="none" stroke="#7da6c6" stroke-width="1.6" opacity=".3" transform="translate(0 -3)"/>`;
+      s += `<path d="M760 0L748 150L770 290M1010 320L1000 430M722 650L742 780L728 900M1050 640L1066 800" fill="none" stroke="#05080c" stroke-width="3" opacity=".5"/>`;
+      s += `<g fill="#1d3a2a"><path d="M650 116q20 -18 40 -4q16 -14 34 0q-36 12 -74 4z"/><path d="M1060 296q18 -16 36 -2q-18 8 -36 2z"/><path d="M668 690q16 -12 30 -2q-14 6 -30 2z"/></g>`;
       // device glow on the rock
-      s += `<circle cx="850" cy="440" r="330" fill="url(#bg)" opacity=".55"/>`;
+      s += `<circle cx="850" cy="440" r="320" fill="url(#bg)" opacity=".5"/>`;
       // brackets + backplate
       s += `<rect x="676" y="364" width="348" height="26" rx="6" fill="#3a434f"/><rect x="676" y="520" width="348" height="26" rx="6" fill="#3a434f"/>`;
       [690, 1010].forEach((x) => { [377, 533].forEach((y) => { s += `<circle cx="${x}" cy="${y}" r="9" fill="#a9b3bf"/><circle cx="${x - 2}" cy="${y - 2}" r="3" fill="#fff" opacity=".7"/>`; }); });
@@ -559,21 +589,25 @@
       // body
       s += `<rect x="762" y="306" width="176" height="310" rx="44" fill="url(#mt)"/><rect x="772" y="316" width="156" height="290" rx="38" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="2"/>`;
       s += `<circle cx="850" cy="412" r="62" fill="#0b1520"/><circle cx="850" cy="412" r="54" fill="url(#core)"/><circle cx="850" cy="412" r="54" fill="none" stroke="#9feaff" stroke-width="4"/>` +
-        `<path d="M850 366A46 46 0 0 1 896 412M850 458A46 46 0 0 1 804 412" fill="none" stroke="#e6fbff" stroke-width="5" stroke-linecap="round" opacity=".85"/><circle cx="850" cy="412" r="14" fill="#f2fdff"/>`;
-      s += `<circle cx="850" cy="412" r="150" fill="url(#bg)" opacity=".75"/>`;
+        `<path d="M850 366A46 46 0 0 1 896 412M850 458A46 46 0 0 1 804 412" fill="none" stroke="#e6fbff" stroke-width="5" opacity=".85"/><circle cx="850" cy="412" r="14" fill="#f2fdff"/>`;
+      s += `<circle cx="850" cy="412" r="150" fill="url(#bg)" opacity=".7"/>`;
       for (let i = 0; i < 5; i++) s += `<rect x="842" y="${492 + i * 16}" width="16" height="9" rx="3" fill="${i % 2 ? '#2f8fd8' : '#8fe6ff'}"/>`;
       s += crest(800, 346, 13, '#2b323b', 2.2) + T(850, 598, 22, 'UNIT 3', 'fill="#1a2028" font-weight="800" letter-spacing="4" text-anchor="middle"') +
         T(886, 352, 13, 'NB·OSL', 'fill="#2b323b" font-weight="700" letter-spacing="1" text-anchor="middle"');
       s += `<path d="M850 296V244" stroke="#3a434f" stroke-width="6"/><circle cx="850" cy="240" r="7" fill="#ff4b4b"/><circle cx="850" cy="240" r="22" fill="url(#bg)"/>`;
-      // cables to the water
-      s += `<path d="M800 612C790 700 760 760 770 840M900 612C914 700 940 770 930 850" fill="none" stroke="#0a0e13" stroke-width="12" stroke-linecap="round"/>`;
-      // light streak in the water below
-      s += `<rect x="790" y="780" width="120" height="120" fill="#4fc6ff" opacity=".12"/>`;
-      // waves breaking at the base
-      s += `<path d="M560 900C600 830 640 850 670 800C700 760 740 820 780 790C820 760 860 812 900 788C940 760 990 820 1030 790C1080 760 1120 820 1200 800V900Z" fill="#c9e2f0" opacity=".85"/>` +
-        `<path d="M520 900C580 860 640 880 700 850C760 830 820 880 900 858C980 840 1060 880 1200 860V900Z" fill="#0b2230"/>` +
-        `<path d="M600 878C660 866 700 880 760 870M880 872C940 866 1000 880 1080 872" stroke="#e6f4ff" stroke-width="5" stroke-linecap="round" fill="none" opacity=".8"/>`;
-      s += bokeh(R, 26, 600, 720, 1200, 860, 2, 5, '#e6f4ff', 0.4, 0.9);
+      // cables: one along the rock, one sagging into the sea
+      s += `<path d="M806 614C800 660 740 680 700 720C680 740 676 790 690 860M894 614C900 680 960 700 1000 760C1020 790 1030 830 1024 880" fill="none" stroke="#0a0e13" stroke-width="11"/>` +
+        `<path d="M806 614C800 660 740 680 700 720" fill="none" stroke="#5f7d99" stroke-width="2" opacity=".5" transform="translate(-3 -2)"/>`;
+      // light on the water below
+      s += `<ellipse cx="850" cy="850" rx="140" ry="26" fill="#4fc6ff" opacity=".14"/>`;
+      // waves breaking against the base
+      s += `<path d="M580 900C610 860 650 852 690 830C720 812 740 838 760 826C790 806 820 830 850 818C890 802 920 834 960 822C1000 808 1040 836 1080 826C1120 816 1160 840 1200 830V900Z" fill="#0b2230"/>` +
+        `<path d="M600 866C640 846 670 840 700 822C716 812 732 826 748 820M800 818C830 808 860 826 890 814M940 822C980 806 1020 830 1060 818C1100 808 1140 828 1190 820" fill="none" stroke="#dcefff" stroke-width="4" opacity=".75"/>` +
+        `<g fill="#dcefff" opacity=".22"><ellipse cx="716" cy="804" rx="44" ry="26"/><ellipse cx="760" cy="790" rx="30" ry="34"/><ellipse cx="1096" cy="800" rx="40" ry="30"/></g>`;
+      s += bokeh(R, 22, 640, 700, 1180, 840, 1, 4, '#e6f4ff', 0.3, 0.8);
+      let rn = '';
+      for (let i = 0; i < 40; i++) rn += `M${r0(R() * 1200)} ${r0(R() * 900)}l-4 18`;
+      s += `<path d="${rn}" stroke="#cfe2ff" stroke-width="1.4" opacity=".25"/>`;
       s += vig(w, h) + grain(w, h, 0.26);
       return wrap(w, h, D, s);
     },
@@ -609,7 +643,7 @@
       s += `<path d="${rl}" stroke="#9dbbd8" stroke-width="1.6" opacity=".7"/><path d="M250 140V826" stroke="#e08a8a" stroke-width="2" opacity=".7"/>`;
       // ink drawing
       const ink = '#1b2760';
-      s += `<g fill="none" stroke="${ink}" stroke-linecap="round" stroke-linejoin="round">`;
+      s += `<g fill="none" stroke="${ink}">`;
       s += `<path d="M300 170C330 240 290 300 340 360S300 470 350 540S320 660 380 760" stroke-width="4"/>`;
       let hatch = '';
       for (let y = 200; y < 760; y += 26) hatch += `M${r0(270 + Math.sin(y / 60) * 16)} ${y}l-24 18`;
@@ -660,7 +694,7 @@
         lin('hrL', '0 0 0 1', '#fff1bd 0|#f0c96e .55|#c9973f 1') +
         lin('hrP', '0 0 0 1', '#ffffff 0|#eceaf6 .6|#c9c4e0 1') +
         lin('hrX', '0 0 0 1', '#3d4a7c 0|#222a4c 1') +
-        lin('hrH', '0 0 0 1', '#5c3428 0|#2a1511 1') +
+        lin('hrH', '0 0 0 1', '#4a2a22 0|#1f0f0c 1') +
         lin('stm', '0 1 0 0', '#fff 0 0|#fff .5 .5|#fff 1 0') +
         lin('sl', '0 0 1 0', '#555b66 0|#7b818c .5|#4a4f59 1') +
         vigDef(0.6) + grainDef();
@@ -672,13 +706,13 @@
       for (let x = 760; x < 1240; x += 44) lt += `M${x} -40V420`;
       for (let y = 0; y < 420; y += 44) lt += `M760 ${y}H1240`;
       s += `<path d="${lt}" stroke="#7a3424" stroke-width="5" opacity=".45"/>`;
-      [[120, 70, 52], [400, 20, 40], [1060, 60, 60], [690, 10, 34]].forEach(([x, y, r]) => {
-        s += `<circle cx="${x}" cy="${y}" r="${r * 2.6}" fill="url(#lan)" opacity=".5"/><ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 0.86}" fill="#e0402a"/>` +
-          `<path d="M${x} ${y - r * 0.86}Q${x - r * 0.9} ${y} ${x} ${y + r * 0.86}M${x} ${y - r * 0.86}Q${x + r * 0.9} ${y} ${x} ${y + r * 0.86}" fill="none" stroke="#a8241a" stroke-width="3"/>` +
-          `<rect x="${x - r * 0.4}" y="${y - r - 2}" width="${r * 0.8}" height="10" rx="3" fill="#e7b04a"/><rect x="${x - r * 0.4}" y="${y + r * 0.8}" width="${r * 0.8}" height="10" rx="3" fill="#e7b04a"/>` +
-          `<path d="M${x} ${y + r + 8}v${r * 0.7}" stroke="#e7b04a" stroke-width="5"/>`;
+      [[120, 70, 50], [400, 20, 40], [1060, 60, 60], [690, 10, 30]].forEach(([x, y, r]) => {
+        const k = r0(r * 0.86), q = r0(r * 0.9), b = r0(r * 0.4);
+        s += `<circle cx="${x}" cy="${y}" r="${r0(r * 2.6)}" fill="url(#lan)" opacity=".5"/><ellipse cx="${x}" cy="${y}" rx="${r}" ry="${k}" fill="#e0402a"/>` +
+          `<path d="M${x} ${y - k}Q${x - q} ${y} ${x} ${y + k}Q${x + q} ${y} ${x} ${y - k}" fill="none" stroke="#a8241a" stroke-width="3"/>` +
+          `<path d="M${x - b} ${y - r - 2}h${2 * b}v10h-${2 * b}zM${x - b} ${y + k - 4}h${2 * b}v10h-${2 * b}zM${x - 2} ${y + k + 6}h5v${r0(r * 0.7)}h-5z" fill="#e7b04a"/>`;
       });
-      s += bokeh(R, 16, 0, 0, 1200, 380, 10, 34, '#ffbe6a', 0.12, 0.4);
+      s += bokeh(R, 9, 0, 0, 1200, 380, 10, 34, '#ffbe6a', 0.12, 0.4);
       // --- Xiangling (left)
       s += head({
         x: 215, y: 372, s: 1.3, ec: '#e8a531', eyes: ['shut', 'shut'], m: 'open',
@@ -692,8 +726,8 @@
       // her arm lifting a slice of beef
       s += `<path d="M300 640C310 560 320 500 344 452L380 470C366 520 360 580 360 650Z" fill="#d8452c"/>` +
         `<ellipse cx="356" cy="446" rx="24" ry="20" fill="#f6d3bd"/>` +
-        `<path d="M344 440L404 300M356 440L420 304" stroke="#c9a06a" stroke-width="5" stroke-linecap="round"/>` +
-        `<path d="M392 318C380 340 400 360 386 384C402 392 424 372 420 350C430 336 418 320 410 312Z" fill="#d85a5a"/><path d="M396 334Q404 350 398 370" stroke="#f7d0c8" stroke-width="3" fill="none"/>`;
+        `<path d="M344 440L404 300M356 440L420 304" stroke="#c9a06a" stroke-width="5"/>` +
+        `<path d="M378 318C396 312 420 316 432 326C424 344 432 364 420 384C404 392 386 384 376 372C388 352 372 336 378 318Z" fill="#cf4a52"/><path d="M386 330Q404 326 420 336M384 352Q400 348 422 356M388 372Q402 370 416 378" stroke="#f7d6d0" stroke-width="3" fill="none"/>`;
       // --- Lumine (centre)
       s += head({
         x: 512, y: 336, s: 1.32, ec: '#e0a43a', m: 'smile',
@@ -707,7 +741,9 @@
       s += `<ellipse cx="600" cy="960" rx="860" ry="410" fill="url(#tb)"/><path d="M-260 960A860 410 0 0 1 1460 960" fill="none" stroke="#a0623a" stroke-width="5" opacity=".5"/>`;
       // beef plate
       s += `<ellipse cx="170" cy="640" rx="130" ry="50" fill="#e9e4dc"/><ellipse cx="170" cy="636" rx="112" ry="40" fill="#fbf8f3"/>`;
-      for (let i = 0; i < 6; i++) s += `<ellipse cx="${108 + i * 24}" cy="${630 + (i % 2) * 8}" rx="30" ry="18" fill="#c94650" transform="rotate(${-20 + i * 8} ${108 + i * 24} 634)"/><path d="M${92 + i * 24} ${628 + (i % 2) * 8}q14 -6 28 2" stroke="#f6d2d2" stroke-width="3" fill="none"/>`;
+      let bf = '', bm = '';
+      for (let i = 0; i < 5; i++) { const x = 104 + i * 28, y = 630 + (i % 2) * 8; bf += `M${x - 30} ${y}a30 18 ${i * 8 - 16} 1 0 60 0a30 18 ${i * 8 - 16} 1 0-60 0Z`; bm += `M${x - 16} ${y - 2}q14 -6 28 2`; }
+      s += `<path d="${bf}" fill="#c94650" stroke="#a83440" stroke-width="2"/><path d="${bm}" stroke="#f6d2d2" stroke-width="3" fill="none"/>`;
       // drinks
       s += `<rect x="40" y="520" width="56" height="96" rx="8" fill="#b02a3a" opacity=".85"/><rect x="40" y="520" width="56" height="20" rx="6" fill="#fff" opacity=".35"/><rect x="48" y="540" width="8" height="64" rx="4" fill="#fff" opacity=".4"/>`;
       // pot
@@ -719,12 +755,12 @@
       s += `<ellipse cx="${pcx - 60}" cy="${pcy - 20}" rx="120" ry="30" fill="#ff9a3c" opacity=".3"/><ellipse cx="${pcx + 90}" cy="${pcy + 30}" rx="90" ry="20" fill="#ffb347" opacity=".22"/>`;
       // things in the broth
       let pc = '';
-      for (let i = 0; i < 26; i++) {
+      for (let i = 0; i < 18; i++) {
         const a = R() * Math.PI * 2, rr = Math.sqrt(R()) * 0.9;
-        pc += `M${f1(pcx + Math.cos(a) * 210 * rr)} ${f1(pcy + 6 + Math.sin(a) * 78 * rr)}a3.5 3.5 0 1 0 .1 0Z`;
+        pc += `M${r0(pcx + Math.cos(a) * 210 * rr)} ${r0(pcy + 6 + Math.sin(a) * 78 * rr)}a3.5 3.5 0 1 0 .1 0Z`;
       }
       s += `<path d="${pc}" fill="#3a0d06"/>`;
-      for (let i = 0; i < 11; i++) {
+      for (let i = 0; i < 8; i++) {
         const a = R() * Math.PI * 2, rr = 0.25 + R() * 0.65;
         const x = r0(pcx + Math.cos(a) * 205 * rr), y = r0(pcy + 6 + Math.sin(a) * 74 * rr);
         s += `<path d="M${x - 22} ${y}Q${x} ${y - 9} ${x + 22} ${y}Q${x} ${y + 7} ${x - 22} ${y}Z" fill="#8f0f08" transform="rotate(${r0(R() * 180)} ${x} ${y})"/>`;
@@ -733,36 +769,40 @@
       [[610, 672, 20], [430, 740, -15]].forEach(([x, y, r]) => { s += `<rect x="${x - 20}" y="${y - 14}" width="40" height="28" rx="4" fill="#f4e3b8" transform="rotate(${r} ${x} ${y})"/>`; });
       s += `<g fill="#3f9a3a"><ellipse cx="770" cy="720" rx="34" ry="10" transform="rotate(-20 770 720)"/><ellipse cx="410" cy="700" rx="30" ry="9" transform="rotate(25 410 700)"/></g>`;
       let bb = '';
-      for (let i = 0; i < 12; i++) { const a = R() * 6.28, rr = R() * 0.85; bb += `<circle cx="${r0(pcx + Math.cos(a) * 200 * rr)}" cy="${r0(pcy + 6 + Math.sin(a) * 72 * rr)}" r="${r0(4 + R() * 7)}"/>`; }
+      for (let i = 0; i < 8; i++) { const a = R() * 6.28, rr = R() * 0.85; bb += `<circle cx="${r0(pcx + Math.cos(a) * 200 * rr)}" cy="${r0(pcy + 6 + Math.sin(a) * 72 * rr)}" r="${r0(4 + R() * 7)}"/>`; }
       s += `<g fill="#ff6a3a" fill-opacity=".35" stroke="#ffc9a0" stroke-width="2">${bb}</g>`;
       s += `<path d="M${pcx - 250} ${pcy - 6}A256 104 0 0 1 ${pcx + 250} ${pcy - 6}" fill="none" stroke="#ffd59a" stroke-width="4" opacity=".7"/>`;
       // dipping bowls
       [[300, 850], [860, 870]].forEach(([x, y]) => { s += `<ellipse cx="${x}" cy="${y}" rx="60" ry="24" fill="#eee8df"/><ellipse cx="${x}" cy="${y - 2}" rx="48" ry="17" fill="#8a3a1c"/><ellipse cx="${x - 10}" cy="${y - 6}" rx="16" ry="5" fill="#d98a3a" opacity=".6"/>`; });
       // --- Paimon (floating, chopsticks up)
       s += `<g transform="translate(716 214)">` +
-        `<path d="M-40 96C-70 140-80 200-60 240L0 200 60 240C80 200 70 140 40 96Z" fill="#1d2550"/>` +
-        `<g fill="#cdd6ff">${[[-40, 170], [-20, 210], [30, 180], [50, 220], [10, 150]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.6"/>`).join('')}</g>` +
-        `<path d="M-30 90C-34 120-40 150-36 170H36C40 150 34 120 30 90Z" fill="#fbfbff"/><path d="M-36 170H36L30 186H-30Z" fill="#e8c46a"/>` +
-        `<path d="M-30 100C-54 110-62 80-56 60M30 100C54 110 62 80 56 60" stroke="#fbfbff" stroke-width="15" fill="none" stroke-linecap="round"/>` +
-        `<circle cx="-56" cy="56" r="10" fill="#fbdcc8"/><circle cx="56" cy="56" r="10" fill="#fbdcc8"/>` +
-        `<path d="M-62 64L-40 -30M-52 64L-24 -28" stroke="#c9a06a" stroke-width="5" stroke-linecap="round"/>` +
+        `<path d="M-26 58C-58 96-70 160-52 204L0 174 52 204C70 160 58 96 26 58Z" fill="#1d2550"/>` +
+        `<g fill="#cdd6ff">${[[-40, 150], [-30, 186], [34, 160], [44, 190], [-14, 120], [20, 128]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="2.4"/>`).join('')}</g>` +
+        `<rect x="-14" y="48" width="12" height="40" rx="6" fill="#fbdcc8" transform="translate(8 0)"/>` +
+        `<path d="M-22 64C-28 92-32 116-28 134H28C32 116 28 92 22 64Q0 72-22 64Z" fill="#fbfbff"/><path d="M-28 134H28L24 146H-24Z" fill="#e8c46a"/>` +
+        `<path d="M-10 146V176M10 146V176" stroke="#fbfbff" stroke-width="12"/>` +
+        `<path d="M-20 72C-40 70-50 50-50 30M20 72C40 70 50 50 50 30" stroke="#fbfbff" stroke-width="12" fill="none"/>` +
+        `<circle cx="-50" cy="26" r="8.5" fill="#fbdcc8"/><circle cx="50" cy="26" r="8.5" fill="#fbdcc8"/>` +
+        `<path d="M-56 34L-40 -50M-48 36L-26 -46" stroke="#c9a06a" stroke-width="4.5"/>` +
         `</g>`;
       s += head(Object.assign({ x: 716, y: 214, s: 0.9, ec: '#8e5fe0', eyes: ['star', 'star'], m: 'open' }, PAIMON));
       // --- Hu Tao (foreground right, peace sign)
       s += head({
         x: 942, y: 410, s: 1.95, r: -6, ec: '#d8343c', eyes: ['plum', 'shut'], m: 'grin',
         back: `<path d="M-60 -10C-70 -70 -30 -84 0 -84C30 -84 70 -70 60 -10L64 60Q52 70 40 60H-40Q-52 70-64 60Z" fill="url(#hrH)"/>` +
-          `<path d="M-58 30C-96 110-100 220-84 300H-44C-56 220-46 120-36 40ZM58 30C96 110 100 220 84 300H44C56 220 46 120 36 40Z" fill="url(#hrH)"/>` +
-          torso('#4a2a22', 132, `<path d="M-30 90L0 140L30 90L20 84L0 112L-20 84Z" fill="#1d1210"/><path d="M-30 90Q0 104 30 90" stroke="#c8323c" stroke-width="4" fill="none"/>` + flower(-60, 150, 16, '#d8343c', '#f2c14e')),
+          torso('#6e4130', 132, `<path d="M-30 90L0 140L30 90L20 84L0 112L-20 84Z" fill="#1d1210"/><path d="M-30 90Q0 104 30 90" stroke="#c8323c" stroke-width="4" fill="none"/>` + flower(-70, 170, 16, '#d8343c', '#f2c14e')) +
+          `<path d="M-56 30C-92 100-98 200-80 300Q-66 312-50 300C-60 220-52 120-38 44ZM56 30C92 100 98 200 80 300Q66 312 50 300C60 220 52 120 38 44Z" fill="url(#hrH)"/>` +
+          `<path d="M-60 60C-78 120-80 200-70 280M60 60C78 120 80 200 70 280" stroke="#7a4636" stroke-width="3" fill="none" opacity=".6"/>` +
+          `<g fill="#1a1012"><rect x="-64" y="40" width="22" height="14" rx="5" transform="rotate(20 -53 47)"/><rect x="42" y="40" width="22" height="14" rx="5" transform="rotate(-20 53 47)"/></g>`,
         front: `<path d="M-56 8C-62 -58 -24 -80 2 -78C30 -78 62 -56 56 8Q52 -16 44 -26Q44 -8 38 2Q32 -24 20 -34Q20 -14 12 -2Q6 -26-6 -34Q-6 -16-14 -2Q-18 -26-30 -30Q-30 -14-36 2Q-42 -20-48 -22Q-50 -6-56 8Z" fill="url(#hrH)"/>` +
           `<path d="M-52 -6Q-64 30-56 76L-40 2ZM52 -6Q64 30 56 76L40 2Z" fill="#3d2420"/>`,
-        acc: `<g transform="rotate(-14 0 -70)"><path d="M-46 -70L-42 -112Q0 -122 42 -112L46 -70Z" fill="#1f1719"/><ellipse cx="0" cy="-70" rx="72" ry="13" fill="#141012"/><path d="M-45 -82Q0 -90 45 -82L46 -72Q0 -80-46 -72Z" fill="#8a1d24"/>` +
-          flower(30, -98, 13, '#d8343c', '#f2c14e') + flower(46, -84, 10, '#e2505a', '#f2c14e') + flower(14, -84, 9, '#c22a33', '#f2c14e') +
-          `<path d="M-40 -72L-48 -14L-30 -12L-26 -70Z" fill="#c8323c"/><path d="M-40 -58L-32 -56M-42 -44L-32 -42M-42 -30L-34 -28" stroke="#f2c14e" stroke-width="2.5"/></g>`,
+        acc: `<g transform="translate(6 -14) rotate(-12 0 -70)"><path d="M-44 -70L-40 -110Q0 -120 40 -110L44 -70Z" fill="#1f1719"/><ellipse cx="0" cy="-70" rx="68" ry="12" fill="#141012"/><path d="M-43 -82Q0 -90 43 -82L44 -72Q0 -80-44 -72Z" fill="#8a1d24"/>` +
+          flower(28, -96, 13, '#d8343c', '#f2c14e') + flower(44, -82, 10, '#e2505a', '#f2c14e') + flower(12, -84, 9, '#c22a33', '#f2c14e') +
+          `<path d="M-64 -70L-70 -20L-54 -18L-50 -68Z" fill="#c8323c"/><path d="M-63 -58L-55 -56M-65 -46L-56 -44M-66 -34L-57 -32" stroke="#f2c14e" stroke-width="2.5"/></g>`,
       });
       // peace sign
       s += `<g transform="translate(1108 362) rotate(12) scale(1.75)">` +
-        `<path d="M-30 40L30 40L36 110H-36Z" fill="#4a2a22"/>` +
+        `<path d="M-30 40L30 40L36 110H-36Z" fill="#6e4130"/>` +
         `<g fill="#fbdcc8" stroke="#d99a80" stroke-width="2.4"><rect x="-17" y="-58" width="14" height="66" rx="7" transform="rotate(-12 -10 6)"/><rect x="3" y="-62" width="14" height="70" rx="7" transform="rotate(10 10 6)"/>` +
         `<rect x="-24" y="-6" width="48" height="50" rx="17"/><rect x="0" y="-12" width="24" height="15" rx="7.5"/><rect x="0" y="2" width="22" height="14" rx="7"/><rect x="-30" y="6" width="32" height="14" rx="7" transform="rotate(-28 -16 13)"/></g>` +
         `<g fill="#2b1d24"><ellipse cx="-16" cy="-52" rx="4.5" ry="6" transform="rotate(-12 -16 -52)"/><ellipse cx="14" cy="-56" rx="4.5" ry="6" transform="rotate(10 14 -56)"/></g>` +
@@ -770,11 +810,13 @@
       // --- Childe's arm reaching into the pot (bottom-left)
       s += `<path d="M-60 900C40 840 200 790 330 744L360 812C240 860 120 900 60 940Z" fill="url(#sl)"/>` +
         `<path d="M318 742L350 816" stroke="#c8323c" stroke-width="18"/>` +
-        `<path d="M340 740C370 720 410 724 420 744C428 762 408 790 380 800C360 806 344 790 340 740Z" fill="#f4cdb4"/>` +
-        `<path d="M398 742L530 700M404 754L536 716" stroke="#3a2a22" stroke-width="5" stroke-linecap="round"/>` +
+        `<path d="M340 740C364 718 404 716 420 734C434 752 420 786 392 798C366 808 344 792 340 740Z" fill="#f4cdb4"/>` +
+        `<path d="M396 742L530 700M402 756L536 716" stroke="#3a2a22" stroke-width="5"/>` +
+        `<path d="M380 734C394 726 412 728 420 738C410 746 396 748 384 744Z" fill="#f9dcc6" stroke="#d99a80" stroke-width="2"/>` +
+        `<path d="M392 770Q404 768 412 760M384 784Q396 784 404 776" stroke="#d99a80" stroke-width="2.4" fill="none"/>` +
         `<circle cx="536" cy="708" r="16" fill="#f1e2cf"/><circle cx="531" cy="702" r="5" fill="#fff" opacity=".8"/>`;
       // steam + warm glow from the pot
-      s += `<g fill="none" stroke="url(#stm)" stroke-linecap="round"><path d="M520 660C470 580 560 540 510 450C480 400 530 360 500 300" stroke-width="34" opacity=".35"/>` +
+      s += `<g fill="none" stroke="url(#stm)"><path d="M520 660C470 580 560 540 510 450C480 400 530 360 500 300" stroke-width="34" opacity=".35"/>` +
         `<path d="M640 650C690 580 610 520 660 440C690 400 650 360 670 320" stroke-width="26" opacity=".3"/><path d="M590 650C580 600 610 560 590 500" stroke-width="18" opacity=".3"/></g>`;
       s += `<ellipse cx="590" cy="640" rx="560" ry="300" fill="url(#wm)" opacity=".35" style="mix-blend-mode:screen"/>`;
       s += '</g>';
@@ -801,12 +843,12 @@
         vigDef(0.5) + grainDef();
       // reusable takeaway pieces (fill via currentColor where it varies)
       const sym =
-        `<g id="lg"><circle r="13" fill="#d8392b"/><path d="M-7 -3Q0 10 7 -3" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M-3 -9q3 3 0 6M3 -9q3 3 0 6" stroke="#fff" stroke-width="2" fill="none"/></g>` +
+        `<g id="lg"><circle r="13" fill="#d8392b"/><path d="M-7 -3Q0 10 7 -3" stroke="#fff" stroke-width="3" fill="none"/><path d="M-3 -9q3 3 0 6M3 -9q3 3 0 6" stroke="#fff" stroke-width="2" fill="none"/></g>` +
         `<g id="pail"><path d="M-46 -56H46L36 50H-36Z" fill="url(#pw)"/><path d="M-46 -56L-30 -80 0 -66 30 -80 46 -56Z" fill="#e6e2da"/><path d="M-42 -60Q0 -118 42 -60" fill="none" stroke="#8a9096" stroke-width="3"/><rect x="-42" y="-30" width="80" height="12" fill="#d8392b"/><use href="#lg" y="10"/></g>` +
         `<g id="box"><path d="M-70 -20L-50 -44H74L54 -20Z" fill="#fff" opacity=".35"/><path d="M-70 -20H54V40H-70Z" fill="currentColor"/><path d="M54 -20L74 -44V16L54 40Z" fill="#000" opacity=".18"/><path d="M-70 -20L-50 -44H74L54 -20Z" fill="currentColor"/><path d="M-70 -20L-50 -44H74L54 -20Z" fill="#fff" opacity=".25"/><rect x="-70" y="0" width="124" height="9" fill="#d8392b"/><use href="#lg" x="-8" y="24" transform="scale(.8)"/></g>` +
         `<g id="tub"><path d="M-44 -18L-38 34H38L44 -18Z" fill="#f6efe4" opacity=".9"/><path d="M-40 0L-37 30H37L40 0Z" fill="#e0782e" opacity=".75"/><ellipse cy="-20" rx="48" ry="11" fill="#c8323c"/><ellipse cy="-24" rx="40" ry="8" fill="#e04a3c"/></g>` +
         `<g id="bag"><path d="M-48 -60H48L54 70H-54Z" fill="url(#kr)"/><path d="M-48 -60L-44 -76H44L48 -60Z" fill="#b8854a"/><path d="M-20 -60Q0 -96 20 -60" fill="none" stroke="#7a5228" stroke-width="5"/><use href="#lg" y="6" transform="scale(1.3)"/><text y="44" font-size="13" font-weight="800" fill="#7a2a1e" text-anchor="middle">WANMIN GO</text></g>` +
-        `<g id="cup"><path d="M-26 -40H26L20 40H-20Z" fill="#c99a6a"/><path d="M-26 -40H26L25 -28H-25Z" fill="#fff" opacity=".4"/><ellipse cy="-42" rx="29" ry="7" fill="#f3efe8"/><path d="M6 -44L18 -86" stroke="#d8392b" stroke-width="7" stroke-linecap="round"/><circle cx="-8" cy="26" r="4" fill="#3a2418"/><circle cx="4" cy="30" r="4" fill="#3a2418"/><circle cx="12" cy="22" r="4" fill="#3a2418"/></g>` +
+        `<g id="cup"><path d="M-26 -40H26L20 40H-20Z" fill="#c99a6a"/><path d="M-26 -40H26L25 -28H-25Z" fill="#fff" opacity=".4"/><ellipse cy="-42" rx="29" ry="7" fill="#f3efe8"/><path d="M6 -44L18 -86" stroke="#d8392b" stroke-width="7"/><circle cx="-8" cy="26" r="4" fill="#3a2418"/><circle cx="4" cy="30" r="4" fill="#3a2418"/><circle cx="12" cy="22" r="4" fill="#3a2418"/></g>` +
         `<g id="stmr"><rect x="-56" y="-20" width="112" height="40" rx="8" fill="#d6b27a"/><path d="M-56 -8H56M-56 6H56" stroke="#b08850" stroke-width="3"/><ellipse cy="-20" rx="56" ry="12" fill="#e6c48e"/></g>`;
       let s = `<rect width="${w}" height="${h}" fill="url(#wl)"/>`;
       // window with night city bokeh + lamp
@@ -829,7 +871,7 @@
       s += `<path d="M632 520C640 600 620 680 640 760C650 800 700 820 760 830L900 846L896 866L740 852C660 840 610 810 602 760C590 680 612 600 604 524Z" fill="#fbfaf6"/>`;
       let rl = '';
       for (let i = 0; i < 11; i++) rl += `M${612 + (i > 7 ? (i - 7) * 30 : 0)} ${540 + i * 26}h${18 + (i * 7) % 14}`;
-      s += `<path d="${rl}" stroke="#9a9a9a" stroke-width="4" stroke-linecap="round"/>` + T(780, 846, 15, '×38', 'fill="#555" font-weight="700" transform="rotate(6 780 846)"');
+      s += `<path d="${rl}" stroke="#9a9a9a" stroke-width="4"/>` + T(780, 846, 15, '×38', 'fill="#555" font-weight="700" transform="rotate(6 780 846)"');
       // sparkles of joy
       [[470, 170, 16], [740, 140, 12], [800, 230, 9], [430, 260, 8]].forEach(([x, y, r]) => { s += `<path d="M${x} ${y - r}Q${x} ${y} ${x + r} ${y}Q${x} ${y} ${x} ${y + r}Q${x} ${y} ${x - r} ${y}Q${x} ${y} ${x} ${y - r}Z" fill="#fff4b8"/><circle cx="${x}" cy="${y}" r="${r * 1.8}" fill="url(#sp)" opacity=".5"/>`; });
       s += vig(w, h) + grain(w, h, 0.2);
@@ -894,10 +936,10 @@
       s += `<g opacity=".55">${coffin(-470, 300, 0.95, 3)}</g>` + `<g opacity=".7">${coffin(990, 300, 0.95, 5)}</g>`;
       s += coffin(280, 330, 1, 4, true);
       // wet ginger strand from the gap, drips and a puddle
-      s += `<path d="M482 404C478 430 492 450 484 476C478 494 488 508 486 520" fill="none" stroke="#d2692e" stroke-width="6" stroke-linecap="round"/>` +
-        `<path d="M492 404C494 424 504 440 500 458" fill="none" stroke="#e5874a" stroke-width="3.5" stroke-linecap="round"/>` +
+      s += `<path d="M482 404C478 430 492 450 484 476C478 494 488 508 486 520" fill="none" stroke="#d2692e" stroke-width="6"/>` +
+        `<path d="M492 404C494 424 504 440 500 458" fill="none" stroke="#e5874a" stroke-width="3.5"/>` +
         `<path d="M486 524q-5 10 0 14q5 -4 0 -14z" fill="#bfe0ff"/><path d="M490 560q-4 8 0 11q4 -3 0 -11z" fill="#bfe0ff" opacity=".8"/>`;
-      s += `<path d="M560 420V480M700 414V470M610 418V448" stroke="#9fc2e0" stroke-width="3" opacity=".45" stroke-linecap="round"/>`;
+      s += `<path d="M560 420V480M700 414V470M610 418V448" stroke="#9fc2e0" stroke-width="3" opacity=".45"/>`;
       s += `<ellipse cx="520" cy="610" rx="150" ry="20" fill="url(#pd)"/><ellipse cx="700" cy="640" rx="110" ry="14" fill="url(#pd)" opacity=".7"/><ellipse cx="500" cy="606" rx="40" ry="5" fill="#d6ecff" opacity=".5"/>`;
       // reflection of the coffin in the polished floor
       s += `<path d="M288 600H884V640H288Z" fill="#3a0c10" opacity=".25"/>`;
@@ -924,58 +966,73 @@
     svg: (w, h) => {
       const R = rng(97);
       const D =
-        lin('sky', '0 0 0 1', '#0f1120 0|#262b44 .5|#4a5470 1') +
-        lin('sea', '0 0 0 1', '#2a4a52 0|#14282e .4|#081417 1') +
+        lin('sky', '0 0 0 1', '#0c0e1a 0|#22263c .45|#4a5270 .8|#5e6884 1') +
+        lin('sea', '0 0 0 1', '#2e4c56 0|#15292f .35|#081316 1') +
         glow('lg', '#d9d2ff', 0.9) +
-        rad('eye', '.5 .5 .5', '#020607 .35|#0f3a40 .7|#2fd6c8 .9 .6|#2fd6c8 1 0') +
-        lin('p1', '0 0 1 0', '#6e7890 0|#545d74 1') +
-        lin('p2', '0 0 1 0', '#3c4458 0|#272d3d 1') +
-        lin('p3', '0 0 1 0', '#1f2433 0|#12151e 1') +
-        lin('haze', '0 0 0 1', '#5a6684 0 0|#5a6684 1 .55') +
-        vigDef(0.6) + grainDef(0.9);
+        rad('cl1', '.5 .4 .5', '#0b0c16 0 .95|#141626 .6 .8|#141626 1 0') + rad('cl2', '.5 .4 .5', '#22263a 0 .9|#2c3048 .6 .6|#2c3048 1 0') +
+        rad('cl3', '.5 .6 .5', '#4a4878 0 .9|#2a2a48 .6 .7|#2a2a48 1 0') +
+        rad('wp', '.5 .5 .5', '#020607 .12|#06191c .3|#0f3238 .62|#1d434a .85|#1d434a 1 0') +
+        rad('eye', '.5 .5 .5', '#000 .45|#0a3c40 .7|#3fe6d6 .88 .7|#3fe6d6 1 0') +
+        lin('wall', '0 0 0 1', '#5fd8cc 0 .7|#174d50 1 .2') +
+        lin('haze', '0 0 0 1', '#6a7694 0 0|#6a7694 1 .6') +
+        vigDef(0.62) + grainDef(0.9);
       let s = `<rect width="${w}" height="${h}" fill="url(#sky)"/>`;
-      // cloud bands
-      s += `<path d="M0 0H1200V170C1080 210 980 160 880 196C780 230 700 180 600 210C500 240 380 190 280 220C180 250 80 200 0 230Z" fill="#0a0c18" opacity=".9"/>` +
-        `<path d="M0 230C80 200 180 250 280 220C380 190 500 240 600 210C700 180 780 230 880 196C980 160 1080 210 1200 170" fill="none" stroke="#8a8fb8" stroke-width="5" opacity=".35"/>` +
-        `<path d="M0 300C120 270 220 320 360 290C500 260 560 320 720 300C860 282 980 320 1200 280V200C1060 240 980 210 880 240C760 270 640 240 520 270C400 300 260 260 140 290C80 304 30 290 0 300Z" fill="#1a1d30" opacity=".85"/>`;
-      // lightning (glow, branches, core)
-      const bolt = 'M760 0L742 70L770 120L730 200L758 240L716 330L740 360L706 420';
-      s += `<circle cx="740" cy="200" r="300" fill="url(#lg)" opacity=".45"/>` +
-        `<path d="${bolt}M742 200L690 250L700 290M758 240L810 290L800 330" fill="none" stroke="#b9a8ff" stroke-width="16" opacity=".35" stroke-linejoin="round"/>` +
-        `<path d="${bolt}" fill="none" stroke="#fff" stroke-width="5" stroke-linejoin="round"/><path d="M742 200L690 250L700 290M758 240L810 290L800 330" fill="none" stroke="#f2eeff" stroke-width="2.5"/>`;
-      s += `<path d="M120 0L130 50L112 90L126 130" fill="none" stroke="#d9d2ff" stroke-width="2.5" opacity=".5"/>`;
-      // pillars: far, mid, near
-      const pil = (x, wd, top, c, tuft) => `<path d="M${x} 620L${x + 6} ${top + 12}Q${x + wd * 0.25} ${top - 8} ${x + wd * 0.5} ${top}Q${x + wd * 0.75} ${top - 10} ${x + wd - 6} ${top + 10}L${x + wd} 620Z" fill="${c}"/>` +
-        (tuft ? `<path d="M${x + 2} ${top + 8}q${wd * 0.25} -26 ${wd * 0.5} -8q${wd * 0.25} -20 ${wd * 0.5} 6z" fill="#1d2a22"/>` : '');
-      s += pil(60, 60, 360, 'url(#p1)') + pil(200, 80, 320, 'url(#p1)') + pil(380, 50, 390, 'url(#p1)') + pil(880, 70, 340, 'url(#p1)') + pil(1010, 54, 380, 'url(#p1)') + pil(640, 60, 400, 'url(#p1)');
-      s += `<rect x="0" y="380" width="1200" height="240" fill="url(#haze)"/>`;
-      s += pil(-30, 150, 250, 'url(#p2)', 1) + pil(260, 110, 300, 'url(#p2)', 1) + pil(760, 130, 270, 'url(#p2)', 1) + pil(1060, 120, 230, 'url(#p2)', 1);
-      s += pil(-80, 200, 120, 'url(#p3)', 1) + pil(1040, 220, 80, 'url(#p3)', 1);
-      // sea
-      s += `<rect x="0" y="600" width="1200" height="300" fill="url(#sea)"/>`;
-      let wc = '';
-      for (let i = 0; i < 70; i++) { const y = 610 + R() * 290; const l = 10 + (y - 600) * 0.12 * (0.5 + R()); wc += `M${r0(R() * 1200)} ${r0(y)}q${r0(l / 2)} -4 ${r0(l)} 0`; }
-      s += `<path d="${wc}" fill="none" stroke="#c9e6ea" stroke-width="2.2" opacity=".45" stroke-linecap="round"/>`;
-      // whirlpool: flattened spiral arms around a dark eye
-      const cx = 600, cy = 735;
-      s += `<ellipse cx="${cx}" cy="${cy}" rx="380" ry="112" fill="#081c20" opacity=".7"/>`;
-      for (let arm = 0; arm < 5; arm++) {
-        let d = '';
-        for (let k = 0; k <= 46; k++) {
-          const t = k / 46;
-          const a = arm * (Math.PI * 2 / 5) + t * Math.PI * 3.2;
-          const r = 380 * (1 - t * 0.86);
-          d += (k ? 'L' : 'M') + f1(cx + Math.cos(a) * r) + ' ' + f1(cy + Math.sin(a) * r * 0.29);
+      // soft, heavy storm clouds (lighter where the lightning is)
+      [[130, 70, '#cl1'], [250, 60, '#cl1'], [330, 46, '#cl2']].forEach(([y, n, g], L) => {
+        for (let i = 0; i < 12; i++) {
+          const x = r0(-60 + i * 115 + R() * 50), rx = r0(110 + R() * 90), ry = r0(n * (0.8 + R() * 0.6));
+          const lit = Math.abs(x - 750) < 260;
+          s += `<ellipse cx="${x}" cy="${r0(y + (R() - 0.5) * 50)}" rx="${rx}" ry="${ry}" fill="url(${lit && L < 2 ? '#cl3' : g})"/>`;
         }
-        s += `<path d="${d}" fill="none" stroke="#bfe6e6" stroke-width="${arm % 2 ? 3 : 5}" opacity="${arm % 2 ? 0.35 : 0.55}" stroke-linecap="round"/>`;
+      });
+      // lightning (glow, branches, core) striking a pillar
+      const bolt = 'M770 0L752 80L780 130L738 210L766 250L726 330L752 360L728 410';
+      const br = 'M752 214L700 260L708 300M766 252L816 296L806 336M738 330L700 356';
+      s += `<circle cx="750" cy="220" r="330" fill="url(#lg)" opacity=".45"/>` +
+        `<path d="${bolt}${br}" fill="none" stroke="#b9a8ff" stroke-width="16" opacity=".35"/>` +
+        `<path d="${bolt}" fill="none" stroke="#fff" stroke-width="5"/><path d="${br}" fill="none" stroke="#f2eeff" stroke-width="2.5"/>`;
+      s += `<path d="M130 0L140 50L120 92L134 132L118 170" fill="none" stroke="#d9d2ff" stroke-width="2.5" opacity=".45"/>`;
+      // pillars: far, mid, near (with lightning rim on the left edges)
+      const pil = (cx, t, wd, c, rim, tf) => {
+        const d = pillarD(R, cx, t, 640, wd);
+        return (rim ? `<path d="${d}" fill="${rim}" transform="translate(-3 0)"/>` : '') + `<path d="${d}" fill="${c}"/>` + (tf ? tuft(R, cx, t, wd, tf) : '');
+      };
+      [[90, 380, 50], [210, 340, 70], [400, 400, 44], [520, 360, 40], [660, 420, 50], [930, 360, 64], [1040, 400, 46], [1130, 350, 40]].forEach(([x, t, wd]) => { s += pil(x, t, wd, '#465068', 0, '#38404f'); });
+      s += `<rect x="0" y="400" width="1200" height="240" fill="url(#haze)"/>`;
+      [[40, 250, 130], [320, 300, 96], [740, 410, 110], [880, 270, 120], [1110, 230, 110]].forEach(([x, t, wd]) => { s += pil(x, t, wd, '#262c3e', '#55547e', '#1a2422'); });
+      s += pil(-10, 110, 220, '#12151f', '#3c3c64', '#0e1513') + pil(1180, 70, 240, '#12151f', 0, '#0e1513');
+      let sl = '';
+      for (let i = 0; i < 14; i++) { const x = r0(R() < 0.5 ? -100 + R() * 200 : 1070 + R() * 200), y = r0(160 + R() * 460); sl += `M${x} ${y}h${r0(30 + R() * 50)}`; }
+      s += `<path d="${sl}" stroke="#05060a" stroke-width="3" opacity=".7"/>`;
+      s += `<path d="M700 640h60l40 200h-140z" fill="#d9d2ff" opacity=".12"/>`;
+      // sea
+      s += `<rect x="0" y="618" width="1200" height="282" fill="url(#sea)"/><path d="M0 620H1200" stroke="#9fb6c8" stroke-width="2" opacity=".4"/>`;
+      let wc = '';
+      for (let i = 0; i < 60; i++) { const y = 626 + R() * 274; const l = 10 + (y - 600) * 0.12 * (0.5 + R()); wc += `M${r0(R() * 1200)} ${r0(y)}q${r0(l / 2)} -4 ${r0(l)} 0`; }
+      s += `<path d="${wc}" fill="none" stroke="#c9e6ea" stroke-width="2.2" opacity=".4"/>`;
+      // whirlpool
+      const cx = 600, cy = 742, RX = 420, K = 0.27;
+      s += `<ellipse cx="${cx}" cy="${cy}" rx="${RX}" ry="${RX * K}" fill="url(#wp)"/>`;
+      for (let arm = 0; arm < 6; arm++) {
+        let d = '';
+        const ph = arm * (Math.PI * 2 / 6) + R() * 0.4;
+        for (let k = 0; k <= 46; k++) {
+          const t = k / 46, a = ph + t * Math.PI * 2.4, r = RX * (1 - t * 0.78) * (0.95 + R() * 0.04);
+          d += (k ? 'L' : 'M') + r0(cx + Math.cos(a) * r) + ' ' + r0(cy + Math.sin(a) * r * K);
+        }
+        s += `<path d="${d}" fill="none" stroke="#0a1416" stroke-width="9" opacity=".35"/>` +
+          `<path d="${d}" fill="none" stroke="#d6f2f0" stroke-width="${f1(2.5 + R() * 3.5)}" opacity="${f1(0.35 + R() * 0.35)}" stroke-dasharray="${r0(160 + R() * 200)} ${r0(30 + R() * 50)}"/>`;
       }
-      s += `<ellipse cx="${cx}" cy="${cy}" rx="120" ry="36" fill="url(#eye)"/><ellipse cx="${cx}" cy="${cy + 2}" rx="56" ry="15" fill="#010405"/>`;
+      // the funnel: lit far wall, glowing eye
+      s += `<path d="M${cx - 150} ${cy}A150 ${150 * K} 0 0 1 ${cx + 150} ${cy}A96 ${96 * K} 0 0 0 ${cx - 96} ${cy}Z" fill="url(#wall)"/>` +
+        `<ellipse cx="${cx}" cy="${cy + 2}" rx="110" ry="30" fill="url(#eye)"/><ellipse cx="${cx}" cy="${cy + 4}" rx="58" ry="13" fill="#000"/>`;
+      s += `<path d="M${cx - 420} ${cy}A420 ${420 * K} 0 0 1 ${cx + 420} ${cy}" fill="none" stroke="#e6fbff" stroke-width="3" opacity=".35" stroke-dasharray="30 18"/>`;
       // foreground rocks
-      s += `<path d="M0 900V780C40 770 80 790 120 770C170 744 210 780 260 800C300 820 330 860 360 900Z" fill="#07090d"/><path d="M1200 900V820C1150 810 1110 840 1060 850C1020 860 990 880 970 900Z" fill="#07090d"/>`;
+      s += `<path d="M0 900V790C40 776 80 796 120 776C170 750 210 786 260 806C300 826 330 862 360 900Z" fill="#06080c"/><path d="M1200 900V826C1150 816 1110 846 1060 856C1020 866 990 884 970 900Z" fill="#06080c"/>`;
       // rain, one path
       let rn = '';
-      for (let i = 0; i < 120; i++) rn += `M${r0(R() * 1300 - 50)} ${r0(R() * 900)}l-14 44`;
-      s += `<path d="${rn}" stroke="#c9d2ea" stroke-width="1.6" opacity=".28"/>`;
+      for (let i = 0; i < 110; i++) rn += `M${r0(R() * 1300 - 50)} ${r0(R() * 900)}l-14 44`;
+      s += `<path d="${rn}" stroke="#c9d2ea" stroke-width="1.6" opacity=".26"/>`;
       s += vig(w, h) + grain(w, h, 0.26);
       return wrap(w, h, D, s);
     },
@@ -1008,8 +1065,8 @@
       const Y = '#e3a008';
       let s = `<rect width="${w}" height="${h}" fill="#fff"/>` + statusBar('03:12', '#000');
       // nav
-      s += `<path d="M62 176L42 196L62 216" fill="none" stroke="${Y}" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>` + T(80, 212, 46, 'Notes', `fill="${Y}"`) +
-        `<g fill="none" stroke="${Y}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M1012 214v-40M996 190l16-16 16 16M990 202h-10v36h64v-36h-10"/><circle cx="1124" cy="198" r="26"/></g>` +
+      s += `<path d="M62 176L42 196L62 216" fill="none" stroke="${Y}" stroke-width="7"/>` + T(80, 212, 46, 'Notes', `fill="${Y}"`) +
+        `<g fill="none" stroke="${Y}" stroke-width="5"><path d="M1012 214v-40M996 190l16-16 16 16M990 202h-10v36h64v-36h-10"/><circle cx="1124" cy="198" r="26"/></g>` +
         `<g fill="${Y}"><circle cx="1112" cy="198" r="4"/><circle cx="1124" cy="198" r="4"/><circle cx="1136" cy="198" r="4"/></g>`;
       s += T(603, 300, 30, '16 October 2026 at 23:02', 'fill="#8e8e93" text-anchor="middle"');
       s += T(60, 390, 54, 'Ledger — what xiansheng owes me', 'fill="#000" font-weight="700"');
@@ -1039,7 +1096,7 @@
       s += T(60, yb + 470, 40, '— he’s worth it. don’t tell him.', 'fill="#000" font-style="italic" font-weight="600"');
       // bottom toolbar
       s += `<path d="M0 2470H1206" stroke="#e5e5ea" stroke-width="2"/>` +
-        `<g fill="none" stroke="${Y}" stroke-width="5" stroke-linecap="round" stroke-linejoin="round">` +
+        `<g fill="none" stroke="${Y}" stroke-width="5">` +
         `<circle cx="120" cy="2522" r="22"/><path d="M110 2522l8 8 14-16"/>` +
         `<rect x="400" y="2504" width="56" height="40" rx="8"/><circle cx="428" cy="2524" r="10"/>` +
         `<path d="M740 2546l8-26 30-30 18 18-30 30zM760 2504l18 18"/>` +
