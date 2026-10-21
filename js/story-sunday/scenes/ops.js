@@ -1,6 +1,8 @@
-/* Live scenes — YMJ Ops group `ops` (Old Huang, Liu Qian, A-Bai, Tang Mei): 400 kg of lotus root,
-   Bring Your Dog to Work Friday, towing Sandu. Decent, fun decisions raise the `ops_morale` counter.
-   Facts: docs/STORY.md. */
+/* Live scenes — YMJ Ops group `ops` (Old Huang, Liu Qian, A-Bai, Tang Mei) and Old Huang's DM `huang`:
+   400 kg of lotus root (twenty kilos kept for Sunday), Bring Your Dog to Work Friday, towing Sandu, the guest list
+   for the gate, goodnight. Decent, fun decisions raise the `ops_morale` counter.
+   "Sunday at Lotus Pier": table flags set here: ops_keep, ops_soup, ops_morale, dog_friday, huang_list (+ huang_wwx),
+   car_handled. Facts: docs/STORY.md; design: docs/sunday/b.md. */
 (function () {
   'use strict';
   const JC = (window.JC = window.JC || {});
@@ -23,6 +25,27 @@
   };
   const lock = (k) => ({ fx: { set: { ['busy_' + k]: true } } });
   const free = (k) => ({ fx: { set: { ['busy_' + k]: false } } });
+
+  const live = () => S.view();
+  const TBL = (s) => { try { return JC.sunday && JC.sunday.table ? JC.sunday.table(s || live()) : null; } catch (e) { return null; } };
+  const seat = (s, k) => { const t = TBL(s); return t ? t.seats[k].state : 'no'; };
+
+  /** The guest list as Jiang Cheng would text it to Old Huang: whoever is coming, as of now (docs/SUNDAY.md beat 6). */
+  function guestList(s) {
+    const t = TBL(s);
+    if (!t) return 'A-Ling. Family.';
+    const st = (k) => t.seats[k].state;
+    const L = [st('jl') === 'late' ? 'A-Ling, late.' : 'A-Ling.'];
+    if (st('sz') === 'yes') L.push('Sizhui and Jingyi.');
+    if (st('wwx') === 'yes') L.push('Wei Wuxian and Lan Wangji.');
+    if (st('wn') === 'yes') L.push('Wen Ning.');
+    else if (st('wn') === 'drives') L.push('Wen Ning’s van.');
+    if (st('lxc') !== 'no') L.push('Lan Xichen.');
+    if (st('nhs') === 'yes') L.push('Nie Huaisang.');
+    if (st('fairy') === 'in') L.push('Fairy comes in.');
+    L.push('Nobody else.');
+    return L.join(' ');
+  }
 
   // ── 1. 400 kg of lotus root (~00:15) ─────────────────────────────
   scene({
@@ -124,6 +147,7 @@
       decide: [
         { choice: [
             { t: 'Make soup. For the whole company.', fx: { set: { ops_soup: true }, inc: { ops_morale: 1 } }, go: 'soup' },
+            { t: 'Keep twenty kilos for Sunday. The best ones.', fx: { set: { ops_keep: true }, inc: { ops_morale: 1 } }, go: 'keep' },
             { t: 'Sell it at the farm shop. Half price.', go: 'sell' },
             { t: 'Who ordered this.', if: (s) => !F(s).ops_who, go: 'who' },
           ] },
@@ -135,13 +159,45 @@
         { m: '• 340 staff, Monday to Friday', from: 'liu' },
         { m: '• Remaining ~150 kg → farm shop', from: 'liu' },
         { m: 'boss can i help peel 🙇', from: 'bai' },
-        { m: "Noted. I'll tell the board it's a wellness initiative.", from: 'ea' },
+        { m: "Noted. The Honghu invoice is already on my desk: ¥4,800 for 400 kg. I'll tell the board it's a wellness initiative.", from: 'ea' },
+        { if: (s) => !!F(s).ops_keep, go: 'done' },
+        // the beat that points at Sunday (docs/SUNDAY.md beat 5)
+        { m: 'Boss. Sunday young master birthday. Keep some? The Best ones? I pick. 👍', from: 'huang' },
+        { choice: [
+            { t: 'Twenty kilos. The best ones. For the Residence kitchen.', fx: { set: { ops_keep: true }, inc: { ops_morale: 1 } }, go: 'keep' },
+            { t: 'Farm shop.', go: 'sell_rest' },
+          ] },
+      ],
+      sell_rest: [{ m: 'Farm shop. Received. 👍', from: 'huang' }, { go: 'done' }],
+      keep: [
+        { log: 'Kept twenty kilos of the 400 kg of Honghu lotus root for Sunday', once: 'ops_keep' },
+        { hint: 'Twenty kilos of lotus root are kept for Sunday.' },
+        { m: '', from: 'huang', voice: { dur: 15, text: 'Boss. Twenty kilo. I pick the best ones myself. Long ones, nine holes. I write SUNDAY on the box. Nobody touch. Okay. Bye.' } },
+        { m: '• 20 kg reserved: Lotus Pier Residence kitchen, Sunday', from: 'liu' },
+        { if: (s) => !F(s).ops_soup, go: 'keep_rest' },
+        { go: 'keep_ea' },
+      ],
+      keep_rest: [
+        { m: '• Remaining 380 kg → farm shop, half price', from: 'liu' },
+        { m: '• Canteen soup week: 40 kg, as planned', from: 'liu' },
+        { go: 'keep_ea' },
+      ],
+      keep_ea: [
+        { m: "Noted. I've seen the Honghu invoice. Twenty kilos go under \"Family\". The rest go under \"A-Bai\".", from: 'ea' },
+        { m: '🙇', from: 'bai' },
+        { if: (s) => !!F(s).wwx_invited && !F(s).burned, go: 'keep_wwx' },
+        { go: 'done' },
+      ],
+      keep_wwx: [
+        { m: 'Mr. Wei comes Sunday? He makes the soup? Then he need Good Root. 👍👍', from: 'huang' },
+        { m: '(I heard about the smoke alarm. Four times. I put in a fire blanket also.)', from: 'huang' },
         { go: 'done' },
       ],
       sell: [
         { m: '• Farm shop: noted', from: 'liu' },
         { m: '• Half-price lotus root this weekend', from: 'liu' },
         { m: 'Boss. Received. 👍', from: 'huang' },
+        { m: 'Noted. The Honghu invoice is ¥4,800. The farm shop will make back about half. I will not mention the other half on Monday.', from: 'ea' },
         { go: 'done' },
       ],
       done: [free('ops')],
@@ -162,7 +218,7 @@
         { if: (s) => F(s).car_known && !F(s).tow_huang, go: 'carvid' },
         { go: 'pitch' },
       ],
-      // the boss already answered Liu Qian's proposal by email (js/story/scenes/react-social.js)
+      // the boss already answered Liu Qian's proposal by email (react-social.js)
       mailed: [
         { m: '• The boss already answered my proposal by email', from: 'liu' },
         { m: '• No further questions 🐕', from: 'liu' },
@@ -198,7 +254,7 @@
         { m: '• Fairy invited as guest of honour', from: 'liu' },
         { m: 'boss can i bring my hamster. is a hamster a dog', from: 'bai' },
         { m: 'No.', from: 'ea' },
-        { go: 'done' },
+        { go: 'sunday' },
       ],
       no: [
         { m: '• Noted', from: 'liu' },
@@ -211,7 +267,7 @@
         { m: '• Fairy is a dog', from: 'liu' },
         { m: '• …Approved for Fairy', from: 'liu' },
         { m: "I'll print her a badge. Job title: Head of Morale.", from: 'ea' },
-        { go: 'done' },
+        { go: 'sunday' },
       ],
       omg: [
         { m: '…', from: 'liu' },
@@ -219,6 +275,13 @@
         { m: 'Boss uses dog emoji. Very Good. 🐶👍', from: 'huang' },
         { m: 'Who is this.', from: 'ea' },
         { m: '(I am going to assume the balcony.)', from: 'ea' },
+        { go: 'sunday' },
+      ],
+      // if dogs may come to work, Fairy may come to dinner: she sits inside on Sunday
+      sunday: [
+        { m: 'Boss. So Sunday Fairy come Inside also? Young master birthday? I move the good carpet. 👍', from: 'huang' },
+        { log: 'Approved Dog Friday; Fairy comes inside on Sunday', once: 'fairy_inside' },
+        { hint: 'Fairy is welcome inside on Sunday.' },
         { go: 'done' },
       ],
       done: [free('ops')],
@@ -265,15 +328,98 @@
         { m: 'Koi: all fine. One koi is now Famous on internet.', from: 'huang' },
         { m: '• Tow invoice: Huang Er, ¥600. Filed under "Family"', from: 'liu' },
         { fx: { set: { car_handled: true } } },
+        { log: 'Got Sandu out of the koi pond through Old Huang’s cousin', once: 'car_out' },
+        { hint: 'Sandu is out of the pond.' },
         { m: "the car is out!!! old huang's cousin has a mustache like a broom", th: 'jl', from: 'jl' },
         { m: 'fairy barked at him the whole time. he says he forgives her', th: 'jl', from: 'jl' },
+        { if: (s) => !!F(s).car_cover && !F(s).scandal, go: 'valet' },
+        { go: 'done' },
+      ],
+      // a nudge before #KoiPondGate: Huang Er saw the valet
+      valet: [
+        { m: 'Boss. Huang Er says the old valet is still standing by the pond. Very sad. Somebody say he did it?? 🤔', from: 'huang' },
+        { m: 'Huang Er gave him a cigarette. He does not smoke. He held it anyway.', from: 'huang' },
         { go: 'done' },
       ],
       done: [free('ops')],
     },
   });
 
-  // ── 4. Minutes, and goodnight (~01:45) ───────────────────────────
+  // ── 4. The guest list for the gate (~01:10; earlier if Old Huang gets in touch) ─
+  // Old Huang wants Sunday's list for the guardhouse board. The list the player sends is whoever is coming so far
+  // (JC.sunday.table); the 2024 gate ("Next time, let him in." Nobody told Wei Wuxian) gets its answer here.
+  scene({
+    id: 'huang_gate',
+    thread: 'huang',
+    trigger: { on: 'unlock', delay: 1350 },
+    when: night,
+    nodes: {
+      start: waitFor('huang', 'ask'),
+      ask: [
+        lock('huang'),
+        { m: '', d: 3, voice: { dur: 18, text: 'Boss. Huang here. Sunday. Young master birthday. Six-thirty. I am at the gate. Who comes? You give me the list. I write it on the board in the guardhouse. Okay.' } },
+        { m: '👍' },
+        { choice: [
+            { label: '[Send him the guest list]', get t() { return guestList(live()); }, fx: { set: { huang_list: true } }, go: 'list' },
+            { t: 'And if Wei Wuxian comes to the gate, let him in. Not like last time.', if: (s) => seat(s, 'wwx') !== 'yes' && !F(s).burned, fx: { set: { huang_list: true, huang_wwx: true } }, go: 'wwx' },
+            { t: 'Nobody gets in without asking me.', go: 'closed' },
+          ] },
+      ],
+      list: [
+        { log: 'Gave Old Huang the guest list for the gate', once: 'huang_list' },
+        { hint: 'Old Huang has the guest list.' },
+        { m: 'Boss. Received. I write it on the Board. Big letters. 👍' },
+        { if: (s) => seat(s, 'wwx') === 'yes', go: 'l_wwx' },
+        { go: 'l_wn' },
+      ],
+      l_wwx: [
+        { m: '', voice: { dur: 16, text: 'Mr. Wei. Boss. Last time he stand at the gate twenty minutes. I give him tea and one egg. This time I open the gate before he knock. Okay.' } },
+        { fx: { set: { huang_wwx: true } } },
+        { go: 'l_wn' },
+      ],
+      l_wn: [
+        { if: (s) => ['yes', 'drives'].includes(seat(s, 'wn')), go: 'l_wn_yes' },
+        { go: 'l_lxc' },
+      ],
+      l_wn_yes: [{ m: 'Wen Ning with the van. I show him where to park. Not across three space. 👍' }, { go: 'l_lxc' }],
+      l_lxc: [
+        { if: (s) => seat(s, 'lxc') !== 'no', go: 'l_lxc_yes' },
+        { go: 'l_nhs' },
+      ],
+      l_lxc_yes: [{ m: 'Zewu-jun?? 🤔' }, { m: 'Boss. I iron my shirt.' }, { go: 'l_nhs' }],
+      l_nhs: [
+        { if: (s) => seat(s, 'nhs') === 'yes', go: 'l_nhs_yes' },
+        { go: 'l_fairy' },
+      ],
+      l_nhs_yes: [{ m: 'Mr. Nie. I count the fans when he come in. I count when he go out. 👍' }, { go: 'l_fairy' }],
+      l_fairy: [
+        { if: (s) => seat(s, 'fairy') === 'in', go: 'l_fairy_in' },
+        { go: 'l_root' },
+      ],
+      l_fairy_in: [{ m: 'Fairy Inside!! I roll up the good carpet. 👍👍' }, { go: 'l_root' }],
+      l_root: [
+        { if: (s) => !!F(s).ops_keep, go: 'l_root_yes' },
+        { go: 'end' },
+      ],
+      l_root_yes: [{ m: 'And the box SUNDAY in the cold room. I guard it also. 👍' }, { go: 'end' }],
+      wwx: [
+        { log: 'Told Old Huang to let Wei Wuxian in if he comes to the gate', once: 'huang_wwx' },
+        { hint: 'Old Huang will remember that.' },
+        { m: '', voice: { dur: 20, text: 'Boss. Mr. Wei. Yes. Two years ago you say next time let him in. He never come again. This time I open the gate. I give him tea also. And two egg.' } },
+        { m: '👍👍👍' },
+        { go: 'end' },
+      ],
+      closed: [
+        { m: 'Boss. Received. Nobody. 👍' },
+        { if: (s) => seat(s, 'wwx') === 'yes', go: 'closed_wwx' },
+        { go: 'end' },
+      ],
+      closed_wwx: [{ m: '(Mr. Wei also Nobody?? 🤔 I ask you again Sunday.)' }, { go: 'end' }],
+      end: [free('huang')],
+    },
+  });
+
+  // ── 5. Minutes, and goodnight (~01:45) ───────────────────────────
   scene({
     id: 'ops_goodnight',
     thread: 'ops',
@@ -286,8 +432,13 @@
         { m: "Summary of tonight, for Monday's minutes:", from: 'liu' },
         { if: (s) => F(s).ops_soup, go: 's_soup', else: 's_nosoup' },
       ],
-      s_soup: [{ m: '• Lotus root soup for the whole company (approved, 340 bowls a day)', from: 'liu' }, { go: 's_dog' }],
-      s_nosoup: [{ m: '• 400 kg of lotus root (situation ongoing)', from: 'liu' }, { go: 's_dog' }],
+      s_soup: [{ m: '• Lotus root soup for the whole company (approved, 340 bowls a day)', from: 'liu' }, { go: 's_keep' }],
+      s_nosoup: [{ m: '• 400 kg of lotus root (situation ongoing)', from: 'liu' }, { go: 's_keep' }],
+      s_keep: [
+        { if: (s) => !!F(s).ops_keep, go: 's_keep_yes' },
+        { go: 's_dog' },
+      ],
+      s_keep_yes: [{ m: '• 20 kg reserved for Sunday (box labelled SUNDAY, guarded by Old Huang)', from: 'liu' }, { go: 's_dog' }],
       s_dog: [
         { if: (s) => !!F(s).dog_friday, go: 's_dog_yes' },
         { m: '• Bring Your Dog to Work Friday (pending, again)', from: 'liu' },
@@ -296,9 +447,14 @@
       s_dog_yes: [{ m: '• Bring Your Dog to Work Friday (approved)', from: 'liu' }, { go: 's_car' }],
       s_car: [
         { if: (s) => F(s).car_handled, go: 's_car_yes' },
+        { go: 's_press' },
+      ],
+      s_car_yes: [{ m: '• 1 (one) Sandu, retrieved from 1 (one) koi pond', from: 'liu' }, { go: 's_press' }],
+      s_press: [
+        { if: (s) => !!F(s).scandal && !F(s).scandal_fixed, go: 's_press_yes' },
         { go: 's_bai' },
       ],
-      s_car_yes: [{ m: '• 1 (one) Sandu, retrieved from 1 (one) koi pond', from: 'liu' }, { go: 's_bai' }],
+      s_press_yes: [{ m: '• Press inquiry (Lanling Daily): Tang Mei handling', from: 'liu' }, { go: 's_bai' }],
       s_bai: [
         { if: (s) => F(s).bai_fired, go: 's_bai_fired' },
         { m: '• A-Bai: still employed', from: 'liu' },

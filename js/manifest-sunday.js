@@ -124,7 +124,7 @@ window.JC_MANIFEST = {
   "js/story-sunday/scenes/react-life.js",
   "js/story-sunday/scenes/react-social.js",
   "js/story-sunday/scenes/xicheng.js",
-  "js/story-sunday/endings.js",
+  "js/story-sunday/dinner.js",
   "js/core/boot.js"
  ]
 };

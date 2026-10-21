@@ -1,7 +1,10 @@
 /* App reactions — commerce & getting around: Lotus Eats, Swift Ride, Wallet, Maps, Find My.
-   What the player does in these apps changes the night: who texts back, suspicion, affection, ending flags.
+   What the player does in these apps changes the night and Sunday's table (docs/SUNDAY.md): Lotus Eats to Lotus Pier
+   = Sunday's lotus root (ops_keep); a lotus seed cake for A-Ling = cake_ok; food for the Ops floor = ops_morale;
+   money to Sizhui = the cake fund (bday_planned); a Swift reservation to Lotus Pier for Sunday = a seat; Find My
+   with Old Huang = the guest list; the Golden Peony front desk and Fairy's rides = early returns (no endings here).
    Every scene here is a reaction (`polite: true`, id prefixed r_). Facts: docs/STORY.md. Design notes and
-   the act catalogue for these apps: docs/reactions/commerce.md.
+   the act catalogue for these apps: docs/reactions/commerce.md; Sunday notes: docs/sunday/b.md.
    Logs: the apps log the action itself (with amounts, dishes, places — they know the details); scenes here
    log story outcomes and the actions the apps don't (Maps, the Golden Peony front desk). */
 (function () {
@@ -54,6 +57,12 @@
   const CR = ['cloud-recesses', 'hanshi', 'jingshi', 'cr-tea-shop', 'cr-guesthouse'];
   // a pickup on Saturday 17 Oct between 06:00 and 16:00 (tea at the Hanshi is at three; Gusu is ~2 h 25 min away)
   const saturday = (at) => { if (!at) return false; const d = new Date(at); return d.getFullYear() === 2026 && d.getMonth() === 9 && d.getDate() === 17 && d.getHours() >= 6 && d.getHours() < 16; };
+
+  // a pickup on Sunday 18 Oct between 10:00 and 19:00 (dinner at Lotus Pier is at six-thirty)
+  const sunday = (at) => { if (!at) return false; const d = new Date(at); return d.getFullYear() === 2026 && d.getMonth() === 9 && d.getDate() === 18 && d.getHours() >= 10 && d.getHours() < 19; };
+  const LP = ['lotus-pier', 'lp-residence'];
+  // Start a consequence scene another writer owns (docs/SUNDAY.md "Consequences"); warn, don't fail, while it is unwritten.
+  const goOn = (id) => ({ run: (api) => { if (api.story.defs.scenes[id]) api.story.start(id); else console.warn('[sunday] consequence scene missing:', id); } });
 
   // ── Fairy: is she still waiting for somewhere to sleep? ─────────
   const fairyAsked = () => { try { return S.messages('jl').some((m) => m.from === 'jl' && /can she stay with u tonight/i.test(m.text || '')); } catch (e) { return false; } };
@@ -307,6 +316,8 @@
   ];
   const isPets = (p) => P(p).rest === 'pet-kingdom';
   const isCake = (p) => P(p).rest === 'peony-bakery' || /\bcake\b/.test(names(p));
+  // the Lotus mousse cake is lotus seed: that is Sunday's cake
+  const lotusSeed = (p) => items(p).includes('pb2') || /lotus (seed|mousse)/.test(names(p));
   react({
     id: 'r_eats_jl_pets',
     thread: 'jl',
@@ -332,7 +343,7 @@
     id: 'r_eats_jl_cake',
     thread: 'jl',
     polite: true,
-    trigger: { on: 'act', act: 'order', match: (p, s) => P(p).to === 'koires' && !isPets(p) && isCake(p) && night(s), delay: 30 },
+    trigger: { on: 'act', act: 'order', match: (p, s) => P(p).to === 'koires' && !isPets(p) && isCake(p) && night(s) && (keepSeed(s, lotusSeed(p)) || true), delay: 30 },
     when: night,
     nodes: {
       start: waitFor('jl', 'go'),
@@ -353,6 +364,7 @@
       ],
       q: [
         { m: '…is it lotus seed paste' },
+        { if: (s) => !!F(s).r_cake_seed, go: 'seed' },
         { choice: [
             { t: "It's not for Sunday.", go: 'not' },
             { t: 'Act surprised.', go: 'act' },
@@ -360,6 +372,16 @@
       ],
       quiet: [
         { m: "ok don't answer. i'm eating it" },
+        ...jlGate,
+      ],
+      // the box says lotus seed: he keeps it for Sunday
+      seed: [
+        { m: 'wait. the box says LOTUS SEED' },
+        { m: "ok. i'm not eating it. it's going in the fridge. i'm bringing it to lotus pier on sunday" },
+        { m: "don't tell sizhui. he'll cry" },
+        { fx: { set: { cake_ok: true } } },
+        { log: 'Sent A-Ling a lotus seed cake for Sunday', once: 'cake_ok_eats' },
+        { hint: 'A-Ling is saving the cake for Sunday.' },
         ...jlGate,
       ],
       not: [
@@ -411,6 +433,9 @@
     trigger: { on: 'act', act: 'order', match: (p) => P(p).to === 'koires' && P(p).rest === 'grandma-qin' },
     nodes: { start: [{ fx: { set: { r_qin: true } } }] },
   });
+
+  // `match` sees the payload; scenes don't. Keep what the cake reaction needs in a flag.
+  function keepSeed(s, v) { if (v) F(s).r_cake_seed = true; return true; }
 
   // ── 4. Food to Room 1808, where Jiang Cheng is asleep ───────────
   // He can't text: he hasn't got his phone. The rider can.
@@ -476,21 +501,35 @@
   });
 
   // ── Lotus Pier, where nobody is home except Old Huang ────────────
+  // Lotus root sent home = Sunday's lotus root (Old Huang keeps twenty kilos of the 400). Then he asks for the guest list.
+  const lpRoot = (p) => lotusy(p) || /lotus root/.test(names(p));
   react({
     id: 'r_eats_lp',
     thread: 'huang',
     polite: true,
-    trigger: { on: 'act', act: 'order', match: (p, s) => P(p).to === 'lp' && night(s), delay: 50 },
+    trigger: { on: 'act', act: 'order', match: (p, s) => P(p).to === 'lp' && night(s) && (keepRoot(s, lpRoot(p)) || true), delay: 50 },
     when: night,
     nodes: {
       start: [
         { m: 'Boss. Food at the Residence Gate. For Boss. 👍' },
         { m: 'But Boss is in Lanling?? 🤔' },
+        { if: (s) => !!F(s).r_lp_root && !F(s).ops_keep, go: 'root' },
         { m: '', voice: { dur: 12, text: "Boss. I signed for it. I put it in Boss's fridge. If Boss is not home by tomorrow, I eat it. That is the rule. Okay. Bye." } },
         { fx: { set: { huang_fridge: true } } },
+        { go: 'gate' },
       ],
+      root: [
+        { m: '', voice: { dur: 17, text: 'Boss. It is Lotus Root. Boss. We have four hundred kilo in the cold room. Okay. I understand. Sunday. Young master birthday. I keep twenty kilo, the best ones. I write SUNDAY on the box.' } },
+        { m: '👍👍' },
+        { fx: { set: { huang_fridge: true, ops_keep: true } } },
+        { log: 'Sent lotus root home to Lotus Pier; Old Huang kept twenty kilos of the 400 for Sunday', once: 'ops_keep' },
+        { hint: 'Twenty kilos of lotus root are kept for Sunday.' },
+        { go: 'gate' },
+      ],
+      gate: [{ start: 'huang_gate', delay: 30 }],
     },
   });
+  function keepRoot(s, v) { if (v) F(s).r_lp_root = true; return true; }
 
   // ═════════════════════════════════════════════════════════════════
   // SWIFT RIDE — `ride_book` { tier, from, to, price, reserve, at, id } · `ride_arrive` { id, tier, from, to }
@@ -503,13 +542,16 @@
     id: 'r_ride_desk',
     thread: 'swift',
     polite: true,
-    trigger: { on: 'act', act: 'phone_dropoff', match: (p) => !!P(p).leave && P(p).place === 'golden-peony' },
+    trigger: { on: 'act', act: 'phone_dropoff', match: (p, s) => !!P(p).leave && P(p).place === 'golden-peony' && night(s) && !F(s).returned_early },
     nodes: {
       start: [
         { fx: { set: { phone_at_desk: true, knows_hotel: true } } },
         { log: 'Took the phone back to the Golden Peony yourself', once: 'r_desk' },
         { time: '+4m', card: 'The night manager, Mr. Liang, takes the purple phone in both hands, as if it might go off. “Room 1808,” you say. He writes it on an envelope in very careful characters, and he does not ask your name.' },
-        { ending: 'honest' },
+        // The Honest Stranger is an early return now (docs/SUNDAY.md): the phone goes back tonight → early_return (writer C)
+        { fx: { set: { told_truth: true, returned_early: true, returned_how: 'desk' } } },
+        { hint: 'The phone is going home.' },
+        goOn('early_return'),
       ],
     },
   });
@@ -538,7 +580,7 @@
       start: [
         settleFairyAsk,
         lock('jl'),
-        { fx: { set: { fairy_taken: true } } },
+        { fx: { set: { fairy_taken: true, fairy_where: 'gate' } } },
         { log: 'Took a Swift Pet to the Koi Tower east gate to collect Fairy in person', once: 'r_fairy_way' },
         { hint: 'Fairy has seen the car.' },
         { m: 'wait' },
@@ -560,7 +602,7 @@
       start: [
         settleFairyAsk,
         lock('jl'),
-        { fx: { set: { fairy_taken: true } } },
+        { fx: { set: { fairy_taken: true, fairy_where: 'home' } } },
         { log: 'Sent a Swift Pet to Koi Tower to fetch Fairy', once: 'r_fairy_way' },
         { hint: 'Fairy is on her way.' },
         { m: 'jiujiu' },
@@ -642,6 +684,78 @@
     polite: true,
     trigger: { on: 'act', act: 'ride_cancel', match: (p, s) => !!P(p).reserve && gusu(P(p).to) && !!F(s).ride_gusu },
     nodes: { start: [{ fx: { set: { ride_gusu: false } } }, { log: 'Cancelled the car to Gusu', once: 'r_gusu_x' }] },
+  });
+
+  // ── 6d. A car to Lotus Pier for Sunday ───────────────────────────
+  // From Gusu: a car home for Wei Wuxian and Lan Wangji (a yes, if he asks). From Lanling: a car for A-Ling,
+  // over the Jin board's head.
+  react({
+    id: 'r_ride_sunday_wwx',
+    thread: 'wwx',
+    polite: true,
+    trigger: { on: 'act', act: 'ride_book', match: (p, s) => !!P(p).reserve && LP.includes(P(p).to) && gusu(P(p).from) && sunday(P(p).at) && night(s), delay: 20 },
+    when: (s) => night(s) && !F(s).burned,
+    nodes: {
+      start: waitFor('wwx', 'go'),
+      go: [
+        lock('wwx'),
+        { m: 'jiang cheng' },
+        { m: 'swift ride just told me u booked a car. jingshi → lotus pier. SUNDAY' },
+        { if: (s) => !!F(s).wwx_invited, go: 'already' },
+        { m: 'is this' },
+        { m: 'jiang cheng is this a yes' },
+        { choice: [
+            { t: "It's a car. Get in it.", fx: { set: { wwx_invited: true }, aff: { wwx: 1 } }, go: 'yes' },
+            { t: 'Wrong address.', go: 'wrong' },
+          ], timeout: 150, onTimeout: 'quiet' },
+      ],
+      already: [
+        { m: 'a CAR?? wen ning already said he would drive us. he has been practising the route' },
+        { m: "…i'm keeping it. for the soup. the soup gets its own seat" },
+        { log: 'Booked Wei Wuxian and Lan Wangji a car to Lotus Pier for Sunday', once: 'r_ride_sunday' },
+        free('wwx'),
+      ],
+      yes: [
+        { log: 'Booked Wei Wuxian a car home to Lotus Pier for Sunday, and called it a yes', once: 'r_ride_sunday' },
+        { hint: 'Wei Wuxian will remember that.' },
+        { m: '!!!!!!!!' },
+        { m: 'LAN ZHAN' },
+        { m: 'he booked us a CAR. to LOTUS PIER. that is jiang cheng for "come home"' },
+        { m: 'Mn. — Lan Wangji', th: 'lwj', from: 'lwj' },
+        free('wwx'),
+      ],
+      wrong: [{ m: '…ok' }, { m: "it's a very specific wrong address jiang cheng" }, { m: "i'm going to pretend it's right. in my heart" }, free('wwx')],
+      quiet: [{ m: "ok u don't have to say it. the car said it" }, free('wwx')],
+    },
+  });
+  react({
+    id: 'r_ride_sunday_jl',
+    thread: 'jl',
+    polite: true,
+    trigger: { on: 'act', act: 'ride_book', match: (p, s) => !!P(p).reserve && LP.includes(P(p).to) && !gusu(P(p).from) && cityOf(P(p).from) !== 'Yunmeng' && sunday(P(p).at) && night(s), delay: 20 },
+    when: night,
+    nodes: {
+      start: waitFor('jl', 'go'),
+      go: [
+        lock('jl'),
+        { m: 'why did u book a car to lotus pier on sunday' },
+        { if: (s) => !!F(s).party_moved || (!!F(s).scandal && !F(s).scandal_fixed), go: 'board' },
+        { m: "i was coming anyway. i always come" },
+        { m: '…ok the car is nice. it has a fridge' },
+        { log: 'Booked a car to Lotus Pier for Sunday', once: 'r_ride_sunday' },
+        ...jlGate,
+      ],
+      board: [
+        { m: "so it's NOT at koi tower??" },
+        { m: 'u booked me a car to lotus pier over the BOARD\'S HEAD??' },
+        { m: "ok. ok. i'm getting in it. they can make a speech to the pond" },
+        { fx: { set: { party_moved: false, venue_lp: true } } },
+        { log: 'Booked A-Ling a car to Lotus Pier for Sunday, over the Jin board’s head', once: 'r_ride_sunday' },
+        { hint: 'The party is back at Lotus Pier.' },
+        ...jlGate,
+      ],
+      aff: jlAff,
+    },
   });
 
   // ═════════════════════════════════════════════════════════════════
@@ -930,15 +1044,35 @@
       ],
     },
   });
+  // money to Sizhui = the cake fund; if Sunday isn't planned yet, he takes it as a yes and plans it
   pay('sz', 'r_pay_sz', null, {
     delay: 18,
     nodes: {
       start: [
         { m: 'Sect Leader Jiang, thank you. But I think this was meant for Jin Ling?' },
         { if: (s) => !!F(s).bday_planned, go: 'cake' },
-        { m: "I'll keep it safe until Sunday and give it to him with the card." },
+        { m: '…Or is it for Sunday?' },
+        { m: "I'll take it as a yes, then: Lotus Pier, six-thirty, lotus seed paste from Jin's Cakes. I'll tell the group. 😊" },
+        { fx: { set: { bday_planned: true, cake_ok: true } } },
+        { if: (s) => !F(s).party_moved, go: 'lp' },
+        { go: 'plan' },
       ],
-      cake: [{ m: "Shall I put it toward the cake? Jin's Cakes takes transfers. I'll tell them it's from you." }],
+      lp: [{ fx: { set: { venue_lp: true } } }, { go: 'plan' }],
+      plan: [
+        { m: "Mr. Jiang has approved Sunday (and the cake). I'll post a seating plan soon. 😊", th: 'bday', from: 'sz' },
+        { m: 'MR JIANG 💀🎂', th: 'bday', from: 'jy' },
+        { log: 'Sent Sizhui money for the cake; he took it as a yes to Sunday', once: 'bday_planned' },
+        { hint: 'Sizhui is planning Sunday.' },
+      ],
+      cake: [
+        { m: "Shall I put it toward the cake? Jin's Cakes takes transfers. I'll tell them it's from you." },
+        { if: (s) => !F(s).cake_ok, go: 'seed' },
+      ],
+      seed: [
+        { m: '(And I\'ll ask them for lotus seed paste. Quietly. Jin Ling will pretend not to notice.)' },
+        { fx: { set: { cake_ok: true } } },
+        { log: 'Paid for A-Ling’s cake through Sizhui: lotus seed paste after all', once: 'cake_ok_sz' },
+      ],
     },
   });
   pay('jy', 'r_pay_jy', null, {
@@ -1022,7 +1156,7 @@
       start: [
         settleFairyAsk,
         lock('jl'),
-        { fx: { set: { fairy_taken: true, loc_shared: true } } },
+        { fx: { set: { fairy_taken: true, fairy_where: 'home', loc_shared: true } } },
         { log: 'Shared his location with A-Ling while Fairy needed a bed', once: 'r_fairy_way' },
         { hint: 'A-Ling is on his way.' },
         { m: 'wait ur location just popped up' },
@@ -1150,6 +1284,8 @@
         { fx: { set: { loc_shared: true } } },
         { m: 'Boss. I see Boss on Map. 👍' },
         { m: '', voice: { dur: 12, text: 'Boss. Jinxing Road is not the hotel. Boss is walking at night? Very good for heart. But take umbrella. It is raining in Lanling. I checked. Okay. Bye.' } },
+        // while he has the boss's attention: Sunday's guest list for the gate (ops.js)
+        { start: 'huang_gate', delay: 25 },
       ],
     },
   });

@@ -1,5 +1,7 @@
-/* Live scenes — Jin Ling (`jl`): Sandu in the koi pond, Fairy, the birthday group `bday`, Lotus Leap.
-   Facts: docs/STORY.md. */
+/* Live scenes — Jin Ling (`jl`): Sandu in the koi pond, Fairy, the birthday group `bday`, Lotus Leap, Find My beeps.
+   "Sunday at Lotus Pier" edition: every beat here points at Sunday 6:30 p.m. (docs/SUNDAY.md, docs/sunday/b.md).
+   Table flags set here: bday_planned, cake_ok, gift_bell, bell_ready, venue_lp, party_moved, fairy_inside,
+   car_cover, fairy_taken (+ jl_knows… via Fairy's New Favorite → early_return). Facts: docs/STORY.md. */
 (function () {
   'use strict';
   const JC = (window.JC = window.JC || {});
@@ -22,6 +24,42 @@
   };
   const lock = (k) => ({ fx: { set: { ['busy_' + k]: true } } });
   const free = (k) => ({ fx: { set: { ['busy_' + k]: false } } });
+
+  // ── Sunday helpers ───────────────────────────────────────────────
+  const live = () => S.view();
+  const TBL = (s) => { try { return JC.sunday && JC.sunday.table ? JC.sunday.table(s || live()) : null; } catch (e) { return null; } };
+  const seat = (s, k) => { const t = TBL(s); return t ? t.seats[k].state : 'no'; };
+  // A message whose text is computed from the state when it is sent (the getter runs at typing time).
+  function say(fn, o) {
+    const st = Object.assign({}, o || {});
+    Object.defineProperty(st, 'm', { enumerable: true, get: () => { let t = ''; try { t = fn(live()); } catch (e) { /* fallback */ } return t ? String(t) : '…'; } });
+    return st;
+  }
+  // Start a consequence scene another writer owns (docs/SUNDAY.md "Consequences"); warn, don't fail, while it is unwritten.
+  const goOn = (id) => ({ run: (api) => { if (api.story.defs.scenes[id]) api.story.start(id); else console.warn('[sunday] consequence scene missing:', id); } });
+
+  /** Sizhui's seating plan, read from JC.sunday.table(s) (docs/SUNDAY.md beat 9). */
+  function seatingPlan(s, title) {
+    const t = TBL(s);
+    if (!t) return 'Seating plan to follow!';
+    const st = (k) => t.seats[k].state;
+    const L = [title || 'Seating plan for Sunday (draft 1):'];
+    L.push('• Head of the table: Sect Leader Jiang');
+    L.push(st('jl') === 'late' ? '• His right: Jin Ling (late, after the Koi Tower thing, if he escapes)' : '• His right: Jin Ling');
+    if (st('wwx') === 'yes') L.push('• His left: Mr. Wei and Hanguang-jun. The soup goes in the middle');
+    else if (st('wwx') === 'outside') L.push('• His left: (I left it empty. I hope that is all right)');
+    else L.push('• His left: empty, for now');
+    if (st('lxc') === 'yes') L.push('• Zewu-jun, across from you');
+    else if (st('lxc') === 'late') L.push('• Zewu-jun: tea, after dinner?');
+    if (st('wn') === 'yes') L.push('• Wen Ning, inside, not in the van');
+    else if (st('wn') === 'drives') L.push('• Wen Ning: driving us. He says he will wait in the van. Jingyi says no');
+    if (st('nhs') === 'yes') L.push('• Mr. Nie (phones in the basket)');
+    if (st('sz') === 'yes') L.push('• Jingyi and me, at the end, near the kitchen');
+    L.push(st('fairy') === 'in' ? '• Fairy: under the table' : '• Fairy: the garden (Rule 3)');
+    L.push('• And one bowl at the end, for his mother. Mr. Wei asked. I think you would have anyway.');
+    return L.join('\n');
+  }
+  JC.sundayB = Object.assign(JC.sundayB || {}, { seatingPlan });
 
   // ── 1. "jiujiu" ×3 — Sandu is in the koi pond (~00:03) ──────────
   scene({
@@ -98,6 +136,7 @@
         { go: 'what_now' },
       ],
       cover_keep: [
+        { log: 'Told A-Ling to blame the valet', once: 'jl_cover' },
         { m: "jiujiu that's so cold" },
         { m: "ok wtv. i'm putting on sunglasses. at night. no one will know it was me" },
         { go: 'what_now' },
@@ -158,8 +197,46 @@
         { m: 'ok' },
         { m: "ok i'm breathing" },
         { m: "fairy is still on the roof. she's very proud of herself" },
-        free('jl'),
+        { go: 'board' },
       ],
+      // The threat that hangs over Sunday: the Jin board wants the 18th at Koi Tower, with press.
+      board: [
+        { m: 'also' },
+        { m: 'is this going to ruin sunday' },
+        { m: 'the jin board already wants a "press moment" for my 18th. at koi tower. with SPEECHES' },
+        { m: 'if a car in a pond gets out they will say i need "image management"' },
+        { choice: [
+            { t: 'Sunday is at Lotus Pier. Nobody moves it.', fx: { aff: { jl: 1 } }, go: 'b_lp' },
+            { t: "Then don't put any more cars in ponds.", go: 'b_ponds' },
+            { t: 'Nobody will know it was you.', if: (s) => !!F(s).car_cover, go: 'b_cover' },
+          ] },
+      ],
+      b_lp: [
+        { m: '…ok' },
+        { m: 'ur scary when u say it like that. good scary' },
+        { go: 'end' },
+      ],
+      b_ponds: [{ m: 'wow. ok. noted. GOT IT' }, { m: 'no more ponds' }, { go: 'end' }],
+      b_cover: [
+        { m: 'the valet will know' },
+        { m: "he's still standing by the pond jiujiu. he looks sad. he keeps patting his pockets for biscuits" },
+        { choice: [
+            { t: '…Fine. Go and tell him it was you.', fx: { set: { car_cover: false }, aff: { jl: 1 } }, go: 'b_own' },
+            { t: 'Sunglasses.', go: 'b_shades' },
+          ] },
+      ],
+      b_own: [
+        { log: 'Made A-Ling go and own up to the valet before anyone posted it', once: 'jl_own' },
+        { hint: 'A-Ling did the right thing.' },
+        { m: 'UGH' },
+        { m: 'ok' },
+        { wait: 10 },
+        { m: 'i told him. he said "young master, i know. i saw you." and gave fairy another biscuit' },
+        { m: "i feel like i'm 6. in a good way. no in a bad way. both" },
+        { go: 'end' },
+      ],
+      b_shades: [{ m: '😎' }, { m: "ok. it's dark. no one can see anything. including me" }, { go: 'end' }],
+      end: [free('jl')],
     },
   });
 
@@ -212,7 +289,7 @@
           ] },
       ],
       go_meet: [
-        { fx: { set: { fairy_taken: true } } },
+        { fx: { set: { fairy_taken: true, fairy_where: 'gate' } } },
         { m: 'ok!!!' },
         { m: "she's wagging. she knows ur coming" },
         free('jl'),
@@ -247,17 +324,40 @@
         free('jl'),
         { start: 'fairy_meet' },
       ],
-      done: [{ fx: { set: { fairy_ok: true } } }, free('jl')],
+      done: [
+        { fx: { set: { fairy_ok: true } } },
+        { if: (s) => !!F(s).fairy_inside, go: 'end' },
+        { m: 'also. sunday' },
+        { m: "she's coming. she's family" },
+        { m: "if anyone says she has to stay in the garden i'm staying in the garden too" },
+        { choice: [
+            { t: 'She can come in.', fx: { set: { fairy_inside: true }, aff: { jl: 1 } }, go: 'in' },
+            { t: 'Garden. She smells like pond.', go: 'garden' },
+            { t: "We'll see.", go: 'see' },
+          ] },
+      ],
+      in: [
+        { log: 'Promised A-Ling that Fairy can come inside on Sunday', once: 'fairy_inside' },
+        { hint: 'Fairy is welcome inside on Sunday.' },
+        { m: '!!!' },
+        { m: "i'm telling her. she's wagging. she doesn't know why but she's wagging" },
+        { go: 'end' },
+      ],
+      garden: [{ m: "she'll be dry by sunday. probably" }, { m: 'mostly' }, { go: 'end' }],
+      see: [{ m: '"we\'ll see"' }, { m: "tang mei says that means no. i say it means u haven't decided to say yes yet" }, { go: 'end' }],
+      end: [free('jl')],
     },
   });
 
-  // Fairy's New Favorite: a teenager in a tuxedo, a soaking wet dog, and you.
+  // Fairy's New Favorite: a teenager in a tuxedo, a soaking wet dog, and you. Jin Ling knows now; he takes the
+  // phone, keeps the secret till breakfast, and wants you at his birthday → early_return (writer C).
   scene({
     id: 'fairy_meet',
     thread: 'jl',
     trigger: { on: 'manual' },
     nodes: {
       start: [
+        lock('jl'),
         { wait: 30 },
         { m: 'here' },
         { m: 'where r u' },
@@ -267,12 +367,17 @@
         { m: "why do u have jiujiu's phone. i can SEE it. it's the purple case" },
         { m: "fairy stop. FAIRY. she's licking u. she never licks anyone except jiujiu" },
         { wait: 5 },
-        { ending: 'fairy' },
+        { time: '+6m', card: 'Jin Ling looks at the purple phone, then at you, then at Fairy, who is trying very hard to climb into your arms. “She bit the groomer,” he says slowly. “She bit a Lan.” You tell him about the taxi. He listens with his whole face, the way his uncle never does, and then he holds out his hand.' },
+        { fx: { set: { jl_knows: true, told_truth: true, returned_early: true, returned_how: 'fairy', fairy_taken: true } } },
+        { log: 'Met A-Ling and a soaking wet Fairy at Koi Tower, told him the truth and gave him the phone', once: 'fairy_meet' },
+        { hint: 'A-Ling knows.' },
+        free('jl'),
+        goOn('early_return'),
       ],
     },
   });
 
-  // ── 3. The birthday group ────────────────────────────────────────
+  // ── 3. The birthday group: cake, venue, gift, the box, Rule 3, the seating plan ─
   scene({
     id: 'bday_plan',
     thread: 'bday',
@@ -285,7 +390,14 @@
         { m: 'Good evening, everyone. Sorry for the late hour.', from: 'sz' },
         { m: 'Since Sect Leader Jiang is awake, may we finalize Sunday? Cake, venue, gift. In that order.', from: 'sz' },
         { m: 'MR JIANG', from: 'jy' },
+        { if: (s) => !!F(s).scandal && !F(s).scandal_fixed, go: 'trending' },
         { if: (s) => F(s).car_known, go: 'pond', else: 'cake' },
+      ],
+      trending: [
+        { m: 'MR JIANG UR FAMILY IS TRENDING 💀💀💀', from: 'jy' },
+        { m: 'I know nothing!! About any hashtag!! 🙈', from: 'nhs' },
+        { m: 'Then it matters even more that Sunday is decided tonight.', from: 'sz' },
+        { go: 'cake' },
       ],
       pond: [
         { m: 'is it true jin ling parked sandu in the koi pond 💀💀💀', from: 'jy' },
@@ -309,8 +421,15 @@
       cake_choc: [
         { m: '…Mr. Jiang, Jin Ling has refused chocolate since the fountain incident. You were there.', from: 'sz' },
         { m: 'THE FOUNTAIN 💀💀💀', from: 'jy' },
-        { m: "I'll put down lotus seed paste.", from: 'sz' },
-        { fx: { set: { cake_ok: true } } },
+        { choice: [
+            { t: '…Lotus seed paste.', fx: { set: { cake_ok: true } }, go: 'cake_fix' },
+            { t: "Chocolate. He'll live.", fx: { sus: { sz: 1 } }, go: 'cake_live' },
+          ] },
+      ],
+      cake_fix: [{ m: "Lotus seed paste. I'll tell Jin's Cakes. 😊", from: 'sz' }, { go: 'venue' }],
+      cake_live: [
+        { m: "Chocolate, then. I'll… put it down.", from: 'sz' },
+        { m: 'jin ling is going to stare at it like it owes him money 💀', from: 'jy' },
         { go: 'venue' },
       ],
       cake_easy: [
@@ -324,11 +443,12 @@
         { m: 'lotus pier lotus pier lotus pier', from: 'wwx' },
         { m: 'koi tower has a ballroom tho', from: 'jy' },
         { m: 'Koi Tower has a POND hehe 🐟', from: 'nhs' },
+        { m: 'And a board that wants to make speeches. 👀', from: 'nhs' },
         { m: 'Wei Ying. The vote is not decided by repetition.', from: 'lwj' },
         { m: 'it is in my heart', from: 'wwx' },
         { choice: [
-            { t: 'Lotus Pier. He grew up there.', fx: { set: { venue_lp: true } }, go: 'venue_lp' },
-            { t: "Koi Tower. It's his house.", go: 'venue_kt' },
+            { t: 'Lotus Pier. He grew up there.', fx: { set: { venue_lp: true, party_moved: false } }, go: 'venue_lp' },
+            { t: "Koi Tower. It's his house.", fx: { set: { party_moved: true, venue_kt: true } }, go: 'venue_kt' },
             { t: 'Let the birthday boy decide! 🎉', fx: { sus: { wwx: 1, sz: 1, nhs: 1 } }, go: 'venue_party' },
           ] },
       ],
@@ -340,9 +460,12 @@
         { go: 'gift' },
       ],
       venue_kt: [
+        { log: 'Agreed to hold A-Ling’s party at Koi Tower, with the Jin board', once: 'venue' },
+        { hint: 'The party is at Koi Tower now.' },
         { m: 'oh', from: 'wwx' },
         { m: "ok. yeah. that's fair. it's his house", from: 'wwx' },
         { m: "Koi Tower, then. I'll ask the staff to keep the pond… clear.", from: 'sz' },
+        { m: '(Dinner at Lotus Pier afterwards, for family? If he can get away from the board.)', from: 'sz' },
         { go: 'gift' },
       ],
       venue_party: [
@@ -350,7 +473,7 @@
         { m: 'mr jiang used the party popper 💀', from: 'jy' },
         { m: 'Screenshotted 👀', from: 'nhs' },
         { m: "I'll put down Lotus Pier. Jin Ling says it every year when he thinks no one is listening.", from: 'sz' },
-        { fx: { set: { venue_lp: true } } },
+        { fx: { set: { venue_lp: true, party_moved: false } } },
         { go: 'gift' },
       ],
       gift: [
@@ -374,7 +497,7 @@
         { m: 'wait whats the bell', from: 'jy' },
         { m: 'Jingyi.', from: 'sz' },
         { m: 'ok ok', from: 'jy' },
-        { go: 'planned' },
+        { go: 'box' },
       ],
       watch: [
         { m: "I'M LEAVING THIS CHAT", from: 'wwx' },
@@ -385,23 +508,121 @@
         { addMember: 'wwx' },
         { m: "ok i'm back. lan zhan made me", from: 'wwx' },
         { m: "it's the bell. isn't it. it was always going to be the bell", from: 'wwx' },
-        { go: 'planned' },
+        { choice: [
+            { t: "…It's the bell.", fx: { set: { gift_bell: true }, aff: { wwx: 1 } }, go: 'bell_late' },
+            { t: "It's a watch.", go: 'watch_final' },
+          ] },
+      ],
+      bell_late: [
+        { m: 'I KNEW IT', from: 'wwx' },
+        { m: "she'd love that", from: 'wwx' },
+        { go: 'box' },
+      ],
+      watch_final: [
+        { m: 'a WATCH', from: 'wwx' },
+        { m: 'lan zhan hold me', from: 'wwx' },
+        { m: 'It is a good watch, I am sure.', from: 'sz' },
+        { go: 'rule3' },
       ],
       together: [
         { m: 'jiang cheng wants a GROUP gift??', from: 'wwx' },
         { m: 'who are u and what have u done with my brother', from: 'wwx' },
         { m: 'A group card, then. And his own gift from you. I think you already know what it is.', from: 'sz' },
-        { go: 'planned' },
+        { choice: [
+            { t: "His mother's bell.", fx: { set: { gift_bell: true } }, go: 'bell_late' },
+            { t: 'Handled.', go: 'rule3' },
+          ] },
       ],
       pick: [
         { m: '🙏??', from: 'wwx' },
         { m: 'jiang cheng does NOT pray', from: 'wwx' },
         { m: '…Mr. Jiang, are you all right?', from: 'sz' },
         { m: "I'll put down 'Mr. Jiang: to be confirmed'.", from: 'sz' },
+        { go: 'rule3' },
+      ],
+      // The bell has to be in the purple velvet box (his own Notes and Reminders say so: "not gold").
+      box: [
+        { if: (s) => !!F(s).bell_ready, go: 'box_done' },
+        { m: 'May I ask one small thing? What will it be wrapped in?', from: 'sz' },
+        { m: "Jin Ling notices boxes. He kept the paper from his 10th birthday. It's in a drawer.", from: 'sz' },
+        { choice: [
+            { t: 'Purple velvet. Not gold.', fx: { set: { bell_ready: true } }, go: 'box_purple' },
+            { t: "Gold. It's a Jin birthday.", fx: { sus: { sz: 1 } }, go: 'box_gold' },
+            { t: "Whatever the jeweller gave me.", go: 'box_bag' },
+          ] },
+      ],
+      box_purple: [
+        { log: 'Told Sizhui the bell goes in the purple velvet box', once: 'bell_box' },
+        { hint: 'The bell is ready.' },
+        { m: 'He is going to complain about the colour for one whole minute. 😊', from: 'sz' },
+        { m: "Then he isn't going to take it off.", from: 'sz' },
+        { go: 'rule3' },
+      ],
+      box_gold: [
+        { m: "…Your list says 'not gold', Sect Leader Jiang. It's shared with me. I'm sorry. I read everything.", from: 'sz' },
+        { m: "I'll leave the box to you.", from: 'sz' },
+        { go: 'rule3' },
+      ],
+      box_bag: [
+        { m: "Of course. (Your reminder says purple velvet, though. I'll remind you on Saturday.)", from: 'sz' },
+        { go: 'rule3' },
+      ],
+      box_done: [{ m: 'And I saw the box is ticked off on our list. Purple velvet. Perfect. 😊', from: 'sz' }, { go: 'rule3' }],
+      // Rule 3 (Wednesday): "fairy stays OUTSIDE"
+      rule3: [
+        { m: 'ALSO', from: 'wwx' },
+        { m: 'rule 3. fairy stays OUTSIDE', from: 'wwx' },
+        { if: (s) => !!F(s).wwx_invited, go: 'rule3_soup' },
+        { go: 'rule3_q' },
+      ],
+      rule3_soup: [{ m: 'i will be carrying a pot of SOUP. her pot. through a door. with a DOG', from: 'wwx' }, { go: 'rule3_q' }],
+      rule3_q: [
+        { if: (s) => !!F(s).fairy_inside, go: 'rule3_already' },
+        { if: (s) => !!F(s).dog_friday, go: 'rule3_dogs' },
+        { choice: [
+            { t: "Fairy comes in. It's his birthday.", fx: { set: { fairy_inside: true } }, go: 'rule3_in' },
+            { t: 'Garden. Old Huang will watch her.', go: 'rule3_out' },
+            { t: '[Say nothing]', silent: true, go: 'rule3_out' },
+          ] },
+      ],
+      rule3_already: [
+        { m: 'jin ling just told sizhui u ALREADY said fairy comes inside', from: 'wwx' },
+        { m: 'jiang cheng. RULE 3', from: 'wwx' },
+        { m: 'I will sit between you and the dog.', from: 'lwj' },
+        { go: 'seats' },
+      ],
+      rule3_dogs: [
+        { m: 'wait. liu qian posted "DOG FRIDAY APPROVED" on the ymj wavelet', from: 'wwx' },
+        { m: 'u approved DOG FRIDAY?? 12 dogs and a cat?? and fairy has to stay in the GARDEN??', from: 'wwx' },
+        { m: '…oh no. she doesnt, does she', from: 'wwx' },
+        { m: 'I will sit between you and the dog.', from: 'lwj' },
+        { go: 'seats' },
+      ],
+      rule3_in: [
+        { log: 'Overruled Rule 3: Fairy comes inside on Sunday', once: 'fairy_inside' },
+        { hint: 'Fairy is welcome inside on Sunday.' },
+        { m: 'BETRAYED', from: 'wwx' },
+        { m: 'by my own brother', from: 'wwx' },
+        { m: 'I will sit between you and the dog.', from: 'lwj' },
+        { m: 'lan zhan 🥺', from: 'wwx' },
+        { go: 'seats' },
+      ],
+      rule3_out: [
+        { m: 'old huang is my HERO', from: 'wwx' },
+        { m: 'Jin Ling will sit in the garden with her for at least ten minutes. I am just telling you.', from: 'sz' },
+        { go: 'seats' },
+      ],
+      // Sizhui's first seating plan, read off the Sunday table (docs/SUNDAY.md beat 9)
+      seats: [
+        { fx: { set: { bday_planned: true } } },
+        { log: 'Planned A-Ling’s 18th with the group: cake, venue, gift', once: 'bday_planned' },
+        { m: 'Thank you. Then here is my first seating plan. Please correct me.', from: 'sz' },
+        say((s) => seatingPlan(s), { from: 'sz' }),
+        { m: 'why am i near the kitchen 💀', from: 'jy' },
+        { m: 'Because of the fountain.', from: 'sz' },
         { go: 'planned' },
       ],
       planned: [
-        { fx: { set: { bday_planned: true } } },
         { m: 'Wonderful. Cake, venue, gift. Thank you, everyone. Goodnight.', from: 'sz' },
         { m: 'wait i have one more thing', from: 'jy' },
         free('bday'),
@@ -478,7 +699,7 @@
     },
   });
 
-  // Jin Ling DMs, soft.
+  // Jin Ling DMs, soft: is it at Lotus Pier, is Wei Wuxian really coming, and his mother's soup (beat 7).
   scene({
     id: 'jl_soft',
     thread: 'jl',
@@ -498,28 +719,60 @@
             { t: "We're planning the best birthday ever for our little man!! 🥳", fx: { sus: { jl: 4 } }, go: 'little' },
           ] },
       ],
-      sleep: [{ m: 'ugh. ok' }, { go: 'wwx_q' }],
+      sleep: [{ m: 'ugh. ok' }, { go: 'venue' }],
       yes: [
         { m: "i'll act SO surprised" },
         { m: "i'll cry. fake. fake cry" },
         { m: '…' },
         { m: 'thanks' },
-        { go: 'wwx_q' },
+        { go: 'venue' },
       ],
-      no: [{ m: 'liar' }, { m: "ur the worst liar in yunmeng. sizhui says so too" }, { go: 'wwx_q' }],
+      no: [{ m: 'liar' }, { m: "ur the worst liar in yunmeng. sizhui says so too" }, { go: 'venue' }],
       little: [
         { m: 'LITTLE MAN??' },
         { m: "i'm 18 on sunday" },
         { m: "i'm blocking u. not really. but i'm thinking about it" },
+        { go: 'venue' },
+      ],
+      venue: [{ if: (s) => !!F(s).party_moved, go: 'kt' }, { go: 'wwx_q' }],
+      kt: [
+        { m: "sizhui let it slip. it's at koi tower??" },
+        { m: 'with the board. they will make a SPEECH. about the FUTURE OF THE JIN GROUP' },
+        { m: 'i wanted lotus pier. i always want lotus pier. u know that' },
+        { choice: [
+            { t: "Then it's at Lotus Pier.", fx: { set: { party_moved: false, venue_lp: true }, aff: { jl: 1 } }, go: 'kt_lp' },
+            { t: "Koi Tower is your house too.", go: 'kt_stay' },
+          ] },
+      ],
+      kt_lp: [
+        { log: 'Moved A-Ling’s party back to Lotus Pier', once: 'venue_back' },
+        { hint: 'The party is back at Lotus Pier.' },
+        { m: 'Update: Lotus Pier after all. Sect Leader Jiang says so. 😊', th: 'bday', from: 'sz' },
+        { m: 'LOTUS PIER LOTUS PIER LOTUS PIER', th: 'bday', from: 'wwx' },
+        { m: 'ok' },
+        { m: 'ok good' },
         { go: 'wwx_q' },
       ],
+      kt_stay: [{ m: "koi tower isn't a house. it's a building with a pond" }, { m: 'and now a car' }, { go: 'wwx_q' }],
       wwx_q: [
         { m: 'is wei wuxian coming' },
+        { m: 'like REALLY coming' },
+        { if: (s) => !!F(s).burned && !F(s).burned_mended, go: 'burned' },
         { if: (s) => F(s).wwx_invited, go: 'coming', else: 'not_yet' },
       ],
-      coming: [
+      burned: [
+        { m: 'he posted a picture of a dead radish on wavelet. no caption' },
+        { m: 'did u two fight' },
         { choice: [
-            { t: "He's bringing soup.", fx: { aff: { jl: 1 } }, go: 'soup' },
+            { t: 'Go to sleep.', go: 'end' },
+            { t: "I'll fix it.", fx: { aff: { jl: 1 } }, go: 'fix' },
+          ] },
+      ],
+      fix: [{ m: 'u better' }, { m: "it's my birthday. u have to do what i say on my birthday" }, { go: 'end' }],
+      coming: [
+        { m: "he says he is. but he also said he'd be on time to my graduation" },
+        { choice: [
+            { t: "He's coming. He's bringing the soup.", fx: { aff: { jl: 1 } }, go: 'soup' },
             { t: 'Yes.', go: 'soup' },
           ] },
       ],
@@ -527,10 +780,39 @@
         { m: "mom's soup?" },
         { m: 'the lotus root one' },
         { m: "i've never had it. only heard about it" },
-        { m: '…' },
-        { m: 'ok. goodnight jiujiu' },
-        { go: 'end' },
+        { m: 'does he even know how to make it. sizhui says the jingshi smoke alarm went off four times this week' },
+        { if: (s) => !!F(s).told_recipe, go: 'told' },
+        { choice: [
+            { t: "Two hours. Low fire. Don't rush it.", fx: { set: { jl_recipe: true }, aff: { jl: 1 } }, go: 'recipe' },
+            { t: "He'll burn it.", go: 'burn' },
+            { t: "It'll be close enough.", go: 'close' },
+          ] },
       ],
+      told: [
+        { m: 'wait. u TOLD him?? two hours low fire??' },
+        { m: 'u never told ME that' },
+        { m: "…ok. then it's going to be good" },
+        { go: 'after' },
+      ],
+      recipe: [
+        { log: 'Told A-Ling his mother’s soup recipe: two hours, low fire', once: 'jl_recipe' },
+        { m: '…is that the recipe' },
+        { m: "is that MOM'S recipe" },
+        { m: "tell HIM that. no don't. i'll tell him. no. ok i will" },
+        { go: 'after' },
+      ],
+      burn: [{ m: 'lol' }, { m: "ok. i'll eat it anyway. don't tell him" }, { go: 'after' }],
+      close: [{ m: "close enough is fine. i don't know what it's supposed to taste like anyway" }, { m: '…u do though' }, { go: 'after' }],
+      after: [
+        { if: (s) => !!F(s).ops_keep, go: 'root' },
+        { go: 'night' },
+      ],
+      root: [
+        { m: 'also old huang sent me a voice message. there are 20 kilos of lotus root in the cold room with "SUNDAY — DO NOT TOUCH" on the box' },
+        { m: 'in his handwriting. is that for the soup' },
+        { go: 'night' },
+      ],
+      night: [{ m: '…' }, { m: 'ok. goodnight jiujiu' }, { go: 'end' }],
       not_yet: [
         { choice: [
             { t: 'Do you want him to?', fx: { aff: { jl: 1 } }, go: 'want' },
@@ -543,6 +825,7 @@
         { m: 'yeah' },
         { m: "don't tell him i said that" },
         { m: 'he talks about mom like he knew her better than anyone. except u' },
+        { m: "and he said he'd bring her soup. i've never had it" },
         { fx: { set: { jl_wants_wwx: true } } },
         { go: 'end' },
       ],
@@ -551,11 +834,60 @@
     },
   });
 
+  // Sizhui's seating plan, updated after the night (~01:25): the table as it stands now, plus Nie Huaisang's question.
+  scene({
+    id: 'bday_seats',
+    thread: 'bday',
+    trigger: { on: 'unlock', delay: 1500 },
+    when: (s) => night(s) && !!F(s).bday_planned,
+    nodes: {
+      start: waitFor('bday', 'go'),
+      go: [
+        lock('bday'),
+        { m: "Sorry, one more thing before I sleep. I've updated the seating plan after tonight.", from: 'sz' },
+        say((s) => seatingPlan(s, 'Seating plan for Sunday (draft 2):'), { from: 'sz' }),
+        { if: (s) => seat(s, 'wn') === 'drives', go: 'van' },
+        { go: 'nhs' },
+      ],
+      van: [
+        { m: 'I really am happy to wait in the van. Sorry. — Wen Ning', from: 'wn' },
+        { m: 'WEN NING NO 💀', from: 'jy' },
+        { go: 'nhs' },
+      ],
+      nhs: [
+        { if: (s) => !!F(s).nhs_ally || !!F(s).nhs_leak || !!F(s).nhs_knows, go: 'end' },
+        { m: 'Sizhui… I am not on it 😭', from: 'nhs' },
+        { m: "Brother Jiang, am I a 'few friends'?? I'd bring the purple lotus fan!! I'd be so quiet 🪭", from: 'nhs' },
+        { choice: [
+            { t: "You're on the list. Post nothing.", fx: { set: { nhs_ally: true } }, go: 'nhs_yes' },
+            { t: 'Family only.', go: 'nhs_no' },
+            { t: '[Say nothing]', silent: true, go: 'nhs_quiet' },
+          ] },
+      ],
+      nhs_yes: [
+        { log: 'Put Nie Huaisang on the list for Sunday, on condition he posts nothing', once: 'nhs_ally' },
+        { hint: 'Nie Huaisang is coming on Sunday.' },
+        { m: '😭😭😭🪭', from: 'nhs' },
+        { m: "Posting nothing!! I don't even know what posting is!!", from: 'nhs' },
+        { m: 'Adding Mr. Nie. Phones in the basket. 😊', from: 'sz' },
+        { go: 'end' },
+      ],
+      nhs_no: [
+        { m: 'Understood!! 🙏', from: 'nhs' },
+        { m: "(I'm family-adjacent. Like a cousin. I have so many cousins)", from: 'nhs' },
+        { go: 'end' },
+      ],
+      nhs_quiet: [{ m: 'Left on read in a GROUP 😭', from: 'nhs' }, { m: "I'll take that as a 'we'll see' 🪭", from: 'nhs' }, { go: 'end' }],
+      end: [{ m: 'Goodnight, everyone. Truly this time.', from: 'sz' }, free('bday')],
+    },
+  });
+
   // ── 4. Lotus Leap: someone beat 1824 ─────────────────────────────
   scene({
     id: 'jl_score',
     thread: 'jl',
     trigger: { on: 'act', act: 'game_score', match: (p) => !!p && Number(p.score) > 1824 },
+    when: night,
     nodes: {
       start: [{ fx: { set: { beat_score: true }, sus: { jl: 2 } } }, { wait: 8 }, { go: 'q' }],
       q: waitFor('jl', 'how', 'q'),
@@ -574,7 +906,7 @@
       practice: [
         { m: 'since WHEN' },
         { m: '…is THAT why ur screen time said games' },
-        { m: "ok. it's on. i'm not sleeping tonight" },
+        { m: "ok. it's on. rematch on sunday. after cake. loser does the dishes" },
         free('jl'),
       ],
       good: [
@@ -596,6 +928,7 @@
   scene({
     id: 'jl_beep_fairy',
     thread: 'jl',
+    polite: true,
     trigger: { on: 'act', act: 'findmy_sound', match: (p) => /fairy/i.test(String(p && p.id)) },
     when: (s) => night(s) && !F(s).fairy_taken,
     nodes: {
@@ -611,6 +944,7 @@
   scene({
     id: 'jl_beep_keys',
     thread: 'jl',
+    polite: true,
     trigger: { on: 'act', act: 'findmy_sound', match: (p) => /sandu|key/i.test(String(p && p.id)) },
     when: night,
     nodes: {
@@ -639,12 +973,29 @@
       ],
       car_ok: [
         { m: "i'm home. the car's out. fairy is asleep on my bed. she smells like pond" },
-        { go: 'more' },
+        { go: 'board' },
       ],
       car_no: [
         { m: "i'm home. the car is still in the pond. fairy is asleep on my bed. she smells like pond" },
+        { go: 'board' },
+      ],
+      board: [
+        { if: (s) => !!F(s).scandal && !F(s).scandal_fixed, go: 'board_bad' },
+        { if: (s) => !!F(s).scandal_fixed, go: 'board_ok' },
+        { go: 'fairy' },
+      ],
+      board_bad: [
+        { m: 'the board\'s assistant emailed AGAIN. "koi tower, sunday, 5 pm, press"' },
+        { m: 'i said i have a dinner. she said "reschedule it"' },
+        { m: "u're calling them tomorrow right. u're scarier than them" },
+        { go: 'fairy' },
+      ],
+      board_ok: [{ m: "the valet followed me on wavelet. he's nice. his granddaughter is not" }, { go: 'fairy' }],
+      fairy: [
+        { if: (s) => seat(s, 'fairy') === 'in', go: 'fairy_in' },
         { go: 'more' },
       ],
+      fairy_in: [{ m: "i told fairy she's coming inside on sunday. she understood. she sighed" }, { go: 'more' }],
       more: [
         { if: (s) => F(s).wwx_invited && F(s).jl_wants_wwx, go: 'wwx' },
         { go: 'thanks' },
@@ -659,13 +1010,19 @@
         { m: "don't make it weird" },
         { choice: [
             { t: 'Go to sleep, brat.', fx: { aff: { jl: 1 } }, go: 'brat' },
-            { t: 'Happy birthday. In advance.', fx: { aff: { jl: 1 } }, go: 'bday' },
+            { t: 'Six-thirty Sunday. Don’t be late.', fx: { aff: { jl: 1 } }, go: 'sunday' },
             { t: 'I love you so much, kiddo ❤️', fx: { sus: { jl: 4 } }, go: 'love' },
             { t: '[Leave him on read]', silent: true, go: 'read' },
           ] },
       ],
       brat: [{ m: 'ur the brat' }, { m: 'night jiujiu' }, { go: 'done' }],
-      bday: [{ m: "it's not sunday yet old man" }, { m: '…' }, { m: 'thanks' }, { go: 'done' }],
+      sunday: [
+        { m: "i'm never late. ur early. there's a difference" },
+        { m: "it's not sunday yet old man" },
+        { m: '…' },
+        { m: 'thanks' },
+        { go: 'done' },
+      ],
       love: [
         { m: 'WHAT' },
         { m: "ok i'm calling sizhui. ur possessed" },
