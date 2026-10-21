@@ -1,6 +1,11 @@
 /* App reactions — the "life" apps: Notes, Calendar, Reminders, Health, Voice Memos, Phone (voicemails), Contacts,
    Settings (Focus, Airplane Mode, wallpaper) and Clock. What the player does there reaches the people in the phone.
    Every reaction is `polite` and night-only unless noted. Design notes, flags and FINALE notes: docs/reactions/life.md.
+   Sunday edition (docs/SUNDAY.md, docs/sunday/c.md): reactions feed the table through its flags —
+   the locked "Xichen —" letter → lxc affection / lxc_sunday; Calendar tea → tea_yes; the bell box → bell_ready;
+   the lotus root reminder → ops_keep; the gate reminder (after calling Old Huang) → huang_list;
+   Wei Wuxian's voicemail → a second way to say yes to Sunday (wwx_invited / wwx_maybe);
+   A-Jie's soup note → soup_note_read (lets the Saturday call pass on the fire); the deleted toast → toast_edited.
    Facts: docs/STORY.md. Format: docs/DEV.md "App reactions". */
 (function () {
   'use strict';
@@ -174,6 +179,15 @@
       ],
       end_tea_fin: [
         { m: "Three o'clock, then. I'll have the water at eighty-five degrees, and the rest of my answer. 🙂" },
+        { if: (s) => !F(s).lxc_sunday && !F(s).lxc_sunday_no && !F(s).night_done, go: 'sunday' },
+        { go: 'done' },
+      ],
+      // a finished letter reads as an answer to more than tea
+      sunday: [
+        { wait: 2 },
+        { m: 'Wangji says there is a dinner at Lotus Pier on Sunday. I am going to take this letter as an invitation to that, too.' },
+        { m: 'Tell me at three if I have misread it.' },
+        { fx: { set: { lxc_sunday: true }, log: 'Lan Xichen took the letter as an invitation to Sunday', once: 'draft_sunday', hint: 'Lan Xichen will be at the table.' } },
         { go: 'done' },
       ],
       done: [release('lxc', tag)],
@@ -244,6 +258,23 @@
         { go: 'reply' },
       ],
     }, draftReply('draft2')),
+  });
+
+  // A-Jie's soup, from memory: whoever has read it can tell Wei Wuxian what the fire should be (the Saturday call).
+  R({
+    id: 'r_note_soup',
+    thread: 'wwx',
+    trigger: { on: 'act', act: 'note_open', match: (p) => !!p && p.id === 'n_soup' },
+    nodes: { start: [{ fx: { set: { soup_note_read: true } } }, { log: 'Read “A-Jie’s soup (from memory)”. Two hours. Low fire.', once: 'note_soup' }] },
+  });
+  // The toast he started for A-Ling and deleted ("Eighteen years ago your mother"). Finishing it is read on Sunday.
+  const SEED_TOAST = 'eighteen years ago your mother';
+  const toastText = () => { const n = JC.store.get('notes', 'n_toast'); return n ? (String(n.title || '') + ' ' + String(n.body || '')) : ''; };
+  R({
+    id: 'r_note_toast',
+    thread: 'jl',
+    trigger: { on: 'act', act: 'note_edit', match: (p) => !!p && p.id === 'n_toast' && squash(toastText()).replace(/^toast - a-ling, 18 ?/, '').length > SEED_TOAST.length + 12 },
+    nodes: { start: [{ fx: { set: { toast_edited: true } } }, { log: 'Finished the toast he had deleted: “Eighteen years ago your mother…”', once: 'note_toast' }] },
   });
 
   // Reading the list he keeps pinned.
@@ -465,7 +496,11 @@
     thread: 'sz',
     trigger: { on: 'act', act: 'reminder_done', match: (p) => !!p && p.id === 'a_box', delay: 25 },
     nodes: {
-      start: [{ log: 'Ticked off “The bell — purple velvet box” on the list Sizhui can see', once: 'rem_bell' }, { go: 'wait' }],
+      start: [
+        { fx: { set: { bell_ready: true } } },
+        { log: 'Put the bell in the purple velvet box (and ticked it off on the list Sizhui can see)', once: 'rem_bell' },
+        { go: 'wait' },
+      ],
       wait: waitFree('sz', 'go', 'wait'),
       go: [
         lock('sz'),
@@ -474,6 +509,7 @@
         { m: "I didn't mean to read it. I read everything on shared lists. It's a flaw." },
         { m: 'Is it his mother’s bell?' },
         { m: "You don't have to answer. I won't tell anyone. Especially not Jingyi." },
+        { m: "I've put it on the seating plan as “the gift (Mr. Jiang)”. Purple. 😊" },
         free('sz'),
       ],
       known: [
@@ -513,12 +549,13 @@
     thread: 'huang',
     trigger: { on: 'act', act: 'reminder_done', match: (p) => !!p && p.id === 'g_lotus', delay: 30 },
     nodes: {
-      start: [{ log: 'Ticked off “Lotus root — 2 sections” on the list Old Huang shares. YMJ has 400 kg.', once: 'rem_lotus' }, { go: 'wait' }],
+      start: [{ log: 'Ticked off “Lotus root — 2 sections”. Old Huang is bringing Sunday’s from the 400 kg.', once: 'rem_lotus' }, { go: 'wait' }],
       wait: waitFree('huang', 'go', 'wait'),
       go: [
         lock('huang'),
-        { m: '', d: 3, voice: { dur: 11, text: 'Boss. You buy lotus root?? Two section?? Boss. We have FOUR HUNDRED KILO in the warehouse. I bring you two section. Free.' } },
+        { m: '', d: 3, voice: { dur: 13, text: 'Boss. You buy lotus root?? Two section?? Boss. We have FOUR HUNDRED KILO in the warehouse. For Sunday I bring twenty kilo to the house. The good one. Free.' } },
         { m: '👍👍' },
+        { fx: { set: { ops_keep: true }, hint: 'Sunday’s lotus root is from the 400 kg.' } },
         free('huang'),
       ],
     },
@@ -590,7 +627,15 @@
     id: 'r_rem_huang',
     thread: 'huang',
     trigger: { on: 'act', act: 'reminder_done', match: (p) => !!p && p.id === 'r_huang' },
-    nodes: { start: [{ log: () => (calledHuang() ? 'Called Old Huang and ticked off “the gate, Sunday”' : 'Ticked off “Call Old Huang — the gate, Sunday” without calling Old Huang'), once: 'rem_huang' }] },
+    nodes: { start: [
+      { if: () => calledHuang(), go: 'called' },
+      { log: 'Ticked off “Call Old Huang — the gate, Sunday” without calling Old Huang', once: 'rem_huang' },
+    ], called: [
+      { fx: { set: { huang_list: true } } },
+      { log: 'Called Old Huang about the gate on Sunday (“If he comes: let him in.”)', once: 'rem_huang' },
+      { m: '', d: 3, voice: { dur: 9, text: 'Boss. Received. Sunday, the gate. If he comes, I let him in. I make a list. Laminated.' } },
+      { m: '👍' },
+    ] },
   });
   R({
     id: 'r_rem_tea',
@@ -943,9 +988,22 @@
       wait: waitView('wwx', 'q', 'wait', (s) => !F(s).burned),
       q: [{ choice: [
           replying('wwx', { t: 'I got your voicemail.', go: 'got' }),
+          replying('wwx', { t: 'Bring the soup.', if: (s) => !F(s).wwx_invited && !F(s).burned, go: 'soup' }),
           replying('wwx', { t: 'Stop leaving me voicemails.', go: 'stop' }),
           { t: '[Leave it]', silent: true, go: 'leave' },
         ], timeout: 60, onTimeout: 'leave' }],
+      // a second way to answer his Sunday: straight to the voicemail's "if"
+      soup: [
+        grab('wwx', 'vm'),
+        { m: '…' },
+        { m: 'wait' },
+        { m: 'is that a yes. to the voicemail. is that a voicemail yes' },
+        { m: 'LAN ZHAN' },
+        { m: "he says it counts. it's in writing. i'm screenshotting it" },
+        { fx: { set: { wwx_invited: true }, log: 'Answered Wei Wuxian’s voicemail: “Bring the soup.”', once: 'vm_soup', hint: 'Wei Wuxian is coming home on Sunday.' } },
+        affUp('wwx', 1),
+        release('wwx', 'vm'),
+      ],
       got: [
         grab('wwx', 'vm'),
         { m: 'u LISTENED to it??' },

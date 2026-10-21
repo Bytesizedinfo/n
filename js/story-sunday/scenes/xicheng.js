@@ -1,5 +1,7 @@
-/* Live scenes — Lan Xichen (`lxc`): the balcony, tea at the Hanshi, the moon over Gusu.
-   Cameos: Lan Qiren (`qr`), Tang Mei (`ea`). Facts: docs/STORY.md. */
+/* Live scenes — Lan Xichen (`lxc`): the balcony, tea at the Hanshi, the moon over Gusu, and Sunday.
+   Cameos: Lan Qiren (`qr`), Tang Mei (`ea`). Facts: docs/STORY.md · Sunday: docs/SUNDAY.md, docs/sunday/c.md.
+   Table flags set here: tea_yes, lxc_sunday (he asks, once tea is settled, whether he'd be welcome on Sunday),
+   lxc_sunday_no, lxc_board (he offers to talk the Jin board out of moving A-Ling's party), qr_invited. */
 (function () {
   'use strict';
   const JC = (window.JC = window.JC || {});
@@ -176,11 +178,28 @@
       moon: [
         lock('lxc'),
         { m: 'Forgive me. I know it is late.' },
+        { if: (s) => F(s).burned && !F(s).burned_mended, go: 'roof' },
         { if: (s) => F(s).told_recipe, go: 'recipe' },
+        { if: (s) => F(s).wwx_invited, go: 'yes_sunday' },
+        { go: 'sky' },
+      ],
+      // Lan Wangji tells his brother things, in very few words
+      roof: [
+        { m: 'Wangji has gone up to the roof of the Jingshi with a blanket, and has not come down. I won\'t ask what happened.' },
+        { m: 'But if there is anything you would like carried up there, I have very long arms.' },
+        { go: 'sky' },
+      ],
+      yes_sunday: [
+        { m: 'Wangji tells me you said yes to Sunday. He told me in three words, which for Wangji is a speech.' },
         { go: 'sky' },
       ],
       recipe: [
         { m: 'Wangji tells me Wei Wuxian is making soup at one in the morning, and crying into it. Apparently someone finally told him about the fire. 🙂' },
+        { if: (s) => F(s).ops_keep, go: 'recipe_root' },
+        { go: 'sky' },
+      ],
+      recipe_root: [
+        { m: 'He also says twenty kilos of lotus root are coming from your warehouse. Wangji is clearing a shelf.' },
         { go: 'sky' },
       ],
       sky: [
@@ -221,6 +240,14 @@
       ],
       until: [
         { m: 'Until three, then.' },
+        { if: (s) => F(s).lxc_sunday, go: 'until_sun' },
+        { go: 'until2' },
+      ],
+      until_sun: [
+        { m: 'And then, it seems, until Sunday. Twice in one weekend. I may have to sit down.' },
+        { go: 'until2' },
+      ],
+      until2: [
         { choice: [
             { t: 'Goodnight, Xichen.', fx: { aff: { lxc: 1 }, set: { lxc_first_name: true } }, go: 'xichen' },
             { t: 'Goodnight.', go: 'done' },
@@ -269,7 +296,116 @@
     },
   });
 
-  // ── 3. Lan Qiren has no questions (~01:15) ───────────────────────
+  // ── 3. Sunday: once tea is settled, he asks whether he'd be welcome (cross-beat 11) ─────────
+  // tea_yes can come from his invitation, the moon, the Calendar invite (react-life.js) or the morning call.
+  scene({
+    id: 'lxc_sunday_ask',
+    thread: 'lxc',
+    trigger: { on: 'flag', flag: 'tea_yes', delay: 200 },
+    when: night,
+    nodes: {
+      start: waitFor('lxc', 'ask'),
+      ask: [
+        lock('lxc'),
+        { if: (s) => !!F(s).lxc_sunday, go: 'done' },
+        { m: "Wanyin, may I ask one more thing, now that three o'clock is settled?" },
+        { if: (s) => F(s).wwx_invited && !F(s).burned, go: 'ask_wwx' },
+        { m: "Wangji tells me there's a dinner at Lotus Pier on Sunday. A-Ling's eighteenth." },
+        { go: 'ask2' },
+      ],
+      ask_wwx: [
+        { m: "Wangji tells me Wei Wuxian is going home on Sunday, for A-Ling's eighteenth. He told me in four words, which for Wangji is an oration." },
+        { go: 'ask2' },
+      ],
+      ask2: [
+        { m: "I've known A-Ling since he was small enough to sit on the Hanshi steps and refuse to take his shoes off." },
+        { m: 'Would I be welcome? Please say no if it is a family evening. I would understand. I would send tea either way.' },
+        { choice: [
+            { t: 'Six-thirty. Lotus Pier.', fx: { set: { lxc_sunday: true }, aff: { lxc: 1 } }, go: 'yes' },
+            { t: 'Bring the white peony.', fx: { set: { lxc_sunday: true }, aff: { lxc: 1 } }, go: 'peony' },
+            { t: "It's family.", fx: { set: { lxc_sunday_no: true } }, go: 'family' },
+            { t: 'Of course!! Everyone is welcome 🥰', fx: { set: { lxc_sunday: true }, sus: { lxc: 2 } }, go: 'gush' },
+          ], timeout: 120, onTimeout: 'later' },
+      ],
+      yes: [
+        { m: 'Six-thirty.' },
+        { m: "Then I'll see you twice this weekend. I'm not sure I have prepared for that." },
+        { fx: { log: 'Said yes to Lan Xichen at Sunday dinner', once: 'lxc_sunday', hint: 'Lan Xichen will be at the table.' } },
+        { go: 'done' },
+      ],
+      peony: [
+        { m: '🙂' },
+        { m: 'I will bring the tin you sent me. It seems only fair that it should go home.' },
+        { fx: { log: 'Asked Lan Xichen to bring the white peony on Sunday', once: 'lxc_sunday', hint: 'Lan Xichen will be at the table.' } },
+        { go: 'done' },
+      ],
+      family: [
+        { m: 'Of course.' },
+        { m: 'Then I will come after dinner, if I may, with the tea, and leave before anyone has to be polite to me.' },
+        { m: "Unless you'd rather I didn't. You can tell me at three." },
+        { go: 'done' },
+      ],
+      gush: [
+        { m: 'Everyone?' },
+        { m: 'You once told Huaisang that a dinner for four was "a crowd". I will come anyway.' },
+        { go: 'done' },
+      ],
+      later: [{ m: 'Forgive me. You can tell me at three.' }, { go: 'done' }],
+      done: [free('lxc')],
+    },
+  });
+
+  // ── 4. He hears about the party from Huaisang (cross-beat 12) ────────────────────────────
+  // The scandal (Writer B: #KoiPondGate or Huaisang's balcony leak) makes the Jin board want a Koi Tower party.
+  scene({
+    id: 'lxc_scandal',
+    thread: 'lxc',
+    trigger: { on: 'flag', flag: 'scandal', delay: 100 },
+    when: (s) => night(s) && !F(s).scandal_fixed,
+    nodes: {
+      start: waitFor('lxc', 'go'),
+      go: [
+        lock('lxc'),
+        { if: (s) => !!F(s).scandal_fixed, go: 'done' },
+        { m: 'Wanyin. Huaisang has sent me eleven messages in four minutes, which I have learned means something has happened.' },
+        { if: (s) => F(s).scandal_kind === 'balcony', go: 'balcony' },
+        { m: "He says the Jin board wants to move A-Ling's birthday to Koi Tower, because of the car. With a press wall." },
+        { go: 'offer' },
+      ],
+      balcony: [
+        { m: "He says the Jin board wants to move A-Ling's birthday to Koi Tower, because of the balcony. Because of me." },
+        { m: 'I am so sorry. I said something true in the wrong place, and now it has become a seating problem for an eighteen-year-old.' },
+        { go: 'offer' },
+      ],
+      offer: [
+        { m: 'I chair the Lanling Charity Trust. Two of the Jin board sit on it. I could telephone Jin Zixun in the morning and ask him, very politely, whether a press wall is really how he would like to be remembered.' },
+        { choice: [
+            { t: 'Call him.', fx: { set: { lxc_board: true }, aff: { lxc: 1 } }, go: 'call' },
+            { t: "I'll handle it.", go: 'handle' },
+            { t: 'Stay out of it.', go: 'out' },
+            { t: 'You would do that for me?? 🥺', fx: { set: { lxc_board: true }, sus: { lxc: 2 } }, go: 'call_gush' },
+          ], timeout: 120, onTimeout: 'handle' },
+      ],
+      call: [
+        { m: "At eight, then. Before he's had his coffee. People are kinder before their coffee; they haven't remembered who they are yet." },
+        { fx: { log: 'Let Lan Xichen take on the Jin board for A-Ling’s birthday', once: 'lxc_board', hint: 'Lan Xichen will make a call.' } },
+        { go: 'done' },
+      ],
+      call_gush: [
+        { m: 'For you, and for A-Ling. And a little for myself. I have wanted to say something to Jin Zixun for years.' },
+        { go: 'done' },
+      ],
+      handle: [{ m: 'Of course. If you change your mind, the offer keeps.' }, { go: 'done' }],
+      out: [
+        { m: "I will. I'm sorry. I'm told I have a habit of wanting to fix things for people who didn't ask." },
+        { go: 'done' },
+      ],
+      done: [free('lxc')],
+    },
+  });
+
+  // ── 5. Lan Qiren has no questions (~01:15): both nephews, one Yunmeng dinner (cross-beat 13) ─
+  const both = (s) => !!(F(s).wwx_invited && !F(s).burned && (F(s).lxc_sunday || F(s).tea_yes));
   scene({
     id: 'qr_letter',
     thread: 'qr',
@@ -278,12 +414,36 @@
     nodes: {
       start: [
         { m: 'Jiang Wanyin.' },
-        { m: 'It has been brought to my attention by three separate members of the Academy board that you and my elder nephew were observed on a balcony this evening.' },
-        { m: 'I have no questions. I wish to have no questions. I write only to remind you that the Hanshi observes a visiting curfew of 21:00, which I expect to be respected.' },
+        { m: 'It has been brought to my attention by three separate members of the Academy board that you and my elder nephew were observed on a balcony this evening. I have no questions. I wish to have no questions.' },
+        { if: both, go: 'both' },
+        { if: (s) => F(s).wwx_invited && !F(s).burned, go: 'wangji' },
+        { if: (s) => F(s).lxc_sunday || F(s).tea_yes, go: 'xichen' },
+        { go: 'neither' },
+      ],
+      both: [
+        { m: 'I am further informed that both of my nephews intend to leave Gusu on Sunday evening for a dinner in Yunmeng. Both. On the same evening. Wangji has packed five bowls. Xichen has packed tea.' },
+        { m: 'In thirty-four years no member of this family has gone to Lotus Pier for a Sunday dinner. I have checked the records.' },
+        { go: 'close' },
+      ],
+      wangji: [
+        { m: 'I am further informed that my younger nephew intends to leave Gusu on Sunday evening for a dinner in Yunmeng, with his husband and a pot of soup, and that my elder nephew has begun asking about the trains.' },
+        { go: 'close' },
+      ],
+      xichen: [
+        { m: 'I am further informed that my elder nephew is going to Yunmeng this weekend, and that he has been walking about the Hanshi humming.' },
+        { go: 'close' },
+      ],
+      neither: [
+        { m: 'I note that my younger nephew has asked me twice this week whether Lotus Pier observes a curfew on Sundays. I did not ask why.' },
+        { go: 'close' },
+      ],
+      close: [
+        { m: 'The Hanshi observes a visiting curfew of 21:00. I trust Lotus Pier observes one also, and that my nephews will be returned to Gusu in the condition in which they left it.' },
         { m: '— Lan Qiren' },
         { choice: [
             { t: 'Noted.', go: 'noted' },
             { t: "It's one in the morning, Mr. Lan.", go: 'late' },
+            { t: 'You could come too.', go: 'invite' },
             { t: 'Haha no worries Uncle Lan! 😊', fx: { sus: { qr: 4 } }, go: 'uncle' },
           ] },
       ],
@@ -291,6 +451,14 @@
       late: [
         { m: 'I am aware of the hour. I have been unable to sleep since a board member described my nephew as "radiant".' },
         { m: '— Lan Qiren' },
+      ],
+      invite: [
+        { fx: { set: { qr_invited: true } } },
+        { typing: 6 },
+        { m: 'I will be at the board dinner.' },
+        { m: 'I will send something for the boy. He was polite to me once, in 2019. I believe it was an accident.' },
+        { m: '— Lan Qiren' },
+        { fx: { log: 'Invited Lan Qiren to Sunday dinner. He declined. He is sending cakes.', once: 'qr_invited' } },
       ],
       uncle: [
         { m: 'I am not your uncle.' },
@@ -300,7 +468,7 @@
     },
   });
 
-  // ── 4. Tang Mei sees the calendar ────────────────────────────────
+  // ── 6. Tang Mei sees the calendar ────────────────────────────────
   scene({
     id: 'ea_tea',
     thread: 'ea',
@@ -324,6 +492,14 @@
         { m: 'Wear the grey coat. Not the purple one. You always wear the purple one.' },
         { m: 'Do not bring white peony. He still has the tin you had me send on the 25th.' },
         { m: 'For the record, I have kept your Saturday afternoons free since September. You never asked why.' },
+        { if: (s) => F(s).ops_keep, go: 'invoice' },
+        { go: 'ask' },
+      ],
+      invoice: [
+        { m: 'Also: Liu Qian has expensed twenty kilos of lotus root to a cost centre called "Sunday". I have approved it. I have seen the invoice. I have seen all the invoices.' },
+        { go: 'ask' },
+      ],
+      ask: [
         { choice: [
             { t: 'Noted.', go: 'noted' },
             { t: 'Why are you awake.', go: 'awake' },

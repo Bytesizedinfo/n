@@ -1,8 +1,13 @@
-/* App reactions — Photos & Camera, Wavelet, Safari, Mail, Music (docs/DEV.md "App reactions").
+/* "Sunday at Lotus Pier" — app reactions: Photos & Camera, Wavelet, Safari, Mail, Music (docs/DEV.md "App reactions").
    Every scene here is polite, starts from an act and gives up once the night is over (unless marked anytime).
-   The full list, flags and finale notes: docs/reactions/social.md. Facts and voices: docs/STORY.md.
+   Nothing here ends the game any more; effects land on the Sunday table flags (docs/SUNDAY.md, docs/sunday/a.md):
+   - a selfie come-clean → told_truth / returned_early / returned_how 'selfie' → early_return (writer C)
+     (or that contact's confession: Wen Ning → wn_accomplice, Nie Huaisang → nhs_bargain)
+   - talking about the pond on Wavelet during the cover-up → scandal, scandal_kind 'koi' → scandal_breaks (writer B)
+   - her photos to Wei Wuxian → ajie_shared (A-Jie's bowl), the soup pot photo → soup_practiced
+   - the recipe comment → told_recipe; Dog Friday by email → dog_friday; the "I know about" draft + thank you → wwx_thanked
    Affection budget for this file (≤ +2 per contact): lxc = balcony moon + a shared song; wwx = one family photo +
-   one email; jl = two songs he can see on Apple Music. */
+   one email; jl = two songs he can see on Apple Music. Facts and voices: docs/STORY.md. */
 (function () {
   'use strict';
   const JC = (window.JC = window.JC || {});
@@ -52,6 +57,20 @@
   const NAME = { jl: 'A-Ling', wwx: 'Wei Wuxian', lxc: 'Lan Xichen', nhs: 'Nie Huaisang', wn: 'Wen Ning', lwj: 'Lan Wangji', ea: 'Tang Mei', huang: 'Old Huang', liu: 'Liu Qian', bai: 'A-Bai', sz: 'Lan Sizhui', jy: 'Lan Jingyi', mian: 'Mianmian', qr: 'Lan Qiren', fam: 'the family group', bday: 'the birthday group', ops: 'the Ops group', alumni: 'the alumni group' };
   const CLEAN = "I'm not Jiang Cheng. I found his phone in a taxi.";
   const stopIfCaught = { if: caught, go: 'stop' };
+  /** start a consequence scene another writer owns (it may not exist yet: warn instead of failing) */
+  const goTo = (id) => ({ run: () => {
+    if (!S.defs.scenes[id]) { console.warn('[sunday] consequence scene missing:', id); return; }
+    if (!S.view().done[id]) S.start(id);
+  } });
+  /** came clean after a selfie: the phone goes back tonight (The Honest Stranger → early_return, writer C) */
+  const giveBack = (who) => [
+    { fx: { set: { told_truth: true, returned_early: true, returned_how: 'selfie', told_to: who } } },
+    { wait: 4 },
+    goTo('early_return'),
+    { end: true },
+  ];
+  // contacts with their own confession scene (confess.js); everyone else answers here and gives the phone back
+  const CONFESSORS = ['jl', 'wwx', 'lxc', 'nhs', 'wn', 'lwj'];
 
   // ════════════════════════════════════════════════════════════════════
   // 1. PHOTOS & CAMERA
@@ -100,48 +119,56 @@
     ea: {
       look: [{ m: 'That is not you.' }, { m: 'That is not your hotel room, either.' }, { m: "Who is holding Mr. Jiang's phone?" }],
       sus: 6, cover: 'Wrong photo.', clean: 'I found his phone in a taxi.',
+      told: [{ m: 'Noted.' }, { m: 'He is at the Golden Peony, Room 1808. Leave it at the front desk. I will call them at seven.' }, { m: 'Thank you for telling me. Most people would have kept reading.' }],
       then: [{ m: 'You have sent me nine photos in nine years. All of them were of documents.' }, { m: 'I am calling the Golden Peony at seven.' }, { fx: { sus: { ea: 1 } } }],
       quiet: [{ m: 'Noted. I am calling the Golden Peony at seven.' }],
     },
     huang: {
       look: [{ m: 'Boss??' }, { m: 'This is not Boss face. Boss face is like This: 😠 👍' }, { m: 'Who is this young person?? 👍' }],
       sus: 4, cover: 'Wrong photo.', clean: "I'm not your boss. I found his phone in a taxi.",
+      told: [{ m: 'Not Boss?? 😢' }, { m: 'Ok. You bring phone to Golden Peony front desk. Boss is there. Room 1808. 👍' }, { m: 'You are good young person. Very Tired. One day you come to Lotus Pier, I give you tea. 👍' }],
       then: [{ m: 'Ha ha. Ok Boss. 👍' }, { m: 'I show my wife anyway. She says: nice young person. Very Tired. 👍' }],
       quiet: [{ m: 'Boss? 👍' }],
     },
     liu: {
       look: [{ m: 'Received a photo ✅' }, { m: '• Subject: unknown person, hoodie' }, { m: '• Location: not the Golden Peony?' }, { m: 'Mr. Jiang, should I log this as a security incident?' }],
       sus: 4, cover: 'Wrong photo.', clean: "I'm not Mr. Jiang. I found his phone in a taxi.",
+      told: [{ m: '• Noted' }, { m: '• Not a security incident' }, { m: '• A lost-property incident' }, { m: '• Golden Peony front desk, please. Thank you ✅' }],
       then: [{ m: '• Noted' }, { m: '• Not logged' }, { m: '• (Logged privately)' }],
       quiet: [{ m: '• Logging it. Just in case' }],
     },
     bai: {
       look: [{ m: 'boss?? 🙇' }, { m: 'who is that 🙇' }, { m: 'is that the new hire. am i being replaced 🙇🙇' }],
       sus: 4, cover: 'Wrong photo.', clean: "I'm not your boss. I found his phone in a taxi.",
+      told: [{ m: 'ur not boss?? 🙇' }, { m: 'ok. golden peony front desk. please dont tell him about the lotus root 🙇🙇' }],
       then: [{ m: 'ok boss!! deleting!! 🙇' }, { m: 'they look nice tho 🙇' }],
       quiet: [{ m: 'boss r u ok 🙇' }],
     },
     sz: {
       look: [{ m: 'Mr. Jiang, I think this photo was meant for someone else?' }, { m: '…Or someone else has your phone. Is everything all right?' }],
       sus: 4, cover: 'Wrong photo.', clean: "I'm not Mr. Jiang. I found his phone in a taxi.",
+      told: [{ m: 'Thank you for telling me. Mr. Jiang always stays at the Golden Peony. Room 1808.' }, { m: "I'll tell Jin Ling in the morning. Gently. Please don't read the birthday chat. (You've read it.)" }],
       then: [{ m: "Of course. I've deleted it." }, { m: "Jingyi won't hear about it. (He'll hear about it.)" }],
       quiet: [{ m: "I'll tell Jin Ling you're asleep." }],
     },
     jy: {
       look: [{ m: 'WHO IS THAT 💀' }, { m: 'MR JIANG HAS A SECRET TWIN??' }, { m: 'a hoodie twin 💀💀' }],
       sus: 4, cover: 'Wrong photo.', clean: "I'm not Mr. Jiang. I found his phone in a taxi.",
+      told: [{ m: 'WAIT 💀' }, { m: 'SIZHUI. SIZHUI COME HERE' }, { m: 'ok ok golden peony front desk. thank u stranger 💀' }],
       then: [{ m: 'too late i screenshotted it 💀' }, { m: 'jk deleting' }, { m: '(not jk)' }],
       quiet: [{ m: 'sizhui says i should stop texting u. ok. bye MR JIANG 💀' }],
     },
     mian: {
       look: [{ m: "That's not you." }, { m: "Who is this, and why do they have Jiang Cheng's phone?" }],
       sus: 5, cover: 'Wrong photo.',
+      told: [{ m: "Thank you for telling me. He'll be at the Golden Peony; he always is. Leave it at the front desk." }, { m: "And don't read the Zewu-jun thread. (You've read it.)" }],
       then: [{ m: 'Mm.' }, { m: "I've known you since you were fifteen. You've never sent a wrong photo in your life." }],
       quiet: [{ m: "Okay. I'll ask Huaisang. (I won't. I'm not insane.)" }],
     },
     qr: {
       look: [{ m: 'Jiang Cheng. This is not your face. — Lan Qiren' }, { m: 'Whoever is holding this telephone: identify yourself. — Lan Qiren' }],
       sus: 5, cover: 'Wrong photo.',
+      told: [{ m: 'Your honesty is noted, if late. Return the telephone to the Golden Peony. — Lan Qiren' }, { m: 'Rule 1,104: Do not lie. You have stopped. — Lan Qiren' }],
       then: [{ m: 'Jiang Cheng does not send photographs. He sends "Received." — Lan Qiren' }],
       quiet: [{ m: 'Silence is not an answer. It is, however, an improvement. — Lan Qiren' }],
     },
@@ -166,11 +193,13 @@
         ]),
         cover: o.then,
         quiet: o.quiet.concat([{ fx: { sus: { [th]: 1 } } }]),
-        clean: [
+        // a confessor's own scene takes over (confess.js reads r_selfie: no take-back, returned_how 'selfie')
+        clean: CONFESSORS.includes(th) ? [
           { log: 'Came clean to ' + NAME[th] + ' after the selfie', once: 'truth:' + th },
+          { fx: { set: { r_selfie: th } } },
           { run: (api) => api.story.confess(th) },
           { end: true },
-        ],
+        ] : (o.told || []).concat([{ log: 'Came clean to ' + NAME[th] + ' after the selfie', once: 'truth:' + th }], giveBack(th)),
       },
     });
   });
@@ -194,7 +223,7 @@
       ]),
       cover: o.then,
       quiet: o.quiet,
-      clean: [{ fx: { set: { told_truth: true } } }, { log: 'Came clean to ' + NAME[th] + ' after the selfie', once: 'truth:' + th }].concat(o.clean),
+      clean: [{ log: 'Came clean to ' + NAME[th] + ' after the selfie', once: 'truth:' + th }].concat(o.clean),
     }, o.more || {}),
   });
   groupSelfie('fam', {
@@ -226,7 +255,7 @@
     ],
     more: {
       clean_koi: [{ m: 'and DELETE the koi photo', from: 'jl' }, { go: 'clean_end' }],
-      clean_end: [{ wait: 4 }, { ending: 'honest' }],
+      clean_end: giveBack('fam'),
     },
   });
   groupSelfie('bday', {
@@ -248,9 +277,7 @@
       { m: 'OH NO 💀', from: 'jy' },
       { m: 'I knew it 🙈 I knew at your second message', from: 'nhs' },
       { m: "Thank you for telling us. Please make sure he gets it back. And please don't tell Jin Ling about the cake.", from: 'sz' },
-      { wait: 4 },
-      { ending: 'honest' },
-    ],
+    ].concat(giveBack('bday')),
   });
   groupSelfie('ops', {
     look: [
@@ -280,7 +307,7 @@
     ],
     more: {
       clean_dog: [{ m: '• Dog Friday stays approved', from: 'liu' }, { m: '• I have it in writing', from: 'liu' }, { go: 'clean_end' }],
-      clean_end: [{ wait: 4 }, { ending: 'honest' }],
+      clean_end: giveBack('ops'),
     },
   });
   groupSelfie('alumni', {
@@ -303,9 +330,7 @@
       { m: "Thank you for telling us. He'll be at the Golden Peony, he always is. Leave it at the front desk.", from: 'mian' },
       { m: 'I can drive it there. I have the van. Sorry. — Wen Ning', from: 'wn' },
       { m: 'best group chat moment since 2007', from: 'wwx' },
-      { wait: 4 },
-      { ending: 'honest' },
-    ],
+    ].concat(giveBack('alumni')),
   });
 
   // A selfie posted to his (private, 2,318 followers) Wavelet account.
@@ -334,7 +359,7 @@
       ],
       cover: [{ m: 'HACKED??' }, { m: 'ok. ok that actually explains EVERYTHING about tonight' }, { m: 'change ur password. AND ur passcode. i have been SAYING' }],
       quiet: [{ m: "ok i'm reporting the post. for ur own good" }],
-      clean: [{ log: 'Came clean to A-Ling after the selfie', once: 'truth:jl' }, { run: (api) => api.story.confess('jl') }, { end: true }],
+      clean: [{ log: 'Came clean to A-Ling after the selfie', once: 'truth:jl' }, { fx: { set: { r_selfie: 'jl' } } }, { run: (api) => api.story.confess('jl') }, { end: true }],
     },
   });
 
@@ -390,6 +415,7 @@
   react({
     id: 'r_dog_wwx_fairy',
     thread: 'wwx',
+    when: (s) => !F(s).burned, // after "You should have stayed gone" he is on the roof, not answering
     trigger: { on: 'act', act: 'send', match: (p, s) => sentImg(p, 'wwx', isFairy) && keep(s, 'r_dogw_fairy', p.art), delay: 2 },
     nodes: {
       start: whenFree('wwx', 'go'),
@@ -415,6 +441,7 @@
   react({
     id: 'r_dog_wwx_pups',
     thread: 'wwx',
+    when: (s) => !F(s).burned, // after "You should have stayed gone" he is on the roof, not answering
     trigger: { on: 'act', act: 'send', match: (p) => sentImg(p, 'wwx', (a) => a === 'p_puppies'), delay: 2 },
     nodes: {
       start: whenFree('wwx', 'go'),
@@ -441,6 +468,7 @@
   react({
     id: 'r_dog_wwx_dogs99',
     thread: 'wwx',
+    when: (s) => !F(s).burned, // after "You should have stayed gone" he is on the roof, not answering
     trigger: { on: 'act', act: 'send', match: (p) => sentImg(p, 'wwx', (a) => a === 'p_childhood_dogs'), delay: 3 },
     nodes: {
       start: whenFree('wwx', 'go'),
@@ -459,6 +487,7 @@
   react({
     id: 'r_dog_wwx_park',
     thread: 'wwx',
+    when: (s) => !F(s).burned, // after "You should have stayed gone" he is on the roof, not answering
     trigger: { on: 'act', act: 'send', match: (p) => sentImg(p, 'wwx', (a) => a === 'p_dog_park'), delay: 2 },
     nodes: {
       start: whenFree('wwx', 'go'),
@@ -535,7 +564,9 @@
       { m: "that's her stove. that's her pot. before the lid got chipped" },
       { m: 'the fire is so low u can barely see it' },
       { m: "jiang cheng. thank u for sending me this. i'm going to look at it for a long time" },
-      { fx: { set: { soup_photo: true } } },
+      { m: 'lan zhan. turn it down. LOOK how low she has it' },
+      { fx: { set: { soup_photo: true, soup_practiced: true } } },
+      { hint: 'The soup will be closer to hers.' },
     ],
     p_ajie_wedding: [
       { typing: 4 }, { m: "shijie's wedding" }, { m: 'she said red suited her' }, { m: 'it did. it really really did' },
@@ -553,20 +584,38 @@
     p_ajie_wedding: 'Sent Wei Wuxian a photo of A-Jie’s wedding',
     p_kites: 'Sent Wei Wuxian the kites over the lake',
   };
+  // Her photos honour her bowl on Sunday (ajie_shared: see docs/sunday/a.md "Requests").
   Object.keys(FAMPICS).forEach((art) => react({
     id: 'r_fam_wwx_' + art.replace(/^p_/, ''),
     thread: 'wwx',
     trigger: { on: 'act', act: 'send', match: (p) => sentImg(p, 'wwx', (a) => a === art), delay: 3 },
+    when: (s) => !F(s).burned,
     nodes: {
       start: whenFree('wwx', 'look'),
       look: FAMPICS[art].concat([
         { log: FAMLOG[art], once: 'fam:' + art },
+        { fx: { set: { ajie_shared: true } } },
         { if: (s) => !!F(s).r_fam_aff, go: 'stop' },
         { fx: { set: { r_fam_aff: true }, aff: { wwx: 1 } } },
         { hint: 'Wei Wuxian will remember that.' },
       ]),
     },
   }));
+
+  // After "You should have stayed gone": Lan Wangji answers for him. Still honours her bowl; mends nothing.
+  react({
+    id: 'r_fam_wwx_burned',
+    thread: 'lwj',
+    trigger: { on: 'act', act: 'send', match: (p, s) => !!F(s).burned && !!p && p.thread === 'wwx' && p.kind === 'img' && !!FAMPICS[p.art], delay: 20 },
+    nodes: {
+      start: [
+        { m: 'He saw the photograph.' },
+        { m: 'He did not answer. He is holding the phone very carefully.' },
+        { fx: { set: { ajie_shared: true } } },
+        { log: 'Sent Wei Wuxian a photo of A-Jie after telling him to stay gone. Lan Wangji answered', once: 'fam:burned' },
+      ],
+    },
+  });
 
   // ── The red-envelope screenshot, to the nephew turning eighteen on Sunday ─
   react({
@@ -842,6 +891,7 @@
   react({
     id: 'r_wv_post_wwx',
     thread: 'wwx',
+    when: (s) => !F(s).burned, // after "You should have stayed gone" he is on the roof, not answering
     trigger: { on: 'act', act: 'post', match: postStash, delay: 14 },
     nodes: {
       start: whenFree('wwx', 'look'),
@@ -907,7 +957,7 @@
   });
 
   // ── #KoiPondGate: the cover-up ("Blame the valet.") meets his own account ─
-  // Only here may a reaction end the game in 'koigate'. koigate_leak (nhs.js) would leak it anyway, later.
+  // The scandal itself (the Jin board, the fix) belongs to writer B: scandal_breaks.
   const koiJC = {
     id: 'post_koipondgate_jc', by: 'teaspiller_qh', art: 'p_koi_pond_car', likes: 21907,
     text: "Remember the purple sedan IN THE KOI POND at Koi Tower, and the 60-year-old valet who 'did it'?? Its owner just brought up the pond himself. On Wavelet. From his OWN account. 🐟🚗 The valet gave the dog a biscuit. #KoiPondGate",
@@ -920,6 +970,7 @@
     nodes: {
       start: [
         { if: (s) => !F(s).car_cover, go: 'stop' },
+        { if: (s) => !!F(s).scandal && !F(s).scandal_fixed, go: 'again' },
         { wait: 8 },
         { add: { to: 'posts', item: koiJC, notify: true } },
         { wait: 6 },
@@ -931,9 +982,20 @@
         { m: 'Brother Jiang!!! 🐟 I know NOTHING about any koi!!! 🙈', th: 'nhs', from: 'nhs' },
         { m: 'jiang cheng. "blame the valet"?? and then u POSTED about it??', th: 'wwx', from: 'wwx' },
         { m: 'The Lanling Daily has asked for a comment by 07:00. I was going to draft "No comment." You have already commented.', th: 'ea', from: 'ea' },
-        { log: 'Brought up the koi pond on Wavelet while covering for A-Ling. It trended', once: 'koigate' },
+        { fx: { set: { scandal: true, scandal_kind: 'koi' }, sus: { jl: 1 } } },
+        { log: 'Brought up the koi pond on Wavelet while covering for A-Ling. #KoiPondGate trended, and the Jin board noticed', once: 'koigate' },
+        { hint: 'The Jin board noticed.' },
         { wait: 6 },
-        { ending: 'koigate' },
+        goTo('scandal_breaks'),
+        { end: true },
+      ],
+      again: [
+        { wait: 8 },
+        { m: 'JIUJIU STOP POSTING' },
+        { m: "it's ALREADY trending. u are making it trend MORE" },
+        { m: 'the jin board is going to put my birthday in a PRESS RELEASE' },
+        { fx: { sus: { jl: 1 } } },
+        { log: 'Kept posting about the koi pond after #KoiPondGate broke', once: 'koigate:again' },
       ],
     },
   });
@@ -1030,6 +1092,7 @@
   react({
     id: 'r_wv_cmt_wwx',
     thread: 'wwx',
+    when: (s) => !F(s).burned, // after "You should have stayed gone" he is on the roof, not answering
     trigger: { on: 'act', act: 'comment', match: (p, s) => !!p && postBy(p.post) === 'yiling_radish_king' && keep(s, 'r_wvcmt_wwx', String(p.text || '')), delay: 8 },
     nodes: {
       start: whenFree('wwx', 'look'),
@@ -1132,6 +1195,7 @@
     nodes: {
       start: whenFree('wwx', 'look'),
       look: [
+        { if: (s) => !!F(s).burned, go: 'burned' },
         { m: 'wait' },
         { m: 'someone called jiang.cheng just replied on the soup recipe' },
         { m: "the one i've been using all week" },
@@ -1151,7 +1215,15 @@
         { m: "ok. i'm going to do something else for two hours. i don't know what. i'm going to stare at the pot" },
         { fx: { set: { told_recipe: true } } },
         { log: 'Told Wei Wuxian the secret of the soup in a recipe comment, as “jiang.cheng”', once: 'web:soup' },
-        { hint: 'Wei Wuxian will remember that.' },
+        { hint: 'The soup will taste like hers.' },
+      ],
+      // after "You should have stayed gone" he doesn't answer; Lan Wangji does. The soup still goes to the gate.
+      burned: [
+        { if: (s) => !RECIPE_TIP.test(F(s).r_webcmt_soup || ''), go: 'stop' },
+        { m: 'He read your comment on the recipe.', th: 'lwj', from: 'lwj' },
+        { m: 'He turned the fire down. He did not say anything.', th: 'lwj', from: 'lwj' },
+        { fx: { set: { told_recipe: true } } },
+        { log: 'Told Wei Wuxian the secret of the soup in a recipe comment, after telling him to stay gone', once: 'web:soup' },
       ],
       again: [
         { m: 'u already told me. low fire. two hours' },
