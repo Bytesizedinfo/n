@@ -16,7 +16,10 @@ function staticCheck() {
   const contacts = new Set(JC.contacts.all().map((c) => c.id));
   const threads = new Set(Object.keys(d.threads));
   const KNOWN = ['m', 'me', 'choice', 'fx', 'go', 'if', 'start', 'wait', 'typing', 'react', 'unsend', 'sys', 'add', 'notify', 'call', 'time', 'run', 'ending', 'endings', 'end', 'say', 'hangup', 'addMember', 'removeMember', 'rename', 'img'];
-  const setFlags = new Set(['memo_heard', 'memo_sent', 'ajie_read', 'ajie_wrote', 'beat_score', 'changed_passcode', 'reported_lost', 'told_truth', 'ajie_called']);
+  const WT = (JC.world && JC.world.test) || {};
+  const setFlags = new Set(['told_truth'].concat(WT.flags || []));
+  // flags set by JC.world.acts rules with static fx
+  ((JC.world && JC.world.acts) || []).forEach((r) => { if (r.fx && typeof r.fx === 'object') { if (r.fx.set) Object.keys(r.fx.set).forEach((k) => setFlags.add(k)); if (r.fx.inc) Object.keys(r.fx.inc).forEach((k) => setFlags.add(k)); } });
   const usedFlags = new Map();
   const startedScenes = new Set();
   const calledCalls = new Set();
@@ -91,14 +94,15 @@ function staticCheck() {
       const ms = JC.time.parse(time);
       if (ms < last) errors.push(`thread ${id}[${i}]: not chronological (${time})`);
       last = ms;
-      if (ms > JC.time.START) errors.push(`thread ${id}[${i}]: after 23:47 (${time})`);
+      if (ms > JC.time.START) errors.push(`thread ${id}[${i}]: after the story start (${time})`);
       if (from !== 'me' && from !== 'sys' && !contacts.has(from)) errors.push(`thread ${id}[${i}]: unknown from ${from}`);
       if (from !== 'me' && from !== 'sys' && t.members && !t.members.includes(from) && !(extra && extra.sys)) warns.push(`thread ${id}[${i}]: ${from} not a member`);
       if (extra && extra.img && !JC.art.has(extra.img)) warns.push(`thread ${id}[${i}]: art ${extra.img} not drawn yet`);
     });
   });
   const ends = Object.values(d.endings);
-  if (ends.length !== 13) errors.push(`expected 13 endings, found ${ends.length}`);
+  const want = (JC.world && JC.world.endings) || 0;
+  if (want && ends.length !== want) errors.push(`expected ${want} endings (JC.world.endings), found ${ends.length}`);
   ends.forEach((e) => {
     if (!e.title || !e.text || !e.text.length) errors.push(`ending ${e.id}: missing title/text`);
     if (!e.jc || !e.jc.length) warns.push(`ending ${e.id}: no jc epilogue`);
@@ -134,14 +138,21 @@ async function playthrough(page, seed, strategy) {
     await sleep(900);
     const log = [];
     const did = {};
+    const TA = (JC.world && JC.world.test && JC.world.test.actions) || [];
+    const TT = { act: (n, p) => JC.story.act(n, p), send: (cid, m) => JC.story.send(JC.story.threadFor(cid), m), rnd, pick: (arr) => arr[pick(arr.length)], log: (t) => log.push(t) };
     for (let it = 0; it < 2600; it++) {
       const st = JC.state.d;
       if (st.ended) return { ending: st.ended, also: (ev && ev.also) || [], it, log: log.slice(-12), flags: st.flags, sus: st.sus, aff: st.aff };
-      // occasional optional actions that open branches
-      if (strategy !== 'minimal' && !did.memo && it > 30 && rnd() < 0.02) { did.memo = 1; JC.story.act('memo_play', { id: 'memo14' }); log.push('memo_play'); if (rnd() < 0.6) { JC.story.send(JC.story.threadFor('wwx'), { memo: 'memo14' }); log.push('memo_share'); } }
-      if (strategy !== 'minimal' && !did.ajie && rnd() < 0.01) { did.ajie = 1; JC.story.act('open_thread', { thread: 'ajie' }); log.push('open ajie'); }
-      if (strategy === 'chaos' && !did.game && rnd() < 0.01) { did.game = 1; JC.story.act('game_score', { score: 2000 }); log.push('game 2000'); }
-      if (strategy === 'chaos' && rnd() < 0.004) { JC.story.send(JC.story.threadFor(['jl', 'wwx', 'nhs', 'lxc'][pick(4)]), { text: 'hello' }); log.push('free text'); }
+      // occasional optional actions that open branches (JC.world.test.actions)
+      for (const a of TA) {
+        if (a.only && !a.only.includes(strategy)) continue;
+        if (a.not && a.not.includes(strategy)) continue;
+        if (!a.repeat && did[a.id]) continue;
+        if (a.after && it <= a.after) continue;
+        if (rnd() >= (a.p || 0)) continue;
+        did[a.id] = 1;
+        try { a.run(TT); } catch (e) { log.push('action ' + a.id + ' failed: ' + e.message); }
+      }
       // calls
       const c = JC.story.call();
       if (c && c.phase === 'ringing' && c.dir === 'in') { if (strategy === 'decline' && rnd() < 0.7) { JC.story.decline(); log.push('decline ' + c.cid); } else { JC.story.answer(); log.push('answer ' + c.cid); } }

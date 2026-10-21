@@ -1,9 +1,10 @@
-/* JC.time — in-game clock. The night starts Fri 16 Oct 2026, 23:47. */
+/* JC.time — in-game clock. It starts at JC.world.start ('YYYY-MM-DD HH:MM'); '+N HH:MM' is relative to that day. */
 (function () {
   'use strict';
   const JC = (window.JC = window.JC || {});
-  const BASE = new Date(2026, 9, 16, 0, 0, 0, 0); // base day for '+N HH:MM'
-  const START = new Date(2026, 9, 16, 23, 47, 0, 0).getTime();
+  const SM = String((JC.world && JC.world.start) || '2026-10-16 23:47').match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2}))?$/);
+  const BASE = new Date(+SM[1], +SM[2] - 1, +SM[3], 0, 0, 0, 0); // base day for '+N HH:MM'
+  const START = new Date(+SM[1], +SM[2] - 1, +SM[3], SM[4] ? +SM[4] : 0, SM[5] ? +SM[5] : 0, 0, 0).getTime();
 
   let last = 0;
   let frozen = 0;

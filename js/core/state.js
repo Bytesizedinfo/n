@@ -2,7 +2,8 @@
 (function () {
   'use strict';
   const JC = (window.JC = window.JC || {});
-  const KEY = 'jcphone.v1';
+  const W = () => JC.world || {};
+  const KEY = W().storageKey || 'jcphone.v1';
 
   function defaults() {
     return {
@@ -24,14 +25,14 @@
       store: {},
       home: null,
       lost: null, // lost mode {message, phone}
-      battery: 23,
+      battery: (W().device && W().device.battery) || 23,
       ended: null,
       endings: {}, // persists across restarts
       snaps: [],
       stats: { choices: 0, sent: 0, plays: 1 },
       settings: {
         appearance: 'auto',
-        wallpaper: 'wp_lotus_dusk',
+        wallpaper: (W().device && W().device.wallpaper) || null,
         brightness: 1,
         textSize: 1,
         boldText: false,
@@ -52,7 +53,7 @@
         showSus: true,
         speed: 1,
         keyClicks: true,
-        passcode: '181008',
+        passcode: (W().passcode && W().passcode.code) || '000000',
         faceAlt: false,
         previews: 'always',
         reduceMotion: false,

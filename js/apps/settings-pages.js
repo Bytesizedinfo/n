@@ -1116,7 +1116,7 @@
           title: 'Enter your old passcode',
           onCode: (c, ctl) => {
             if (step === 'old') {
-              if (c !== (K.core('passcode') || '181008')) { ctl.wrong('Wrong passcode. Try again.'); return; }
+              if (c !== (K.core('passcode') || JC.world.passcode.code)) { ctl.wrong('Wrong passcode. Try again.'); return; }
               step = 'new';
               ctl.reset('Enter your new passcode', 'Passcode Options');
               const sub = kp.el.querySelector('.set-kp-sub');
@@ -1125,7 +1125,7 @@
               return;
             }
             if (step === 'new') {
-              if (c === (K.core('passcode') || '181008')) { ctl.wrong('Enter a different passcode. Cannot reuse the same passcode.'); return; }
+              if (c === (K.core('passcode') || JC.world.passcode.code)) { ctl.wrong('Enter a different passcode. Cannot reuse the same passcode.'); return; }
               const weak = /^(\d)\1{5}$/.test(c) || c === '123456' || c === '654321';
               const go = () => { first = c; step = 'verify'; ctl.reset('Verify your new passcode', ''); kp.el.querySelector('.set-kp-sub').onclick = null; };
               if (weak) { JC.ui.alert({ title: 'This passcode can be easily guessed', buttons: [{ text: 'Use Anyway', onTap: go }, { text: 'Change Passcode', style: 'cancel', onTap: () => ctl.reset() }] }); return; }

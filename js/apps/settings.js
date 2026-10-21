@@ -22,7 +22,7 @@
   SK.setPref = setPref;
 
   const APP_ORDER = () => Object.keys(JC.os.appNames).filter((id) => id !== 'settings').sort((a, b) => appName(a).localeCompare(appName(b)));
-  const appName = (id) => (JC.apps[id] && JC.apps[id].name) || JC.os.appNames[id] || id;
+  const appName = (id) => (JC.os.appName ? JC.os.appName(id) : (JC.apps[id] && JC.apps[id].name) || id);
 
   // ── extra glyphs ─────────────────────────────────────────────────
   JC.icon.add({
@@ -259,7 +259,7 @@
         kp = keypad({
           title: 'Enter Passcode', sub: title,
           onCode: (c, ctl) => {
-            if (c === (core('passcode') || '181008')) { gateFails = 0; K._gateOpen = true; try { ok(); } finally { K._gateOpen = false; } }
+            if (c === (core('passcode') || JC.world.passcode.code)) { gateFails = 0; K._gateOpen = true; try { ok(); } finally { K._gateOpen = false; } }
             else { gateFails++; ctl.wrong(gateFails >= 3 ? 'Hint: it’s the same passcode that unlocks this iPhone.' : (gateFails === 1 ? '1 Failed Passcode Attempt' : gateFails + ' Failed Passcode Attempts')); }
           },
         });

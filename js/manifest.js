@@ -34,6 +34,7 @@ window.JC_MANIFEST = {
  ],
  "js": [
   "js/core/util.js",
+  "js/data/world.js",
   "js/core/state.js",
   "js/core/time.js",
   "js/core/store.js",

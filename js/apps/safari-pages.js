@@ -168,7 +168,7 @@
         st.tries++;
         const left = (o.max || 3) - st.tries;
         st.err = left > 0 ? 'Incorrect password. ' + left + ' attempt' + (left === 1 ? '' : 's') + ' remaining.' : null;
-        if (pw.value === '181008') st.err = 'That looks like a phone passcode. This is not a phone. ' + (left > 0 ? left + ' attempt' + (left === 1 ? '' : 's') + ' remaining.' : '');
+        if (pw.value === JC.world.passcode.code) st.err = 'That looks like a phone passcode. This is not a phone. ' + (left > 0 ? left + ' attempt' + (left === 1 ? '' : 's') + ' remaining.' : '');
         if (o.onFail) o.onFail(st.tries);
         JC.audio.play('error');
         draw();

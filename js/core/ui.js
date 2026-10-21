@@ -635,7 +635,7 @@
     const input = ui.input({ placeholder: o.placeholder || 'Search', enterkey: 'search', onInput: (v) => { clear.hidden = !v; o.onInput && o.onInput(v); }, onSubmit: (v) => { o.onSubmit && o.onSubmit(v); input.blur(); } });
     const clear = h('div.search-clear', { hidden: true, onTap: () => { input.value = ''; clear.hidden = true; o.onInput && o.onInput(''); input.focus(); } }, JC.icon('xmark.circle.fill', { size: 17 }));
     const cancel = h('div.search-cancel', { onTap: () => { input.value = ''; clear.hidden = true; o.onInput && o.onInput(''); input.blur(); el.classList.remove('focused'); o.onCancel && o.onCancel(); } }, o.cancelText || 'Cancel');
-    const field = h('div.search-field', JC.icon('magnifyingglass', { size: 17, weight: 2 }), input, clear, o.mic !== false ? h('div.search-mic', { onTap: () => ui.toast('Dictation needs Jiang Cheng’s voice', { icon: 'mic.slash.fill' }) }, JC.icon('mic.fill', { size: 17 })) : null);
+    const field = h('div.search-field', JC.icon('magnifyingglass', { size: 17, weight: 2 }), input, clear, o.mic !== false ? h('div.search-mic', { onTap: () => ui.toast((JC.world && JC.world.brand && JC.world.brand.dictation) || 'Dictation isn’t available', { icon: 'mic.slash.fill' }) }, JC.icon('mic.fill', { size: 17 })) : null);
     const el = h('div.search', { class: o.cls }, field, cancel);
     input.addEventListener('focus', () => { el.classList.add('focused'); o.onFocus && o.onFocus(); });
     el.input = input;
@@ -922,7 +922,7 @@
   /** Share sheet. payload: {kind:'photo'|'link'|'text'|'memo'|'note'|'location', art, text, url, id} */
   ui.share = (o) => {
     o = o || {};
-    const people = ['jl', 'wwx', 'lxc', 'nhs', 'ea', 'huang', 'lwj', 'wn'];
+    const people = ((JC.world && JC.world.people && JC.world.people.share) || []).filter((id) => JC.contacts.get(id));
     const sendTo = (cid) => {
       s.close();
       const th = JC.story.threadFor(cid);
@@ -956,8 +956,8 @@
         ui.list([{ rows: [
           { title: 'Copy', icon: { node: JC.icon('doc.on.doc', { size: 21 }) }, onTap: () => { s.close(); U.copy(o.payload && (o.payload.text || o.payload.url) || o.title || ''); ui.toast('Copied', { icon: 'doc.on.doc' }); } },
           ...(o.actions || []).map((a) => ({ title: a.text, icon: { node: JC.icon(a.icon || 'circle', { size: 21 }) }, onTap: () => { s.close(); a.onTap && a.onTap(); } })),
-          { title: 'Save to Files', icon: { node: JC.icon('folder', { size: 21 }) }, onTap: () => { s.close(); ui.alert({ title: 'Files Unavailable', message: 'iCloud Drive is managed by Yunmeng Jiang Group IT. Ask Tang Mei.', buttons: [{ text: 'OK' }] }); } },
-          { title: 'Print', icon: { node: JC.icon('printer', { size: 21 }) }, onTap: () => { s.close(); ui.alert({ title: 'No AirPrint Printers Found', message: 'Make sure you’re on the same Wi-Fi network as a printer. (You’re in a taxi.)', buttons: [{ text: 'OK' }] }); } },
+          { title: 'Save to Files', icon: { node: JC.icon('folder', { size: 21 }) }, onTap: () => { s.close(); ui.alert({ title: 'Files Unavailable', message: (JC.world && JC.world.device && JC.world.device.files) || 'iCloud Drive isn’t available on this iPhone.', buttons: [{ text: 'OK' }] }); } },
+          { title: 'Print', icon: { node: JC.icon('printer', { size: 21 }) }, onTap: () => { s.close(); ui.alert({ title: 'No AirPrint Printers Found', message: (JC.world && JC.world.device && JC.world.device.print) || 'Make sure you’re on the same Wi-Fi network as a printer.', buttons: [{ text: 'OK' }] }); } },
         ] }], { cls: 'share-actions' }),
       ],
     });

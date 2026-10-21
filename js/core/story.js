@@ -3,6 +3,8 @@
   'use strict';
   const JC = (window.JC = window.JC || {});
   const U = JC.util;
+  const W = () => JC.world || {};
+  const WC = () => W().contacts || {};
 
   const defs = { threads: {}, scenes: {}, calls: {}, endings: {}, dial: [], susHooks: [], totalHooks: [] };
   const histCache = {};
@@ -59,6 +61,7 @@
     return JC.contacts.name(d.members[0]);
   }
   story.threadName = threadName;
+  story.members = (id) => members(id).slice();
   function members(id) {
     const d = tdef(id);
     const st = S().threads[id];
@@ -223,7 +226,8 @@
     const d = tdef(id);
     if (!d) return false;
     if (d.fails) return false;
-    return members(id).some((m) => { const c = JC.contacts.get(m); return c && !c.service && !['ajie', 'mom', 'dad', 'hq'].includes(m); });
+    const no = WC().noReply || [];
+    return members(id).some((m) => { const c = JC.contacts.get(m); return c && !c.service && !no.includes(m); });
   };
 
   story.react = (id, msgId, type) => {
@@ -429,7 +433,7 @@
       if (!n) {
         if (to === 'mail') { title = item.from ? item.from.name : 'Mail'; body = (item.subject || '') + (item.body ? '\n' + item.body.slice(0, 90) : ''); }
         else if (to === 'events') { title = 'Calendar'; body = (item.title || 'Event') + ' — ' + U.fmtDate(added.start, 'md') + (added.allDay ? '' : ' ' + U.fmtTime(added.start)); }
-        else if (to === 'posts') { title = 'Wavelet'; body = '@' + (item.by || 'someone') + ': ' + (item.text || 'posted a photo'); }
+        else if (to === 'posts') { title = JC.notify.appName('wavelet'); body = '@' + (item.by || 'someone') + ': ' + (item.text || 'posted a photo'); }
         else if (to === 'photos') { title = 'Photos'; body = 'New photo saved'; }
         else if (to === 'voicemails') { title = 'Voicemail'; body = 'New voicemail from ' + JC.contacts.name(item.contact); }
         else { title = JC.notify.appName(app); body = item.title || item.text || ''; }
@@ -679,7 +683,7 @@
     tick(true);
   }
 
-  const CONFESS = /(i'?m not|i am not|this (is ?n['’]?t|is not)|not)\s+(jiang ?cheng|wanyin|him|your (uncle|brother|boss|jiujiu)|ur (uncle|jiujiu))|found (this|his|the|a|your) (phone|iphone)|(this|his) phone (was|got) (lost|left)|lost (his|this) phone|i('?m| am) a stranger|i('?m| am) (just )?(the|a) (person|guy|girl) who found/i;
+  const CONFESS = () => (W().confess && W().confess.re) || /\bfound (this|the|your) phone\b/i;
 
   function norm(s) { return (s || '').toLowerCase().replace(/[^a-z0-9一-鿿]+/g, ' ').trim(); }
   function similar(a, b) {
@@ -704,24 +708,22 @@
     if (p.memo) { m.memo = p.memo; const mm = JC.store.hasSeed('memos') ? JC.store.get('memos', p.memo) : null; m.voice = { dur: mm ? mm.dur : 12, text: mm ? mm.text : '' }; }
     if (p.link) m.link = p.link;
     if (p.effect) m.effect = p.effect;
-    const failed = (d && d.fails) || !JC.os.online() || members(id).some((c) => ['mom', 'dad', 'ajie'].includes(c));
+    const failTo = WC().failSend || [];
+    const failed = (d && d.fails) || !JC.os.online() || members(id).some((c) => failTo.includes(c));
     if (failed) m.status = 'failed';
     deliver(id, m);
     S().stats.sent++;
     const kind = m.memo ? 'memo' : m.voice ? 'voice' : m.img ? 'img' : m.loc ? 'loc' : 'text';
     story.act('send', { thread: id, kind, text: m.text || '', art: m.img, memo: m.memo });
     if (m.memo) story.act('memo_share', { id: m.memo, to: id });
-    if (failed) {
-      if (id === 'ajie' || members(id).includes('ajie')) applyFx({ set: { ajie_wrote: true } });
-      return m;
-    }
+    if (failed) return m;
     if (S().ended || !story.canReply(id)) {
       const c = JC.contacts.get(members(id)[0]);
       if (c && c.service) aside(id, [{ m: 'This number does not accept replies. Reply STOP to unsubscribe.', from: c.id, d: 0.6 }]);
       return m;
     }
     // confession?
-    if (kind === 'text' && CONFESS.test(m.text || '')) { confess(id); return m; }
+    if (kind === 'text' && CONFESS().test(m.text || '')) { confess(id); return m; }
     // matches a pending option?
     if (st.pend && kind === 'text') {
       const run = S().runs.find((r) => r.rid === st.pend.rid);
@@ -751,7 +753,9 @@
     if (kind === 'voice') { pool = 'voiceReact'; bump = 3; }
     else if (kind === 'img') {
       const meta = JC.art.meta(m.img);
-      pool = meta && (meta.tags || []).includes('dog') ? 'dogReact' : 'imgReact';
+      const pools = W().imgPools || {};
+      const tag = meta ? (meta.tags || []).find((t) => pools[t]) : null;
+      pool = tag ? pools[tag] : 'imgReact';
       bump = 1;
     } else if (kind === 'loc') { pool = 'idle'; }
     if (bump) applyFx({ sus: { [who]: bump } });
@@ -788,9 +792,8 @@
   }
 
   function defaultEnding(cid) {
-    if (cid === 'nhs') return 'busted';
-    if (cid === 'wn') return 'wen_ning';
-    return 'honest';
+    const C = W().confess || {};
+    return (C.endings && C.endings[cid]) || C.fallback || Object.keys(defs.endings)[0];
   }
   function confess(id) {
     const d = tdef(id);
@@ -822,13 +825,13 @@
     p = p || {};
     const s = S();
     JC.bus.emit('story:act', { name, p });
-    // automatic flags
-    if (name === 'memo_play' && p.id === 'memo14') s.flags.memo_heard = true;
-    if (name === 'memo_share' && p.id === 'memo14' && (p.to === 'wwx' || (members(p.to || '') || []).includes('wwx'))) s.flags.memo_sent = true;
-    if (name === 'open_thread' && p.thread === 'ajie') s.flags.ajie_read = true;
-    if (name === 'game_score' && p.score > 1824) s.flags.beat_score = true;
-    if (name === 'setting' && p.key === 'passcode') s.flags.changed_passcode = true;
-    if (name === 'ride_report_lost') s.flags.reported_lost = true;
+    // automatic flags: JC.world.acts rules
+    (W().acts || []).forEach((r) => {
+      const acts = Array.isArray(r.act) ? r.act : [r.act];
+      if (!acts.includes(name) || (r.match && !evalMatch(r.match, p))) return;
+      const fx = typeof r.fx === 'function' ? r.fx(p, sApi()) : r.fx;
+      if (fx && fx.set) Object.assign(s.flags, fx.set);
+    });
     if (name === 'unlock' && p.first) s.unlockAt = s.eng;
     if (name === 'unlock' && s.unlockAt == null) s.unlockAt = s.eng;
     // arm act/open triggers
@@ -1076,20 +1079,11 @@
     const name = JC.contacts.short(cid);
     let def;
     if (c.dial === 'disconnected') {
-      def = { id, from: cid, ringFor: 1.5, nodes: { start: [{ say: 'The number you have dialed is no longer in service. Please check the number and try again.', from: 'sys' }, { fx: { set: cid === 'ajie' ? { ajie_called: true } : {} } }, { hangup: true }] } };
+      def = { id, from: cid, ringFor: 1.5, nodes: { start: [{ say: 'The number you have dialed is no longer in service. Please check the number and try again.', from: 'sys' }, { hangup: true }] } };
     } else if (c.dial === 'busy' || c.service) {
       def = { id, from: cid, ringFor: 1, nodes: { start: [{ say: 'This number does not accept incoming calls.', from: 'sys' }, { hangup: true }] } };
-    } else if (cid === 'hq') {
-      def = { id, from: cid, nodes: {
-        start: [{ say: 'Yunmeng Jiang Group, Lotus Pier night desk. How can I help you?' }, { choice: [
-          { t: '"Wrong number. Sorry."', go: 'wrong' },
-          { t: 'Tell them you found Mr. Jiang’s phone', go: 'truth' },
-          { t: '(Hang up)', go: 'hang' },
-        ] }],
-        wrong: [{ say: 'No problem. Good night.' }, { hangup: true }],
-        hang: [{ hangup: 'me' }],
-        truth: [{ say: 'You found the boss’s phone? Oh, thank heavens. Please — stay right there, I’m writing everything down…' }, { fx: { set: { told_truth: true } } }, { ending: 'honest' }],
-      } };
+    } else if (cid === WC().ownerLine && WC().ownerLineCall) {
+      def = Object.assign({ from: cid }, WC().ownerLineCall, { id });
     } else if (c.dial === 'voicemail') {
       def = { id, from: cid, ringFor: 7, nodes: {
         start: [{ say: c.voicemail || ('You’ve reached ' + name + '. Leave a message.'), from: 'sys' }, { say: '(Beep.)', from: 'sys' }, { choice: [
@@ -1101,7 +1095,7 @@
       } };
     } else {
       def = { id, from: cid, nodes: {
-        start: [{ say: (c.hello || (o.emergency ? 'Jiang Cheng? Why are you calling from your emergency screen??' : 'Hello? Jiang Cheng?')) }, { choice: [
+        start: [{ say: (c.hello || (o.emergency ? (WC().hello || {}).emergency : (WC().hello || {}).normal) || 'Hello?') }, { choice: [
           { t: '(Stay silent)', go: 'silent' },
           { t: '"…Mm."', go: 'mm' },
           { t: 'Tell the truth', go: 'truth' },
@@ -1207,7 +1201,7 @@
     updateBadge();
     JC.bus.emit('notifs');
     if (!s.started) {
-      const lines = story.intro && story.intro.length ? story.intro : ['11:47 PM. Lanling.', 'A phone buzzes under your hand.'];
+      const lines = story.intro && story.intro.length ? story.intro : (W().introFallback || ['A phone buzzes under your hand.']);
       JC.os.prologue(lines).then(() => { s.started = true; JC.state.save(); });
     }
   };
