@@ -19,9 +19,9 @@
   }
   const MIXES = [
     { id: 'mix_fav', title: 'Favorites Mix', sub: 'Songs you love, all in one place', c: ['#ff6f91', '#b5134b'], ids: () => { const L = lib(); const plays = L.plays || {}; const top = D.songs.map((s) => s.id).sort((a, b) => (plays[b] || 0) - (plays[a] || 0)).slice(0, 8); return Array.from(new Set((L.favs || []).concat(top))); } },
-    { id: 'mix_chill', title: 'Chill Mix', sub: 'Gusu Strings Ensemble, Night Taxi, Shen Yao', c: ['#3cc7b4', '#14506b'], ids: () => seededShuffle(byStyle(['guqin', 'ambient', 'lofi', 'ballad']), 7).slice(0, 12) },
-    { id: 'mix_getup', title: 'Get Up! Mix', sub: 'Purple Lightning, Koi Pond Boys, LANLING DRIFT', c: ['#ffae4a', '#e0422c'], ids: () => seededShuffle(byStyle(['gym', 'chip', 'pop', 'folk']), 3).slice(0, 12) },
-    { id: 'mix_new', title: 'New Music Mix', sub: 'Fresh from Koi Records and more', c: ['#9b7bf0', '#3a2a8f'], ids: () => D.album('kr').songs.concat(D.album('zd').songs.slice(0, 2)) },
+    { id: 'mix_chill', title: 'Chill Mix', sub: 'Chihu Rock Collective, Yun Jin, Snezhnaya Children’s Choir', c: ['#3cc7b4', '#14506b'], ids: () => seededShuffle(byStyle(['guqin', 'ambient', 'lofi', 'ballad']), 7).slice(0, 12) },
+    { id: 'mix_getup', title: 'Get Up! Mix', sub: 'RIPTIDE, The Crew of the Alcor, Glacier Guardians', c: ['#ffae4a', '#e0422c'], ids: () => seededShuffle(byStyle(['gym', 'chip', 'pop', 'folk']), 3).slice(0, 12) },
+    { id: 'mix_new', title: 'New Music Mix', sub: 'Fresh from Heyu Tea House and more', c: ['#9b7bf0', '#3a2a8f'], ids: () => D.album('dd').songs.concat(D.album('hl').songs.slice(0, 2)) },
   ];
   function gradCover(id, title, c, extra, noNote) {
     JC.art.def(id, {
@@ -82,7 +82,7 @@
       if (mix) return { kind, id, title: mix.title, sub: 'Made for You', art: 'cover_' + id, ids: mix.ids() };
       if (id === 'favorites') return { kind, id, title: 'Favorite Songs', sub: 'Apple Music', art: 'cover_mix_fav', ids: lib().favs || [] };
       const p = playlist(id);
-      return p ? { kind, id, title: p.title, sub: p.by === 'Jiang Cheng' ? 'Playlist' : 'Playlist · ' + p.by, art: p.art, ids: p.songs, pl: p } : null;
+      return p ? { kind, id, title: p.title, sub: p.by === 'Childe' ? 'Playlist' : 'Playlist · ' + p.by, art: p.art, ids: p.songs, pl: p } : null;
     }
     if (kind === 'album') {
       const a = D.album(id);
@@ -263,7 +263,7 @@
         JC.ui.alert({ title: 'New Playlist', message: 'Name your playlist.', input: { placeholder: 'Playlist Name', value: '' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Create', style: 'default' }] }).then((r) => {
           if (r.index !== 1) return;
           const title = (r.value || '').trim() || 'New Playlist';
-          const p = JC.store.add('mplaylists', { title, art: null, by: 'Jiang Cheng', desc: '', songs: (ids || []).slice(), t: JC.time.now(), dl: false, mine: true }, { front: true });
+          const p = JC.store.add('mplaylists', { title, art: null, by: 'Childe', desc: '', songs: (ids || []).slice(), t: JC.time.now(), dl: false, mine: true }, { front: true });
           JC.ui.toast('Created “' + title + '”', { icon: 'checkmark' });
           if (!ids || !ids.length) push(playlistPage(p.id));
         });
@@ -289,10 +289,10 @@
             const L = lib();
             const recent = (L.recent || []).map((r) => item(r.kind, r.id)).filter(Boolean);
             const picks = [
-              { it: item('playlist', 'pl_lotus'), k: 'Your Late-Night Favorite', note: 'Played most after midnight' },
-              { it: item('playlist', 'pl_aling'), k: 'Made by A-Ling', note: U.plural((item('playlist', 'pl_aling') || { ids: [] }).ids.length, 'song') + ' you haven’t played yet' },
-              { it: item('album', 'yl'), k: 'Because You Listened', note: 'You played “Come Home for Soup” ' + ((L.plays || {}).yl5 || 0) + ' times' },
-              { it: item('station', 'st_iron'), k: 'Station', note: 'For 5:30 a.m.' },
+              { it: item('playlist', 'pl_xiansheng'), k: 'Your Late-Night Favorite', note: 'Played most after dinner on Fridays' },
+              { it: item('playlist', 'pl_teucer'), k: 'Made by Teucer', note: U.plural((item('playlist', 'pl_teucer') || { ids: [] }).ids.length, 'song') + ' you’ve played exactly once' },
+              { it: item('album', 'sf'), k: 'Because You Listened', note: 'You played “Little Fish, Swim Home” ' + ((L.plays || {}).sf1 || 0) + ' times' },
+              { it: item('station', 'st_riptide'), k: 'Station', note: 'For 5:30 a.m.' },
             ].filter((x) => x.it);
             return [
               h('div.mu-shelf', sectionHead('Top Picks for You'), h('div.mu-shelf-row.hscroll.mu-picks', picks.map((p) => h('div.mu-pick', { onTap: () => openItem(p.it) },
@@ -300,9 +300,9 @@
                 h('div.mu-pick-card', coverEl(p.it, 'mu-pick-cov'), h('div.mu-pick-foot', h('div.mu-pick-bg', { style: { backgroundImage: `url("${JC.art.url(p.it.art || 'cover_mix_fav')}")` } }), h('div.mu-pick-shade'), h('div.mu-pick-t', p.it.title), h('div.mu-pick-s', p.note))))))),
               recent.length ? shelf('Recently Played', recent.slice(0, 10).map((it) => tile(it)), () => push(recentPage())) : null,
               shelf('Made for You', MIXES.map((m) => tile(item('playlist', m.id), { playBtn: true }))),
-              shelf('Stations for You', D.stations.map((s) => tile(item('station', s.id))).concat([tile(item('artist', 'gusu')), tile(item('artist', 'purple'))])),
-              shelf('More Like Shen Yao', [tile(item('album', 'sy')), tile(item('album', 'ln')), tile(item('playlist', 'pl_shijie')), tile(item('album', 'cl'))]),
-              h('div.mu-foot-note', 'Recommendations are based on what you play. A-Ling’s playlist is not.'),
+              shelf('Stations for You', D.stations.map((s) => tile(item('station', s.id))).concat([tile(item('artist', 'yunjin')), tile(item('artist', 'riptide'))])),
+              shelf('More Like The Morepesok Ice Fishers', [tile(item('album', 'sf')), tile(item('album', 'lb')), tile(item('playlist', 'pl_home')), tile(item('album', 'cx'))]),
+              h('div.mu-foot-note', 'Recommendations are based on what you play. Teucer’s playlist is not. (It should be.)'),
             ];
           },
         });
@@ -316,17 +316,17 @@
         JC.ui.sheet({
           title: 'Account', detent: 'large', right: { text: 'Done' },
           content: () => [
-            h('div.mu-acct', JC.ui.avatar('me', 76), h('div.mu-acct-n', 'Jiang Cheng'), h('div.mu-acct-s', 'jiang.cheng@lotuspier.yunmeng')),
+            h('div.mu-acct', JC.ui.avatar('me', 76), h('div.mu-acct-n', 'Childe'), h('div.mu-acct-s', 'tartaglia@northland.sn')),
             JC.ui.list([
               { rows: [
-                { title: 'Apple Music Family', subtitle: 'Renews November 3 · ¥17/month', detail: '2 members', chevron: true, onTap: () => JC.ui.alert({ title: 'Family Members', message: 'Jiang Cheng (Organizer)\nA-Ling (Jin Ling) — “jiujiu i added myself, ur welcome”', buttons: [{ text: 'OK' }] }) },
-                { title: 'Redeem Gift Card or Code', tinted: true, onTap: () => JC.ui.alert({ title: 'Redeem Code', message: 'Enter your code.', input: { placeholder: 'Code', cap: 'characters' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Redeem', style: 'default' }] }).then((r) => { if (r.index === 1) setTimeout(() => JC.ui.alert({ title: 'Code Already Redeemed', message: 'This code was redeemed on October 18, 2025 by A-Ling.', buttons: [{ text: 'OK' }] }), 300); }) },
+                { title: 'Apple Music Family', subtitle: 'Renews November 3 · ℳ170/month', detail: '5 members', chevron: true, onTap: () => JC.ui.alert({ title: 'Family Members', message: 'Childe (Organizer)\nTonia\nAnthon — “I changed the family name to THE FISH PEOPLE”\nTeucer\nMama', buttons: [{ text: 'OK' }] }) },
+                { title: 'Redeem Gift Card or Code', tinted: true, onTap: () => JC.ui.alert({ title: 'Redeem Code', message: 'Enter your code.', input: { placeholder: 'Code', cap: 'characters' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Redeem', style: 'default' }] }).then((r) => { if (r.index === 1) setTimeout(() => JC.ui.alert({ title: 'Code Already Redeemed', message: 'This code was redeemed on July 20, 2026 by Teucer. (It was Childe’s birthday present. Teucer used it to add himself to the family plan.)', buttons: [{ text: 'OK' }] }), 300); }) },
                 { title: 'Send Gift Card by Email', tinted: true, onTap: () => JC.os.open('mail', { compose: { to: '', subject: 'An Apple Music gift for you', body: '' } }) },
               ] },
               { header: 'Privacy', rows: [
                 { title: 'Use Listening History', toggle: { on: prefs.history, onChange: (v) => setP('history', v) } },
                 { title: 'Share with Friends', toggle: { on: prefs.friends, onChange: (v) => setP('friends', v) } },
-              ], footer: 'Music you play affects Recently Played and your recommendations. Friends who follow you could see what you listen to. (A-Ling follows you.)' },
+              ], footer: 'Music you play affects Recently Played and your recommendations. Friends who follow you could see what you listen to. (Teucer follows you. So, somehow, does Scaramouche.)' },
               { header: 'Notifications', rows: [{ title: 'New Music & Pre-Adds', toggle: { on: prefs.notif, onChange: (v) => setP('notif', v) } }] },
               { rows: [{ title: 'Music Settings', chevron: true, onTap: () => JC.os.open('settings', { page: 'app:music' }) }] },
             ]),
@@ -335,12 +335,12 @@
       }
 
       // ── NEW ────────────────────────────────────────────────────────
-      const CHART = ['kt1', 'kt2', 'kt6', 'kt3', 'pl4', 'yl2', 'kt4', 'kt5', 'rn1', 'yl1', 'pl1', 'sj1', 'yl5', 'kt2', 'cr2'].filter((v, i, a) => a.indexOf(v) === i);
+      const CHART = ['dd2', 'dd5', 'cx1', 'hl1', 'rt4', 'gg1', 'hl2', 'sf1', 'cx2', 'dd3', 'rt1', 'nb2', 'hl4', 'lb1', 'gg2'].filter((v, i, a) => a.indexOf(v) === i);
       function newPage() {
         const heroes = [
-          { k: 'NEW ALBUM', t: 'Koi Records Presents: Golden Hour', s: 'The autumn gala sound — Koi Pond Boys, Peony & the Golden Carp, LANLING DRIFT.', art: 'cover_koi_records', open: () => push(albumPage('kr')) },
-          { k: 'UPDATED PLAYLIST', t: 'Top 25: Lanling', s: 'The most-played songs in Lanling right now.', art: 'cover_mix_new', open: () => push(chartPage()) },
-          { k: 'COMING SOON', t: 'Sunday Soup', s: 'Yiling Laozu & the Radishes — a new single. Pre-add it now.', art: 'cover_yiling_flute', open: () => push(preaddPage()) },
+          { k: 'ORIGINAL CAST RECORDING', t: 'The Divine Damsel of Devastation', s: 'Yun Jin and the Heyu Tea House troupe. The season’s most talked-about opera.', art: 'cover_yunjin_opera', open: () => push(albumPage('dd')) },
+          { k: 'UPDATED PLAYLIST', t: 'Top 25: Liyue Harbor', s: 'The most-played songs in the harbor this week.', art: 'cover_mix_new', open: () => push(chartPage()) },
+          { k: 'COMING SOON', t: 'For the Founder', s: 'Yun Jin — a new single for the Rite of Parting. Pre-add it now.', art: 'cover_yunjin_opera', open: () => push(preaddPage()) },
         ];
         return JC.ui.page({
           title: 'New', large: true, tint, largeRight: avatarBtn(), refreshOnShow: true,
@@ -348,9 +348,9 @@
             h('div.mu-heroes.hscroll', heroes.map((x) => h('div.mu-hero', { onTap: x.open },
               h('div.mu-hero-k', x.k), h('div.mu-hero-t', x.t), h('div.mu-hero-s', x.s),
               h('div.mu-hero-card', JC.art.el(x.art, { cls: 'mu-hero-art' }), h('div.mu-hero-glow', { style: { backgroundImage: `url("${JC.art.url(x.art)}")` } }))))),
-            shelf('New Releases', ['kr', 'zd', 'rn', 'yl', 'ln'].map((a) => tile(item('album', a))), () => push(albumsPage('New Releases', ['kr', 'zd', 'rn', 'yl', 'ln']))),
-            h('div.mu-shelf', sectionHead('Top Songs: Lanling', () => push(chartPage())), h('div.mu-chart-cols.hscroll', [0, 1, 2].map((c) => h('div.mu-chart-col', CHART.slice(c * 4, c * 4 + 4).map((id, j) => songRow(id, { num: c * 4 + j + 1, queue: CHART, src: { kind: 'chart', id: 'chart', title: 'Top 25: Lanling' }, noStar: true })))))),
-            shelf('Koi Records Spotlight', ['koipond', 'peony', 'drift', 'fairy8'].map((a) => artistTile(a))),
+            shelf('New Releases', ['dd', 'hl', 'cx', 'rt', 'gg'].map((a) => tile(item('album', a))), () => push(albumsPage('New Releases', ['dd', 'hl', 'cx', 'rt', 'gg']))),
+            h('div.mu-shelf', sectionHead('Top Songs: Liyue Harbor', () => push(chartPage())), h('div.mu-chart-cols.hscroll', [0, 1, 2].map((c) => h('div.mu-chart-col', CHART.slice(c * 4, c * 4 + 4).map((id, j) => songRow(id, { num: c * 4 + j + 1, queue: CHART, src: { kind: 'chart', id: 'chart', title: 'Top 25: Liyue Harbor' }, noStar: true })))))),
+            shelf('Snezhnaya Spotlight', ['morepesok', 'choir', 'nbchoir', 'glacier'].map((a) => artistTile(a))),
             shelf('Everyday Listening', D.categories.slice(0, 6).map((c) => catTile(c))),
           ],
         });
@@ -365,31 +365,31 @@
       const catIds = (c) => (c.ids ? c.ids.slice() : byStyle(c.styles));
       function chartPage() {
         return JC.ui.page({
-          title: 'Top 25: Lanling', tint, bg: 'plain',
+          title: 'Top 25: Liyue Harbor', tint, bg: 'plain',
           content: () => [
-            h('div.mu-chart-head', JC.art.el('cover_mix_new', { cls: 'mu-art mu-chart-art' }), h('div', h('div.mu-ph-t', 'Top 25: Lanling'), h('div.mu-ph-s', 'Apple Music · Updated daily'))),
-            playButtons(() => M().play(null, { queue: CHART, src: { kind: 'chart', id: 'chart', title: 'Top 25: Lanling' } }), () => M().play(null, { queue: CHART, shuffle: true, src: { kind: 'chart', id: 'chart', title: 'Top 25: Lanling' } })),
-            h('div.mu-list', CHART.map((id, i) => songRow(id, { num: i + 1, queue: CHART, src: { kind: 'chart', id: 'chart', title: 'Top 25: Lanling' }, right: h('span.mu-move', { class: i % 3 === 0 ? 'up' : i % 3 === 1 ? 'same' : 'down' }, JC.icon(i % 3 === 0 ? 'arrow.up' : i % 3 === 1 ? 'minus' : 'arrow.down', { size: 11, weight: 2.8 })) }))),
-            h('div.mu-foot-note', 'Chart positions are based on plays in Lanling this week.'),
+            h('div.mu-chart-head', JC.art.el('cover_mix_new', { cls: 'mu-art mu-chart-art' }), h('div', h('div.mu-ph-t', 'Top 25: Liyue Harbor'), h('div.mu-ph-s', 'Apple Music · Updated daily'))),
+            playButtons(() => M().play(null, { queue: CHART, src: { kind: 'chart', id: 'chart', title: 'Top 25: Liyue Harbor' } }), () => M().play(null, { queue: CHART, shuffle: true, src: { kind: 'chart', id: 'chart', title: 'Top 25: Liyue Harbor' } })),
+            h('div.mu-list', CHART.map((id, i) => songRow(id, { num: i + 1, queue: CHART, src: { kind: 'chart', id: 'chart', title: 'Top 25: Liyue Harbor' }, right: h('span.mu-move', { class: i % 3 === 0 ? 'up' : i % 3 === 1 ? 'same' : 'down' }, JC.icon(i % 3 === 0 ? 'arrow.up' : i % 3 === 1 ? 'minus' : 'arrow.down', { size: 11, weight: 2.8 })) }))),
+            h('div.mu-foot-note', 'Chart positions are based on plays in Liyue Harbor this week.'),
           ],
         });
       }
       function preaddPage() {
         return JC.ui.page({
-          title: 'Sunday Soup', tint, bg: 'plain', refreshOnShow: true,
+          title: 'For the Founder', tint, bg: 'plain', refreshOnShow: true,
           content: (pg) => {
             const added = !!lib().preadd;
             return [
-              h('div.mu-ph', h('div.mu-ph-art', JC.art.el('cover_yiling_flute', { cls: 'mu-art' }), h('div.mu-soon', 'COMING SUNDAY')),
-                h('div.mu-ph-t', 'Sunday Soup — Single'), h('div.mu-ph-a', { onTap: () => push(artistPage('yiling')) }, 'Yiling Laozu & the Radishes'),
-                h('div.mu-ph-m', 'Folk · 2026 · Expected October 18')),
+              h('div.mu-ph', h('div.mu-ph-art', JC.art.el('cover_yunjin_opera', { cls: 'mu-art' }), h('div.mu-soon', 'COMING SUNDAY')),
+                h('div.mu-ph-t', 'For the Founder — Single'), h('div.mu-ph-a', { onTap: () => push(artistPage('yunjin')) }, 'Yun Jin'),
+                h('div.mu-ph-m', 'Opera · 2026 · Expected October 18')),
               h('div.mu-btns', mbtn(added ? 'Added' : 'Pre-Add', added ? 'checkmark' : 'plus', () => {
                 JC.store.update('mlib', 'lib', { preadd: !added });
-                JC.ui.toast(added ? 'Removed from Pre-Adds' : 'You’ll be notified when “Sunday Soup” is available', { icon: added ? 'minus.circle' : 'bell.fill' });
+                JC.ui.toast(added ? 'Removed from Pre-Adds' : 'You’ll be notified when “For the Founder” is available', { icon: added ? 'minus.circle' : 'bell.fill' });
                 pg.render();
               })),
-              h('div.mu-list', h('div.mu-row.static-row', h('div.mu-num', '1'), h('div.mu-row-main', h('div.mu-row-t', h('span.mu-row-tt', 'Sunday Soup')), h('div.mu-row-s', 'Available Sunday')), h('div.mu-more', { onTap: () => JC.ui.toast('Not available yet', { icon: 'clock' }) }, JC.icon('ellipsis', { size: 18 })))),
-              h('div.mu-desc', 'From the band’s Wavelet: “new song about a soup we keep burning. dedicated to someone who knows who he is. 🍲”'),
+              h('div.mu-list', h('div.mu-row.static-row', h('div.mu-num', '1'), h('div.mu-row-main', h('div.mu-row-t', h('span.mu-row-tt', 'For the Founder')), h('div.mu-row-s', 'Available Sunday')), h('div.mu-more', { onTap: () => JC.ui.toast('Not available yet', { icon: 'clock' }) }, JC.icon('ellipsis', { size: 18 })))),
+              h('div.mu-desc', 'From Yun Jin’s Ripple: “A song for the Rite. Written with help from a gentleman who knew more about the Founder than any book. He would not let me credit him.”'),
             ];
           },
         });
@@ -410,13 +410,13 @@
                 mbtn('Listen Now', 'play.fill', (e) => { e.stopPropagation(); M().play(hero.id); }, 'mu-listen'))),
             shelf('Live Now', D.stations.filter((s) => s.live).map((s) => tile(item('station', s.id)))),
             shelf('Stations for You', D.stations.filter((s) => !s.live).map((s) => tile(item('station', s.id)))),
-            shelf('Artist Stations', ['gusu', 'yiling', 'purple', 'shenyao', 'nighttaxi'].map((a) => h('div.mu-atile', { onTap: () => { M().play(a, { src: { kind: 'artist', id: a, title: D.artistName(a) + ' Station' } }); JC.ui.toast('Playing ' + D.artistName(a) + ' Station', { icon: 'dot.radiowaves.left.and.right' }); } }, JC.art.el(D.artist(a).art, { cls: 'mu-atile-art' }), h('div.mu-tile-t', D.artistName(a)), h('div.mu-tile-s', 'Station')))),
+            shelf('Artist Stations', ['yunjin', 'morepesok', 'riptide', 'crux', 'chihu'].map((a) => h('div.mu-atile', { onTap: () => { M().play(a, { src: { kind: 'artist', id: a, title: D.artistName(a) + ' Station' } }); JC.ui.toast('Playing ' + D.artistName(a) + ' Station', { icon: 'dot.radiowaves.left.and.right' }); } }, JC.art.el(D.artist(a).art, { cls: 'mu-atile-art' }), h('div.mu-tile-t', D.artistName(a)), h('div.mu-tile-s', 'Station')))),
             h('div.mu-radio-shows',
-              sectionHead('Tonight on Lotus FM'),
+              sectionHead('Tonight on Harbor FM'),
               JC.ui.list([{ rows: [
-                { title: 'Late Night Lake', subtitle: '23:00 · DJ Peony · guqin & quiet songs', detail: 'On Air', onTap: () => M().play(hero.id) },
-                { title: 'The Ferry Hour', subtitle: '02:00 · lo-fi and rain', detail: '02:00', onTap: () => JC.ui.toast('Starts at 02:00 — we’ll be here', { icon: 'clock' }) },
-                { title: 'Morning Market', subtitle: '06:00 · folk, radishes, traffic', detail: '06:00', onTap: () => JC.ui.toast('Starts at 06:00', { icon: 'clock' }) },
+                { title: 'Late Night on the Pier', subtitle: '23:00 · DJ Gull · lo-fi & shanties', detail: 'On Air', onTap: () => M().play(hero.id) },
+                { title: 'The Fishermen’s Hour', subtitle: '02:00 · slack tide, quiet songs', detail: '02:00', onTap: () => JC.ui.toast('Starts at 02:00 — we’ll be here', { icon: 'clock' }) },
+                { title: 'Morning Market', subtitle: '06:00 · folk, the catch, ferry times', detail: '06:00', onTap: () => JC.ui.toast('Starts at 06:00', { icon: 'clock' }) },
               ] }]),
             ),
           ],
@@ -464,7 +464,7 @@
               h('div.mu-row', { onTap: () => push(playlistPage('favorites')) }, h('div.mu-row-art', coverEl(item('playlist', 'favorites'))), h('div.mu-row-main', h('div.mu-row-t', h('span.mu-row-tt', 'Favorite Songs')), h('div.mu-row-s', 'Apple Music')), JC.icon('chevron.right', { size: 14, weight: 2.6, cls: 'mu-chev' })),
               playlists().map((p) => {
                 const it = item('playlist', p.id);
-                const row = h('div.mu-row', { onTap: () => push(playlistPage(p.id)) }, h('div.mu-row-art', coverEl(it)), h('div.mu-row-main', h('div.mu-row-t', h('span.mu-row-tt', p.title)), h('div.mu-row-s', p.by === 'Jiang Cheng' ? (p.dl ? 'Downloaded · ' : '') + U.plural(p.songs.length, 'song') : 'by ' + p.by)), JC.icon('chevron.right', { size: 14, weight: 2.6, cls: 'mu-chev' }));
+                const row = h('div.mu-row', { onTap: () => push(playlistPage(p.id)) }, h('div.mu-row-art', coverEl(it)), h('div.mu-row-main', h('div.mu-row-t', h('span.mu-row-tt', p.title)), h('div.mu-row-s', p.by === 'Childe' ? (p.dl ? 'Downloaded · ' : '') + U.plural(p.songs.length, 'song') : 'by ' + p.by)), JC.icon('chevron.right', { size: 14, weight: 2.6, cls: 'mu-chev' }));
                 JC.ui.contextMenu(row, () => ({ items: itemMenu(it).concat(['-', { text: 'Delete from Library', icon: 'trash', destructive: true, onTap: () => deletePlaylist(p.id) }]) }));
                 return row;
               })),
@@ -474,10 +474,10 @@
       function deletePlaylist(id) {
         const p = playlist(id);
         if (!p) return;
-        const aling = p.byId === 'jl';
+        const kid = p.byId === 'teucer';
         JC.ui.alert({
           title: 'Delete “' + p.title + '”?',
-          message: aling ? 'A-Ling made this playlist on your account. The description says “DONT delete it.”' : 'This playlist will be deleted from your library.',
+          message: kid ? 'Teucer made this playlist on your account. The description says “DON’T DELETE IT.”' : 'This playlist will be deleted from your library.',
           buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Delete Playlist', style: 'destructive' }],
         }).then((r) => {
           if (r.index !== 1) return;
@@ -545,7 +545,7 @@
               { text: 'Play Next', icon: 'arrow.up.right', onTap: () => { M().playNext(id); JC.ui.toast('Playing Next', { icon: 'text.badge.plus' }); } },
               { text: 'Play Last', icon: 'list.bullet', onTap: () => { M().playLast(id); JC.ui.toast('Playing Last'); } },
               '-',
-              { text: 'Go to Artist', icon: 'music.mic', onTap: () => push(artistPage(a.artist === 'various' ? 'koipond' : a.artist)) },
+              { text: 'Go to Artist', icon: 'music.mic', onTap: () => push(artistPage(a.artist === 'various' ? 'chihu' : a.artist)) },
               { text: 'Share Album…', icon: 'square.and.arrow.up', onTap: () => shareItem(item('album', id)) },
             ]);
         return JC.ui.page({
@@ -559,13 +559,13 @@
             h('div.mu-ph',
               h('div.mu-ph-art', JC.art.el(a.art, { cls: 'mu-art' })),
               h('div.mu-ph-t', a.title),
-              h('div.mu-ph-a', { onTap: () => push(artistPage(a.artist === 'various' ? 'koipond' : a.artist)) }, D.artistName(a.artist)),
+              h('div.mu-ph-a', { onTap: () => push(artistPage(a.artist === 'various' ? 'chihu' : a.artist)) }, D.artistName(a.artist)),
               h('div.mu-ph-m', [a.genre, a.year, 'Lossless'].join(' · '))),
             playButtons(() => M().play(id), () => M().play(id, { shuffle: true })),
             h('div.mu-list.mu-tracks', a.songs.map((sid, i) => songRow(sid, { num: i + 1, queue: a.songs, src, sub: a.artist === 'various' ? D.artistName(D.song(sid).artist) : false, noAlbum: true, right: h('span.mu-dur', U.fmtDur(M().dur(sid))) }))),
-            h('div.mu-album-foot', h('div', U.fmtDate(JC.time.parse(a.year + '-' + (id === 'kr' ? '10-09' : '05-20')), 'long').replace(/^\w+, /, '') + ', ' + a.year), h('div', fmtTotal(a.songs)), h('div', '℗ ' + a.year + ' ' + a.label)),
+            h('div.mu-album-foot', h('div', U.fmtDate(JC.time.parse(a.year + '-' + (id === 'dd' ? '10-09' : '05-20')), 'long').replace(/^\w+, /, '') + ', ' + a.year), h('div', fmtTotal(a.songs)), h('div', '℗ ' + a.year + ' ' + a.label)),
             a.sub ? h('div.mu-desc', a.sub) : null,
-            shelf('More by ' + D.artistName(a.artist), D.albums.filter((x) => x.artist === a.artist && x.id !== id).map((x) => tile(item('album', x.id))).concat(a.artist === 'gusu' || a.artist === 'various' ? [] : [tile(item('artist', a.artist))])),
+            shelf('More by ' + D.artistName(a.artist), D.albums.filter((x) => x.artist === a.artist && x.id !== id).map((x) => tile(item('album', x.id))).concat(a.artist === 'yunjin' || a.artist === 'various' ? [] : [tile(item('artist', a.artist))])),
           ],
         });
       }
@@ -999,7 +999,7 @@
           lyrLines.push({ t: l.t, el });
           np.lyr.appendChild(el);
         });
-        np.lyr.appendChild(h('div.mu-ly-credit', 'Written by ' + D.artistName(D.song(id).artist) + '\nLyrics provided by Koi Lyrics Co.'));
+        np.lyr.appendChild(h('div.mu-ly-credit', 'Written by ' + D.artistName(D.song(id).artist) + '\nLyrics provided by Heyu Lyrics Co.'));
       }
       let lastLine = -1;
       function scrollLyric(force) {
@@ -1061,20 +1061,18 @@
         return row;
       }
       function airName(id) {
-        return { iphone: 'iPhone', airpods: 'JC’s AirPods Pro', sandu: 'Sandu GT', homepod: 'Study — Lotus Pier', tv: 'Room 1808 TV' }[id] || 'iPhone';
+        return { iphone: 'iPhone', airpods: 'Childe’s AirPods Pro', homepod: 'Flat — Pier View', tv: 'Living Room TV' }[id] || 'iPhone';
       }
       function airplaySheet() {
         const st = M().state();
         const bt = JC.state.setting('bt') && !JC.state.setting('airplane');
-        const carGone = JC.story.flag && (JC.story.flag('car_handled') || JC.story.flag('car_cover'));
         const sh = JC.ui.sheet({
           title: 'AirPlay', detent: 'medium', left: { text: 'Done' },
           content: () => [JC.ui.list([{ header: 'Speakers & TVs', rows: [
             { icon: { glyph: 'iphone', bg: 'var(--fill3)', color: 'var(--label)' }, title: 'iPhone', check: st.airplay === 'iphone', onTap: () => { M().setAirplay('iphone'); sh.close(); } },
-            { icon: { glyph: 'airpods', bg: 'var(--fill3)', color: 'var(--label)' }, title: 'JC’s AirPods Pro', subtitle: bt ? 'Not Connected' : 'Bluetooth is Off', onTap: () => { sh.close(); JC.ui.alert({ title: 'Couldn’t Connect', message: bt ? 'JC’s AirPods Pro aren’t nearby. They were last seen at the Golden Peony Hotel, Room 1808.' : 'Turn on Bluetooth to connect to AirPods.', buttons: bt ? [{ text: 'OK' }] : [{ text: 'Cancel', style: 'cancel' }, { text: 'Settings', style: 'default', onTap: () => JC.os.open('settings', { page: 'bluetooth' }) }] }); } },
-            { icon: { glyph: 'car.side', bg: 'var(--fill3)', color: 'var(--label)' }, title: 'Sandu GT', subtitle: carGone ? 'CarPlay · Water detected' : 'CarPlay · Not Nearby', onTap: () => { sh.close(); JC.ui.alert({ title: 'Sandu GT Unavailable', message: carGone ? 'The car reports: “Moisture detected in cabin. Media unavailable.”\n\nThere are fish in it.' : 'Sandu GT was last connected Thursday at 15:41 in Lanling. Get closer to the car to use CarPlay.', buttons: [{ text: 'OK' }] }); } },
-            { icon: { glyph: 'hifispeaker.fill', bg: 'var(--fill3)', color: 'var(--label)' }, title: 'Study — Lotus Pier', subtitle: 'HomePod · Not on this network', onTap: () => { sh.close(); JC.ui.toast('Study — Lotus Pier is 300 km away', { icon: 'hifispeaker.fill' }); } },
-            { icon: { glyph: 'tv.fill', bg: 'var(--fill3)', color: 'var(--label)' }, title: 'Room 1808 TV', subtitle: 'Golden Peony Hotel · Unavailable', onTap: () => { sh.close(); JC.ui.alert({ title: 'Room 1808 TV', message: 'This TV is on the Golden Peony Guest network. Join it to AirPlay. (You are not in Room 1808.)', buttons: [{ text: 'OK' }] }); } },
+            { icon: { glyph: 'airpods', bg: 'var(--fill3)', color: 'var(--label)' }, title: 'Childe’s AirPods Pro', subtitle: bt ? 'Not Connected' : 'Bluetooth is Off', onTap: () => { sh.close(); JC.ui.alert({ title: 'Couldn’t Connect', message: bt ? 'Childe’s AirPods Pro aren’t nearby. Find My last saw them on Lantern Street, near Wangsheng Funeral Parlor.' : 'Turn on Bluetooth to connect.', buttons: [{ text: 'OK' }, { text: 'Open Find My', style: 'default', onTap: () => JC.os.open('findmy', { id: 'airpods' }) }] }); } },
+            { icon: { glyph: 'hifispeaker.fill', bg: 'var(--fill3)', color: 'var(--label)' }, title: 'Flat — Pier View', subtitle: 'HomePod · Not on this network', onTap: () => { sh.close(); JC.ui.toast('The HomePod is in his empty flat on Feiyun Slope', { icon: 'hifispeaker.fill' }); } },
+            { icon: { glyph: 'tv.fill', bg: 'var(--fill3)', color: 'var(--label)' }, title: 'Living Room TV', subtitle: 'Pier View Residences · Unavailable', onTap: () => { sh.close(); JC.ui.alert({ title: 'Living Room TV', message: 'This TV is on Childe’s home Wi-Fi. You are not in his flat.', buttons: [{ text: 'OK' }] }); } },
           ] }])],
         });
       }

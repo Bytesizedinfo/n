@@ -137,13 +137,13 @@
 
   // ═══ Wi-Fi ═════════════════════════════════════════════════════
   const NETS = [
-    { name: 'Jinxing-27-3F', lock: true, sig: 3, kind: 'home' },
-    { name: 'LanlingFreeWiFi', lock: false, sig: 2, kind: 'open' },
-    { name: 'DO NOT CONNECT (Wei Ying’s hotspot)', lock: true, sig: 2, kind: 'wwx', hotspot: true },
-    { name: 'Golden Peony Guest', lock: true, sig: 1, kind: 'hotel' },
-    { name: 'KoiTower-Gala-VIP', lock: true, sig: 1, kind: 'enterprise' },
+    { name: 'LiyueHarbor-Free', lock: false, sig: 3, kind: 'open' },
+    { name: 'Northland-Liyue-Staff', lock: true, sig: 2, kind: 'enterprise' },
+    { name: 'Alcor-Crew', lock: true, sig: 2, kind: 'crux', hotspot: true },
+    { name: 'Wanmin Guest', lock: true, sig: 1, kind: 'hotel' },
+    { name: 'Pier7-Bait&Tackle', lock: true, sig: 1, kind: 'shop' },
   ];
-  const KNOWN0 = ['Lotus Pier Residence', 'YMJ-HQ-Staff', 'The Jingshi (guest)', 'Cloud Recesses Tea Shop'];
+  const KNOWN0 = ['PierView-2207', 'NB-Liyue-Guest', 'Wangsheng (guest)', 'Heyu Tea House', 'Morepesok Home 🐟'];
   const known = (K) => K.pref('wifi.known', KNOWN0);
   function sigIcon(sig) {
     const s = document.createElement('span');
@@ -178,21 +178,26 @@
         const sh = JC.ui.sheet({
           title: 'Log In', detent: 'large', left: { text: 'Cancel' },
           content: () => [h('div.set-portal',
-            h('div.set-portal-logo', JC.icon('wifi', { size: 34 })), h('div.set-portal-t', 'Welcome to LanlingFreeWiFi'),
-            h('div.set-portal-s', 'Free city Wi-Fi brought to you by the Lanling Municipal Bureau and Koi Tower.'),
-            h('div.set-portal-terms', 'By connecting you agree to: (1) receive up to three SMS messages about Koi Tower dining offers, (2) not stream more than 2 hours of opera per day, (3) be nice.'),
-            h('div.set-portal-btn', { onTap: () => { sh.close(); connect(K, net.name); K.toast('Connected to LanlingFreeWiFi', 'wifi'); } }, 'Accept & Connect'),
+            h('div.set-portal-logo', JC.icon('wifi', { size: 34 })), h('div.set-portal-t', 'Welcome to LiyueHarbor-Free'),
+            h('div.set-portal-s', 'Free waterfront Wi-Fi from the Liyue Harbor Authority, by contract with the Qixing.'),
+            h('div.set-portal-terms', 'By connecting you agree to: (1) receive up to three SMS messages about Wanmin Restaurant offers, (2) not stream more than 2 hours of opera per day, (3) not fish from Pier 9.'),
+            h('div.set-portal-btn', { onTap: () => { sh.close(); connect(K, net.name); K.toast('Connected to LiyueHarbor-Free', 'wifi'); } }, 'Accept & Connect'),
             h('div.set-portal-small', 'Session expires in 2 hours.'))],
         });
       });
       return;
     }
     if (net.kind === 'enterprise') {
-      JC.ui.alert({ title: 'Enter the username and password for “KoiTower-Gala-VIP”', message: 'Jin Group staff and gala guests only.', input: { placeholder: 'Username', cap: 'none' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Next', style: 'default' }] }).then((r) => {
+      JC.ui.alert({ title: 'Enter the username and password for “Northland-Liyue-Staff”', message: 'Northland Bank Group · Liyue Branch staff only.', input: { placeholder: 'Username', cap: 'none' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Next', style: 'default' }] }).then((r) => {
         if (r.index !== 1) return;
+        const user = (r.value || '').trim();
         setTimeout(() => JC.ui.alert({ title: 'Password', input: { placeholder: 'Password', type: 'password', cap: 'none' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Join', style: 'default' }] }).then((r2) => {
           if (r2.index !== 1) return;
-          joining(K, net.name, () => K.alert({ title: 'Unable to join the network “KoiTower-Gala-VIP”', message: 'Certificate “radius.koitower.jin” is not trusted. Gala guest credentials expired at 23:00.' }));
+          const ok = /^nb-liyue$/i.test(user) && String(r2.value || '').replace(/[’‘]/g, '\'') === 'Tsaritsa\'sOwn11';
+          joining(K, net.name, () => {
+            if (ok) { connect(K, net.name); K.toast('Connected to ' + net.name, 'wifi'); try { JC.story.act('login', { site: 'wifi', user }); } catch (e) { /* ignore */ } return; }
+            K.alert({ title: 'Unable to join the network “Northland-Liyue-Staff”', message: 'Authentication failed. The Office of the Ninth has been notified of this attempt.' });
+          });
         }), 300);
       });
       return;
@@ -213,25 +218,31 @@
           K.alert({ title: 'Incorrect password for “' + net.name + '”', message: pw.length ? 'Wi-Fi passwords are at least 8 characters. It’s your own network — you know this one.' : 'Enter a password.' });
           return;
         }
-        if (net.kind === 'wwx') {
-          if (/^(lanzhan|lanzhan520|lanwangji|chenqing|radish(es)?|weiying|hanguangjun)$/i.test(pw.replace(/\s/g, ''))) {
+        if (net.kind === 'crux') {
+          if (/^(beidou|alcor|crux|rematch|thecrux|captain)\d*$/i.test(pw.replace(/\s/g, ''))) {
             connect(K, net.name);
-            setTimeout(() => K.alert({ title: 'Connected', message: '“DO NOT CONNECT (Wei Ying’s hotspot)”\nData provided by Lan Wangji’s phone plan.\n\nWei Ying’s iPhone: 7% battery.' }), 400);
+            setTimeout(() => K.alert({ title: 'Connected', message: '“Alcor-Crew”\nData provided by the Crux Fleet, courtesy of the Captain.\n\nThe network name changes to “REMATCH SATURDAY” for a second, then back.' }), 400);
             return;
           }
           fails[net.name]++;
-          K.alert({ title: 'Incorrect password for “' + net.name + '”', message: fails[net.name] >= 2 ? 'You try to think like Wei Wuxian. Something obvious. Something about his husband.' : '' });
+          K.alert({ title: 'Incorrect password for “' + net.name + '”', message: fails[net.name] >= 2 ? 'It’s the Crux. The password is probably the ship. Or the captain.' : '' });
           return;
         }
         if (net.kind === 'hotel') {
+          if (/^guoba\d*$/i.test(pw.replace(/\s/g, ''))) { connect(K, net.name); K.toast('Connected to ' + net.name, 'wifi'); return; }
           fails[net.name]++;
-          K.alert({ title: 'Unable to join the network “Golden Peony Guest”', message: fails[net.name] >= 2 ? 'The password is printed on the room key sleeve. Room 1808’s key sleeve is in Jiang Cheng’s coat, not in this taxi.' : 'Incorrect password.' });
+          K.alert({ title: 'Unable to join the network “Wanmin Guest”', message: fails[net.name] >= 2 ? 'The password is written on every Wanmin receipt: the name of Xiangling’s best friend. (He’s a bear. Sort of.)' : 'Incorrect password.' });
+          return;
+        }
+        if (net.kind === 'shop') {
+          fails[net.name]++;
+          K.alert({ title: 'Unable to join the network “Pier7-Bait&Tackle”', message: fails[net.name] >= 2 ? 'The bait shop is closed. The password is chalked on the board inside. You can’t see it from here.' : 'Incorrect password.' });
         }
       });
     });
   }
   P.wifi = {
-    title: 'Wi-Fi', path: '', icon: ['wifi', 'var(--blue)'], idx: ['Wireless', 'Network', 'Ask to Join Networks', 'Auto-Join Hotspot', 'Jinxing-27-3F', 'LanlingFreeWiFi'],
+    title: 'Wi-Fi', path: '', icon: ['wifi', 'var(--blue)'], idx: ['Wireless', 'Network', 'Ask to Join Networks', 'Auto-Join Hotspot', 'LiyueHarbor-Free', 'Northland-Liyue-Staff'],
     right: (K) => [JC.ui.navBtn({ text: 'Edit', onTap: () => K.go('knownnets') })],
     render(K, a, page) {
       const s = S();
@@ -270,7 +281,7 @@
       const kn = known(K).includes(name);
       const net = NETS.find((n) => n.name === name) || { name, lock: true, sig: 2 };
       const home = net.kind === 'home';
-      const ip = home ? '192.168.3.27' : net.kind === 'open' ? '10.88.14.203' : net.kind === 'wwx' ? '172.20.10.3' : '192.168.0.104';
+      const ip = home ? '192.168.3.27' : net.kind === 'open' ? '10.88.14.203' : net.kind === 'crux' ? '172.20.10.3' : '192.168.0.104';
       return [
         { rows: [
           !isCur ? { t: 'Join This Network', tint: true, tap: () => (kn ? connect(K, name) : join(K, net)) } : null,
@@ -313,20 +324,19 @@
 
   // ═══ Bluetooth ═════════════════════════════════════════════════
   const BT = [
-    { id: 'airpods', name: 'JC’s AirPods Pro', icon: 'airpods', kind: 'airpods' },
-    { id: 'watch', name: 'Jiang Cheng’s Apple Watch', icon: 'clock', kind: 'watch' },
-    { id: 'sandu', name: 'Sandu GT', icon: 'car.fill', kind: 'car' },
-    { id: 'fairy', name: 'Fairy’s AirTag', icon: 'tag.fill', kind: 'airtag' },
-    { id: 'speaker', name: 'YMJ Boardroom Speaker', icon: 'hifispeaker.fill', kind: 'speaker' },
+    { id: 'airpods', name: 'Childe’s AirPods Pro', icon: 'airpods', kind: 'airpods' },
+    { id: 'watch', name: 'Childe’s Apple Watch', icon: 'clock', kind: 'watch' },
+    { id: 'sirfang', name: 'Sir Fang (Teucer’s AirTag)', icon: 'tag.fill', kind: 'airtag' },
+    { id: 'speaker', name: 'Liyue Branch Lobby Speaker', icon: 'hifispeaker.fill', kind: 'speaker' },
   ];
   P.bluetooth = {
-    title: 'Bluetooth', icon: ['bluetooth', 'var(--blue)'], idx: ['AirPods', 'Pair', 'Sandu GT', 'Devices'],
+    title: 'Bluetooth', icon: ['bluetooth', 'var(--blue)'], idx: ['AirPods', 'Pair', 'Apple Watch', 'Devices'],
     render(K, a, page) {
       const s = S();
       const gone = K.pref('bt.forgot', []);
       const out = [
         h('div.set-hero', h('div.set-hero-ic', { style: { background: 'var(--blue)' } }, JC.icon('bluetooth', { size: 30 })), h('div.set-hero-t', 'Bluetooth'), h('div.set-hero-s', 'Connect to accessories you can use for activities such as streaming music, typing, and gaming.')),
-        { rows: [{ t: 'Bluetooth', core: 'bt', set: (v) => JC.os.setToggle('bt', v) }], f: s.bt ? 'This iPhone is discoverable as “Jiang Cheng’s iPhone” while Bluetooth Settings is open.' : 'AirDrop, AirPlay, Find My, and Location Services use Bluetooth.' },
+        { rows: [{ t: 'Bluetooth', core: 'bt', set: (v) => JC.os.setToggle('bt', v) }], f: s.bt ? 'This iPhone is discoverable as “Childe’s iPhone” while Bluetooth Settings is open.' : 'AirDrop, AirPlay, Find My, and Location Services use Bluetooth.' },
       ];
       if (s.bt) {
         out.push({ h: 'My Devices', rows: BT.filter((d) => !gone.includes(d.id)).map((d) => ({
@@ -335,21 +345,19 @@
             const t = K.top(); t._btTry = d.id; t.render();
             setTimeout(() => {
               t._btTry = null; t.render();
-              const carGone = K.flagged('car_handled') || K.flagged('car_cover');
               const msg = {
-                airpods: 'JC’s AirPods Pro aren’t in range. They were last connected at the Golden Peony Hotel, Room 1808.',
-                watch: 'Jiang Cheng’s Apple Watch is not nearby. It is probably on Jiang Cheng’s wrist.',
-                car: carGone ? 'Sandu GT reports: “Moisture detected in cabin. Bluetooth module offline.”' : 'Sandu GT is not in range. It’s parked at Koi Tower. (Probably.)',
-                airtag: 'AirTags don’t connect over Bluetooth Settings. Use Find My to locate Fairy.',
-                speaker: 'YMJ Boardroom Speaker is at Lotus Pier, 300 km away.',
+                airpods: 'Childe’s AirPods Pro aren’t in range. Find My last saw them on Lantern Street, near Wangsheng Funeral Parlor.',
+                watch: 'Childe’s Apple Watch is not nearby. It last reported at 23:25 on Friday, at Pier 7. It is probably still on Childe’s wrist.',
+                airtag: 'AirTags don’t connect over Bluetooth Settings. Use Find My to locate Sir Fang (he is in Teucer’s backpack).',
+                speaker: 'The Liyue Branch lobby speaker is at Northland Bank, 1 Harbor Road. Ekaterina controls the playlist.',
               }[d.kind];
               JC.ui.alert({ title: 'Connection Unsuccessful', message: msg, buttons: d.kind === 'airtag' ? [{ text: 'Cancel', style: 'cancel' }, { text: 'Open Find My', style: 'default', onTap: () => JC.os.open('findmy', { tab: 'items' }) }] : [{ text: 'OK' }] });
             }, 1300);
           },
         })) });
         out.push({ h: h('span.set-hh', 'Other Devices', h('span.set-spin.sm')), rows: [
-          { t: 'WU-TAXI-9X277', s: 'Car Kit', tap: () => { K.toast('Pairing request sent…', 'bluetooth'); setTimeout(() => K.alert({ title: 'Pairing Unsuccessful', message: '“WU-TAXI-9X277” declined the request. (Master Wu says the radio is hers.)' }), 1400); } },
-          { t: 'Mi Band 8', tap: () => K.alert({ title: 'Pairing Unsuccessful', message: 'Make sure “Mi Band 8” is turned on and in pairing mode.' }) },
+          { t: 'BAIT-SHOP-RADIO', s: 'Speaker', tap: () => { K.toast('Pairing request sent…', 'bluetooth'); setTimeout(() => K.alert({ title: 'Pairing Unsuccessful', message: '“BAIT-SHOP-RADIO” declined the request. (The bait shop is closed. The radio is still playing the tide report.)' }), 1400); } },
+          { t: 'NB-AGENT-07', s: 'Earpiece', tap: () => K.alert({ title: 'Pairing Unsuccessful', message: '“NB-AGENT-07” is not accepting connections. It is close. Very close. Someone is on the promenade.' }) },
         ], f: 'To pair an Apple Watch with your iPhone, go to the Apple Watch app.' });
       }
       return out;
@@ -363,11 +371,9 @@
       if (d.kind === 'airpods') {
         rows.push({ rows: [{ t: 'Name', d: d.name, alert: { title: 'Rename AirPods', message: 'Connect the AirPods to rename them.' } }] });
         rows.push({ h: 'Noise Control', rows: [['nc', 'Noise Cancellation'], ['tr', 'Transparency'], ['ad', 'Adaptive'], ['off', 'Off']].map(([k, l]) => ({ t: l, check: () => K.pref('ap.nc', 'ad') === k, tap: () => { K.setPref('ap.nc', k); K.render(); K.toast('Will apply when AirPods connect', 'airpods'); } })) });
-        rows.push({ rows: [{ t: 'Ear Tip Fit Test', tap: () => K.alert({ title: 'Ear Tip Fit Test', message: 'Put both AirPods in your ears to start. (They’re at the hotel.)' }), chev: true }, { t: 'Find My network', pref: 'ap.findmy', def: true }] });
-      } else if (d.kind === 'car') {
-        rows.push({ rows: [{ t: 'Type', d: 'Car Stereo' }, { t: 'Last Connected', d: (K.flagged('car_handled') || K.flagged('car_cover')) ? 'Water detected' : 'Thu 15:41' }, { t: 'CarPlay', go: 'carplay' }] });
+        rows.push({ rows: [{ t: 'Ear Tip Fit Test', tap: () => K.alert({ title: 'Ear Tip Fit Test', message: 'Put both AirPods in your ears to start. (They’re in Childe’s pocket, somewhere on Lantern Street.)' }), chev: true }, { t: 'Find My network', pref: 'ap.findmy', def: true }] });
       } else {
-        rows.push({ rows: [{ t: 'Type', d: { watch: 'Apple Watch', airtag: 'AirTag', speaker: 'Speaker' }[d.kind] }, d.kind === 'airtag' ? { t: 'Open in Find My', tint: true, tap: () => JC.os.open('findmy', { tab: 'items' }) } : null].filter(Boolean) });
+        rows.push({ rows: [{ t: 'Type', d: { watch: 'Apple Watch', airtag: 'AirTag', speaker: 'Speaker' }[d.kind] }, d.kind === 'airtag' ? { t: 'Open in Find My', tint: true, tap: () => JC.os.open('findmy', { id: 'sirfang' }) } : null].filter(Boolean) });
       }
       rows.push({ rows: [{ t: 'Forget This Device', tint: true, tap: () => JC.ui.alert({ title: 'Forget “' + d.name + '”?', message: d.kind === 'watch' ? 'Unpair your Apple Watch in the Watch app.' : 'This device will be removed from your iPhone.', buttons: d.kind === 'watch' ? [{ text: 'OK' }] : [{ text: 'Cancel', style: 'cancel' }, { text: 'Forget Device', style: 'destructive', onTap: () => { K.setPref('bt.forgot', K.pref('bt.forgot', []).concat(d.id)); K.back(); } }] }) }] });
       return rows;
@@ -375,7 +381,7 @@
   };
 
   // ═══ Cellular / Hotspot / VPN ══════════════════════════════════
-  const CELL = [['wavelet', 12.6], ['music', 6.1], ['photos', 4.8], ['messages', 3.9], ['maps', 2.2], ['safari', 1.7], ['mail', 0.82], ['swift', 0.64], ['lotuseats', 0.41], ['lotusleap', 0.38], ['facetime', 0.31], ['weather', 0.12], ['stocks', 0.041], ['health', 0.008]];
+  const CELL = [['wavelet', 12.6], ['music', 6.1], ['photos', 4.8], ['messages', 3.9], ['maps', 2.2], ['safari', 1.7], ['mail', 0.82], ['swift', 0.64], ['lotuseats', 0.41], ['reelrush', 0.38], ['facetime', 0.31], ['weather', 0.12], ['stocks', 0.041], ['health', 0.008]];
   P.cellular = {
     title: 'Cellular', icon: ['antenna.radiowaves.left.and.right', 'var(--green)'], idx: ['Mobile Data', 'Cellular Data', 'Roaming', 'SIM', 'eSIM', 'Data Usage'],
     render(K) {
@@ -430,8 +436,8 @@
         h('div.set-hero', h('div.set-hero-ic', { style: { background: 'var(--green)' } }, JC.icon('personalhotspot', { size: 30 })), h('div.set-hero-t', 'Personal Hotspot'), h('div.set-hero-s', 'Personal Hotspot on your iPhone can provide internet access to other devices signed in to your iCloud account without requiring you to enter the password.')),
         { rows: [
           { t: 'Allow Others to Join', core: 'hotspot', set: (v) => { JC.state.setting('hotspot', v); JC.os.updateStatus(); } },
-          { t: 'Wi-Fi Password', d: K.pref('hs.pass', 'ninepetals1992'), tap: () => JC.ui.alert({ title: 'Wi-Fi Password', message: 'Must be at least 8 characters.', input: { value: K.pref('hs.pass', 'ninepetals1992'), cap: 'none' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Done', style: 'default' }] }).then((r) => { if (r.index !== 1) return; if ((r.value || '').length < 8) { K.alert({ title: 'Password Too Short', message: 'The password must be at least 8 characters.' }); return; } K.setPref('hs.pass', r.value); K.render(); }), chev: true },
-        ], f: on ? 'Now Discoverable. Other users can look for your shared network using Wi-Fi and Bluetooth under the name “Jiang Cheng’s iPhone”.' : 'Allow other users or devices not signed in to iCloud to look for your shared network “Jiang Cheng’s iPhone” when you are in Personal Hotspot settings or when you turn it on in Control Center.' },
+          { t: 'Wi-Fi Password', d: K.pref('hs.pass', 'bluefin0720'), tap: () => JC.ui.alert({ title: 'Wi-Fi Password', message: 'Must be at least 8 characters.', input: { value: K.pref('hs.pass', 'bluefin0720'), cap: 'none' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Done', style: 'default' }] }).then((r) => { if (r.index !== 1) return; if ((r.value || '').length < 8) { K.alert({ title: 'Password Too Short', message: 'The password must be at least 8 characters.' }); return; } K.setPref('hs.pass', r.value); K.render(); }), chev: true },
+        ], f: on ? 'Now Discoverable. Other users can look for your shared network using Wi-Fi and Bluetooth under the name “Childe’s iPhone”.' : 'Allow other users or devices not signed in to iCloud to look for your shared network “Childe’s iPhone” when you are in Personal Hotspot settings or when you turn it on in Control Center.' },
         { rows: [{ t: 'Family Sharing', d: 'On', go: 'hsfamily' }] },
         { rows: [{ t: 'Maximize Compatibility', pref: 'hs.compat', def: false }], f: 'Internet performance may be reduced for devices connected to your hotspot when turned on.' },
       ];
@@ -439,24 +445,24 @@
   };
   P.hsfamily = {
     title: 'Family Sharing', path: 'Personal Hotspot', noSearch: true,
-    render: (K) => [{ rows: [{ t: 'Family Sharing', pref: 'hs.fam', def: true }] }, { h: 'Family Members', rows: [{ t: 'A-Ling', avatar: 'jl', pick: { pref: 'hs.jl', def: 'auto', options: [['ask', 'Ask for Approval'], ['auto', 'Automatic']] } }], f: 'A-Ling can join your hotspot automatically. (He does. Constantly.)' }],
+    render: (K) => [{ rows: [{ t: 'Family Sharing', pref: 'hs.fam', def: true }] }, { h: 'Family Members', rows: [{ t: 'Teucer', avatar: 'teucer', pick: { pref: 'hs.teucer', def: 'auto', options: [['ask', 'Ask for Approval'], ['auto', 'Automatic']] } }, { t: 'Anthon', avatar: 'anthon', pick: { pref: 'hs.anthon', def: 'ask', options: [['ask', 'Ask for Approval'], ['auto', 'Automatic']] } }], f: 'Teucer can join your hotspot automatically. Anthon has to ask. (He knows why.)' }],
   };
   P.vpn = {
     title: 'VPN & Device Management', path: 'General', icon: ['network', 'var(--blue)'], idx: ['VPN', 'Device Management', 'MDM', 'Profile', 'Supervised'],
     render(K, a, page) {
       return [
-        { h: 'VPN', rows: [{ t: 'YMJ Corporate VPN', s: page && page._vpn ? 'Connecting…' : 'Not Connected', right: page && page._vpn ? h('div.set-spin') : null, tap: () => { const t = K.top(); t._vpn = true; t.render(); setTimeout(() => { t._vpn = false; t.render(); K.alert({ title: 'VPN Connection', message: 'Authentication failed. YMJ Corporate VPN requires the hardware token on Jiang Cheng’s keychain.' }); }, 1600); } }] },
-        { h: 'Mobile Device Management', rows: [{ t: 'Yunmeng Jiang Group', s: 'Supervised · Managed by Tang Mei (EA)', icon: ['lotus.fill', 'var(--purple)'], go: 'mdm' }] },
+        { h: 'VPN', rows: [{ t: 'Northland Secure (Liyue)', s: page && page._vpn ? 'Connecting…' : 'Not Connected', right: page && page._vpn ? h('div.set-spin') : null, tap: () => { const t = K.top(); t._vpn = true; t.render(); setTimeout(() => { t._vpn = false; t.render(); K.alert({ title: 'VPN Connection', message: 'Authentication failed. Northland Secure requires the Director’s hardware token. It was on his keychain. His keychain is wherever he is.' }); }, 1600); } }] },
+        { h: 'Mobile Device Management', rows: [{ t: 'Northland Bank Group', s: 'Supervised · Liyue Branch IT (Ekaterina)', icon: ['snowflake', '#0f2740'], go: 'mdm' }] },
       ];
     },
   };
   P.mdm = {
-    title: 'Yunmeng Jiang Group', path: 'VPN & Device Management', noSearch: true,
+    title: 'Northland Bank Group', path: 'VPN & Device Management', noSearch: true,
     render: (K) => [
-      h('div.set-hero', h('div.set-hero-ic', { style: { background: 'var(--purple)' } }, JC.icon('lotus.fill', { size: 30 })), h('div.set-hero-t', 'Yunmeng Jiang Group'), h('div.set-hero-s', 'This iPhone is supervised and managed by Yunmeng Jiang Group. The administrator can collect personal data, add and remove accounts and restrictions, manage apps, and remotely erase this iPhone.')),
+      h('div.set-hero', h('div.set-hero-ic', { style: { background: '#0f2740' } }, JC.icon('snowflake', { size: 30 })), h('div.set-hero-t', 'Northland Bank Group'), h('div.set-hero-s', 'This iPhone is supervised and managed by Northland Bank Group. The administrator can collect personal data, add and remove accounts and restrictions, manage apps, track this iPhone’s location, and remotely erase it.')),
       { h: 'Restrictions', rows: [{ t: 'Erase iPhone', d: 'Not Allowed' }, { t: 'Delete Apps', d: 'Not Allowed' }, { t: 'Change Device Name', d: 'Not Allowed' }, { t: 'Passcode', d: 'Required (6 digits)' }, { t: 'Lost Mode', d: 'Enabled' }] },
-      { h: 'Administrator', rows: [{ t: 'Contact', d: 'Tang Mei (EA)', tap: () => JC.os.open('contacts', { contact: 'ea' }), chev: true }, { t: 'Signed by', d: 'MDM.lotuspier.yunmeng' }] },
-      { rows: [{ t: 'Remove Management', danger: true, center: true, tap: () => K.alert({ title: 'Can’t Remove Management', message: 'This iPhone is supervised. Only the organization can remove device management. (Tang Mei will ask why.)' }) }] },
+      { h: 'Administrator', rows: [{ t: 'Contact', d: 'Ekaterina (Liyue Branch)', tap: () => JC.os.open('contacts', { contact: 'ekat' }), chev: true }, { t: 'Signed by', d: 'mdm.northland.sn' }, { t: 'Location Reporting', d: 'On · Office of the Eighth' }] },
+      { rows: [{ t: 'Remove Management', danger: true, center: true, tap: () => K.alert({ title: 'Can’t Remove Management', message: 'This iPhone is supervised. Only the organization can remove device management. (And the organization is exactly who he threw the phone away from.)' }) }] },
     ],
   };
 
@@ -481,7 +487,7 @@
     }
     return pts;
   }
-  const USAGE = [['messages', 31, 142], ['phone', 18, 63], ['mail', 9, 48], ['wavelet', 8, 39], ['__home', 7, 31], ['camera', 6, 12], ['maps', 5, 9], ['lotusleap', 4, 19], ['music', 3, 4], ['safari', 3, 14], ['health', 2, 3], ['__bg', 4, 0]];
+  const USAGE = [['messages', 31, 142], ['phone', 18, 63], ['mail', 9, 48], ['wavelet', 8, 39], ['__home', 7, 31], ['camera', 6, 12], ['maps', 5, 9], ['reelrush', 4, 19], ['music', 3, 4], ['safari', 3, 14], ['health', 2, 3], ['__bg', 4, 0]];
   P.battery = {
     title: 'Battery', icon: ['battery.100', 'var(--green)'], idx: ['Low Power Mode', 'Battery Health', 'Battery Usage', 'Charging'],
     render(K, a, page) {
@@ -547,11 +553,11 @@
       const ver = K.pref('su.state', 'idle') === 'installed' ? '26.1' : '26.0.1';
       return [
         { rows: [
-          { t: 'Name', d: 'Jiang Cheng’s iPhone', go: 'aboutname' },
+          { t: 'Name', d: 'Childe’s iPhone', go: 'aboutname' },
           { t: 'iOS Version', d: ver, go: 'iosversion' },
           { t: 'Model Name', d: 'iPhone 17 Pro' },
-          { t: 'Model Number', d: modelTap % 2 ? 'iPhone18,1' : 'MG8A4CH/A', tap: () => { modelTap++; K.render(); } },
-          { t: 'Serial Number', d: 'JC5L1508LPQ', copy: true },
+          { t: 'Model Number', d: modelTap % 2 ? 'iPhone18,1' : 'MG8A4LY/A', tap: () => { modelTap++; K.render(); } },
+          { t: 'Serial Number', d: 'NB11L0720AJX', copy: true },
         ] },
         { rows: [{ t: 'AppleCare+', d: 'Expires: 9/18/27', go: 'applecare' }] },
         { rows: [
@@ -567,18 +573,18 @@
           { t: 'Bluetooth', d: '6A:1D:0B:7E:5E:93', copy: true },
           { t: 'Modem Firmware', d: '1.03.08' },
           { t: 'SEID', go: 'seid' },
-          { t: 'EID', d: '8904 9032 1515 0716 0000 1992 0516 1008', copy: true },
+          { t: 'EID', d: '8904 9032 1111 0720 0000 2004 0720 1016', copy: true },
           { t: 'Carrier Lock', d: 'No SIM restrictions' },
         ] },
-        { h: 'Physical SIM', rows: [{ t: 'Network', d: 'YM Mobile' }, { t: 'Carrier', d: 'YM Mobile 63.0' }, { t: 'IMEI', d: '35 669412 815080 3', copy: true }, { t: 'ICCID', d: '8986 0012 1508 1992 0716', copy: true }] },
+        { h: 'Physical SIM', rows: [{ t: 'Network', d: 'Jade Mobile' }, { t: 'Carrier', d: 'Jade Mobile 63.0' }, { t: 'IMEI', d: '35 669412 110720 3', copy: true }, { t: 'ICCID', d: '8986 0012 1111 2004 0720', copy: true }] },
         { rows: [{ t: 'Certificate Trust Settings', go: 'certs' }] },
       ];
     },
   };
-  P.aboutname = { title: 'Name', path: 'About', noSearch: true, render: (K) => [{ rows: [{ custom: () => h('div.set-field', h('input.set-input', { value: 'Jiang Cheng’s iPhone', disabled: true })) }], f: 'This iPhone is supervised by Yunmeng Jiang Group. The device name can’t be changed.' }] };
+  P.aboutname = { title: 'Name', path: 'About', noSearch: true, render: (K) => [{ rows: [{ custom: () => h('div.set-field', h('input.set-input', { value: 'Childe’s iPhone', disabled: true })) }], f: 'This iPhone is supervised by Northland Bank Group. The device name can’t be changed.' }] };
   P.iosversion = { title: 'iOS Version', path: 'About', noSearch: true, render: (K) => [h('div.set-doc', h('h3', 'iOS ' + (K.pref('su.state', 'idle') === 'installed' ? '26.1' : '26.0.1')), h('p', 'This update provides important bug fixes and security updates for your iPhone, including a fix for an issue where Liquid Glass buttons could appear too transparent over bright wallpapers.'), h('p', 'For information on the security content of Apple software updates, please visit the Apple Security Releases website.'))] };
-  P.seid = { title: 'SEID', path: 'About', noSearch: true, render: () => [{ rows: [{ t: '04 1D 7E 9A 15 08 19 92 05 15 20 08 10 18 0F A1 C3', copy: true }], f: 'Secure Element Identifier. Used by Apple Pay.' }] };
-  P.certs = { title: 'Certificate Trust Settings', path: 'About', noSearch: true, render: () => [{ rows: [{ t: 'Trust Store Version', d: '2026091500' }, { t: 'Trust Asset Version', d: '1084' }] }, { h: 'Enable Full Trust for Root Certificates', rows: [{ t: 'Yunmeng Jiang Group Root CA', pref: 'cert.ymj', def: true }], f: 'Learn more about trusted certificates' }] };
+  P.seid = { title: 'SEID', path: 'About', noSearch: true, render: () => [{ rows: [{ t: '04 1D 7E 9A 11 07 20 04 10 16 20 26 11 11 0F A1 C3', copy: true }], f: 'Secure Element Identifier. Used by Apple Pay.' }] };
+  P.certs = { title: 'Certificate Trust Settings', path: 'About', noSearch: true, render: () => [{ rows: [{ t: 'Trust Store Version', d: '2026091500' }, { t: 'Trust Asset Version', d: '1084' }] }, { h: 'Enable Full Trust for Root Certificates', rows: [{ t: 'Northland Bank Group Root CA', pref: 'cert.nb', def: true }], f: 'Learn more about trusted certificates' }] };
 
   // software update (download progress continues while you browse)
   const SU = { prog: 0, timer: null };
@@ -616,7 +622,7 @@
           if (!(S().wifi && S().wifiNet)) JC.ui.alert({ title: 'Download Using Cellular?', message: 'You are not connected to Wi-Fi. Downloading iOS 26.1 (6.38 GB) uses cellular data.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Download', style: 'default', onTap: start }] });
           else start();
         } });
-        btns.push({ t: 'Update Tonight', center: true, tap: () => K.alert({ title: 'Update Tonight', message: 'iPhone will try to update tonight between 2:00 and 4:00 if it is connected to power and Wi-Fi.\n\n(Jiang Cheng will be very confused.)' }) });
+        btns.push({ t: 'Update Tonight', center: true, tap: () => K.alert({ title: 'Update Tonight', message: 'iPhone will try to update tonight between 2:00 and 4:00 if it is connected to power and Wi-Fi.\n\n(Childe will be very confused.)' }) });
       } else if (st === 'downloading' && !dl) {
         btns.push({ t: 'Resume Download', center: true, tap: () => { clearInterval(SU.timer); SU.timer = setInterval(() => suTick(K), 250); K.render(); } });
       } else if (st === 'ready') {
@@ -631,7 +637,7 @@
     },
   };
   P.autoupdates = { title: 'Automatic Updates', path: 'Software Update', idx: ['Security Responses'], render: (K) => [{ h: 'Automatically', rows: [{ t: 'Security Responses & System Files', pref: 'su.sec', def: true }, { t: 'Download iOS Updates', pref: 'su.auto', def: true }, { t: 'Install iOS Updates', pref: 'su.install', def: false }], f: 'iPhone will try to update overnight while charging and connected to Wi-Fi.' }] };
-  P.betaupdates = { title: 'Beta Updates', path: 'Software Update', render: (K) => [{ rows: [['off', 'Off'], ['pub', 'iOS 26 Public Beta'], ['dev', 'iOS 26 Developer Beta']].map(([k, l]) => ({ t: l, check: () => K.pref('su.beta', 'off') === k, tap: () => { if (k === 'dev') { K.alert({ title: 'Developer Beta', message: 'The Apple Account jiang.cheng@lotuspier.yunmeng is not enrolled in the Apple Developer Program.' }); return; } K.setPref('su.beta', k); K.render(); } })), f: 'Beta software is pre-release. Jiang Cheng would rather die.' }] };
+  P.betaupdates = { title: 'Beta Updates', path: 'Software Update', render: (K) => [{ rows: [['off', 'Off'], ['pub', 'iOS 26 Public Beta'], ['dev', 'iOS 26 Developer Beta']].map(([k, l]) => ({ t: l, check: () => K.pref('su.beta', 'off') === k, tap: () => { if (k === 'dev') { K.alert({ title: 'Developer Beta', message: 'The Apple Account tartaglia@northland.sn is not enrolled in the Apple Developer Program.' }); return; } K.setPref('su.beta', k); K.render(); } })), f: 'Beta software is pre-release. Childe tried it once. The phone caught fire. (Metaphorically.)' }] };
   P.applecare = {
     title: 'AppleCare & Warranty', path: 'General', icon: ['checkmark.shield.fill', 'var(--red)'], idx: ['AppleCare+', 'Warranty', 'Theft and Loss', 'Coverage'],
     render: (K) => [
@@ -645,27 +651,14 @@
   };
   P.airdrop = { title: 'AirDrop', path: 'General', icon: ['dot.radiowaves.left.and.right', 'var(--blue)'], idx: ['Receiving', 'Contacts Only', 'Everyone for 10 Minutes'], render: (K) => [{ rows: [['off', 'Receiving Off'], ['contacts', 'Contacts Only'], ['everyone', 'Everyone for 10 Minutes']].map(([k, l]) => ({ t: l, check: () => K.pref('airdrop', 'contacts') === k, tap: () => { K.setPref('airdrop', k); K.render(); if (k === 'everyone') K.toast('Everyone can AirDrop to this iPhone for 10 minutes', 'dot.radiowaves.left.and.right'); } })), f: 'AirDrop lets you share instantly with people nearby. You can be discoverable in AirDrop to everyone or only to people in your contacts.' }, { h: 'Start Sharing By', rows: [{ t: 'Bringing Devices Together', pref: 'airdrop.near', def: true }] }, { h: 'Out of Range', rows: [{ t: 'Use Cellular Data', pref: 'airdrop.cell', def: true }] }] };
   P.airplay = { title: 'AirPlay & Continuity', path: 'General', icon: ['rectangle.on.rectangle', 'var(--blue)'], idx: ['Handoff', 'iPhone Mirroring', 'Continuity Camera'], render: (K) => [{ rows: [{ t: 'Automatically AirPlay', pick: { pref: 'ap.auto', def: 'ask', options: [['never', 'Never'], ['ask', 'Ask'], ['auto', 'Automatic']] } }], f: 'Automatically stream to AirPlay-compatible devices that you frequently use.' }, { rows: [{ t: 'Transfer to HomePod', pref: 'ap.hp', def: true }] }, { h: 'Continuity', rows: [{ t: 'Handoff', pref: 'handoff', def: true }, { t: 'iPhone Mirroring', go: 'mirroring' }, { t: 'Continuity Camera', pref: 'contcam', def: true }] }] };
-  P.mirroring = { title: 'iPhone Mirroring', path: 'AirPlay & Continuity', noSearch: true, render: (K) => [{ h: 'Mac', rows: K.pref('mirror.removed', false) ? [] : [{ t: 'Jiang Cheng’s MacBook Pro', s: 'Golden Peony Hotel', icon: ['laptopcomputer', 'var(--gray)'], swipe: [{ text: 'Remove', color: 'var(--red)', onTap: () => { K.setPref('mirror.removed', true); K.render(); } }], tap: () => K.alert({ title: 'Jiang Cheng’s MacBook Pro', message: 'This Mac can mirror this iPhone while it’s locked and nearby. It isn’t nearby. Swipe left to remove it.' }) }], f: 'iPhone Mirroring lets you use your iPhone from your Mac.' }] };
+  P.mirroring = { title: 'iPhone Mirroring', path: 'AirPlay & Continuity', noSearch: true, render: (K) => [{ h: 'Mac', rows: K.pref('mirror.removed', false) ? [] : [{ t: 'Childe’s MacBook Pro', s: 'Pier View Residences', icon: ['laptopcomputer', 'var(--gray)'], swipe: [{ text: 'Remove', color: 'var(--red)', onTap: () => { K.setPref('mirror.removed', true); K.render(); } }], tap: () => K.alert({ title: 'Childe’s MacBook Pro', message: 'This Mac can mirror this iPhone while it’s locked and nearby. It isn’t nearby. Swipe left to remove it.' }) }], f: 'iPhone Mirroring lets you use your iPhone from your Mac.' }] };
   P.pip = { title: 'Picture in Picture', path: 'General', render: (K) => [{ rows: [{ t: 'Start PiP Automatically', pref: 'pip', def: true }], f: 'When you swipe up to go Home or use other apps, videos and FaceTime calls automatically continue in Picture in Picture.' }] };
   P.carplay = {
-    title: 'CarPlay', path: 'General', icon: ['car.fill', 'var(--green)'], idx: ['Sandu GT', 'Car'],
-    render(K) {
-      const wet = K.flagged('car_handled') || K.flagged('car_cover');
-      return [{ h: 'My Cars', rows: K.pref('carplay.forgot', false) ? [] : [{ t: 'Sandu GT', s: wet ? 'Last seen: Koi Tower pond' : 'Last connected Thursday, 15:41', icon: ['car.fill', 'var(--purple)'], go: 'sandu' }], f: wet ? 'Sandu GT is reporting “water detected”. It may not be available.' : 'Connect your iPhone to your car to use CarPlay.' }];
-    },
+    title: 'CarPlay', path: 'General', icon: ['car.fill', 'var(--green)'], idx: ['Car', 'My Cars'],
+    render: () => [{ h: 'My Cars', rows: [] , f: 'No cars. Childe takes Harbor Ride everywhere, or runs. (Mostly runs.)' }, { rows: [{ t: 'Harbor Ride', s: 'Ride-hailing', icon: 'app:swift', tap: () => JC.os.open('swift') }] }],
   };
-  P.sandu = {
-    title: 'Sandu GT', path: 'CarPlay', noSearch: true,
-    render: (K) => [
-      { rows: [{ t: 'CarPlay', pref: 'carplay.on', def: true }, { t: 'Allow CarPlay While Locked', pref: 'carplay.locked', def: true }] },
-      { rows: [{ t: 'Customize', go: 'sanducust' }, { t: 'Wallpaper', d: 'Purple', alert: { title: 'Wallpaper', message: 'Choose a CarPlay wallpaper while connected to Sandu GT.' } }] },
-      { rows: [{ t: 'Forget This Car', danger: true, center: true, tap: () => JC.ui.alert({ title: 'Forget Sandu GT?', message: 'Jiang Cheng named this car. He will not forgive you.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Forget', style: 'destructive', onTap: () => { K.setPref('carplay.forgot', true); K.back(); } }] }) }] },
-    ],
-  };
-  P.sanducust = { title: 'Customize', path: 'Sandu GT', noSearch: true, render: (K) => [{ h: 'Apps on CarPlay', rows: ['phone', 'music', 'maps', 'messages', 'calendar', 'voicememos', 'lotusleap'].map((id) => ({ t: K.appName(id), icon: 'app:' + id, pref: 'cp.app.' + id, def: id !== 'lotusleap' })), f: 'Lotus Leap on CarPlay was added by A-Ling. Jiang Cheng turned it off.' }] };
-
   // storage
-  const STORE_APPS = [['photos', 182.4, 'Photos & videos'], ['messages', 41.2, 'Attachments: 18 GB'], ['wavelet', 6.8], ['music', 4.2], ['mail', 2.9], ['maps', 1.9], ['notes', 1.4], ['lotusleap', 1.1], ['voicememos', 0.9], ['safari', 0.76], ['camera', 0.52], ['swift', 0.31], ['lotuseats', 0.28], ['stocks', 0.12], ['health', 0.62], ['wallet', 0.21], ['weather', 0.08], ['calculator', 0.02]];
+  const STORE_APPS = [['photos', 182.4, 'Photos & videos'], ['messages', 41.2, 'Attachments: 18 GB'], ['wavelet', 6.8], ['music', 4.2], ['mail', 2.9], ['maps', 1.9], ['notes', 1.4], ['reelrush', 1.1], ['voicememos', 0.9], ['safari', 0.76], ['camera', 0.52], ['swift', 0.31], ['lotuseats', 0.28], ['stocks', 0.12], ['health', 0.62], ['wallet', 0.21], ['weather', 0.08], ['calculator', 0.02]];
   P.storage = {
     title: 'iPhone Storage', path: 'General', icon: ['externaldrive.fill', 'var(--gray)'], idx: ['Storage', 'Offload Unused Apps', 'Free Up Space'],
     render(K) {
@@ -678,7 +671,7 @@
           { t: off ? 'Offload Unused Apps — Enabled' : 'Offload Unused Apps', s: 'Save 1.9 GB · Automatically offload unused apps when you’re low on storage. Your documents & data will be saved.', tint: !off, tap: () => { K.setPref('st.offload', !off); K.toast(off ? 'Offload Unused Apps turned off' : 'Offload Unused Apps enabled'); K.render(); } },
           { t: 'Review Large Attachments', s: 'See photos, videos and attachments taking up storage in Messages.', tint: true, tap: () => JC.os.open('messages') },
         ] },
-        { rows: STORE_APPS.sort((a, b) => b[1] - a[1]).map(([id, gb, sub]) => ({ t: K.appName(id), s: sub || ('Last Used: ' + (id === 'lotusleap' ? 'Yesterday' : 'Today')), icon: 'app:' + id, d: K.gb(gb), go: 'appstorage', arg: id })) },
+        { rows: STORE_APPS.sort((a, b) => b[1] - a[1]).map(([id, gb, sub]) => ({ t: K.appName(id), s: sub || ('Last Used: ' + (id === 'reelrush' ? 'Yesterday' : 'Today')), icon: 'app:' + id, d: K.gb(gb), go: 'appstorage', arg: id })) },
       ];
     },
   };
@@ -687,13 +680,13 @@
     render(K, id) {
       const gb = (STORE_APPS.find((x) => x[0] === id) || [0, 0.1])[1];
       return [
-        { rows: [{ custom: () => h('div.set-appst', JC.appIcon(id, 60), h('div', h('div.set-appst-n', K.appName(id)), h('div.set-appst-s', id === 'lotusleap' ? 'Koi Tower Games' : 'Apple'))) }, { t: 'App Size', d: K.gb(gb * 0.12) }, { t: 'Documents & Data', d: K.gb(gb * 0.88) }] },
+        { rows: [{ custom: () => h('div.set-appst', JC.appIcon(id, 60), h('div', h('div.set-appst-n', K.appName(id)), h('div.set-appst-s', id === 'reelrush' ? 'Reel Rush Games' : id === 'northland' ? 'Northland Bank Group' : id === 'feiyun' ? 'Feiyun Commerce Guild' : 'Apple'))) }, { t: 'App Size', d: K.gb(gb * 0.12) }, { t: 'Documents & Data', d: K.gb(gb * 0.88) }] },
         { rows: [{ t: 'Offload App', tint: true, center: true, tap: () => K.alert({ title: 'Offload “' + K.appName(id) + '”?', message: 'Offloading is disabled by your device management profile.' }) }], f: 'This will free up storage used by the app, but keep its documents and data.' },
-        { rows: [{ t: 'Delete App', danger: true, center: true, tap: () => K.alert({ title: 'Can’t Delete “' + K.appName(id) + '”', message: 'This iPhone is managed by Yunmeng Jiang Group. Apps can’t be deleted. (Tang Mei.)' }) }] },
+        { rows: [{ t: 'Delete App', danger: true, center: true, tap: () => K.alert({ title: 'Can’t Delete “' + K.appName(id) + '”', message: 'This iPhone is managed by Northland Bank Group. Apps can’t be deleted. (Ekaterina.)' }) }] },
       ];
     },
   };
-  P.bgrefresh = { title: 'Background App Refresh', path: 'General', icon: ['arrow.triangle.2.circlepath', 'var(--gray)'], render: (K) => [{ rows: [{ t: 'Background App Refresh', pick: { pref: 'bgr', def: 'both', options: [['off', 'Off'], ['wifi', 'Wi-Fi'], ['both', 'Wi-Fi & Cellular Data']] } }], f: 'Allow apps to refresh their content when on Wi-Fi or cellular in the background.' }, { rows: K.apps().filter((id) => !['calculator', 'camera', 'contacts'].includes(id)).map((id) => ({ t: K.appName(id), icon: 'app:' + id, pref: 'bgr.' + id, def: id !== 'lotusleap' })) }] };
+  P.bgrefresh = { title: 'Background App Refresh', path: 'General', icon: ['arrow.triangle.2.circlepath', 'var(--gray)'], render: (K) => [{ rows: [{ t: 'Background App Refresh', pick: { pref: 'bgr', def: 'both', options: [['off', 'Off'], ['wifi', 'Wi-Fi'], ['both', 'Wi-Fi & Cellular Data']] } }], f: 'Allow apps to refresh their content when on Wi-Fi or cellular in the background.' }, { rows: K.apps().filter((id) => !['calculator', 'camera', 'contacts'].includes(id)).map((id) => ({ t: K.appName(id), icon: 'app:' + id, pref: 'bgr.' + id, def: id !== 'reelrush' })) }] };
   P.datetime = {
     title: 'Date & Time', path: 'General', icon: ['calendar.badge.clock', 'var(--blue)'], idx: ['24-Hour Time', 'Time Zone', 'Clock'],
     render: (K) => [
@@ -721,8 +714,8 @@
         { t: 'Character Preview', pref: 'kb.prev', def: true },
         { t: '“.” Shortcut', pref: 'kb.dot', def: true },
       ], f: 'Double-tapping the space bar will insert a period followed by a space.' },
-      { h: 'Dictation', rows: [{ t: 'Enable Dictation', pref: 'kb.dict', def: false, confirm: (ok) => JC.ui.alert({ title: 'Enable Dictation?', message: 'Dictation uses Jiang Cheng’s voice profile. Your voice is not Jiang Cheng’s.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Enable', style: 'default', onTap: ok }] }) }] },
-      { h: 'Emoji', rows: [{ t: 'Memoji Stickers', pref: 'kb.memoji', def: false }], f: 'Send Memoji and Animoji stickers from your emoji keyboard. (Jiang Cheng has never used an emoji.)' },
+      { h: 'Dictation', rows: [{ t: 'Enable Dictation', pref: 'kb.dict', def: false, confirm: (ok) => JC.ui.alert({ title: 'Enable Dictation?', message: 'Dictation uses Childe’s voice profile. Your voice is not Childe’s.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Enable', style: 'default', onTap: ok }] }) }] },
+      { h: 'Emoji', rows: [{ t: 'Memoji Stickers', pref: 'kb.memoji', def: false }], f: 'Send Memoji and Animoji stickers from your emoji keyboard. (Childe uses the fish one 300 times a week.)' },
     ],
   };
   P.keyboards = {
@@ -731,7 +724,7 @@
       const sh = JC.ui.sheet({ title: 'Add New Keyboard', detent: 'large', left: { text: 'Cancel' }, content: () => [JC.ui.list([{ header: 'Suggested Keyboards', rows: ['繁體中文 – 注音', '粵語 – 傳統', 'Japanese – Kana', 'Korean', 'French (France)', 'Spanish (Mexico)'].map((k) => ({ title: k, onTap: () => { sh.close(); const l = K.pref('kb.list', KBS0); if (!l.includes(k)) K.setPref('kb.list', l.concat(k)); K.render(); } })) }])] });
     } }]), f: 'Swipe left on a keyboard to remove it.' }],
   };
-  const TR0 = [['gl', 'Get lost.'], ['rid', 'Ridiculous.'], ['wwx', 'Wei Wuxian'], ['omw', 'On my way.'], ['nob', 'No.']];
+  const TR0 = [['xs', 'xiansheng'], ['fsh', '🐟🐟🐟'], ['omw', 'On my way!'], ['nvm', 'never mind, I’ll pay'], ['fite', 'fight me']];
   P.textreplace = {
     title: 'Text Replacement', path: 'Keyboard', idx: ['Shortcuts'],
     right: (K) => [JC.ui.navBtn({ icon: 'plus', onTap: () => JC.ui.alert({ title: 'Phrase', input: { placeholder: 'Phrase' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Next', style: 'default' }] }).then((r) => { if (r.index !== 1 || !r.value) return; setTimeout(() => JC.ui.alert({ title: 'Shortcut', input: { placeholder: 'Shortcut', cap: 'none' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Save', style: 'default' }] }).then((r2) => { if (r2.index !== 1 || !r2.value) return; K.setPref('kb.tr', K.pref('kb.tr', TR0).concat([[r2.value, r.value]])); K.render(); }), 300); }) })],
@@ -740,13 +733,13 @@
   P.language = {
     title: 'Language & Region', path: 'General', icon: ['globe', 'var(--blue)'], idx: ['Region', 'Calendar', 'Temperature', 'Measurement', 'First Day of Week', 'Date Format', 'Number Format'],
     render(K) {
-      const langs = K.pref('lang.list', ['English', '简体中文']);
+      const langs = K.pref('lang.list', ['English', 'Snezhnayan', '简体中文']);
       return [
         { h: 'Preferred Languages', rows: langs.map((l, i) => ({ t: l, s: i === 0 ? 'iPhone Language' : null, swipe: i ? [{ text: 'Delete', color: 'var(--red)', onTap: () => { K.setPref('lang.list', langs.filter((x) => x !== l)); K.render(); } }] : undefined })).concat([{ t: 'Add Language…', tint: true, tap: () => {
           const sh = JC.ui.sheet({ title: 'Add Language', detent: 'large', left: { text: 'Cancel' }, content: () => [JC.ui.list([{ rows: ['繁體中文', '粵語', '日本語', '한국어', 'Français', 'Español', 'Deutsch'].map((l) => ({ title: l, onTap: () => { sh.close(); if (!langs.includes(l)) K.setPref('lang.list', langs.concat(l)); K.render(); K.toast('Added ' + l, 'globe'); } })) }])] });
         } }]), f: 'Apps and websites will use the first language in this list that they support.' },
         { rows: [
-          { t: 'Region', pick: { pref: 'lang.region', def: 'cn', options: [['cn', 'China mainland'], ['hk', 'Hong Kong'], ['tw', 'Taiwan'], ['sg', 'Singapore'], ['us', 'United States']] } },
+          { t: 'Region', pick: { pref: 'lang.region', def: 'ly', options: [['ly', 'Liyue'], ['sn', 'Snezhnaya'], ['md', 'Mondstadt'], ['in', 'Inazuma'], ['fo', 'Fontaine']] } },
           { t: 'Calendar', pick: { pref: 'lang.cal', def: 'greg', options: [['greg', 'Gregorian'], ['chinese', 'Chinese'], ['buddhist', 'Buddhist']] } },
           { t: 'Temperature', pick: { pref: 'lang.temp', def: 'c', options: [['c', 'Celsius (°C)'], ['f', 'Fahrenheit (°F)']] } },
           { t: 'Measurement System', pick: { pref: 'lang.meas', def: 'metric', options: [['metric', 'Metric'], ['us', 'US'], ['uk', 'UK']] } },
@@ -755,12 +748,12 @@
           { t: 'Number Format', pick: { pref: 'lang.nf', def: 'comma', options: [['comma', '1,234,567.89'], ['space', '1 234 567,89'], ['dot', '1.234.567,89']] } },
         ] },
         { rows: [{ t: 'Live Text', pref: 'lang.lt', def: true }], f: 'Select text in images to copy or take action.' },
-        h('div.set-region', h('div.set-region-k', 'Region Format Example'), h('div', U.fmtTime(JC.time.now())), h('div', 'Friday, 16 October 2026'), h('div', '¥12,345.67  4,567.89')),
+        h('div.set-region', h('div.set-region-k', 'Region Format Example'), h('div', U.fmtTime(JC.time.now())), h('div', 'Friday, 16 October 2026'), h('div', 'ℳ12,345.67  4,567.89')),
       ];
     },
   };
-  P.tvprovider = { title: 'TV Provider', path: 'General', render: (K) => [{ h: 'Choose Your TV Provider', rows: ['Koi Tower TV+', 'Yunmeng Cable', 'Gusu Arts Channel', 'Qinghe Broadcasting'].map((p) => ({ t: p, tap: () => K.alert({ title: p, message: 'Sign in with your TV provider account to watch on this iPhone.' }) })) }] };
-  P.legal = { title: 'Legal & Regulatory', path: 'General', render: () => [h('div.set-doc', h('h3', 'Legal Notices'), h('p', 'This is a story phone. Every person, company, stock and radish in it is fictional. Any resemblance to real cultivation sects is coincidental.'), h('h3', 'Regulatory'), h('p', 'Model A3524 · CMIIT ID: 2025CP1508 · Designed by Apple in California. Assembled in a taxi in Lanling.'), h('h3', 'RF Exposure'), h('p', 'To reduce exposure to RF energy, use a hands-free option. To reduce exposure to Jiang Cheng, do not answer after midnight.'))] };
+  P.tvprovider = { title: 'TV Provider', path: 'General', render: (K) => [{ h: 'Choose Your TV Provider', rows: ['Liyue Broadcasting', 'Heyu Opera Channel', 'Snezhnaya State TV', 'Steambird+'].map((p) => ({ t: p, tap: () => K.alert({ title: p, message: 'Sign in with your TV provider account to watch on this iPhone.' }) })) }] };
+  P.legal = { title: 'Legal & Regulatory', path: 'General', render: () => [h('div.set-doc', h('h3', 'Legal Notices'), h('p', 'This is a fan-made story phone set in a modern Teyvat. Every company, stock and fish in it is fictional. Genshin Impact characters belong to HoYoverse; this is an unofficial fan work.'), h('h3', 'Regulatory'), h('p', 'Model A3524 · CMIIT ID: 2025CP1508 · Designed by Apple in California. Found on a pier in Liyue Harbor.'), h('h3', 'RF Exposure'), h('p', 'To reduce exposure to RF energy, use a hands-free option. To reduce exposure to the Fatui, do not answer unknown numbers after midnight.'))] };
   P.reset = {
     title: 'Transfer or Reset iPhone', path: 'General', icon: ['arrow.counterclockwise', 'var(--gray)'], idx: ['Reset', 'Erase All Content and Settings', 'Reset Home Screen Layout', 'Reset Network Settings'],
     render: (K) => [
@@ -773,7 +766,7 @@
           { text: 'Reset Home Screen Layout', onTap: () => JC.ui.alert({ title: 'Reset Home Screen?', message: 'Your Home Screen will be reset to its factory layout.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Reset Home Screen', style: 'destructive', onTap: () => { JC.os.resetHome(); K.toast('Home Screen reset', 'apps.iphone'); } }] }) },
           { text: 'Reset Location & Privacy', onTap: () => { K.toast('Location & Privacy reset', 'hand.raised.fill'); } },
         ] }) },
-        { t: 'Erase All Content and Settings', tint: true, tap: () => K.gate('Erase iPhone', () => { K.back(); setTimeout(() => JC.ui.alert({ title: 'Apple Account Password', message: 'Enter the password for jiang.cheng@lotuspier.yunmeng to turn off Find My and Activation Lock.', input: { placeholder: 'Password', type: 'password' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Turn Off', style: 'default' }] }).then((r) => { if (r.index === 1) setTimeout(() => K.alert({ title: 'Incorrect Password', message: 'The Apple Account password is incorrect. (You were never going to guess it.)' }), 400); }), 450); }) },
+        { t: 'Erase All Content and Settings', tint: true, tap: () => K.gate('Erase iPhone', () => { K.back(); setTimeout(() => JC.ui.alert({ title: 'Apple Account Password', message: 'Enter the password for tartaglia@northland.sn to turn off Find My and Activation Lock.', input: { placeholder: 'Password', type: 'password' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Turn Off', style: 'default' }] }).then((r) => { if (r.index === 1) setTimeout(() => K.alert({ title: 'Incorrect Password', message: 'The Apple Account password is incorrect. (You were never going to guess it.)' }), 400); }), 450); }) },
       ] },
     ],
   };
@@ -807,7 +800,7 @@
       const a = K.core('appearance') || 'auto';
       const dark = JC.os.dark;
       const phone = (mode, label) => h('div.set-appear.tap', { onTap: () => { K.mute(() => JC.os.setAppearance(mode)); K.act('appearance', mode); K.render(); } },
-        h('div.set-appear-ph', { class: mode, style: { backgroundImage: `url("${JC.art.url(K.core('wallpaper') || 'wp_lotus_dusk')}")` } }, h('div.set-appear-t', U.fmtClock(JC.time.now())), h('div.set-appear-w'), h('div.set-appear-w.b')),
+        h('div.set-appear-ph', { class: mode, style: { backgroundImage: `url("${JC.art.url(K.core('wallpaper') || 'wp_harbor_night')}")` } }, h('div.set-appear-t', U.fmtClock(JC.time.now())), h('div.set-appear-w'), h('div.set-appear-w.b')),
         h('div.set-appear-l', label), h('div.set-radio', { class: { on: (mode === 'dark') === dark } }, (mode === 'dark') === dark ? JC.icon('checkmark', { size: 14, weight: 3 }) : null));
       return [
         { h: 'Appearance', rows: [
@@ -863,7 +856,7 @@
   P.displayzoom = { title: 'Display Zoom', path: 'Display & Brightness', render: (K) => [{ rows: [['default', 'Default', 'Show more content'], ['larger', 'Larger Text', 'Larger controls']].map(([k, l, s]) => ({ t: l, s, check: () => K.pref('zoom', 'default') === k, tap: () => { if (K.pref('zoom', 'default') === k) return; JC.ui.alert({ title: 'Changing Display Zoom will restart iPhone', message: 'The new zoom level will apply the next time this iPhone restarts.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Use ' + l, style: 'default', onTap: () => { K.setPref('zoom', k); K.render(); } }] }); } })) }] };
 
   // ═══ Wallpaper ═════════════════════════════════════════════════
-  const WPS = [['wp_lotus_dusk', 'Lotus Dusk'], ['wp_night_lake', 'Night Lake'], ['wp_fairy', 'Fairy'], ['wp_purple', 'Purple'], ['wp_cloud', 'Cloud Recesses'], ['wp_peony', 'Peony']];
+  const WPS = [['wp_harbor_night', 'Harbor at Night'], ['wp_hydro', 'Hydro'], ['wp_glaze_lily', 'Glaze Lily'], ['wp_morepesok_snow', 'Morepesok Snow'], ['wp_teucer_drawing', 'Teucer’s Drawing'], ['wp_guyun_storm', 'Guyun']];
   function wpPreview(id, kind) {
     const el = h('div.set-wp-ph', { class: kind, style: { backgroundImage: `url("${JC.art.url(id)}")` } });
     if (kind === 'lock') {
@@ -890,7 +883,7 @@
   P.wallpaper = {
     title: 'Wallpaper', icon: ['photo.artframe', 'var(--cyan)'], idx: ['Lock Screen', 'Home Screen', 'Background'],
     render(K) {
-      const cur = K.core('wallpaper') || 'wp_lotus_dusk';
+      const cur = K.core('wallpaper') || 'wp_harbor_night';
       return [
         h('div.set-wp-cur2', h('div.set-wp-col', wpPreview(cur, 'lock'), h('div.set-wp-cust.tap', { onTap: () => wpGallery(K) }, 'Customize')), h('div.set-wp-col', wpPreview(cur, 'home'), h('div.set-wp-cust.tap', { onTap: () => wpGallery(K) }, 'Customize'))),
         { rows: [{ t: 'Add New Wallpaper', tint: true, center: true, tap: () => wpGallery(K) }] },
@@ -913,7 +906,7 @@
     for (let i = 0; i < name.length; i++) x = (x * 31 + name.charCodeAt(i)) >>> 0;
     const pent = [0, 2, 4, 7, 9, 12, 14, 16, 19, 21];
     const root = 64 + (x % 7);
-    const ring = RINGTONES.includes(name) || name === 'A-Ling Screaming' || name === 'Lotus Bell';
+    const ring = RINGTONES.includes(name) || name === 'TEUCER SAYS HI' || name === 'Morepesok Bells';
     const n = ring ? 10 : 3 + (x % 3);
     const step = ring ? 0.17 : 0.12;
     const out = ctx.createGain();
@@ -923,16 +916,16 @@
     const reps = ring ? 2 : 1;
     for (let r = 0; r < reps; r++) {
       for (let i = 0; i < n; i++) {
-        const m = name === 'A-Ling Screaming' ? 84 + ((i * 5) % 9) : root + pent[(x >> (i % 13)) % pent.length] + (i === n - 1 ? 12 : 0);
+        const m = name === 'TEUCER SAYS HI' ? 84 + ((i * 5) % 9) : root + pent[(x >> (i % 13)) % pent.length] + (i === n - 1 ? 12 : 0);
         const f = 440 * Math.pow(2, (m - 69) / 12);
         const t = t0 + r * (n * step + 0.4) + i * step + (i % 2 && name === 'Ripples' ? 0.05 : 0);
         [1, 2.01].forEach((mul, k) => {
           const o = ctx.createOscillator();
           const g = ctx.createGain();
-          o.type = name === 'A-Ling Screaming' ? 'sawtooth' : name === 'Circuit' || name === 'Synth' ? 'square' : 'sine';
+          o.type = name === 'TEUCER SAYS HI' ? 'sawtooth' : name === 'Circuit' || name === 'Synth' ? 'square' : 'sine';
           o.frequency.value = f * mul;
           g.gain.setValueAtTime(0.0001, t);
-          g.gain.exponentialRampToValueAtTime((k ? 0.03 : 0.11) * (name === 'A-Ling Screaming' ? 0.5 : 1), t + 0.008);
+          g.gain.exponentialRampToValueAtTime((k ? 0.03 : 0.11) * (name === 'TEUCER SAYS HI' ? 0.5 : 1), t + 0.008);
           g.gain.exponentialRampToValueAtTime(0.0001, t + (ring ? 0.5 : 0.35));
           o.connect(g); g.connect(out);
           o.start(t); o.stop(t + 0.6);
@@ -955,7 +948,7 @@
         ], f: 'The volume of the ringer and alerts can be adjusted using the volume buttons when “Change with Buttons” is on.' },
         { h: 'Media Volume', rows: [{ custom: () => h('div.set-slider', JC.ui.slider({ value: K.core('volume') == null ? 0.6 : K.core('volume'), min: 0, max: 1, icons: ['speaker.fill', 'speaker.wave.3.fill'], onInput: (v) => { K.setCore('volume', Math.round(v * 100) / 100); JC.audio.applyVolume(); }, onChange: () => JC.audio.beep(660, 0.12, 0.06) })) }], f: 'Music, videos and games. Also changes with the volume buttons.' },
         { rows: [{ t: 'Headphone Safety', go: 'headphone' }] },
-        { h: 'Sounds and Haptic Patterns', rows: TONE_KEYS.map(([k, label, def]) => ({ t: label, d: K.pref('tone.' + k, k === 'ringtone' ? 'A-Ling Screaming' : def), go: 'tones', arg: k })) },
+        { h: 'Sounds and Haptic Patterns', rows: TONE_KEYS.map(([k, label, def]) => ({ t: label, d: K.pref('tone.' + k, k === 'ringtone' ? 'TEUCER SAYS HI' : def), go: 'tones', arg: k })) },
         { rows: [{ t: 'Keyboard Feedback', d: K.core('keyClicks') !== false ? 'Sound' : 'None', go: 'kbfeedback' }, { t: 'Lock Sound', pref: 'snd.lock', def: true }] },
         { h: 'System Haptics', rows: [{ t: 'Haptics', pick: { pref: 'snd.haptics', def: 'always', options: [['always', 'Always Play'], ['silent', 'Play in Silent Mode'], ['notsilent', 'Don’t Play in Silent Mode'], ['never', 'Never Play']] } }, { t: 'System Haptics', pref: 'snd.syshaptics', def: true }], f: 'Play haptics for system controls and interactions.' },
       ];
@@ -966,13 +959,13 @@
     onClose: () => toneStop && toneStop(),
     render(K, k) {
       const def = TONE_KEYS.find((x) => x[0] === k);
-      const cur = K.pref('tone.' + k, k === 'ringtone' ? 'A-Ling Screaming' : def[2]);
+      const cur = K.pref('tone.' + k, k === 'ringtone' ? 'TEUCER SAYS HI' : def[2]);
       const pickT = (name) => { K.setPref('tone.' + k, name); if (k === 'ringtone') K.setCore('ringtone', name); playTone(name); K.render(); };
       const row = (name) => ({ t: name, check: () => cur === name, tap: () => pickT(name) });
       return [
         { rows: [{ t: 'Haptics', d: 'Synchronized', alert: { title: 'Haptics', message: 'Haptics play in sync with the tone.' } }] },
         { h: 'Store', rows: [{ t: 'Tone Store', tint: true, tap: () => K.alert({ title: 'Tone Store', message: 'The Tone Store isn’t available in your region.' }) }, { t: 'Download All Purchased Tones', tint: true, tap: () => K.toast('All purchased tones are downloaded', 'arrow.down.circle') }] },
-        k === 'ringtone' ? { h: 'Custom', rows: [row('A-Ling Screaming'), row('Lotus Bell')], f: 'A-Ling recorded “A-Ling Screaming” and set it as your ringtone in 2023. You never changed it back.' } : null,
+        k === 'ringtone' ? { h: 'Custom', rows: [row('TEUCER SAYS HI'), row('Morepesok Bells')], f: 'Teucer recorded “TEUCER SAYS HI” and set it as your ringtone last winter. You never changed it back. You never will.' } : null,
         { h: k === 'ringtone' ? 'Ringtones' : 'Alert Tones', rows: (k === 'ringtone' ? RINGTONES : ['None'].concat(ALERTS)).map(row) },
         k !== 'ringtone' ? { h: 'Ringtones', rows: RINGTONES.slice(0, 8).map(row) } : null,
       ];
@@ -986,7 +979,7 @@
     { id: 'dnd', name: 'Do Not Disturb', icon: 'moon.fill', color: 'var(--indigo)', desc: 'Silence notifications and calls. Only people and apps you allow can reach you.' },
     { id: 'sleep', name: 'Sleep', icon: 'bed.double.fill', color: 'var(--teal)', desc: 'Sleep dims your Lock Screen and silences notifications. Schedule: 23:30 – 07:00.' },
     { id: 'personal', name: 'Personal', icon: 'person.fill', color: 'var(--purple)', desc: 'Focus on your personal life. Only family can reach you.' },
-    { id: 'work', name: 'Work', icon: 'briefcase.fill', color: 'var(--green)', desc: 'Focus on work. Notifications from Mail, Calendar and YMJ Ops are allowed.' },
+    { id: 'work', name: 'Work', icon: 'briefcase.fill', color: 'var(--green)', desc: 'Focus on work. Notifications from Mail, Calendar and the Liyue Branch are allowed.' },
   ];
   P.focus = {
     title: 'Focus', icon: ['moon.fill', 'var(--indigo)'], idx: ['Do Not Disturb', 'Sleep', 'Personal', 'Work', 'Focus Status'],
@@ -1010,16 +1003,16 @@
       return [
         h('div.set-hero', h('div.set-hero-ic', { style: { background: f.color } }, JC.icon(f.icon, { size: 30 })), h('div.set-hero-t', f.name), h('div.set-hero-s', f.desc)),
         { rows: [{ t: 'Turn On ' + f.name, on: () => on, core: 'focus', set: (v) => JC.os.setToggle('focus', v ? id : null), after: (v) => K.toast(v ? f.name + ' On' : f.name + ' Off', f.icon) }] },
-        { h: 'Allow Notifications', rows: [{ t: 'People', d: id === 'work' ? 'Tang Mei, Liu Qian' : 'A-Ling, Tang Mei', go: 'focuspeople', arg: id }, { t: 'Apps', d: id === 'work' ? 'Mail, Calendar' : 'Phone', go: 'focusapps', arg: id }] },
-        { h: 'Set a Schedule', rows: [id === 'sleep' ? { t: '23:30 – 07:00', s: 'Every Day', pref: 'focus.sched.sleep', def: false } : null, { t: 'Add Schedule', tint: true, tap: () => K.alert({ title: 'Add Schedule', message: 'Schedules can turn this Focus on at a time, a location, or when you open an app. (Jiang Cheng’s calendar suggests he has never slept on schedule.)' }) }].filter(Boolean) },
-        { h: 'Customize Screens', rows: [{ custom: () => h('div.set-focus-scr', ['lock', 'home'].map((k) => h('div.set-focus-ph.tap', { onTap: () => K.go('wallpaper') }, wpPreview(K.core('wallpaper') || 'wp_lotus_dusk', k), h('div', k === 'lock' ? 'Lock Screen' : 'Home Screen')))) }] },
+        { h: 'Allow Notifications', rows: [{ t: 'People', d: id === 'work' ? 'Ekaterina, Signora' : 'Teucer, Mama, Xiansheng', go: 'focuspeople', arg: id }, { t: 'Apps', d: id === 'work' ? 'Mail, Calendar' : 'Phone', go: 'focusapps', arg: id }] },
+        { h: 'Set a Schedule', rows: [id === 'sleep' ? { t: '23:30 – 07:00', s: 'Every Day', pref: 'focus.sched.sleep', def: false } : null, { t: 'Add Schedule', tint: true, tap: () => K.alert({ title: 'Add Schedule', message: 'Schedules can turn this Focus on at a time, a location, or when you open an app. (Childe’s Health data suggests he has never slept on schedule.)' }) }].filter(Boolean) },
+        { h: 'Customize Screens', rows: [{ custom: () => h('div.set-focus-scr', ['lock', 'home'].map((k) => h('div.set-focus-ph.tap', { onTap: () => K.go('wallpaper') }, wpPreview(K.core('wallpaper') || 'wp_harbor_night', k), h('div', k === 'lock' ? 'Lock Screen' : 'Home Screen')))) }] },
         { rows: [{ t: 'Delete Focus', danger: true, center: true, tap: () => K.alert({ title: 'Can’t Delete', message: f.name + ' is a built-in Focus.' }) }] },
       ];
     },
   };
   P.focuscustom = { title: (n) => n, path: 'Focus', noSearch: true, render: (K, n) => [{ rows: [{ t: 'Turn On ' + n, locked: false, lockTitle: n, lockMsg: 'Finish setting up this Focus on the Focus screen in Control Center.' }] }, { rows: [{ t: 'Delete Focus', danger: true, center: true, tap: () => { K.setPref('focus.custom', K.pref('focus.custom', []).filter((x) => x !== n)); K.back(); } }] }] };
-  P.focuspeople = { title: 'People', path: 'Focus', noSearch: true, render: (K, id) => [{ h: 'Allow Notifications From', rows: ['jl', 'ea', 'huang', 'lxc', 'wwx', 'liu'].map((c) => ({ t: JC.contacts.name(c), avatar: c, pref: 'focus.p.' + id + '.' + c, def: id === 'work' ? (c === 'ea' || c === 'liu') : (c === 'jl' || c === 'ea') })) }, { rows: [{ t: 'Calls from Favorites', pref: 'focus.fav.' + id, def: true }, { t: 'Allow Repeated Calls', pref: 'focus.rep.' + id, def: true }], f: 'A second call from the same person within three minutes will not be silenced. (A-Ling knows this.)' }] };
-  P.focusapps = { title: 'Apps', path: 'Focus', noSearch: true, render: (K, id) => [{ h: 'Allow Notifications From', rows: ['phone', 'messages', 'mail', 'calendar', 'findmy', 'lotusleap', 'wavelet'].map((a) => ({ t: K.appName(a), icon: 'app:' + a, pref: 'focus.a.' + id + '.' + a, def: id === 'work' ? (a === 'mail' || a === 'calendar') : a === 'phone' })) }, { rows: [{ t: 'Time Sensitive Notifications', pref: 'focus.ts.' + id, def: true }] }] };
+  P.focuspeople = { title: 'People', path: 'Focus', noSearch: true, render: (K, id) => [{ h: 'Allow Notifications From', rows: ['teucer', 'mama', 'zl', 'tonia', 'ekat', 'signora'].map((c) => ({ t: JC.contacts.name(c), avatar: c, pref: 'focus.p.' + id + '.' + c, def: id === 'work' ? (c === 'ekat' || c === 'signora') : (c === 'teucer' || c === 'mama' || c === 'zl') })) }, { rows: [{ t: 'Calls from Favorites', pref: 'focus.fav.' + id, def: true }, { t: 'Allow Repeated Calls', pref: 'focus.rep.' + id, def: true }], f: 'A second call from the same person within three minutes will not be silenced. (Teucer knows this.)' }] };
+  P.focusapps = { title: 'Apps', path: 'Focus', noSearch: true, render: (K, id) => [{ h: 'Allow Notifications From', rows: ['phone', 'messages', 'mail', 'calendar', 'findmy', 'reelrush', 'wavelet'].map((a) => ({ t: K.appName(a), icon: 'app:' + a, pref: 'focus.a.' + id + '.' + a, def: id === 'work' ? (a === 'mail' || a === 'calendar') : a === 'phone' })) }, { rows: [{ t: 'Time Sensitive Notifications', pref: 'focus.ts.' + id, def: true }] }] };
   P.focusstatus = { title: 'Focus Status', path: 'Focus', render: (K) => [{ rows: [{ t: 'Share Focus Status', pref: 'focus.status', def: true }], f: 'When you allow an app, it can share with people that you have notifications silenced.' }, { h: 'Share From', rows: FOCI.map((f) => ({ t: f.name, icon: [f.icon, f.color], pref: 'focus.st.' + f.id, def: true })) }] };
 
   // ═══ Notifications ═════════════════════════════════════════════
@@ -1081,7 +1074,7 @@
         { rows: [{ t: 'Face ID with a Mask', pref: 'fid.mask', def: false }] },
         { h: 'Attention', rows: [{ t: 'Require Attention for Face ID', pref: 'fid.att', def: true }, { t: 'Attention Aware Features', pref: 'fid.aware', def: true }], f: 'iPhone will check for attention before dimming the display, expanding a notification when locked, or lowering the volume of some alerts.' },
         { rows: [
-          { t: 'Turn Passcode Off', tint: true, tap: () => K.alert({ title: 'Can’t Turn Off Passcode', message: 'A passcode is required by the Yunmeng Jiang Group device policy.' }) },
+          { t: 'Turn Passcode Off', tint: true, tap: () => K.alert({ title: 'Can’t Turn Off Passcode', message: 'A passcode is required by the Northland Bank Group device policy.' }) },
           { t: 'Change Passcode', tint: true, tap: () => changePasscode(K) },
         ] },
         { rows: [{ t: 'Require Passcode', pick: { pref: 'pc.require', def: 'now', options: [['now', 'Immediately'], ['1m', 'After 1 minute'], ['5m', 'After 5 minutes']], footer: 'Shorter times are more secure.' } }, { t: 'Voice Dial', pref: 'pc.voice', def: true }], f: 'Music Voice Control is always enabled.' },
@@ -1137,7 +1130,7 @@
               K.setCore('passcode', c);
               K.act('passcode', c);
               K.back();
-              setTimeout(() => K.alert({ title: 'Passcode Changed', message: 'Your new passcode is ' + c.split('').join(' ') + '.\nDon’t forget it — Jiang Cheng won’t know it either.' }), 450);
+              setTimeout(() => K.alert({ title: 'Passcode Changed', message: 'Your new passcode is ' + c.split('').join(' ') + '.\nDon’t forget it — Childe won’t know it either.' }), 450);
             }
           },
         });

@@ -81,7 +81,7 @@
       const isOn = r.on ? r.on() : !!core(r.core);
       o.toggle = { on: isOn, onChange: (v) => { if (r.set) mute(() => r.set(v)); else setCore(r.core, v); r.after && r.after(v); if (r.rerender !== false) setTimeout(K.render, 280); } };
     } else if (r.locked !== undefined) {
-      o.toggle = { on: !!val(r.locked), onChange: () => { setTimeout(K.render, 250); JC.ui.alert({ title: r.lockTitle || r.t, message: val(r.lockMsg) || 'This setting is managed by Yunmeng Jiang Group.', buttons: [{ text: 'OK' }] }); } };
+      o.toggle = { on: !!val(r.locked), onChange: () => { setTimeout(K.render, 250); JC.ui.alert({ title: r.lockTitle || r.t, message: val(r.lockMsg) || 'This setting is managed by Northland Bank Group IT.', buttons: [{ text: 'OK' }] }); } };
     } else if (r.go) {
       o.chevron = true;
       o.onTap = () => K.go(r.go, val(r.arg));
@@ -304,15 +304,16 @@
     JC.ui.sheet({
       title: 'How to Play', detent: 'large', right: { text: 'Done' },
       content: () => [h('div.set-htp',
-        h('div.set-htp-hero', JC.icon('lotus.fill', { size: 40 }), h('div.set-htp-h', 'Jiang Cheng’s Phone'), h('div.set-htp-s', 'You found this phone in a taxi. Everyone who texts it thinks you are Jiang Cheng.')),
-        item('message.fill', 'var(--green)', 'Reply as him — or don’t', 'Choices appear above the keyboard in Messages. Short, sharp and never an emoji is very Jiang Cheng. Gushing is not.'),
-        item('eye.fill', 'var(--orange)', 'Suspicion', 'Out-of-character replies make people suspicious. Turn on Show Suspicion Meter to see how close you are to being caught.'),
-        item('magnifyingglass', 'var(--blue)', 'Snoop for clues', 'Photos, Notes, Mail, Wallet, Voice Memos and Safari history know things you don’t. Some questions have answers hidden in other apps.'),
-        item('lock.fill', 'var(--gray)', 'The passcode', 'You already cracked it. If you change it, don’t forget the new one.'),
-        item('clock.fill', 'var(--indigo)', 'The night moves on', 'Messages arrive in real time while you explore. Leaving someone on read is also an answer.'),
-        item('lotus.fill', 'var(--purple)', '13 endings', 'Rewind to your last choice or restart the story to find them all. Endings you find stay unlocked.'),
-        item('hand.raised.fill', 'var(--pink)', 'Gestures', 'Home: tap or drag up the bar at the bottom (or press Esc). Back: swipe from the left edge. Control Center: drag down from the top right. Notifications: drag down from the top left.'),
-        item('hare', 'var(--teal)', 'Message speed', 'Too slow or too fast? Change Message Speed here in Settings › Story.'))],
+        h('div.set-htp-hero', JC.icon('vision.hydro', { size: 40 }), h('div.set-htp-h', 'Childe’s Phone'), h('div.set-htp-s', 'You found this phone on Pier 7 at 23:47, next to a cut fishing line. Everyone who texts it thinks you are Childe.')),
+        item('message.fill', 'var(--green)', 'Reply as him — or don’t', 'Choices appear above the keyboard in Messages. Childe is cheerful, reckless and always has a fish emoji ready. Sound like a stranger and people notice.'),
+        item('eye.fill', 'var(--orange)', 'Suspicion spreads', 'Out-of-character replies make people suspicious — and they talk to each other. A slip with Tonia can reach Mama, and Scaramouche tells Signora everything.'),
+        item('magnifyingglass', 'var(--blue)', 'Every app is a clue', 'Photos, Notes, Mail, Wallet, Health, Find My, the bank and Safari know things you don’t. What you find in one app unlocks replies in another.'),
+        item('creditcard.fill', 'var(--indigo)', 'One wallet', 'Every purchase comes out of Childe’s single Northland account. Feed Paimon all weekend and you may not afford what matters later.'),
+        item('calendar', 'var(--red)', 'Four days', 'Friday night to Monday evening, in seven chapters. When things settle, tap “Later…” on the Lock Screen or in Control Center to move on.'),
+        item('hare.fill', 'var(--teal)', 'Time is yours', 'Speed the clock up to 8×, skip to the next message, or pause. Tap the hare in Control Center, or press ] and [ on a keyboard.'),
+        item('heart.fill', 'var(--pink)', 'Xiansheng', 'Zhongli figures you out on Saturday morning. What you do next is up to you.'),
+        item('sparkles', 'var(--purple)', '24 endings', 'Plus an Aftermath for every chat. Rewind to your last choice or restart to find them all. Endings you find stay unlocked.'),
+        item('hand.raised.fill', 'var(--gray)', 'Gestures', 'Home: tap or drag up the bar at the bottom (or press Esc). Back: swipe from the left edge. Control Center: drag down from the top right. Notifications: drag down from the top left.'))],
     });
   }
   SK.howToPlay = howToPlay;
@@ -344,8 +345,8 @@
     const wifiDetail = s.airplane && !s.wifi ? 'Off' : !s.wifi ? 'Off' : s.wifiNet || 'Not Connected';
     const su = pref('su.state', 'idle');
     return [
-      { h: 'Story', cls: 'set-story', f: 'You are not Jiang Cheng. Everyone thinks you are.', rows: [
-        { t: 'Endings', icon: ['lotus.fill', 'linear-gradient(160deg,#8e6bd8,#4a2f8f)'], d: got + ' of ' + (endings.length || 13), tap: () => JC.os.showEndings(), chev: true },
+      { h: 'Story', cls: 'set-story', f: 'You are not Childe. Everyone thinks you are.', rows: [
+        { t: 'Endings', icon: ['sparkles', 'linear-gradient(160deg,#3a8fd6,#0f3d6b)'], d: got + ' of ' + (endings.length || 24), tap: () => JC.os.showEndings(), chev: true },
         { t: 'Rewind to Last Choice', icon: ['arrow.counterclockwise', 'var(--indigo)'], tap: () => {
           if (!JC.state.canRewind()) { K.alert({ title: 'Nothing to Rewind', message: 'You haven’t made a choice yet. Every reply you pick in Messages is a checkpoint.' }); return; }
           JC.ui.alert({ title: 'Rewind to Last Choice?', message: 'The story goes back to just before your last choice. Endings you found stay unlocked.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Rewind', style: 'default', onTap: () => setTimeout(() => JC.story.rewind(), 250) }] });
@@ -359,7 +360,7 @@
         { t: 'Show Suspicion Meter', icon: ['eye.fill', 'var(--orange)'], core: 'showSus', rerender: false },
         { t: 'How to Play', icon: ['questionmark.circle', 'var(--blue)'], tap: () => howToPlay(), chev: true },
       ] },
-      { cls: 'set-profile', rows: [{ custom: () => h('div.set-prof.tap', { onTap: () => K.go('appleid') }, JC.ui.avatar('me', 62), h('div.set-prof-m', h('div.set-prof-n', 'Jiang Cheng'), h('div.set-prof-s', 'Apple Account, iCloud, and more')), JC.icon('chevron.right', { size: 14, weight: 2.6, cls: 'set-chev' })) }] },
+      { cls: 'set-profile', rows: [{ custom: () => h('div.set-prof.tap', { onTap: () => K.go('appleid') }, JC.ui.avatar('me', 62), h('div.set-prof-m', h('div.set-prof-n', 'Childe'), h('div.set-prof-s', 'Apple Account, iCloud, and more')), JC.icon('chevron.right', { size: 14, weight: 2.6, cls: 'set-chev' })) }] },
       su !== 'installed' ? { rows: [{ t: 'iOS 26.1 Update Available', icon: ['gear', 'var(--gray)'], badge: 1, go: 'softwareupdate' }] } : null,
       { rows: [
         { t: 'Airplane Mode', icon: ['airplane', 'var(--orange)'], core: 'airplane', set: (v) => JC.os.setToggle('airplane', v) },
@@ -401,7 +402,7 @@
         { t: 'Wallet & Apple Pay', icon: ['creditcard.fill', '#1c1c1e'], go: 'walletpay' },
       ] },
       { rows: [{ t: 'Apps', icon: ['square.grid.2x2.fill', 'var(--indigo)'], go: 'apps' }] },
-      h('div.set-foot', 'Jiang Cheng’s iPhone · iOS ' + (pref('su.state', 'idle') === 'installed' ? '26.1' : '26.0.1')),
+      h('div.set-foot', 'Childe’s iPhone · iOS ' + (pref('su.state', 'idle') === 'installed' ? '26.1' : '26.0.1')),
     ];
   }
 

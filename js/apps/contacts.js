@@ -79,7 +79,7 @@
   }
   function name(cid) {
     if (!cid) return 'Unknown';
-    if (cid === 'me') return JC.me.display || 'Jiang Cheng';
+    if (cid === 'me') return JC.me.display || 'Childe';
     const c = JC.contacts.get(cid);
     if (!c) return cid;
     if (isHidden(cid)) return c.phones && c.phones[0] ? JC.callui.fmtNum(c.phones[0].num) : 'Unknown';
@@ -141,7 +141,7 @@
     return (c.related || []).map((r) => ({ label: r.id === 'me' ? (INVERT[r.label] || r.label) : r.label, id: r.id }));
   }
 
-  const PLACES = [[/jingshi/i, 'jingshi'], [/hanshi/i, 'hanshi'], [/cloud recesses/i, 'cloud-recesses'], [/koi tower/i, 'koi-tower'], [/unclean realm/i, 'unclean-realm'], [/lotus pier residence/i, 'lp-residence'], [/lotus pier/i, 'lotus-pier'], [/golden peony/i, 'golden-peony'], [/jinxing/i, 'player-home'], [/radish/i, 'radish-farm'], [/lanling international/i, 'lanling-intl'], [/guanyin/i, 'guanyin-temple']];
+  const PLACES = [[/pier view/i, 'apartment'], [/pristan|morepesok/i, 'morepesok'], [/wangsheng|lantern street/i, 'wangsheng'], [/northland|harbor road/i, 'northland'], [/jade chamber/i, 'jade'], [/wanmin/i, 'wanmin-rest'], [/heyu/i, 'heyu'], [/alcor|crux|pier 2\b/i, 'alcor'], [/third.?round/i, 'third-round'], [/pier 7/i, 'pier7'], [/zapolyarny/i, 'zapolyarny'], [/chihu/i, 'player-home']];
   function placeFor(addr) { const m = PLACES.find(([re]) => re.test(addr || '')); return m ? m[1] : null; }
   function openMaps(addr) {
     const place = placeFor(addr);
@@ -203,9 +203,9 @@
       if (r.index !== 1) return;
       setTimeout(() => JC.ui.alert({
         title: 'Couldn’t Block Contact',
-        message: (cid === 'wwx'
-          ? 'This contact has been blocked and unblocked 14 times since March 2023. '
-          : '') + 'Blocking is restricted on this iPhone by Yunmeng Jiang Group. Contact your IT department (Tang Mei).',
+        message: (cid === 'scara'
+          ? 'This contact has been blocked and unblocked 11 times since March. '
+          : '') + 'Blocking is restricted on this iPhone by Northland Bank Group. Contact Liyue Branch IT (Ekaterina).',
         buttons: [{ text: 'OK' }],
       }), 280);
     });
@@ -239,10 +239,10 @@
   // ══ List page ════════════════════════════════════════════════════
   const LISTS = [
     { id: 'all', title: 'All Contacts', icon: 'person.2.fill' },
-    { id: 'family', title: 'Family', icon: 'house.fill', ids: ['wwx', 'jl', 'ajie', 'mom', 'dad', 'lwj'] },
-    { id: 'friends', title: 'Friends', icon: 'person.2.fill', ids: ['nhs', 'wn', 'mian', 'lxc', 'sz', 'jy'] },
-    { id: 'work', title: 'Yunmeng Jiang Group', icon: 'briefcase.fill', ids: ['ea', 'huang', 'liu', 'bai', 'hq'] },
-    { id: 'gusu', title: 'Gusu', icon: 'leaf.fill', ids: ['lxc', 'lwj', 'sz', 'jy', 'qr'] },
+    { id: 'family', title: 'Семья 🐟', icon: 'house.fill', ids: ['mama', 'papa', 'tonia', 'anthon', 'teucer'] },
+    { id: 'friends', title: 'Liyue', icon: 'person.2.fill', ids: ['zl', 'ht', 'lumine', 'paimon', 'xl', 'beidou', 'yunjin', 'yelan', 'ning'] },
+    { id: 'work', title: 'Northland Bank', icon: 'briefcase.fill', ids: ['ekat', 'signora', 'scara', 'dottore', 'pulci', 'pantalone', 'arle', 'pierro', 'columbina', 'sandrone', 'capitano'] },
+    { id: 'ops', title: 'Liyue Branch 🐟', icon: 'snowflake', ids: ['pyotr', 'lyuba', 'boris', 'anya', 'kolya', 'valentina'] },
   ];
 
   /** contacts list page. o: { title, nav, me, picker, onPick, left, right, footer } */
@@ -369,10 +369,10 @@
       const hiddenN = people({ hidden: true }).length;
       const s = JC.ui.sheet({
         title: 'Lists', detent: 'large', cls: 'ct-sheet', left: { text: 'Done' },
-        right: { icon: 'plus', bold: false, onTap: () => { JC.ui.alert({ title: 'New List', message: 'Lists are synced with Jiang Cheng’s iCloud account and can only be created on his Mac.', buttons: [{ text: 'OK' }] }); return false; } },
+        right: { icon: 'plus', bold: false, onTap: () => { JC.ui.alert({ title: 'New List', message: 'Lists are synced with Childe’s iCloud account and can only be created on his Mac.', buttons: [{ text: 'OK' }] }); return false; } },
         content: () => [JC.ui.list([
           { header: 'iCloud', rows: LISTS.map((L) => ({
-            icon: { glyph: L.icon, bg: L.id === 'all' ? 'var(--gray)' : L.id === 'family' ? 'var(--orange)' : L.id === 'work' ? 'var(--indigo)' : L.id === 'gusu' ? 'var(--teal)' : 'var(--blue)' },
+            icon: { glyph: L.icon, bg: L.id === 'all' ? 'var(--gray)' : L.id === 'family' ? 'var(--orange)' : L.id === 'work' ? 'var(--indigo)' : L.id === 'ops' ? 'var(--teal)' : 'var(--blue)' },
             title: L.title, detail: String(L.ids ? people().filter((c) => L.ids.includes(c.id)).length : people().length), check: listId === L.id,
             onTap: () => { listId = L.id; page.setTitle(L.id === 'all' ? (o.title || 'Contacts') : L.title); page.render(); s.close(); },
           })) },
@@ -507,7 +507,7 @@
             h('div.ct-ftb', { onTap: () => facetime(cid, true), attrs: { 'aria-label': 'FaceTime Audio' } }, JC.icon('phone.fill', { size: 19 })))) }] });
         const emails = c.emails || [];
         if (emails.length) secs.push({ rows: emails.map((m) => field(m.label || 'email', m.addr, { tint: true, onTap: () => mail(m.addr), menu: () => ({ items: [{ text: 'New Message', icon: 'envelope.fill', onTap: () => mail(m.addr) }, { text: 'Copy', icon: 'doc.on.doc', onTap: () => { U.copy(m.addr); JC.ui.toast('Copied', { icon: 'doc.on.doc' }); } }] }) })) });
-        const addr = c.address || (isMe ? 'Lotus Pier Residence, Yunmeng' : null);
+        const addr = c.address || (isMe ? 'Pier View Residences 2207, Liyue Harbor' : null);
         if (addr) secs.push({ rows: [field(isMe ? 'home' : 'home', addr, { tint: true, multi: true, onTap: () => openMaps(addr), right: h('div.ct-mapthumb', JC.icon('map.fill', { size: 20 })) })] });
         if (c.bday) secs.push({ rows: [field('birthday', fmtBday(c.bday), { onTap: () => { const t = nextBday(c.bday); JC.os.open('calendar', t ? { date: t } : {}); } })] });
         if (c.notes) secs.push({ rows: [field('Notes', c.notes, { multi: true, onTap: () => editor(cid, { focus: 'notes' }) })] });
@@ -537,7 +537,7 @@
   }
 
   function emergency(cid) {
-    if (cid === 'ajie' || cid === 'jl') {
+    if ((JC.world.medicalId.contacts || []).some((x) => x.id === cid)) {
       JC.ui.alert({ title: name(cid), message: 'Already an emergency contact in Medical ID.', buttons: [{ text: 'OK' }] });
       return;
     }
@@ -559,9 +559,9 @@
   function posterSheet() {
     JC.ui.sheet({
       title: 'Contact Photo & Poster', detent: 'medium', cls: 'ct-sheet', left: { text: 'Done' },
-      content: () => [h('div.ct-posterprev', JC.ui.avatar('me', 92), h('div.ct-pp-name', 'Jiang Cheng'), h('div.ct-pp-t', 'Name & Photo Sharing: Contacts Only')),
-        JC.ui.list([{ footer: 'Jiang Cheng chose this poster in 2023 and has never changed it.', rows: [
-          { title: 'Edit', tinted: true, onTap: () => JC.ui.alert({ title: 'Edit Poster', message: 'You’d be changing how Jiang Cheng appears on everyone’s phone. Better not.', buttons: [{ text: 'Leave It' }] }) },
+      content: () => [h('div.ct-posterprev', JC.ui.avatar('me', 92), h('div.ct-pp-name', 'Childe'), h('div.ct-pp-t', 'Name & Photo Sharing: Contacts Only')),
+        JC.ui.list([{ footer: 'Teucer chose this poster. It is the bluefin. It will always be the bluefin.', rows: [
+          { title: 'Edit', tinted: true, onTap: () => JC.ui.alert({ title: 'Edit Poster', message: 'You’d be changing how Childe appears on everyone’s phone. Teucer would notice first.', buttons: [{ text: 'Leave It' }] }) },
         ] }])],
     });
   }
@@ -570,17 +570,10 @@
     JC.ui.sheet({
       title: 'Medical ID', detent: 'large', cls: 'ct-sheet ct-medsheet', left: { text: 'Done' },
       content: () => [
-        h('div.ct-mid-person', JC.ui.avatar('me', 60), h('div', h('div.ct-mid-name', 'Jiang Cheng'), h('div.ct-mid-age', '15 May 1992 (34 years)'))),
-        h('div.ct-mid-card',
-          row('Medical Conditions', 'Liver transplant recipient (2008).'),
-          row('Medical Notes', 'Immunosuppressed. Do not give him alcohol. (He will not listen.) — A-Ling'),
-          row('Medications', 'Tacrolimus 2 mg, twice daily.'),
-          row('Blood Type', 'O+'),
-          row('Organ Donor', 'Yes')),
+        h('div.ct-mid-person', JC.ui.avatar('me', 60), h('div', h('div.ct-mid-name', JC.world.medicalId.name), h('div.ct-mid-age', JC.world.medicalId.age))),
+        h('div.ct-mid-card', JC.world.medicalId.rows.slice(0, 6).map(([k, v]) => row(k, v))),
         h('div.ct-mid-sec', 'Emergency Contacts'),
-        h('div.ct-mid-card',
-          row('sister', 'A-Jie 🪷'),
-          row('nephew', 'A-Ling')),
+        h('div.ct-mid-card', JC.world.medicalId.contacts.map((x) => row(x.rel, (JC.contacts.get(x.id) || {}).display || x.fallback))),
         h('div.ct-mid-foot', 'Medical ID is visible while iPhone is locked.'),
       ],
     });
@@ -613,7 +606,7 @@
           { title: 'Add to Existing Contact', tinted: true, onTap: () => addToExisting(num, (id) => page.nav.replace(cardPage(id))) },
           { title: 'Share Contact', tinted: true, onTap: () => JC.ui.share({ title, subtitle: fmt, icon: 'person.text.rectangle', payload: { kind: 'text', text: title + '\n' + fmt } }) },
         ] });
-        secs.push({ rows: [{ title: 'Block this Caller', destructive: true, onTap: () => JC.ui.alert({ title: 'Couldn’t Block Caller', message: 'Blocking is restricted on this iPhone by Yunmeng Jiang Group. Contact your IT department (Tang Mei).', buttons: [{ text: 'OK' }] }) }] });
+        secs.push({ rows: [{ title: 'Block this Caller', destructive: true, onTap: () => JC.ui.alert({ title: 'Couldn’t Block Caller', message: 'Blocking is restricted on this iPhone by Northland Bank Group. Contact Liyue Branch IT (Ekaterina).', buttons: [{ text: 'OK' }] }) }] });
         return [top, JC.ui.list(secs, { cls: 'ct-cardlist' })];
       },
     });
@@ -707,7 +700,7 @@
       });
     }
     function photoPicker() {
-      const arts = ['av_fairy', 'p_lotus_macro', 'p_puppies', 'p_dog_park', 'p_radishes', 'p_kites', 'p_moon_street', 'p_sunrise_lake', 'p_lotus_pond_day', 'p_cloud_recesses', 'av_jl', 'av_lxc', 'av_nhs', 'av_huang', 'av_mian'].filter((a) => JC.art.has(a));
+      const arts = ['p_bluefin', 'p_glaze_lily', 'p_harbor_day', 'p_morepesok', 'p_teucer_sirfang', 'p_cranes_yujing', 'p_catch_1', 'p_yujing_lanterns', 'av_teucer', 'av_tonia', 'av_anthon', 'av_zl', 'av_lumine', 'av_paimon', 'av_ekat'].filter((a) => JC.art.has(a));
       const ps = JC.ui.sheet({ title: 'Choose Photo', detent: 'large', cls: 'ct-sheet', left: { text: 'Cancel' },
         content: () => [h('div.ct-photogrid', arts.map((a) => h('div.ct-photo', { onTap: () => { m.avatar = { art: a, initials: (m.first[0] || '?'), grad: ['#888', '#666'] }; ps.close(); s.render(); } }, JC.art.el(a, { cls: 'ct-photo-art' }))))] });
     }

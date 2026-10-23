@@ -142,7 +142,9 @@
           history.unshift({ expr: full, result: shown });
           expr = full;
           justEval = true;
-          if (shown === '1824' || shown === '1,824') JC.ui.toast('1,824 — A-Ling’s Lotus Leap high score', { icon: 'lotus.fill' });
+          if (shown === '2047' || shown === '2,047') JC.ui.toast('2,047 — Teucer’s Reel Rush high score. Childe needs 49 more.', { icon: 'trophy.fill' });
+          if (shown === '81505' || shown === '81,505') JC.ui.toast('ℳ81,505 — the total in a locked note called “Ledger”.', { icon: 'note.text' });
+          if (shown === '3000000' || shown === '3,000,000') JC.ui.toast('ℳ3,000,000. OSIAL/PH3. Sea Lantern Logistics.', { icon: 'exclamationmark.triangle.fill' });
           if (shown.replace(/,/g, '') === JC.world.passcode.code) JC.ui.toast('That number looks familiar…', { icon: 'lock.open.fill' });
           if (/^(5,?318,?008|58,?008|80,?085)$/.test(shown.replace(/\.0+$/, ''))) JC.ui.toast('Very mature.', { icon: 'face.smiling' });
         } else if (k === '±') {
@@ -243,7 +245,7 @@
         JC.ui.actionSheet({
           title: 'Convert ' + shown,
           actions: [
-            { text: '¥ → US$  (' + (v / 7.1).toFixed(2) + ')', onTap: () => { shown = fmt(v / 7.1); expr = String(v / 7.1); justEval = true; paint(); } },
+            { text: 'ℳ → Snezhnayan ruble  (' + (v * 0.85).toFixed(2) + ')', onTap: () => { shown = fmt(v * 0.85); expr = String(v * 0.85); justEval = true; paint(); } },
             { text: 'km → mi  (' + (v * 0.621371).toFixed(2) + ')', onTap: () => { shown = fmt(v * 0.621371); expr = String(v * 0.621371); justEval = true; paint(); } },
             { text: 'kg → jin  (' + (v * 2).toFixed(2) + ')', onTap: () => { shown = fmt(v * 2); expr = String(v * 2); justEval = true; paint(); } },
             { text: '°C → °F  (' + (v * 1.8 + 32).toFixed(1) + ')', onTap: () => { shown = fmt(v * 1.8 + 32); expr = String(v * 1.8 + 32); justEval = true; paint(); } },

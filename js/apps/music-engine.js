@@ -743,6 +743,7 @@
   /** play(id, {start: songId, shuffle, queue: [ids], src}) */
   function play(id, o) {
     o = o || {};
+    try { if (id && JC.story) JC.story.act('music_play', { id: String(id), src: o.src ? o.src.id : null }); } catch (e) { /* ignore */ }
     let ids = o.queue ? o.queue.slice() : null;
     let src = o.src || null;
     if (!ids) {
@@ -782,7 +783,7 @@
     emit();
   }
   function resume() {
-    if (!st.cur) { play('pl_lotus'); return; }
+    if (!st.cur) { play('pl_xiansheng'); return; }
     if (st.playing) return;
     const p = plan(st.cur);
     if (st.pos >= p.dur - 0.3) st.pos = 0;
