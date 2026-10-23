@@ -11,6 +11,7 @@ module.exports = {
     { choose: { thread: 'ekat', match: /^Don't go home tonight/ }, within: 3600 },
     { act: ['attach_open', { name: 'osial_protocol.pdf' }] },
     { act: ['memo_play', { id: 'memo31' }] },
+    { choose: { thread: 'yelan', match: /^Who is this\?/ }, within: 20000 },
     { until: "s.chapter === 'sat_night'", within: 20000 },
     { choose: { thread: 'yelan', match: /protocol and New Recording 31/ }, within: 3600 },
     { choose: { thread: 'yelan', match: /Keep his name out of it/ }, within: 600 },

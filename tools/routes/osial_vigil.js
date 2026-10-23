@@ -8,6 +8,7 @@ module.exports = {
     { act: ['attach_open', { name: 'osial_protocol.pdf' }] },
     { act: ['memo_play', { id: 'memo31' }] },
     { assert: 's.flags.saw_protocol && s.flags.memo31_heard' },
+    { choose: { thread: 'yelan', match: /^Who is this\?/ }, within: 20000 },
     { until: "s.chapter === 'sat_night'", within: 20000 },
     { choose: { thread: 'yelan', match: /protocol and New Recording 31/ }, within: 3600 },
     { choose: { thread: 'yelan', match: /Watch over the kids/ }, within: 600 },

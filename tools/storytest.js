@@ -369,15 +369,19 @@ async function playRoute(page, route) {
         if (!pol) return;
         const p = JC.story.pending(t.id);
         if (!p || !p.options.length) return;
+        // leave it for a later step of the route that wants one of these options
+        if (steps.slice(cur).some((x) => x.choose && x.choose.thread === t.id && p.options.some((o) => match(x.choose.match, o.label) || match(x.choose.match, o.text || '')))) return;
         let best = p.options[0], score = -1e9;
         p.options.forEach((o) => { const fx = o.fx || {}; const sc = pol === 'sus' ? sum(fx.sus) - sum(fx.aff) : sum(fx.aff) - 2 * sum(fx.sus); if (sc > score) { score = sc; best = o; } });
         log.push('auto ' + t.id + ': ' + String(best.label).slice(0, 50));
         JC.story.choose(t.id, best.i);
       });
     };
-    const fail = (i, msg) => ({ ok: false, name: R.name, step: i, msg, ended: JC.state.d.ended, log: log.slice(-12), flags: JC.state.d.flags, runs: JC.state.d.runs.map((r) => r.sc + '.' + r.node + '[' + r.i + ']' + (r.wait ? ' wait:' + r.wait : '')) });
     const steps = R.steps || [];
+    let cur = 0;
+    const fail = (i, msg) => ({ ok: false, name: R.name, step: i, msg, ended: JC.state.d.ended, log: log.slice(-12), flags: JC.state.d.flags, runs: JC.state.d.runs.map((r) => r.sc + '.' + r.node + '[' + r.i + ']' + (r.wait ? ' wait:' + r.wait : '')) });
     for (let i = 0; i < steps.length; i++) {
+      cur = i;
       const st = steps[i];
       const max = st.within || (st.choose && st.choose.within) || 3600;
       if (st.choose) {
