@@ -14,102 +14,91 @@
     return it;
   };
   JC.store.seed('photos', [
-    P('ph_dogs99', 'p_childhood_dogs', '1999-06-12 16:20', { place: 'Lotus Pier, Yunmeng', city: 'yunmeng', albums: ['dogs', 'old-photos', 'lotus-pier'], fav: true, src: 'scan', caption: 'Jasmine. Princess. Love-Love.' }),
-    P('ph_kites03', 'p_kites', '2003-04-05 15:30', { place: 'Yunmeng Lake Pavilion, Yunmeng', city: 'yunmeng', albums: ['old-photos', 'lotus-pier'], people: ['wwx', 'ajie'], kind: 'video', dur: 64, src: 'dv', caption: 'Qingming. His kite went higher. Mine stayed up longer.' }),
-    P('ph_fam07', 'p_family_2007', '2007-06-19 18:40', { place: 'Lotus Pier, Yunmeng', city: 'yunmeng', albums: ['old-photos', 'lotus-pier'], people: ['mom', 'dad', 'ajie', 'wwx'], fav: true, src: 'scan' }),
-    P('ph_hotpot07', 'food_hotpot', '2007-08-18 21:05', { place: 'Laoma Hotpot (老妈火锅), Gusu', city: 'gusu', albums: ['old-photos'], people: ['wwx', 'nhs', 'mian'], src: 'n95', caption: 'Laoma, after the summer exams. Wei Wuxian ordered six plates of tripe and paid for none.' }),
-    P('ph_wed07', 'p_ajie_wedding', '2007-10-06 11:58', { place: 'Koi Tower, Lanling', city: 'lanling', albums: ['old-photos'], people: ['ajie'], fav: true, src: 'n95', caption: 'She said red suited her. It did.' }),
-    P('ph_soup08', 'p_ajie_soup', '2008-12-20 15:01', { albums: ['old-photos'], fav: true, src: 'msg', from: 'ajie', caption: 'Two hours. Low fire. Don’t rush it.' }),
-    P('ph_dawn09', 'p_sunrise_lake', '2009-11-03 06:14', { place: 'Yunmeng Lake, Yunmeng', city: 'yunmeng', albums: ['old-photos'], src: 'n95' }),
-    P('ph_jl14', 'p_jl_kid', '2014-10-18 19:32', { place: 'Lotus Pier, Yunmeng', city: 'yunmeng', albums: ['aling'], people: ['jl'], fav: true, src: 'ip6', caption: 'Six. Gold everything. Blew the candles out twice.' }),
-    P('ph_fairy18', 'ph_fairy_puppy', '2018-10-18 20:05', { place: 'Lotus Pier Residence, Yunmeng', city: 'yunmeng', albums: ['dogs', 'aling'], people: ['fairy', 'jl'], src: 'ipxs', caption: 'A-Ling, ten. Named her Fairy. I said nothing. (I said plenty.)' }),
-    P('ph_lotus19', 'p_lotus_macro', '2019-07-14 06:40', { place: 'Lotus Pier, Yunmeng', city: 'yunmeng', albums: ['lotus-pier'], kind: 'video', dur: 14, fav: true, src: 'ipxs' }),
-    P('ph_fairy20', 'av_fairy', '2020-05-02 15:12', { place: 'Lotus Pier Residence, Yunmeng', city: 'yunmeng', albums: ['dogs'], people: ['fairy'], mode: 'portrait', src: 'ip11', caption: 'Ate a slipper. Mine. Looks proud of it.' }),
-    P('ph_fairy22', 'ph_fairy_bath', '2022-08-06 11:25', { place: 'Lotus Pier Residence, Yunmeng', city: 'yunmeng', albums: ['dogs'], people: ['fairy'], kind: 'live', src: 'ip13', caption: 'Bath day. She will never forgive me.' }),
-    P('ph_rules23', 'p_rules_wall', '2023-05-20 13:41', { place: 'Cloud Recesses, Gusu', city: 'gusu', src: 'msg', from: 'wwx', caption: 'Rule 1,412: No running. He ran. (2007.)' }),
-    P('ph_radish', 'p_radishes', '2023-07-22 16:41', { src: 'msg', from: 'wwx' }),
-    P('ph_pups23', 'p_puppies', '2023-08-19 11:40', { albums: ['dogs'], src: 'web', caption: 'For Wei Wuxian. Deploy as needed.' }),
-    P('ph_fairy23', 'wp_fairy', '2023-09-10 17:40', { place: 'Lotus Pier Residence, Yunmeng', city: 'yunmeng', albums: ['dogs'], people: ['fairy'], mode: 'portrait', src: 'ip14' }),
-    P('ph_hotpot24', 'p_hotpot_alumni', '2024-04-13 22:46', { place: 'Laoma Hotpot (老妈火锅), Gusu', city: 'gusu', people: ['wwx', 'nhs', 'mian', 'wn', 'lwj'], src: 'msg', from: 'nhs', caption: 'Reunion. Same place, same table. I paid. Again.' }),
-    P('ph_grad24', 'p_jl_graduation', '2024-06-14 10:15', { place: 'Lanling International School, Lanling', city: 'lanling', albums: ['aling'], people: ['jl'], fav: true, src: 'ip15', caption: 'Scowled in all 41 photos. This is the best one.' }),
-    P('ph_flute24', 'p_flute', '2024-09-02 18:31', { src: 'msg', from: 'wwx', caption: 'He sent me a flute. Why.' }),
-    P('ph_soup24', 'p_lotus_root_soup', '2024-12-08 20:30', { place: 'Lotus Pier Residence, Yunmeng', city: 'yunmeng', src: 'ip15', caption: 'Attempt seven. Closer. Not hers.' }),
-    P('ph_park25', 'p_dog_park', '2025-08-16 07:05', { place: 'Riverside Park, Yunmeng', city: 'yunmeng', albums: ['dogs'], fav: true, src: 'ip15', caption: 'Didn’t get his name. Good dog.' }),
-    P('ph_fairy25', 'ph_fairy_office', '2025-11-21 15:48', { place: 'Lotus Pier HQ, Yunmeng', city: 'yunmeng', albums: ['dogs'], people: ['fairy'], src: 'ip17', caption: 'Board meeting. She attended. Voted no on everything.' }),
-    P('ph_shotbank', 'p_shot_bank', '2026-02-17 09:40', { kind: 'screenshot', src: 'shot' }),
-    P('ph_bday26', 'food_lotus_cake', '2026-05-15 20:30', { place: 'Lotus Pier Residence, Yunmeng', city: 'yunmeng', albums: ['aling'], src: 'ip17', caption: '34. A-Ling brought these. “Don’t make it weird.”' }),
-    P('ph_radcake26', 'p_radish_cake', '2026-06-13 11:20', { place: 'Yiling Radish Co. pop-up, Gusu', city: 'gusu', src: 'ip17', caption: 'Not bad. He doesn’t need to know I went.' }),
-    P('ph_pond26', 'p_lotus_pond_day', '2026-07-06 05:52', { place: 'Lotus Pier, Yunmeng', city: 'yunmeng', albums: ['lotus-pier'], src: 'ip17', caption: 'First bloom of the season.' }),
-    P('ph_permit26', 'p_jl_learner', '2026-08-28 15:03', { place: 'Lanling', city: 'lanling', albums: ['aling'], people: ['jl'], fav: true, src: 'msg', from: 'jl', caption: 'Learner permit. God help Lanling.' }),
-    P('ph_milktea26', 'food_milktea', '2026-09-05 16:10', { place: 'Lanling', city: 'lanling', albums: ['aling'], src: 'ip17', caption: 'His order. Five toppings. One drink.' }),
-    P('ph_q4', 'p_ops_meeting', '2026-09-07 16:02', { src: 'msg', from: 'liu', caption: 'Who drew the dog. (Liu Qian.)' }),
-    P('ph_hanshi26', 'p_tea_hanshi', '2026-09-26 08:10', { place: 'The Hanshi, Gusu', city: 'gusu', hidden: true, src: 'wavelet', from: 'lxc' }),
-    P('ph_cr26', 'p_cloud_recesses', '-12 07:03', { place: 'Cloud Recesses, Gusu', city: 'gusu', src: 'msg', from: 'lxc' }),
-    P('ph_baozi26', 'food_baozi', '-6 07:30', { place: 'Lotus Pier HQ canteen, Yunmeng', city: 'yunmeng', src: 'ip17', caption: 'Canteen baozi. Acceptable.' }),
-    P('ph_receipt', 'p_receipt', '-6 18:47', { place: 'Pet Kingdom, Lanling', city: 'lanling', albums: ['dogs'], src: 'ip17', caption: '20 kg. She eats better than A-Ling.' }),
-    P('ph_bell26', 'p_silver_bell', '-4 14:20', { place: 'Lotus Pier, Yunmeng', city: 'yunmeng', hidden: true, src: 'ip17', caption: 'Polished. Don’t let A-Ling see.' }),
-    P('ph_cake26', 'p_cake_lotus', '-3 19:30', { place: 'Lotus Pier, Yunmeng', city: 'yunmeng', hidden: true, src: 'ip17', caption: 'Lotus seed paste. Nine petals. Not gold.' }),
-    P('ph_poster', 'p_dogfriday_poster', '-1 09:05', { place: 'Lotus Pier HQ, Yunmeng', city: 'yunmeng', src: 'ip17', caption: 'Taped to my office door. Again.' }),
-    P('ph_lobby', 'p_hotel_lobby', '-1 21:10', { place: 'Golden Peony Hotel, Lanling', city: 'lanling', src: 'ip17', caption: 'Room 1808. Of course.' }),
-    P('ph_congee', 'food_congee', '+0 07:40', { place: 'Golden Peony Hotel, Lanling', city: 'lanling', src: 'ip17' }),
-    P('ph_keys_b', 'p_car_keys', '+0 18:52', { place: 'Koi Tower, Lanling', city: 'lanling', src: 'ip17', deleted: '+0 18:53', burst: 1 }),
-    P('ph_keys', 'p_car_keys', '+0 18:52', { place: 'Koi Tower, Lanling', city: 'lanling', albums: ['gala-2026'], src: 'ip17', caption: 'Spare key — coat check, ticket 18.' }),
-    P('ph_hall', 'p_gala_hall', '+0 19:08', { place: 'Koi Tower, Lanling', city: 'lanling', albums: ['gala-2026'], people: ['lxc', 'nhs', 'jl'], kind: 'live', src: 'ip17' }),
-    P('ph_selfie', 'p_jl_selfie_gala', '+0 19:36', { place: 'Koi Tower, Lanling', city: 'lanling', albums: ['aling', 'gala-2026'], people: ['jl'], fav: true, src: 'msg', from: 'jl', caption: 'Don’t tell him I saved this.' }),
-    P('ph_moon_b', 'p_balcony_moon', '+0 22:47', { place: 'Koi Tower, Lanling', city: 'lanling', src: 'ip17', deleted: '+0 22:48', burst: 1 }),
-    P('ph_moon', 'p_balcony_moon', '+0 22:47', { place: 'Koi Tower, Lanling', city: 'lanling', albums: ['gala-2026'], kind: 'live', src: 'ip17' }),
-    P('ph_taxi', 'p_taxi_night', '+0 23:26', { place: 'Lanling', city: 'lanling', kind: 'live', src: 'ip17' }),
-    P('ph_shotgossip', 'p_shot_gossip', '+0 23:33', { kind: 'screenshot', src: 'shot' }),
+    P('p_siblings_snow', 'p_siblings_snow', '2019-01-12 13:20', { place: 'Morepesok, Snezhnaya', city: 'morepesok', albums: ['family'], people: ['teucer', 'tonia', 'anthon'], fav: true, src: 'scan', caption: 'Four of us. Teucer was the size of a loaf of bread.' }),
+    P('p_family_2019', 'p_family_2019', '2019-12-31 20:05', { place: 'Morepesok, Snezhnaya', city: 'morepesok', albums: ['family'], people: ['mama', 'papa', 'tonia', 'anthon', 'teucer'], src: 'scan', caption: 'New Year. Home on leave. Papa didn’t say much. Mama didn’t stop.' }),
+    P('p_teucer_fish23', 'p_catch_1', '2023-07-22 06:12', { place: 'Morepesok, Snezhnaya', city: 'morepesok', albums: ['family', 'fish'], people: ['teucer'], kind: 'video', dur: 58, src: 'ip15', caption: 'Teucer’s first fish. He named it Ajax Two.' }),
+    P('p_morepesok', 'p_morepesok', '2023-12-28 16:40', { place: 'Morepesok, Snezhnaya', city: 'morepesok', albums: ['family'], src: 'ip15', caption: 'Home.' }),
+    P('p_papa_boat', 'p_papa_boat', '2024-07-02 05:30', { place: 'Morepesok, Snezhnaya', city: 'morepesok', albums: ['family', 'fish'], people: ['papa'], src: 'msg', from: 'mama', caption: 'Papa and the cod. He sent it with no message. That’s Papa for “I miss you”.' }),
+    P('p_teucer_drawing', 'p_teucer_drawing', '2025-11-20 18:10', { albums: ['family'], fav: true, src: 'msg', from: 'mama', caption: 'MY BROTHER SELLS TOYS. Framed in my office. Signora asked about it once. Once.' }),
+    P('p_mama_pelmeni', 'p_mama_pelmeni', '2025-12-31 19:00', { place: 'Morepesok, Snezhnaya', city: 'morepesok', albums: ['family'], src: 'msg', from: 'mama', caption: 'The recipe is a state secret.' }),
+    P('p_bluefin', 'p_bluefin', '2026-01-03 07:40', { place: 'Guyun Stone Forest, Liyue', city: 'guyun', albums: ['fish'], fav: true, src: 'ip17', caption: 'SCARAMOUCHE. 41 kg. Named him after a colleague. Sent the colleague the photo. Worth it.' }),
+    P('p_northland_lobby', 'p_northland_lobby', '2026-03-12 09:02', { place: 'Northland Bank, Harbor Road, Liyue Harbor', city: 'liyue', albums: ['liyue'], src: 'ip17', caption: 'First day in Liyue. Ekaterina had already learned my coffee order. Terrifying.' }),
+    P('p_catch_1', 'p_catch_1', '2026-03-14 05:58', { place: 'Pier 7, Liyue Harbor', city: 'liyue', albums: ['fish'], src: 'ip17', caption: 'Sea bass. Xiansheng watched for two hours and said it was “very restful”.' }),
+    P('p_harbor_day', 'p_harbor_day', '2026-03-20 14:15', { place: 'Yujing Terrace, Liyue Harbor', city: 'liyue', albums: ['liyue'], kind: 'pano', mode: 'pano', src: 'ip17' }),
+    P('p_jade_chamber', 'p_jade_chamber', '2026-04-02 18:40', { place: 'Liyue Harbor', city: 'liyue', albums: ['liyue'], src: 'ip17t', caption: 'The Jade Chamber. Ningguang lives up there. Of course she does.' }),
+    P('p_zl_birds', 'p_zl_birds', '2026-05-18 16:20', { place: 'Lane of Stone Lions, Liyue Harbor', city: 'liyue', albums: ['xiansheng'], people: ['zl'], src: 'ip17', caption: 'ℳ3,300 birdcage. The thrush doesn’t even live in it. It visits.' }),
+    P('p_zl_teahouse', 'p_zl_teahouse', '2026-06-14 15:47', { place: 'Heyu Tea House, Liyue Harbor', city: 'liyue', albums: ['xiansheng'], people: ['zl'], fav: true, hidden: true, src: 'ip17', caption: 'Fell asleep mid-sentence about porcelain. Didn’t wake him. Paid. Obviously.' }),
+    P('p_rod_gift', 'p_rod_gift', '2026-07-20 21:30', { place: 'Pier View Residences, Liyue Harbor', city: 'liyue', albums: ['xiansheng', 'fish'], fav: true, src: 'ip17', caption: '“For your birthday. — Z.” He paid for it. HE PAID FOR SOMETHING.' }),
+    P('p_hotpot_crew', 'p_hotpot_crew', '2026-07-25 22:10', { place: 'Wanmin Restaurant, Chihu Rock', city: 'liyue', albums: ['liyue'], people: ['lumine', 'paimon', 'xl', 'ht'], src: 'msg', from: 'ht', caption: 'Hotpot crew. Paimon ate my share. Paimon always eats my share.' }),
+    P('p_catch_2', 'p_catch_2', '2026-08-02 02:40', { place: 'Pier 7, Liyue Harbor', city: 'liyue', albums: ['fish'], src: 'ip17', caption: 'Too many teeth. Released it. It looked at me like Dottore.' }),
+    P('p_wanmin_kitchen', 'p_wanmin_kitchen', '2026-08-11 19:30', { place: 'Wanmin Restaurant, Chihu Rock', city: 'liyue', albums: ['liyue'], people: ['xl'], kind: 'live', src: 'ip17' }),
+    P('p_unit3', 'p_unit3', '2026-08-28 03:10', { place: 'Guyun Stone Forest, Liyue', city: 'guyun', src: 'ip17t', deleted: '-3 03:00' }),
+    P('p_glaze_lily', 'p_glaze_lily', '2026-09-10 06:30', { place: 'Qingce Village, Liyue', city: 'qingce', albums: ['xiansheng'], src: 'msg', from: 'zl', caption: 'He sent this at 6:30 AM. No message. Just the flower.' }),
+    P('p_alcor_deck', 'p_alcor_deck', '2026-09-26 22:05', { place: 'The Alcor, Crux Pier', city: 'liyue', albums: ['liyue'], src: 'ip17', caption: 'Rematch #5. Lost. Laughed mid-fight. Note to self: don’t.' }),
+    P('p_teucer_sirfang', 'p_teucer_sirfang', '2026-09-30 20:00', { albums: ['family'], src: 'msg', from: 'teucer', caption: 'Sir Fang, on guard.' }),
+    P('p_heyu_stage', 'p_heyu_stage', '2026-10-02 15:20', { place: 'Heyu Tea House, Liyue Harbor', city: 'liyue', albums: ['xiansheng', 'liyue'], people: ['yunjin'], src: 'ip17', caption: 'He mouthed every word of the second act.' }),
+    P('p_zl_opera_tickets', 'p_zl_opera_tickets', '2026-10-02 16:40', { place: 'Heyu Tea House, Liyue Harbor', city: 'liyue', albums: ['xiansheng'], src: 'ip17', caption: 'Box Two. Saturday. Don’t tell him yet.' }),
+    P('p_tonia_letter', 'p_tonia_letter', '2026-10-10 21:15', { albums: ['family'], src: 'msg', from: 'tonia', caption: '“Explain this.” — Tonia. Haven’t.' }),
+    P('p_abyss_map', 'p_abyss_map', '2026-10-14 03:05', { place: 'Pier View Residences, Liyue Harbor', city: 'liyue', src: 'ip17', caption: '' }),
+    P('p_aquarium_frozen', 'p_aquarium_frozen', '-5 16:22', { place: 'Northland Bank, Harbor Road, Liyue Harbor', city: 'liyue', src: 'msg', from: 'lyuba', caption: 'Sir’s fish (frozen, again).' }),
+    P('p_wangsheng_door', 'p_wangsheng_door', '-7 22:40', { place: 'Wangsheng Funeral Parlor, Feiyun Slope', city: 'liyue', albums: ['liyue'], src: 'ip17', caption: 'Picking him up from work. Hu Tao offered me a coupon.' }),
+    P('p_golden_house', 'p_golden_house', '-6 11:00', { place: 'The Golden House, Liyue Harbor', city: 'liyue', albums: ['liyue'], src: 'ip17' }),
+    P('p_ops_vending', 'p_ops_vending', '-9 23:10', { place: 'Northland Bank, Harbor Road, Liyue Harbor', city: 'liyue', src: 'msg', from: 'pyotr' }),
+    P('p_paimon_food', 'p_paimon_food', '-2 20:30', { src: 'msg', from: 'paimon', caption: 'Receipt: ×38.' }),
+    P('p_osial_diagram', 'p_osial_diagram', '-1 23:59', { kind: 'screenshot', src: 'shot' }),
+    P('p_yujing_lanterns', 'p_yujing_lanterns', '-1 18:30', { place: 'Yujing Terrace, Liyue Harbor', city: 'liyue', albums: ['liyue'], src: 'ip17', caption: 'They’re putting up the lanterns for the Rite. Xiansheng is very calm about it. Weirdly calm.' }),
+    P('p_liuli_dinner', 'p_liuli_dinner', '+0 20:40', { place: 'Liuli Pavilion, Liyue Harbor', city: 'liyue', albums: ['xiansheng'], people: ['zl'], src: 'ip17', caption: 'ℳ8,800. “Other coat.”' }),
+    P('p_ledger', 'p_ledger', '+0 22:33', { kind: 'screenshot', src: 'shot' }),
+    P('p_zl_pier_b', 'p_zl_pier', '+0 23:11', { place: 'Pier 7, Liyue Harbor', city: 'liyue', src: 'ip17', deleted: '+0 23:11', burst: 1 }),
+    P('p_zl_pier', 'p_zl_pier', '+0 23:11', { place: 'Pier 7, Liyue Harbor', city: 'liyue', albums: ['xiansheng'], people: ['zl'], kind: 'live', fav: true, src: 'ip17' }),
+    P('p_pier7_rod', 'p_pier7_rod', '+0 23:14', { place: 'Pier 7, Liyue Harbor', city: 'liyue', albums: ['fish'], src: 'ip17' }),
   ]);
 
   JC.store.seed('albums', [
-    { id: 'aling', title: 'A-Ling', cover: 'ph_grad24' },
-    { id: 'dogs', title: 'Dogs', cover: 'ph_dogs99' },
-    { id: 'lotus-pier', title: 'Lotus Pier', cover: 'ph_lotus19' },
-    { id: 'gala-2026', title: 'Gala 2026', cover: 'ph_moon' },
-    { id: 'old-photos', title: 'Old Photos', cover: 'ph_fam07' },
+    { id: 'xiansheng', title: 'Xiansheng', cover: 'p_zl_pier' },
+    { id: 'fish', title: 'Fish 🐟', cover: 'p_bluefin' },
+    { id: 'family', title: 'Family', cover: 'p_siblings_snow' },
+    { id: 'liyue', title: 'Liyue', cover: 'p_harbor_day' },
   ]);
 
   // ── Places (stylised map coordinates 0..1) ─────────────────────────────────
   const CITIES = {
-    lanling: { name: 'Lanling', x: 0.70, y: 0.33 },
-    yunmeng: { name: 'Yunmeng', x: 0.47, y: 0.64 },
-    gusu: { name: 'Gusu', x: 0.83, y: 0.62 },
-    qinghe: { name: 'Qinghe', x: 0.42, y: 0.14 },
-    yiling: { name: 'Yiling', x: 0.17, y: 0.47 },
+    liyue: { name: 'Liyue Harbor', x: 0.62, y: 0.64 },
+    guyun: { name: 'Guyun Stone Forest', x: 0.80, y: 0.72 },
+    qingce: { name: 'Qingce Village', x: 0.47, y: 0.52 },
+    morepesok: { name: 'Morepesok', x: 0.40, y: 0.12 },
+    zapolyarny: { name: 'Zapolyarny', x: 0.28, y: 0.06 },
   };
   function cityOf(p) {
     if (p.city && CITIES[p.city]) return p.city;
     const s = (p.place || '').toLowerCase();
     for (const k in CITIES) if (s.includes(k)) return k;
-    if (/koi tower|golden peony|jinxing|pet kingdom/.test(s)) return 'lanling';
-    if (/lotus pier|guanyin/.test(s)) return 'yunmeng';
-    if (/cloud recesses|hanshi|jingshi|laoma/.test(s)) return 'gusu';
-    if (/unclean realm/.test(s)) return 'qinghe';
-    if (/radish|burial/.test(s)) return 'yiling';
+    if (/pier 7|liuli|wangsheng|yujing|jade|northland|heyu|wanmin|chihu|alcor|harbor|feiyun|golden house/.test(s)) return 'liyue';
+    if (/wangshu|qingce/.test(s)) return 'qingce';
+    if (/snezhnaya/.test(s)) return 'morepesok';
     return null;
   }
 
-  // ── People & pets ──────────────────────────────────────────────────────────
+  // ── People ─────────────────────────────────────────────────────────────────
   // face: art id + crop (background-position/size) for the circular face thumbnail
   const PEOPLE = [
-    { id: 'jl', name: 'Jin Ling', face: { art: 'av_jl' } },
-    { id: 'fairy', name: 'Fairy', pet: true, face: { art: 'av_fairy' } },
-    { id: 'wwx', name: 'Wei Wuxian', face: { art: 'av_wwx' }, fallback: { art: 'p_kites', size: '800%', pos: '19% 79%' } },
-    { id: 'lxc', name: 'Lan Xichen', face: { art: 'av_lxc' } },
-    { id: 'ajie', name: 'Jiang Yanli', face: { art: 'p_ajie_wedding', size: '330%', pos: '50% 22%' } },
-    { id: 'nhs', name: 'Nie Huaisang', face: { art: 'av_nhs' } },
-    { id: 'mian', name: 'Mianmian', face: { art: 'av_mian' } },
-    // tagged (searchable) but Photos never found a usable face for them
-    { id: 'wn', name: 'Wen Ning', noFace: true, face: { art: 'av_wn' } },
-    { id: 'lwj', name: 'Lan Wangji', noFace: true, face: { art: 'av_lwj' } },
-    { id: 'mom', name: 'Mother', noFace: true, face: { art: 'p_family_2007' } },
-    { id: 'dad', name: 'Father', noFace: true, face: { art: 'p_family_2007' } },
+    { id: 'zl', name: 'Zhongli', face: { art: 'av_zl' } },
+    { id: 'teucer', name: 'Teucer', face: { art: 'av_teucer' } },
+    { id: 'tonia', name: 'Tonia', face: { art: 'av_tonia' } },
+    { id: 'anthon', name: 'Anthon', face: { art: 'av_anthon' } },
+    { id: 'mama', name: 'Mama', face: { art: 'av_mama' } },
+    { id: 'papa', name: 'Papa', face: { art: 'av_papa' } },
+    { id: 'lumine', name: 'Lumine', face: { art: 'av_lumine' } },
+    { id: 'paimon', name: 'Paimon', face: { art: 'av_paimon' } },
+    { id: 'ht', name: 'Hu Tao', face: { art: 'av_ht' } },
+    { id: 'xl', name: 'Xiangling', face: { art: 'av_xl' } },
+    // tagged (searchable) but Photos never found a usable face
+    { id: 'yunjin', name: 'Yun Jin', noFace: true, face: { art: 'av_yunjin' } },
   ];
   // photos the story may add later: infer who is in them from the art id
   const ART_PEOPLE = {
-    p_fairy_roof: ['fairy'], p_jl_selfie_gala: ['jl'], p_jl_learner: ['jl'], p_jl_kid: ['jl'], p_jl_graduation: ['jl'],
-    av_fairy: ['fairy'], wp_fairy: ['fairy'], ph_fairy_puppy: ['fairy'], ph_fairy_bath: ['fairy'], ph_fairy_office: ['fairy'],
+    p_zl_pier: ['zl'], p_zl_teahouse: ['zl'], p_zl_birds: ['zl'], p_liuli_dinner: ['zl'], p_teucer_plane: ['teucer', 'tonia'],
+    p_hotpot_crew: ['lumine', 'paimon', 'xl', 'ht'], p_siblings_snow: ['teucer', 'tonia', 'anthon'], p_papa_boat: ['papa'],
   };
   function peopleOf(p) {
     if (p.people && p.people.length) return p.people;
@@ -134,7 +123,7 @@
     shot: { dev: 'Screenshot', lens: '', mp: '', res: '1206 × 2622', fmt: 'PNG', size: '1.1 MB', noExif: true },
     msg: { dev: 'Saved from Messages', lens: '', mp: '12 MP', res: '4032 × 3024', fmt: 'JPEG', size: '1.8 MB', noExif: true },
     web: { dev: 'Saved from Safari', lens: '', mp: '', res: '1600 × 1200', fmt: 'JPEG', size: '412 KB', noExif: true },
-    wavelet: { dev: 'Saved from Wavelet', lens: '', mp: '', res: '2048 × 1536', fmt: 'JPEG', size: '690 KB', noExif: true },
+    wavelet: { dev: 'Saved from Ripple', lens: '', mp: '', res: '2048 × 1536', fmt: 'JPEG', size: '690 KB', noExif: true },
   };
   function devOf(p) {
     if (p.src && DEV[p.src]) return DEV[p.src];
@@ -284,82 +273,4 @@
     all, library, latest, add, byT, dur: DUR, hash,
   };
 
-  // ── Extra Fairy photos (Fairy is Jin Ling's huge black dog; she hates baths) ─────────────
-  const dogHead = (cx, cy, s) => `
-    <g transform="translate(${cx} ${cy}) scale(${s})">
-      <ellipse cx="0" cy="0" rx="120" ry="104" fill="#17161c"/>
-      <path d="M-104-34c-30 10-52 70-34 120 14 30 40 24 46 2 6-30-2-76-12-122z" fill="#121117"/>
-      <path d="M104-34c30 10 52 70 34 120-14 30-40 24-46 2-6-30 2-76 12-122z" fill="#121117"/>
-      <ellipse cx="0" cy="44" rx="62" ry="48" fill="#24222b"/>
-      <ellipse cx="0" cy="22" rx="22" ry="15" fill="#050507"/>
-      <ellipse cx="-6" cy="17" rx="7" ry="4" fill="#5b5966"/>
-      <path d="M-18 52q18 14 36 0" stroke="#050507" stroke-width="6" fill="none" stroke-linecap="round"/>
-      <circle cx="-44" cy="-20" r="13" fill="#3a2a1a"/><circle cx="44" cy="-20" r="13" fill="#3a2a1a"/>
-      <circle cx="-40" cy="-24" r="4.5" fill="#fff"/><circle cx="48" cy="-24" r="4.5" fill="#fff"/>
-    </g>`;
-  JC.art.def('ph_fairy_puppy', {
-    title: 'Fairy, the day she arrived (2018)', w: 1200, h: 900, tags: ['dog', 'fairy', 'puppy', 'birthday'],
-    svg: (w, hh) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${hh}">
-      <defs><radialGradient id="l" cx=".5" cy=".35" r=".8"><stop offset="0" stop-color="#ffe6b8"/><stop offset=".6" stop-color="#e2a86a"/><stop offset="1" stop-color="#7a4a2a"/></radialGradient>
-      <linearGradient id="b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d9b25b"/><stop offset="1" stop-color="#a77a2c"/></linearGradient></defs>
-      <rect width="${w}" height="${hh}" fill="url(#l)"/>
-      <circle cx="210" cy="170" r="70" fill="#fff3d6" opacity=".35"/><circle cx="1010" cy="140" r="90" fill="#fff3d6" opacity=".25"/>
-      <rect x="0" y="690" width="${w}" height="210" fill="#6b3f22"/>
-      <rect x="0" y="690" width="${w}" height="10" fill="#8a5631"/>
-      <path d="M330 520h540l-30 330H360z" fill="url(#b)"/>
-      <path d="M300 470h600v80H300z" fill="#e8c46f"/>
-      <rect x="575" y="470" width="50" height="380" fill="#c8102e"/>
-      <path d="M600 470c-70-80-170-70-150-10 20 50 110 30 150 10zM600 470c70-80 170-70 150-10-20 50-110 30-150 10z" fill="#d7263d"/>
-      <circle cx="600" cy="468" r="22" fill="#a3122a"/>
-      ${dogHead(600, 380, 0.95)}
-      <path d="M530 470c0-30 140-30 140 0" fill="#17161c"/>
-      <path d="M470 460c-30 0-50 14-50 30h70z M730 460c30 0 50 14 50 30h-70z" fill="#17161c"/>
-      <text x="600" y="820" font-family="Helvetica,Arial,sans-serif" font-size="34" font-weight="700" fill="#fff6e0" text-anchor="middle" opacity=".85">生日快乐 A-LING · 10</text>
-    </svg>`,
-  });
-  JC.art.def('ph_fairy_bath', {
-    title: 'Fairy, bath day', w: 1200, h: 900, tags: ['dog', 'fairy', 'bath'],
-    svg: (w, hh) => {
-      let bubbles = '';
-      for (let i = 0; i < 26; i++) {
-        const x = 230 + ((i * 97) % 760), y = 520 + ((i * 53) % 150), r = 14 + ((i * 37) % 30);
-        bubbles += `<circle cx="${x}" cy="${y}" r="${r}" fill="#fff" opacity=".92"/><circle cx="${x - r * 0.3}" cy="${y - r * 0.35}" r="${r * 0.22}" fill="#cfe8ff"/>`;
-      }
-      return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${hh}">
-      <defs><linearGradient id="t" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#d8eef5"/><stop offset="1" stop-color="#a9cfdc"/></linearGradient></defs>
-      <rect width="${w}" height="${hh}" fill="url(#t)"/>
-      <g opacity=".35" stroke="#7fb0c2" stroke-width="3">${Array.from({ length: 12 }, (_, i) => `<path d="M${i * 110} 0v560"/>`).join('')}<path d="M0 140h1200M0 280h1200M0 420h1200"/></g>
-      <path d="M150 560h900l-40 250c-6 40-40 60-80 60H270c-40 0-74-20-80-60z" fill="#f4f6f8"/>
-      <rect x="120" y="540" width="960" height="44" rx="22" fill="#ffffff"/>
-      ${dogHead(600, 430, 1.1)}
-      <path d="M470 380c-20 30-14 80 0 110M730 380c20 30 14 80 0 110" stroke="#2c2a35" stroke-width="10" fill="none" stroke-linecap="round" opacity=".7"/>
-      <g fill="#8fc9ec"><path d="M500 330q-6 18 0 26 6-8 0-26z"/><path d="M700 300q-7 20 0 30 7-10 0-30z"/><path d="M610 270q-5 14 0 20 5-6 0-20z"/></g>
-      <path d="M560 455q-22-12-38 6M640 455q22-12 38 6" stroke="#0c0b10" stroke-width="7" fill="none" stroke-linecap="round"/>
-      ${bubbles}
-      <rect x="930" y="250" width="60" height="140" rx="16" fill="#ff8fb1"/><rect x="942" y="230" width="36" height="30" rx="8" fill="#e45b86"/>
-    </svg>`;
-    },
-  });
-  JC.art.def('ph_fairy_office', {
-    title: 'Fairy at the board meeting', w: 1200, h: 900, tags: ['dog', 'fairy', 'office'],
-    svg: (w, hh) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${w} ${hh}">
-      <defs><linearGradient id="wl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ece4d6"/><stop offset="1" stop-color="#d9cdb8"/></linearGradient>
-      <linearGradient id="win" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#bcd8e8"/><stop offset="1" stop-color="#e9d9c0"/></linearGradient></defs>
-      <rect width="${w}" height="${hh}" fill="url(#wl)"/>
-      <rect x="760" y="80" width="360" height="380" rx="6" fill="url(#win)"/>
-      <path d="M760 380q90-60 180-10t180-30v120H760z" fill="#9cc29a" opacity=".7"/>
-      <path d="M940 80v380M760 270h360" stroke="#fff" stroke-width="10"/>
-      <rect x="0" y="640" width="${w}" height="260" fill="#7b5a43"/>
-      <rect x="60" y="430" width="640" height="40" rx="8" fill="#5a3e2c"/>
-      <rect x="90" y="470" width="24" height="200" fill="#4a3324"/><rect x="646" y="470" width="24" height="200" fill="#4a3324"/>
-      <rect x="160" y="380" width="170" height="50" rx="6" fill="#efe9de"/><rect x="380" y="396" width="120" height="34" rx="4" fill="#3c3a44"/>
-      <circle cx="560" cy="404" r="26" fill="#f6f1e6"/><circle cx="560" cy="404" r="18" fill="#8a5a3a"/>
-      <ellipse cx="560" cy="780" rx="330" ry="90" fill="#17161c"/>
-      <path d="M260 760c-40 10-60 50-40 70 30 10 80 0 90-30z" fill="#121117"/>
-      ${dogHead(830, 700, 0.85)}
-      <path d="M700 820c80 30 200 20 250-10" stroke="#0e0d12" stroke-width="18" fill="none" stroke-linecap="round"/>
-      <rect x="880" y="620" width="70" height="14" rx="7" fill="#c9a227"/><circle cx="915" cy="642" r="10" fill="#e8e8ee"/>
-      <text x="230" y="300" font-family="Helvetica,Arial,sans-serif" font-size="40" font-weight="700" fill="#6b5340" opacity=".7">Q4 — YMJ</text>
-    </svg>`,
-  });
 })();

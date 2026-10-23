@@ -322,11 +322,24 @@ async function playRoute(page, route) {
     const log = [];
     const match = (m, text) => (m instanceof RegExp ? m.test(text) : String(text).toLowerCase().includes(String(m).toLowerCase()));
     const callPolicy = R.calls || 'decline';
+    /** every choice the story offered during this route, per thread (for failure messages) */
+    const offered = {};
+    const noteOffers = () => {
+      try {
+        JC.story.threads().forEach((t) => {
+          const p = JC.story.pending(t.id);
+          if (!p) return;
+          const seen = (offered[t.id] = offered[t.id] || []);
+          p.options.forEach((o) => { const l = String(o.label).slice(0, 70); if (!seen.includes(l)) seen.push(l); });
+        });
+      } catch (e) { /* ignore */ }
+    };
     /** fast-forward until cond() (checked before every step of play time); handles calls not addressed by the route */
     const until = async (cond, maxSec, opts) => {
       opts = opts || {};
       for (let t = 0; t <= maxSec * 1000; t += 4000) {
         if (JC.state.d.ended && !opts.allowEnd) return false;
+        noteOffers();
         const v = cond();
         if (v) return v;
         const c = JC.story.call();
@@ -347,7 +360,7 @@ async function playRoute(page, route) {
       if (st.choose) {
         const want = st.choose;
         const got = await until(() => { const p = JC.story.pending(want.thread); if (!p) return null; const o = p.options.find((x) => match(want.match, x.label) || match(want.match, x.text || '')); return o ? { o } : null; }, max);
-        if (!got) return fail(i, 'choice never offered in ' + want.thread + ': ' + want.match);
+        if (!got) return fail(i, 'choice never offered in ' + want.thread + ': ' + want.match + ' · offered there: ' + JSON.stringify((offered[want.thread] || []).slice(-8)) + ' · chapter ' + ((JC.story.currentChapter() || {}).id) + ' · ended ' + JC.state.d.ended);
         log.push(want.thread + ': ' + got.o.label);
         JC.story.choose(want.thread, got.o.i);
       } else if (st.act) {

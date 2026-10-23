@@ -6,7 +6,7 @@
   const JC = window.JC;
   const { h } = JC;
   const U = JC.util;
-  const ME = { name: 'Jiang Cheng', addr: 'jiang.cheng@lotuspier.yunmeng' };
+  const ME = { name: 'Childe', addr: 'tartaglia@northland.sn' };
 
   JC.icon.add({
     'megaphone.fill': '<path d="M4 10.2v3.6c0 .6.4 1 1 1h2.2l7.8 4.2c.7.4 1.5-.1 1.5-.9V5.9c0-.8-.8-1.3-1.5-.9L7.2 9.2H5c-.6 0-1 .4-1 1z" fill="currentColor" stroke="none"/><path d="M7.5 15l1.3 4.3c.2.6.7.9 1.3.9h.6c.7 0 1.2-.7 1-1.4l-1-3.8M19 9.5c.9.7 1.4 1.6 1.4 2.5s-.5 1.8-1.4 2.5"/>',
@@ -70,7 +70,7 @@
     const c = JC.contacts.all().find((x) => (x.emails || []).some((e) => e.addr.toLowerCase() === addr));
     return c ? c.id : addr === ME.addr ? 'me' : null;
   }
-  const BRAND = { 'swiftride.app': 'swift', 'lotuseats.app': 'eats', 'ymcb.yunmeng': 'bank' };
+  const BRAND = { 'harborride.ly': 'ride', 'wanmingo.ly': 'wanmin', 'feiyun.market': 'market', 'liyueair.ly': 'liyueair', 'alerts.northland.sn': 'nbank' };
   const GR = [['#74c0fc', '#1c7ed6'], ['#ffa94d', '#e8590c'], ['#b197fc', '#7048e8'], ['#63e6be', '#0ca678'], ['#ffa8a8', '#e03131'], ['#ffd43b', '#f08c00'], ['#a5d8ff', '#4dabf7'], ['#ced4da', '#868e96']];
   function senderAvatar(p, size) {
     const cid = contactFor(p && p.addr);
@@ -131,8 +131,8 @@
       return el;
     }
     if (/^[a-z]+:\/\//.test(tok)) {
-      const app = tok.startsWith('swiftride') ? 'swift' : tok.startsWith('wavelet') ? 'wavelet' : null;
-      const intent = app === 'wavelet' ? { user: 'teaspiller_qh' } : app === 'swift' && /lost/.test(tok) ? { report: true } : {};
+      const app = tok.startsWith('harborride') ? 'swift' : tok.startsWith('ripple') ? 'wavelet' : null;
+      const intent = app === 'wavelet' ? { user: 'kabukimono' } : app === 'swift' && /lost/.test(tok) ? { report: true } : {};
       return h('span.ml-link', { onTap: () => (app ? JC.os.open(app, intent) : JC.ui.toast('No app can open this link', { icon: 'link' })) }, tok);
     }
     if (tok.includes('@')) return h('span.ml-link', { onTap: () => compose({ to: tok }) }, tok);
@@ -303,7 +303,7 @@
             onTap: () => nav.push(boxPage(b.id)),
             swipe: [{ text: 'Delete', color: 'var(--red)', icon: 'trash', onTap: () => delBox(b) }],
           }));
-          const secs = [{ header: 'Lotus Pier (Exchange)', rows: rows.concat(custom) }];
+          const secs = [{ header: 'Northland (Exchange)', rows: rows.concat(custom) }];
           if (editingBoxes) secs.push({ rows: [{ title: 'New Mailbox', tinted: true, center: true, onTap: () => newBox() }] });
           return [JC.ui.list(secs, { cls: 'ml-boxlist' })];
         },
@@ -524,7 +524,7 @@
           title: ms.length === 1 ? 'Move Message' : 'Move ' + ms.length + ' Messages', detent: 'large', cls: 'ml-sheet', left: { text: 'Cancel' },
           content: () => [
             ms.length === 1 ? h('div.ml-movehead', senderAvatar(ms[0].from, 36), h('div', h('div.ml-movesub', ms[0].subject || '(No Subject)'), h('div.ml-movefrom', who(ms[0].from)))) : null,
-            JC.ui.list([{ header: 'Lotus Pier (Exchange)', rows: BOXES.filter((b) => !b.smart && b.id !== 'drafts' && b.id !== 'sent').concat(customBoxes().map((b) => ({ id: b.id, title: b.title, icon: 'folder' }))).map((b) => ({
+            JC.ui.list([{ header: 'Northland (Exchange)', rows: BOXES.filter((b) => !b.smart && b.id !== 'drafts' && b.id !== 'sent').concat(customBoxes().map((b) => ({ id: b.id, title: b.title, icon: 'folder' }))).map((b) => ({
               icon: { node: h('div.ml-boxic', { class: b.id }, JC.icon(b.icon, { size: 22 })) }, title: b.title,
               detail: ms.every((m) => m.box === b.id) ? 'Current' : '',
               onTap: () => {
@@ -638,6 +638,7 @@
       }
 
       function previewAtt(a, m) {
+        JC.story.act('attach_open', { name: a.name, mail: m.id, art: a.art });
         const s = JC.ui.sheet({
           title: a.name, detent: 'large', cls: 'ml-preview', left: { text: 'Done' },
           right: { icon: 'square.and.arrow.up', bold: false, onTap: () => { JC.ui.share({ title: a.name, subtitle: 'From ' + (m.from.name || m.from.addr), art: a.art, payload: { kind: 'photo', art: a.art } }); return false; } },
@@ -648,7 +649,7 @@
                 try { JC.store.add('photos', { art: a.art, t: JC.time.now(), albums: [], fav: false, people: [], place: '', caption: a.name, kind: 'screenshot' }, { front: true }); } catch (e) { /* ignore */ }
                 JC.ui.toast('Saved to Photos', { icon: 'photo' });
               } }, JC.icon('square.and.arrow.down', { size: 20 }), h('span', 'Save to Photos')),
-              h('div.ml-pvbtn', { onTap: () => JC.ui.toast('Markup needs Apple Pencil — or Jiang Cheng’s patience', { icon: 'pencil' }) }, JC.icon('pencil', { size: 20 }), h('span', 'Markup'))),
+              h('div.ml-pvbtn', { onTap: () => JC.ui.toast('Markup needs Apple Pencil — or Childe’s patience', { icon: 'pencil' }) }, JC.icon('pencil', { size: 20 }), h('span', 'Markup'))),
           ],
         });
         void s;

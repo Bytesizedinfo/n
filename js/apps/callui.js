@@ -49,28 +49,20 @@
   // ══ JC.voiceBed — murmured speech synthesis ══════════════════════
   // f0: base pitch (Hz), range: pitch movement, rate: syllables speed, breath: noise mix, fs: formant scale
   const VOICES = {
-    me: { f0: 118, range: 1.05, rate: 0.95, breath: 0.18, fs: 1 },
-    wwx: { f0: 138, range: 1.35, rate: 1.22, breath: 0.2, fs: 1.02 },
-    jl: { f0: 152, range: 1.28, rate: 1.18, breath: 0.18, fs: 1.04 },
-    lxc: { f0: 116, range: 1.08, rate: 0.84, breath: 0.3, fs: 1 },
-    lwj: { f0: 98, range: 1.03, rate: 0.78, breath: 0.25, fs: 0.97 },
-    nhs: { f0: 150, range: 1.4, rate: 1.2, breath: 0.22, fs: 1.05 },
-    wn: { f0: 124, range: 1.12, rate: 0.95, breath: 0.32, fs: 1 },
-    sz: { f0: 142, range: 1.15, rate: 1, breath: 0.2, fs: 1.04 },
-    jy: { f0: 156, range: 1.38, rate: 1.3, breath: 0.15, fs: 1.05 },
-    mian: { f0: 202, range: 1.12, rate: 1, breath: 0.22, fs: 1.14 },
-    ea: { f0: 192, range: 1.06, rate: 1.12, breath: 0.16, fs: 1.13 },
-    huang: { f0: 104, range: 1.16, rate: 0.84, breath: 0.34, fs: 0.96, rough: 1 },
-    liu: { f0: 212, range: 1.16, rate: 1.16, breath: 0.18, fs: 1.15 },
-    bai: { f0: 140, range: 1.3, rate: 1.26, breath: 0.2, fs: 1.04 },
-    qr: { f0: 98, range: 1.04, rate: 0.78, breath: 0.22, fs: 0.95 },
-    mom: { f0: 206, range: 1.1, rate: 1.02, breath: 0.18, fs: 1.12 },
-    dad: { f0: 110, range: 1.08, rate: 0.84, breath: 0.32, fs: 0.98 },
-    ajie: { f0: 226, range: 1.2, rate: 0.95, breath: 0.32, fs: 1.16 },
     baby: { f0: 330, range: 1.45, rate: 0.85, breath: 0.25, fs: 1.32 },
     sys: { f0: 196, range: 1.02, rate: 1.08, breath: 0.05, fs: 1.12, robot: true },
   };
+  /** per-contact voice from js/data/contacts.js (`voice`), the owner's from JC.me.voice */
+  function contactVoice(who) {
+    try {
+      if (who === 'me') return JC.me && JC.me.voice;
+      const c = JC.contacts.get(who);
+      return c && c.voice;
+    } catch (e) { return null; }
+  }
   function vparams(who) {
+    const cv = contactVoice(who);
+    if (cv) return cv;
     if (VOICES[who]) return VOICES[who];
     const n = hash(who || 'x');
     const fem = n % 2 === 0;
@@ -573,78 +565,95 @@
   const PSEUDO = '_ph_num';
   const CALL_ID = '_ph_num_call';
   const digits = (s) => String(s || '').replace(/[^\d+*#]/g, '');
-  const core = (s) => digits(s).replace(/^\+?86/, '').replace(/^0+/, '');
+  const core = (s) => digits(s).replace(/^0761/, '').replace(/^0+/, '');
 
   /** in-world businesses reachable by phone (numbers appear in Mail) */
   const BIZ = [
     {
-      num: '+86 555 0880 1808', name: 'Golden Peony Hotel', label: 'front desk',
+      num: '(0761) 555 0410', name: 'Liuli Pavilion', label: 'reservations',
       nodes: {
         start: [
-          { say: 'Golden Peony Hotel, front desk. Good evening — oh. Mr. Jiang? Is everything alright? Your key card hasn’t been used since this afternoon.' },
+          { say: 'Liuli Pavilion, good evening. Oh — Mr. Tartaglia! Thank you again for dinner tonight. Did the gentleman find his wallet?' },
           { choice: [
-            { t: '"…Fine."', go: 'fine' },
-            { t: '"Hold the room."', go: 'hold' },
-            { t: 'Tell them you found Mr. Jiang’s phone', go: 'truth' },
+            { t: '"He never does."', go: 'never' },
+            { t: '"Book the same table next Friday."', go: 'book' },
+            { t: 'Tell them you found Mr. Tartaglia’s phone', go: 'truth' },
             { t: '(Hang up)', go: 'hang' },
           ] },
         ],
-        fine: [{ say: 'Of course, sir. Turndown is done, and the tea you asked for is in the room. Good night, Mr. Jiang.' }, { hangup: true }],
-        hold: [{ say: 'Room 1808 is yours until Sunday, sir. Late checkout is noted. No flowers, as requested.' }, { hangup: true }],
+        never: [{ say: '(laughing) No, sir. Never. Shall we keep the private room for you next week as usual?' }, { hangup: true }],
+        book: [{ say: 'Friday, eight o’clock, the river room, osmanthus wine chilled. Of course, sir. Good night.' }, { hangup: true }],
         hang: [{ hangup: 'me' }],
         truth: [
-          { say: 'You… found his phone? In a taxi? Oh, thank goodness. Please — let me take your details, we’ll make sure it gets back to him tonight.' },
+          { say: 'You… found his phone? On a pier? Oh dear. Please — bring it here, or to the bank on Harbor Road. Someone will know what to do.' },
           { fx: { set: { told_truth: true } } }, { wait: 1 }, { ending: 'honest' },
         ],
       },
     },
     {
-      num: '+86 555 0418 6600', name: 'Lanling International School', label: 'office',
+      num: '95536', name: 'Liyue Air', label: 'customer service',
       nodes: {
         start: [
-          { say: 'You have reached the office of Lanling International School. The office is now closed. Office hours are seven-thirty to five, Monday to Friday.', from: 'sys' },
-          { say: 'If you are calling about the chemistry laboratory, the laboratory is fine.', from: 'sys' },
+          { say: 'Thank you for calling Liyue Air. Flight LA 711 from Zapolyarny is on time and expected to land at Liyue Harbor International at 07:40.', from: 'sys' },
+          { say: 'Unaccompanied minors are met at Gate B by our staff and released only to the named adult on the booking.', from: 'sys' },
+          { say: 'The named adult for this booking is: “Office of Pulcinella, Northland Bank Group”.', from: 'sys' },
           { hangup: true },
         ],
       },
     },
     {
-      num: '+86 555 0601 3300', name: 'Pet Kingdom Lanling', label: 'store',
+      num: '110', name: 'Millelith Emergency', label: 'emergency',
       nodes: {
         start: [
-          { say: 'Thank you for calling Pet Kingdom Lanling! We are closed. Our hours are nine AM to nine PM, every day. Woof!', from: 'sys' },
-          { hangup: true },
+          { say: 'Millelith. What is your emergency?' },
+          { choice: [
+            { t: '"Wrong number. Sorry."', go: 'sorry' },
+            { t: 'Report a found phone', go: 'truth' },
+          ] },
+        ],
+        sorry: [{ say: 'Please keep this line free for emergencies. Good night.' }, { hangup: true }],
+        truth: [
+          { say: 'A found phone. Please bring it to the Harbor station on Feiyun Slope; the desk is open all night. …Northland Bank? We’ll let them know.' },
+          { fx: { set: { told_truth: true } } }, { wait: 1 }, { ending: 'honest' },
         ],
       },
     },
     {
-      num: '+86 555 0101 8888', name: 'Swift Ride Customer Care', label: 'support',
+      num: '(0761) 555 0110', name: 'Northland Bank · Liyue Branch', label: 'switchboard',
       nodes: {
         start: [
-          { say: 'Thank you for calling Swift Ride. To report a lost item, please use Report a Lost Item in the Swift Ride app — it reaches your driver fastest.', from: 'sys' },
-          { say: 'For a safety emergency, hang up and dial 110.', from: 'sys' },
-          { hangup: true },
+          { say: 'Northland Bank, Liyue Branch. Our offices are closed. For card emergencies, freeze your card in the Northland app.', from: 'sys' },
+          { say: 'For the Director of Special Collections, press eleven.', from: 'sys' },
+          { choice: [{ t: '(Press 1, 1)', go: 'eleven' }, { t: '(Hang up)', go: 'hang' }] },
         ],
-      },
-    },
-    {
-      num: '+86 555 0518 0001', name: 'Jin Group · Koi Tower', label: 'events',
-      nodes: {
-        start: [
-          { say: 'Jin Group, Koi Tower events office. Thank you for attending tonight’s Autumn Charity Gala. Our office is now closed.', from: 'sys' },
-          { say: 'For lost property from the gala, please leave a message after the tone. For the koi pond, please hold.', from: 'sys' },
-          { say: '(Beep.)', from: 'sys' },
-          { choice: [{ t: '(Hang up)', go: 'hang' }, { t: '(Stay on the line)', go: 'hold' }] },
-        ],
+        eleven: [{ say: 'The Director’s line is… forwarding to this device. You are calling yourself.', from: 'sys' }, { hangup: true }],
         hang: [{ hangup: 'me' }],
-        hold: [{ say: '…(hold music: a guzheng cover of something that used to be a pop song)…', from: 'sys' }, { say: 'All our koi specialists are busy. Please call again later.', from: 'sys' }, { hangup: true }],
       },
     },
     {
-      num: '+86 555 0512 2000', name: 'Cloud Recesses Tea Shop', label: 'shop',
+      num: '(0761) 555 0156', name: 'Heyu Tea House', label: 'box office',
       nodes: {
         start: [
-          { say: 'Cloud Recesses Tea Shop. We are closed for the night. The mountain is quiet. Please call again after eight.', from: 'sys' },
+          { say: 'Heyu Tea House box office. Tomorrow’s matinee is sold out. Box Two is reserved under Tartaglia, two seats, paid in full.', from: 'sys' },
+          { hangup: true },
+        ],
+      },
+    },
+    {
+      num: '(0761) 555 0177 2', name: 'Mingyun Toys & Games', label: 'store',
+      nodes: {
+        start: [
+          { say: 'Mingyun Toys and Games! We’re closed right now, but the Glacier Guardians Frost Fortress is back in stock. Open nine to nine.', from: 'sys' },
+          { hangup: true },
+        ],
+      },
+    },
+    {
+      num: '10655 0762', name: 'Harbor Ride Support', label: 'support',
+      nodes: {
+        start: [
+          { say: 'Thank you for calling Harbor Ride. To report a lost item, please use Report a Lost Item in the Harbor Ride app — it reaches your driver fastest.', from: 'sys' },
+          { say: 'For a safety emergency, hang up and dial 110.', from: 'sys' },
           { hangup: true },
         ],
       },
@@ -710,16 +719,14 @@
   }
   JC.story.dialScript(PSEUDO, CALL_ID);
 
-  /** "+86 555 1018 2008" style */
+  /** "(0761) 555 0111" (Liyue) / "+9 812 555 0720" (Snezhnaya) style */
   function fmtNum(s) {
     const d = digits(s);
     if (!d || /[*#]/.test(d)) return d;
     const plus = d[0] === '+';
     let x = d.replace(/^\+/, '');
-    if (plus && x.startsWith('86')) {
-      const r = x.slice(2);
-      return '+86 ' + group(r);
-    }
+    if (plus && x.startsWith('9') && x.length >= 11) return '+9 ' + x.slice(1, 4) + ' ' + x.slice(4, 7) + ' ' + x.slice(7);
+    if (!plus && x.startsWith('0761') && x.length === 11) return '(0761) ' + x.slice(4, 7) + ' ' + x.slice(7);
     return (plus ? '+' : '') + group(x);
   }
   function group(x) {
@@ -778,9 +785,10 @@
     const k = contact(cid);
     return (k && k.avatar) || { initials: '?', grad: ['#9a9aa2', '#6c6c74'] };
   }
-  const VIDEO_ART = { jl: ['p_jl_selfie_gala', 'av_jl'], lxc: ['p_tea_hanshi', 'av_lxc'], nhs: ['av_nhs'], huang: ['av_huang'], mian: ['av_mian'], sz: ['av_sz'], jy: ['av_jy'], wn: ['p_wn_van'] };
+  const VIDEO_ART = {};
+  const contactArt = (cid) => { try { const c = JC.contacts.get(cid); return (c && c.videoArt) || []; } catch (e) { return []; } };
   function videoArt(c) {
-    const list = [].concat(c.def && c.def.art ? [c.def.art] : [], VIDEO_ART[c.cid] || [], [avatarSpec(c.cid).art]).filter(Boolean);
+    const list = [].concat(c.def && c.def.art ? [c.def.art] : [], contactArt(c.cid), [avatarSpec(c.cid).art]).filter(Boolean);
     return list.find((a) => JC.art.has(a)) || null;
   }
 
@@ -1071,14 +1079,14 @@
     const n = C ? sn(C.cid) : '';
     JC.ui.alert({
       title: 'Switch to FaceTime?',
-      message: isPseudo(C && C.cid) ? 'FaceTime isn’t available for this number.' : n + ' would see your camera. Your face is not Jiang Cheng’s face.',
+      message: isPseudo(C && C.cid) ? 'FaceTime isn’t available for this number.' : n + ' would see your camera. Your face is not Childe’s face.',
       buttons: [{ text: 'Stay on the Phone', style: 'cancel' }],
     });
   }
   function addCall() {
     JC.ui.alert({
       title: 'Add Call',
-      message: 'Conference calling is turned off on this line.\n(Yunmeng Jiang Group IT disabled it after the 2024 board call incident.)',
+      message: 'Conference calling is turned off on this line.\n(Northland Bank IT disabled it after the Harbingers’ call incident. Nobody will say what happened.)',
       buttons: [{ text: 'OK' }],
     });
   }
@@ -1157,7 +1165,7 @@
     if (S.cam === 'face' || S.cam === 'thumb') { S.cam = 'off'; paintPip(); JC.ui.toast('Camera off', { icon: 'video.slash.fill' }); return; }
     JC.ui.alert({
       title: 'Turn On Camera?',
-      message: (C ? sn(C.cid) : 'They') + ' would see who is holding Jiang Cheng’s phone.',
+      message: (C ? sn(C.cid) : 'They') + ' would see who is holding Childe’s phone.',
       buttons: [{ text: 'Keep Camera Off', style: 'cancel' }],
     });
   }
@@ -1166,7 +1174,7 @@
       { text: S.capOn ? 'Hide Live Captions' : 'Show Live Captions', icon: 'captions.bubble', onTap: () => { S.capOn = !S.capOn; const cp = root && (root || document.createElement("div")).querySelector('.cu-cap'); if (cp) cp.classList.toggle('off', !S.capOn); } },
       { text: 'Flip Camera', icon: 'camera.rotate', onTap: () => JC.ui.toast('Camera is off', { icon: 'video.slash.fill' }) },
       { text: 'Effects', icon: 'sparkles', onTap: () => JC.ui.toast('Effects need the camera on', { icon: 'sparkles' }) },
-      { text: 'Share My Screen', icon: 'rectangle.on.rectangle', onTap: () => JC.ui.alert({ title: 'Share Your Screen?', message: 'Everything on Jiang Cheng’s screen would be visible — including his messages.', buttons: [{ text: 'Don’t Share', style: 'cancel' }] }) },
+      { text: 'Share My Screen', icon: 'rectangle.on.rectangle', onTap: () => JC.ui.alert({ title: 'Share Your Screen?', message: 'Everything on Childe’s screen would be visible — including his messages.', buttons: [{ text: 'Don’t Share', style: 'cancel' }] }) },
       '-',
       { text: 'Add People', icon: 'person.badge.plus', onTap: () => addCall() },
     ], { system: true });

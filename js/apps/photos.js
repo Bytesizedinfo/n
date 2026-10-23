@@ -117,11 +117,11 @@
   // ── memories ───────────────────────────────────────────────────────────────
   const yr = (p) => new Date(p.t).getFullYear();
   const MEMORIES = [
-    { id: 'lotus-pier-2007', title: 'Lotus Pier, 2007', sub: 'Summer · 2007', key: 'ph_fam07', mood: 'sentimental', list: () => lib().filter((p) => (p.albums || []).includes('old-photos')) },
-    { id: 'fairy-years', title: 'Fairy Through the Years', sub: '2018 – 2026', key: 'ph_fairy23', mood: 'uplifting', list: () => lib().filter((p) => K().peopleOf(p).includes('fairy') || p.art === 'p_receipt' || p.art === 'p_fairy_roof') },
-    { id: 'best-aling', title: 'Best of A-Ling', sub: '2014 – 2026', key: 'ph_permit26', mood: 'gentle', list: () => lib().filter((p) => K().peopleOf(p).includes('jl') || (p.albums || []).includes('aling')) },
-    { id: 'gala-night', title: 'Koi Tower Gala', sub: 'Oct 16, 2026', key: 'ph_moon', mood: 'gentle', list: () => lib().filter((p) => (p.albums || []).includes('gala-2026') || (U.sameDay(new Date(p.t), new Date(JC.time.parse('+0 20:00'))) && /koi tower/i.test(p.place || ''))) },
-    { id: 'good-dogs', title: 'Good Dogs', sub: '1999 – 2026', key: 'ph_dogs99', mood: 'uplifting', list: () => lib().filter((p) => (p.albums || []).includes('dogs') && p.art !== 'p_receipt') },
+    { id: 'morepesok-2019', title: 'Morepesok, 2019', sub: 'Winter · 2019', key: 'p_siblings_snow', mood: 'sentimental', list: () => lib().filter((p) => (p.albums || []).includes('family') && yr(p) <= 2024) },
+    { id: 'fish-of-the-year', title: 'Catch of the Year', sub: '2026', key: 'p_bluefin', mood: 'uplifting', list: () => lib().filter((p) => (p.albums || []).includes('fish')) },
+    { id: 'xiansheng', title: 'Dinners with Xiansheng', sub: 'Apr – Oct 2026', key: 'p_zl_teahouse', mood: 'gentle', list: () => lib().filter((p) => K().peopleOf(p).includes('zl') || (p.albums || []).includes('xiansheng')) },
+    { id: 'liyue-harbor', title: 'Liyue Harbor', sub: 'Mar – Oct 2026', key: 'p_harbor_day', mood: 'uplifting', list: () => lib().filter((p) => (p.albums || []).includes('liyue')) },
+    { id: 'little-ones', title: 'The Little Ones', sub: '2019 – 2026', key: 'p_teucer_sirfang', mood: 'gentle', list: () => lib().filter((p) => K().peopleOf(p).some((x) => x === 'teucer' || x === 'tonia' || x === 'anthon') || (p.albums || []).includes('family')) },
   ];
   const memById = (id) => MEMORIES.find((m) => m.id === id);
   function memKey(m) { return JC.store.get('photos', m.key) || m.list()[0]; }
@@ -630,7 +630,7 @@
         return [
           { text: st.favPeople[id] ? 'Unfavorite' : 'Favorite', icon: st.favPeople[id] ? 'heart.fill' : 'heart', onTap: () => { st.favPeople[id] = !st.favPeople[id]; rerender(); } },
           { text: 'Rename', icon: 'pencil', onTap: () => ui.alert({ title: 'Rename', input: { value: personName(id), placeholder: 'Name' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Done', style: 'default' }] }).then((r) => { if (r.index === 1 && (r.value || '').trim()) { st.peopleNames[id] = r.value.trim(); rerender(); } }) },
-          { text: 'Play Memory Movie', icon: 'ph.memories', onTap: () => playMemory({ id: 'person-' + id, title: personName(id), sub: 'Through the Years', mood: id === 'fairy' ? 'uplifting' : 'gentle', list: () => lib().filter((p) => K().peopleOf(p).includes(id)) }) },
+          { text: 'Play Memory Movie', icon: 'ph.memories', onTap: () => playMemory({ id: 'person-' + id, title: personName(id), sub: 'Through the Years', mood: id === 'teucer' ? 'uplifting' : 'gentle', list: () => lib().filter((p) => K().peopleOf(p).includes(id)) }) },
           { text: 'Feature Less', icon: 'hand.thumbsup.fill', onTap: () => ui.toast('You’ll see ' + personName(id) + ' less in Memories') },
         ];
       }
@@ -645,7 +645,7 @@
             const ppl = peopleList();
             const people = ppl.filter((p) => !p.pet), pets = ppl.filter((p) => p.pet);
             return [
-              h('div.ph-ppl-grid', people.map((pp) => personCircle(pp, 108)), h('div.ph-person.unnamed', { onTap: () => ui.alert({ title: 'Add Name', message: 'This face appears in 1 photo from Koi Tower tonight — at the edge of the frame, mostly sleeve.', input: { placeholder: 'Add Name' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Done', style: 'default' }] }).then((r) => { if (r.index === 1 && r.value) ui.toast('Named “' + r.value + '”', { icon: 'person.crop.circle' }); }) }, h('div.ph-face-wrap', h('div.ph-face.unknown', { style: { width: '108px', height: '108px' } }, JC.icon('person.fill', { size: 46 }))), h('div.ph-person-n', 'Add Name'))),
+              h('div.ph-ppl-grid', people.map((pp) => personCircle(pp, 108)), h('div.ph-person.unnamed', { onTap: () => ui.alert({ title: 'Add Name', message: 'This face appears in 1 photo from Pier 7 tonight — at the edge of the frame, mostly sleeve.', input: { placeholder: 'Add Name' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Done', style: 'default' }] }).then((r) => { if (r.index === 1 && r.value) ui.toast('Named “' + r.value + '”', { icon: 'person.crop.circle' }); }) }, h('div.ph-face-wrap', h('div.ph-face.unknown', { style: { width: '108px', height: '108px' } }, JC.icon('person.fill', { size: 46 }))), h('div.ph-person-n', 'Add Name'))),
               pets.length ? h('div.ph-subhead', 'Pets') : null,
               pets.length ? h('div.ph-ppl-grid', pets.map((pp) => personCircle(pp, 108))) : null,
             ];
@@ -664,7 +664,7 @@
             return [
               h('div.ph-person-head', faceEl(pp, 120), h('div.ph-person-big', personName(id)), h('div.ph-person-sub', counts(l)),
                 h('div.ph-person-acts',
-                  ui.btn({ text: 'Play', icon: 'play.fill', kind: 'gray', size: 's', onTap: () => playMemory({ id: 'person-' + id, title: personName(id), sub: 'Through the Years', mood: id === 'fairy' ? 'uplifting' : 'gentle', list }) }),
+                  ui.btn({ text: 'Play', icon: 'play.fill', kind: 'gray', size: 's', onTap: () => playMemory({ id: 'person-' + id, title: personName(id), sub: 'Through the Years', mood: id === 'teucer' ? 'uplifting' : 'gentle', list }) }),
                   c ? ui.btn({ text: 'Contact', icon: 'person.crop.circle', kind: 'gray', size: 's', onTap: () => JC.os.open('contacts', { contact: id }) }) : null)),
               gridEl(l),
               h('div.ph-lib-count', counts(l)),
@@ -691,7 +691,7 @@
       function memoriesPage() {
         return live(ui.page({
           title: 'Memories', large: true, cls: 'ph-mem-page',
-          right: [glassBtn({ icon: 'plus', onTap: () => ui.alert({ title: 'Create Memory Movie', message: 'Describe a story you want to see, like “A-Ling learning to drive”.', input: { placeholder: 'Describe a memory…' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Create', style: 'default' }] }).then((r) => { if (r.index === 1 && r.value) makeMemory(r.value); }) })],
+          right: [glassBtn({ icon: 'plus', onTap: () => ui.alert({ title: 'Create Memory Movie', message: 'Describe a story you want to see, like “Teucer learning to fish”.', input: { placeholder: 'Describe a memory…' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Create', style: 'default' }] }).then((r) => { if (r.index === 1 && r.value) makeMemory(r.value); }) })],
           content: () => [h('div.ph-mem-list', MEMORIES.map((m) => memCard(m, 370, 300)))],
         }));
       }
@@ -719,9 +719,9 @@
         return live(ui.page({ title: 'Recent Days', large: true, cls: 'ph-days-page', content: () => [h('div.ph-days-grid', recentDays().map((d) => dayCard(d)))] }));
       }
       const TRIPS = [
-        { title: 'Lanling', sub: 'Oct 15 – 16, 2026', key: 'ph_hall', list: () => lib().filter((p) => K().cityOf(p) === 'lanling' && p.t >= JC.time.parse('-1 00:00')) },
-        { title: 'Gusu', sub: 'Summer 2007', key: 'ph_hotpot07', list: () => lib().filter((p) => K().cityOf(p) === 'gusu' && yr(p) === 2007) },
-        { title: 'Gusu', sub: 'April 2024', key: 'ph_hotpot24', list: () => lib().filter((p) => K().cityOf(p) === 'gusu' && yr(p) === 2024) },
+        { title: 'Liyue Harbor', sub: 'Since March 2026', key: 'p_harbor_day', list: () => lib().filter((p) => K().cityOf(p) === 'liyue') },
+        { title: 'Morepesok', sub: 'Winter 2023', key: 'p_morepesok', list: () => lib().filter((p) => K().cityOf(p) === 'morepesok' && yr(p) >= 2023) },
+        { title: 'Guyun Stone Forest', sub: 'January 2026', key: 'p_bluefin', list: () => lib().filter((p) => K().cityOf(p) === 'guyun') },
       ];
       function tripCard(t) {
         const key = JC.store.get('photos', t.key) || t.list()[0];
@@ -730,7 +730,7 @@
           K().box(key, 180 / 220, 'ph-day-img'), h('div.ph-memcard-shade'), h('div.ph-day-t', t.title), h('div.ph-day-s', t.sub));
       }
       function featured() {
-        const ids = ['ph_moon', 'ph_pond26', 'ph_fam07', 'ph_selfie', 'ph_park25', 'ph_dawn09', 'ph_fairy18', 'ph_lotus19'];
+        const ids = ['p_zl_pier', 'p_bluefin', 'p_siblings_snow', 'p_harbor_day', 'p_rod_gift', 'p_glaze_lily', 'p_teucer_drawing', 'p_hotpot_crew'];
         return ids.map((id) => JC.store.get('photos', id)).filter((p) => p && !p.deleted && !p.hidden);
       }
 
@@ -776,7 +776,7 @@
             { text: 'Map', checked: mode === 0, onTap: () => { mode = 0; page.render(); } },
             { text: 'Grid', checked: mode === 1, onTap: () => { mode = 1; page.render(); } },
             '-',
-            { text: 'Open in Maps', icon: 'map', onTap: () => JC.os.open('maps', { place: 'lotus-pier' }) },
+            { text: 'Open in Maps', icon: 'map', onTap: () => JC.os.open('maps', { place: 'pier7' }) },
           ]) })],
           content: () => {
             if (mode === 1) {
@@ -792,19 +792,18 @@
 
       // ═══ SEARCH ═══════════════════════════════════════════════════════════
       const KEYWORDS = {
-        p_fairy_roof: 'dog car pond night koi', p_koi_pond_car: 'car pond koi fish night', p_gala_hall: 'gala party chandelier peony hall', p_balcony_moon: 'moon night city balcony sky lights sleeve',
-        p_jl_selfie_gala: 'selfie tuxedo peony', p_shot_gossip: 'balconygate gossip wavelet tea spiller', p_shot_bank: 'bank transfer allowance money', p_receipt: 'receipt dog food pet kingdom',
-        p_taxi_night: 'taxi car rain night window', p_hotel_lobby: 'hotel lobby golden peony', p_car_keys: 'keys car sandu keychain', p_jl_learner: 'driving license permit car',
-        p_puppies: 'dog dogs puppies puppy', p_dog_park: 'dog park golden retriever grass', p_childhood_dogs: 'dog dogs puppies jasmine princess love-love dock',
-        p_family_2007: 'family dock sunset lake', p_kites: 'kites kite lake children', p_jl_kid: 'birthday cake child candles', p_jl_graduation: 'graduation flowers school',
-        p_ajie_soup: 'soup pot stove kitchen food', p_ajie_wedding: 'wedding red bride', p_lotus_pond_day: 'lotus pond pavilion summer lake flowers', p_lotus_macro: 'lotus flower pink water',
-        p_sunrise_lake: 'sunrise lake boat dawn', p_silver_bell: 'bell silver gift velvet', p_cake_lotus: 'cake sketch drawing birthday', p_tea_hanshi: 'tea cup steam window bamboo',
-        p_lotus_root_soup: 'soup lotus root pork ribs food bowl', p_soup_fail: 'soup burnt smoke pot', p_radishes: 'radish radishes vegetables farm', p_hotpot_alumni: 'hotpot food restaurant laoma dinner chopsticks',
-        p_cloud_recesses: 'gate mist mountains academy', p_rules_wall: 'wall rules stone', p_ops_meeting: 'whiteboard meeting office dog doodle', p_dogfriday_poster: 'poster dog sign',
-        p_flute: 'flute tassel instrument', p_radish_cake: 'radish cake food plate', food_hotpot: 'hotpot food restaurant dinner laoma', food_congee: 'congee breakfast food',
-        food_baozi: 'baozi buns food breakfast', food_milktea: 'milk tea bubble boba drink', food_lotus_cake: 'cake pastry dessert birthday lotus',
-        av_fairy: 'dog black', wp_fairy: 'dog black', ph_fairy_puppy: 'dog puppy gift box birthday bow', ph_fairy_bath: 'dog bath bubbles tub', ph_fairy_office: 'dog office desk sleeping',
-        p_moon_street: 'moon street rain night city', cam_selfie_dark: 'selfie hoodie dark night', cam_morning: 'morning window', p_gusu_moon: 'moon mist night rooftops',
+        p_zl_pier: 'pier night sea railing harbor man', p_liuli_dinner: 'dinner restaurant food tea table', p_pier7_rod: 'fishing rod pier dusk tea', p_cranes_yujing: 'cranes birds dawn terrace',
+        p_teaset: 'tea set celadon pot cups', p_zl_teahouse: 'tea teahouse asleep nap', p_zl_birds: 'bird birdcage window thrush', p_zl_opera_tickets: 'tickets opera yun jin',
+        p_glaze_lily: 'flower lily glaze lily', p_harbor_day: 'harbor boats city pagoda', p_yujing_lanterns: 'lanterns funeral terrace white', p_jade_chamber: 'jade chamber palace sunset',
+        p_wangsheng_door: 'door funeral parlor night spooky', p_heyu_stage: 'opera stage yun jin', p_golden_house: 'golden house vault mint', p_rexlapis_1926: 'archive old photo founder',
+        p_morepesok: 'village snow sea home', p_siblings_snow: 'kids snow siblings family winter', p_teucer_plane: 'selfie plane window', p_teucer_sirfang: 'toy wolf plush sir fang',
+        p_tonia_letter: 'letter envelope bank', p_mama_pelmeni: 'pelmeni dumplings food kitchen', p_papa_boat: 'boat fish cod fisherman', p_teucer_drawing: 'drawing crayon toys',
+        p_family_2019: 'family new year home', p_bluefin: 'fish tuna bluefin scaramouche boat', p_catch_1: 'fish bass pier dawn', p_catch_2: 'fish deep teeth night',
+        p_rod_gift: 'fishing rod gift ribbon birthday', p_wanmin_kitchen: 'kitchen wok fire cooking red panda', p_alcor_deck: 'ship deck night fight',
+        p_aquarium_frozen: 'aquarium ice frozen fish office', p_ops_vending: 'vending machine office', p_northland_lobby: 'bank lobby office chandelier', p_osial_diagram: 'document protocol confidential',
+        p_unit3: 'machine device pillar sea night', p_abyss_map: 'map paper coordinates scribble', p_hotpot_crew: 'hotpot friends dinner selfie', p_paimon_food: 'food boxes takeaway',
+        p_coffin4: 'coffin funeral parlor', p_storm_guyun: 'storm lightning sea pillars', p_ledger: 'note ledger list money',
+        food_hotpot: 'hotpot food', food_pelmeni: 'pelmeni dumplings food', food_almond_tofu: 'almond tofu dessert', food_milk_tea: 'milk tea drink',
       };
       function haystack(p) {
         const d = new Date(p.t);
@@ -823,7 +822,7 @@
       }
       function searchPage() {
         let q = '';
-        const recent = ['hotpot', 'Fairy', 'Lotus Pier'];
+        const recent = ['fish', 'Xiansheng', 'Morepesok'];
         const page = live(ui.page({
           title: 'Search', large: true, cls: 'ph-search',
           search: { placeholder: 'Photos, People, Places…', onInput: (v) => { q = v; page.render(); }, onSubmit: (v) => { if (v && !recent.includes(v)) recent.unshift(v); } },
@@ -837,7 +836,7 @@
                 h('div.ph-subhead', 'Places'),
                 h('div.ph-chips', Object.keys(groups).map((k) => h('div.ph-chip', { onTap: () => setQ(K().CITIES[k].name) }, JC.icon('ph.map.pin', { size: 15 }), K().CITIES[k].name))),
                 h('div.ph-subhead', 'Categories'),
-                h('div.ph-cats', [['Dogs', 'dog', 'ph_park25'], ['Food', 'food', 'ph_hotpot24'], ['Moon', 'moon', 'ph_moon'], ['Lotus', 'lotus flower', 'ph_lotus19'], ['Night', 'night', 'ph_taxi'], ['Cake', 'cake', 'ph_bday26'], ['Kites', 'kite', 'ph_kites03'], ['Videos', 'video', 'ph_lotus19']].map(([t, k, key]) => {
+                h('div.ph-cats', [['Fish', 'fish', 'p_bluefin'], ['Food', 'food', 'p_liuli_dinner'], ['Night', 'night', 'p_zl_pier'], ['Snow', 'snow', 'p_siblings_snow'], ['Tea', 'tea', 'p_zl_teahouse'], ['Flowers', 'flower', 'p_glaze_lily'], ['Toys', 'toy', 'p_teucer_sirfang'], ['Videos', 'video', 'p_teucer_fish23']].map(([t, k, key]) => {
                   const r = searchPhotos(k);
                   const kp = JC.store.get('photos', key);
                   const cover = kp && !kp.deleted && !kp.hidden ? kp : r[r.length - 1];
@@ -855,7 +854,7 @@
             if (albums.length) out.push(h('div.ph-subhead', 'Albums'), h('div.ph-albums.hscroll', albums.map((a) => albumCard(a.id))));
             out.push(h('div.ph-subhead', res.length ? U.plural(res.length, 'Result') : 'No Results'));
             if (res.length) out.push(gridEl(res));
-            else out.push(h('div.ph-noresult', 'No results for “' + q + '”. Try searching for people, places, or things like “dog” or “hotpot”.'));
+            else out.push(h('div.ph-noresult', 'No results for “' + q + '”. Try searching for people, places, or things like “fish” or “tea”.'));
             return out;
           },
         }));
@@ -976,16 +975,16 @@
         ui.sheet({
           title: 'Account', detent: 'large', right: { text: 'Done' },
           content: () => [
-            h('div.ph-acct', ui.avatar('me', 76), h('div.ph-acct-n', 'Jiang Cheng'), h('div.ph-acct-e', 'jiang.cheng@lotuspier.yunmeng')),
+            h('div.ph-acct', ui.avatar('me', 76), h('div.ph-acct-n', 'Childe'), h('div.ph-acct-e', 'tartaglia@northland.sn')),
             ui.list([
               { rows: [
-                { icon: { glyph: 'cloud.fill', bg: 'var(--blue)' }, title: 'iCloud Photos', subtitle: 'Synced with iCloud Just Now', toggle: { on: true, onChange: (v) => { if (!v) { ui.alert({ title: 'Can’t Turn Off iCloud Photos', message: 'This iPhone is managed by Yunmeng Jiang Group. Contact your IT department. (Tang Mei.)', buttons: [{ text: 'OK' }] }); rerender(); } } } },
+                { icon: { glyph: 'cloud.fill', bg: 'var(--blue)' }, title: 'iCloud Photos', subtitle: 'Synced with iCloud Just Now', toggle: { on: true, onChange: (v) => { if (!v) { ui.alert({ title: 'Can’t Turn Off iCloud Photos', message: JC.world.device.mdm, buttons: [{ text: 'OK' }] }); rerender(); } } } },
                 { title: 'Optimize iPhone Storage', check: true, onTap: () => ui.toast('Optimizing storage') },
-                { title: 'iCloud Storage', detail: '46.2 GB of 200 GB', onTap: () => ui.alert({ title: 'iCloud+ 200 GB', message: 'Photos 41.7 GB · Backups 3.1 GB · Messages 1.4 GB\n\nShared with: nobody. (A-Ling has his own. He made a point of it.)', buttons: [{ text: 'OK' }] }) },
+                { title: 'iCloud Storage', detail: '46.2 GB of 200 GB', onTap: () => ui.alert({ title: 'iCloud+ 200 GB', message: 'Photos 41.7 GB · Backups 3.1 GB · Messages 1.4 GB\n\nShared with: nobody. (Ekaterina keeps asking.)', buttons: [{ text: 'OK' }] }) },
               ] },
               { header: 'Sharing', rows: [
                 { icon: { glyph: 'person.2.fill', bg: 'var(--orange)' }, title: 'Shared Library', detail: 'Off', chevron: true, onTap: () => ui.alert({ title: 'Shared Library', message: 'Jin Ling declined your Shared Library invitation. Twice. (“jiujiu i am NOT sharing my camera roll with u”)', buttons: [{ text: 'OK' }] }) },
-                { icon: { glyph: 'rectangle.stack', bg: 'var(--blue)' }, title: 'Shared Albums', detail: 'On', chevron: true, onTap: () => ui.alert({ title: 'Shared Albums', message: '“A-Ling’s 18th 🎂” — 0 photos. Lan Jingyi has been invited and has not posted anything yet. Thankfully.', buttons: [{ text: 'OK' }] }) },
+                { icon: { glyph: 'rectangle.stack', bg: 'var(--blue)' }, title: 'Shared Albums', detail: 'On', chevron: true, onTap: () => ui.alert({ title: 'Shared Albums', message: '“Семья 🐟” — 212 photos. Anthon has posted 140 of them. Most are memes.', buttons: [{ text: 'OK' }] }) },
               ] },
               { header: 'Privacy', rows: [
                 { title: 'Use Face ID', toggle: { on: true, onChange: () => ui.toast('Hidden and Recently Deleted albums are locked') } },
@@ -1236,7 +1235,7 @@
           });
         }
         function adjustLocation(p) {
-          const opts = ['Koi Tower, Lanling', 'Golden Peony Hotel, Lanling', 'Lanling', 'Lotus Pier, Yunmeng', 'Lotus Pier HQ, Yunmeng', 'Yunmeng Lake, Yunmeng', 'Cloud Recesses, Gusu', 'The Hanshi, Gusu', 'Laoma Hotpot (老妈火锅), Gusu', 'The Unclean Realm, Qinghe', 'Yiling Radish Co., Yiling'];
+          const opts = ['Pier 7, Liyue Harbor', 'Liuli Pavilion, Liyue Harbor', 'Northland Bank, Harbor Road, Liyue Harbor', 'Wangsheng Funeral Parlor, Feiyun Slope', 'Heyu Tea House, Liyue Harbor', 'Yujing Terrace, Liyue Harbor', 'Wanmin Restaurant, Chihu Rock', 'Guyun Stone Forest, Liyue', 'Qingce Village, Liyue', 'Morepesok, Snezhnaya'];
           const s = ui.sheet({
             title: 'Adjust Location', detent: 'large', left: { text: 'Cancel' },
             content: () => [ui.list([{ rows: opts.map((o2) => ({ icon: { node: h('div.ph-row-ic', JC.icon('ph.map.pin', { size: 20 })) }, title: o2, check: o2 === p.place, onTap: () => { JC.store.update('photos', p.id, { place: o2, city: K().cityOf({ place: o2 }) }); s.close(); } })) }, { rows: [{ title: 'No Location', destructive: true, onTap: () => { JC.store.update('photos', p.id, { place: '', city: null }); s.close(); } }] }])],
@@ -1258,7 +1257,7 @@
             '-',
             { text: 'Use as Wallpaper', icon: 'iphone', onTap: () => useAsWallpaper(p) },
             K().isEdited(p) ? { text: 'Revert to Original', icon: 'arrow.counterclockwise', onTap: () => { JC.store.update('photos', p.id, { edit: null }); ui.toast('Reverted to Original'); } } : null,
-            { text: 'Save to Files', icon: 'folder', onTap: () => ui.alert({ title: 'Files Unavailable', message: 'iCloud Drive is managed by Yunmeng Jiang Group IT. Ask Tang Mei.', buttons: [{ text: 'OK' }] }) },
+            { text: 'Save to Files', icon: 'folder', onTap: () => ui.alert({ title: 'Files Unavailable', message: JC.world.device.files, buttons: [{ text: 'OK' }] }) },
           ]);
         }
         function liveMenu(anchor) {
@@ -1444,28 +1443,20 @@
         } catch (e) { return null; }
       }
       const LOOKUP = {
-        p_fairy_roof: { kind: 'Dog', name: 'Newfoundland (possible mix)', text: 'Newfoundlands are giant working dogs known for their calm temperament and love of water. They are not known for their love of koi ponds. Possible mix: Tibetan Mastiff, “unknown, very large”.' },
-        av_fairy: { kind: 'Dog', name: 'Newfoundland (possible mix)', text: 'A giant, gentle breed with a thick black coat. Sheds enormously. Excellent swimmer.' },
-        wp_fairy: { kind: 'Dog', name: 'Newfoundland (possible mix)', text: 'A giant, gentle breed with a thick black coat. Sheds enormously. Excellent swimmer.' },
-        ph_fairy_puppy: { kind: 'Dog', name: 'Newfoundland puppy', text: 'Newfoundland puppies grow to 45–70 kg. Plan accordingly.' },
-        ph_fairy_bath: { kind: 'Dog', name: 'Newfoundland (wet)', text: 'Newfoundlands have water-resistant double coats. Most enjoy baths. Results may vary.' },
-        ph_fairy_office: { kind: 'Dog', name: 'Newfoundland', text: 'A giant, gentle breed. Often found asleep under desks.' },
-        p_dog_park: { kind: 'Dog', name: 'Golden Retriever', text: 'Friendly, intelligent and devoted. Golden Retrievers are among the most popular family dogs.' },
-        p_childhood_dogs: { kind: 'Dog', name: 'Mixed-breed puppies', text: 'Three puppies, approximately 8–10 weeks old.' },
-        p_puppies: { kind: 'Dog', name: 'Puppies', text: 'Shiba Inu, Border Collie and Golden Retriever puppies. Studies show puppy photos reduce stress in most people.' },
-        p_lotus_macro: { kind: 'Plant', name: 'Sacred Lotus (Nelumbo nucifera)', text: 'An aquatic perennial native to Asia. Its seeds can remain viable for centuries. Flowers open in the early morning.' },
-        p_lotus_pond_day: { kind: 'Plant', name: 'Sacred Lotus (Nelumbo nucifera)', text: 'Lotus blooms peak in July and August in the Yunmeng lake region.' },
-        p_gala_hall: { kind: 'Landmark', name: 'Koi Tower, Lanling', text: 'Headquarters of the Jin Group. Its forecourt koi pond is one of Lanling’s most photographed sights.' },
-        p_cloud_recesses: { kind: 'Landmark', name: 'Cloud Recesses, Gusu', text: 'Campus of Gusu Lan Academy, known for its mountain mist and a wall of three thousand rules.' },
-        p_rules_wall: { kind: 'Landmark', name: 'Wall of Rules, Cloud Recesses', text: 'Over 3,000 rules carved in stone. Rule 1,412: No running.' },
-        p_balcony_moon: { kind: 'Landmark', name: 'Lanling skyline', text: 'Viewed from Koi Tower’s east balcony.' },
-        p_hotpot_alumni: { kind: 'Food', name: 'Chongqing hotpot', text: 'Laoma Hotpot (老妈火锅), Gusu — a spicy beef-tallow broth with tripe, duck intestine and lotus root. Rated 4.6.' },
-        food_hotpot: { kind: 'Food', name: 'Hotpot', text: 'A simmering pot of broth shared at the table. This one: Laoma Hotpot (老妈火锅), Gusu.' },
-        p_lotus_root_soup: { kind: 'Food', name: 'Lotus root & pork rib soup', text: 'A Hubei classic, simmered for hours until the lotus root turns pink and the strands stretch when bitten.' },
-        p_ajie_soup: { kind: 'Food', name: 'Lotus root & pork rib soup', text: 'A Hubei classic, simmered for hours until the lotus root turns pink.' },
-        p_radishes: { kind: 'Plant', name: 'White radish (daikon)', text: 'A mild winter radish. These ones are unusually large.' },
-        p_flute: { kind: 'Art', name: 'Dizi (bamboo flute)', text: 'A traditional Chinese transverse flute. This one is black, with a red tassel.' },
-        p_silver_bell: { kind: 'Art', name: 'Silver bell, lotus motif', text: 'Hand-engraved silver with a nine-petal lotus. Likely a family heirloom.' },
+        p_bluefin: { kind: 'Animal', name: 'Atlantic bluefin tuna', text: 'One of the largest bony fish. This one weighs about 41 kg and, according to its caption, is named after a colleague.' },
+        p_catch_1: { kind: 'Animal', name: 'European sea bass', text: 'A prized coastal fish, most active at dawn and dusk around piers and breakwaters.' },
+        p_catch_2: { kind: 'Animal', name: 'Anglerfish (possibly)', text: 'A deep-sea predator with a bioluminescent lure. Not usually found near piers. Unsettling.' },
+        p_glaze_lily: { kind: 'Plant', name: 'Glaze Lily', text: 'A pale blue-white flower native to Liyue. Said to bloom more brightly when someone sings to it. Associated with an old goddess, Guizhong.' },
+        p_cranes_yujing: { kind: 'Animal', name: 'Red-crowned crane', text: 'A symbol of longevity in Liyue. Groups gather at Yujing Terrace in autumn.' },
+        p_jade_chamber: { kind: 'Landmark', name: 'The Jade Chamber', text: 'Residence and office of the Tianquan of the Liyue Qixing, high above the harbor.' },
+        p_golden_house: { kind: 'Landmark', name: 'The Golden House', text: 'Liyue’s historic mint and vault. Closed to the public.' },
+        p_wangsheng_door: { kind: 'Landmark', name: 'Wangsheng Funeral Parlor', text: 'A funeral parlor on Feiyun Slope, run by the same family for 77 generations.' },
+        p_harbor_day: { kind: 'Landmark', name: 'Liyue Harbor', text: 'The busiest port in Teyvat, founded — according to legend — by Rex Lapis himself.' },
+        p_teaset: { kind: 'Art', name: 'Celadon tea set', text: 'Pale green glaze with fine crackle. Pieces from the Guizhong era are extremely rare.' },
+        p_mama_pelmeni: { kind: 'Food', name: 'Pelmeni', text: 'Snezhnayan dumplings, usually pork and beef, served with sour cream and dill.' },
+        food_hotpot: { kind: 'Food', name: 'Hotpot', text: 'A simmering pot of spicy broth shared at the table. This one: Wanmin Restaurant, Chihu Rock.' },
+        p_hotpot_crew: { kind: 'Food', name: 'Hotpot', text: 'Wanmin Restaurant, Chihu Rock — Chef Xiangling’s chili broth. Rated 4.9.' },
+        p_zl_birds: { kind: 'Animal', name: 'Liyue thrush', text: 'A small songbird common in the hills around the harbor. Known to visit birdcages it does not live in.' },
       };
       function lookUp(p, look) {
         ui.sheet({

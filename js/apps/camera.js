@@ -41,7 +41,7 @@
     },
   });
   JC.art.def('cam_morning', {
-    title: 'Morning over Lanling rooftops', w: 1200, h: 900, tags: ['morning', 'window', 'city'],
+    title: 'Morning over Liyue rooftops', w: 1200, h: 900, tags: ['morning', 'window', 'city'],
     svg: (w, hh) => {
       let blds = '';
       const xs = [0, 90, 170, 260, 330, 430, 520, 600, 700, 790, 880, 980, 1070, 1150];
@@ -105,10 +105,9 @@
     const now = JC.time.date();
     const hr = now.getHours(), mn = now.getMinutes();
     const mins = hr * 60 + mn;
-    if (front) return { art: 'cam_selfie_dark', place: mins >= 360 && mins < 1200 ? 'Jinxing Road, Lanling' : 'Lanling', dark: !(mins >= 400 && mins < 1080), fx: mins >= 400 && mins < 1080 ? 'brightness(1.5) contrast(.95)' : '' };
-    if (mins >= 360 && mins < 1080) return { art: 'cam_morning', place: 'Jinxing Road, Lanling', dark: false };
-    if (mins >= 23 * 60 + 25 || mins < 15) return { art: 'p_taxi_night', place: 'Lanling', dark: true, taxi: true };
-    return { art: 'p_moon_street', place: 'Jinxing Road, Lanling', dark: true, rain: true };
+    if (front) return { art: 'cam_selfie_dark', place: 'Liyue Harbor', dark: !(mins >= 400 && mins < 1080), fx: mins >= 400 && mins < 1080 ? 'brightness(1.5) contrast(.95)' : '' };
+    if (mins >= 360 && mins < 1080) return { art: 'cam_morning', place: 'Chihu Rock, Liyue Harbor', dark: false };
+    return { art: 'p_pier7_rod', place: 'Pier 7, Liyue Harbor', dark: true, fx: 'brightness(.55) contrast(1.1) saturate(.8)' };
   }
 
   const NOISE = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="180" height="180"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="1.15" numOctaves="2" stitchTiles="stitch"/><feColorMatrix values="0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1.1 -0.2"/></filter><rect width="100%" height="100%" filter="url(#n)"/></svg>');
@@ -434,7 +433,7 @@
             kind: st.live && st.mode === 'PHOTO' ? 'live' : 'photo',
             mode: st.front ? 'selfie' : st.mode === 'PORTRAIT' ? 'portrait' : undefined,
             src: st.front ? 'ip17f' : st.zoom === 0.5 ? 'ip17uw' : st.zoom === 5 ? 'ip17t' : 'ip17',
-            place: sc.place, city: 'lanling', albums: [], people: [], caption: '',
+            place: sc.place, city: 'liyue', albums: [], people: [], caption: '',
           });
           afterSave(item);
         };
@@ -467,7 +466,7 @@
         if (!st.rec) return;
         JC.audio.play('shutter');
         U.anim(blink, [{ opacity: 0, background: '#000' }, { opacity: 0.8, background: '#000', offset: 0.3 }, { opacity: 0, background: '#000' }], { duration: 150, fill: 'none' });
-        const item = PK().add({ art: sc.art, t: JC.time.now(), crop: crop(), fx: lookFx() || undefined, kind: 'photo', src: 'ip17', place: sc.place, city: 'lanling' });
+        const item = PK().add({ art: sc.art, t: JC.time.now(), crop: crop(), fx: lookFx() || undefined, kind: 'photo', src: 'ip17', place: sc.place, city: 'liyue' });
         afterSave(item);
       }
       function startRec() {
@@ -501,7 +500,7 @@
         modeWrap.classList.remove('dim');
         const modeKey = { 'TIME-LAPSE': 'timelapse', 'SLO-MO': 'slomo', CINEMATIC: 'cinematic', VIDEO: undefined }[r.mode];
         const dur = r.mode === 'TIME-LAPSE' ? Math.max(1, Math.round(sec / 8)) : sec;
-        const item = PK().add({ art: r.art, t: JC.time.now(), added: JC.time.now(), crop: r.crop, fx: r.fx || undefined, kind: 'video', dur, mode: r.front ? 'selfie' : modeKey, src: r.front ? 'ip17f' : 'ip17', place: r.place, city: 'lanling' });
+        const item = PK().add({ art: r.art, t: JC.time.now(), added: JC.time.now(), crop: r.crop, fx: r.fx || undefined, kind: 'video', dur, mode: r.front ? 'selfie' : modeKey, src: r.front ? 'ip17f' : 'ip17', place: r.place, city: 'liyue' });
         paintShutter();
         afterSave(item);
       }
@@ -539,7 +538,7 @@
         paintShutter();
         if (done < 8) return;
         const w = Math.max(0.3, done / 100);
-        const item = PK().add({ art: sc.art, t: JC.time.now(), added: JC.time.now(), crop: { x: 0, y: 0.33, w, h: 0.34 * Math.max(0.6, w) }, fx: lookFx() || undefined, kind: 'photo', mode: 'pano', src: 'ip17', place: sc.place, city: 'lanling' });
+        const item = PK().add({ art: sc.art, t: JC.time.now(), added: JC.time.now(), crop: { x: 0, y: 0.33, w, h: 0.34 * Math.max(0.6, w) }, fx: lookFx() || undefined, kind: 'photo', mode: 'pano', src: 'ip17', place: sc.place, city: 'liyue' });
         afterSave(item);
       }
       function openLast() {

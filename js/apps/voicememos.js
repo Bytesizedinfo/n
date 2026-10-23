@@ -1,38 +1,47 @@
 /* Voice Memos — iOS 18 Voice Memos: folders (All Recordings / Favorites / Recently Deleted), expanding rows with
    waveform, scrubber, ±15 s, synthesized playback with a progressive transcript, more menu (rename, trim, share,
    duplicate, favorite, delete) and a live recorder with a Dynamic Island activity.
-   "Untitled 14" (memo14) is Jiang Cheng's never-sent thank-you. Facts: docs/STORY.md. Acts: memo_play, memo_delete. */
+   Story memos: "for xiansheng (don't send)" (memo_xiansheng), "lullaby for Teucer" (memo_lullaby) and
+   "New Recording 31" (memo31, Ekaterina's warning, saved by accident at 23:21). Facts: docs/STORY.md.
+   Acts: memo_play, memo_share (via the share sheet / JC.story.send), memo_delete. */
 (function () {
   'use strict';
   const JC = window.JC;
   const { h } = JC;
   const U = JC.util;
 
-  const MEMO14 = "Wei Wuxian. …I know. About the— I know what you did. Wen Ning told me. Tonight. Why didn't you— Tch. You idiot. You absolute… (long pause) Thank you. That's all. Thank you. Don't make it a thing. …Delete this. I'm not sending this.";
-  const JIUJIU = [
-    { who: 'me', text: 'A-Ling. Look here. Look at jiujiu. Say it. Jiu-jiu.' },
-    { who: 'baby', text: 'ba!' },
-    { who: 'me', text: 'Not ba. Jiu-jiu.' },
-    { who: 'baby', text: '…jiu?' },
-    { who: 'me', text: 'Jiujiu.' },
-    { who: 'baby', text: 'JIUJIU! jiujiu!' },
-    { who: 'me', text: '(laughs) …A-Jie. He said it. You were right. He said it.' },
+  const XIANSHENG = "Xiansheng. Okay. Hi. It's me. I'm a little drunk, so this is— this is a practice one. I'm not sending it. …You never carry money, did you know that? Of course you know. You do it on purpose. And I keep paying, because then you keep coming to dinner. That's— that's the trade. I'd pay for every dinner for the rest of my life. That's the stupidest sentence I've ever said. …I like you. Not like a client. Not like a— I like you. Okay. Delete. Don't send this. Ajax, do not send this.";
+  const MEMO31 = [
+    { who: 'ekat', text: 'Sir? Sir, are you there— it\'s Ekaterina. I\'m in the archive room, I can\'t talk long.' },
+    { who: 'me', text: '(wind) …Ekaterina? Slow down.' },
+    { who: 'ekat', text: 'Lady Signora rewrote the Osial file tonight. Revision four. Your name is the only signature on it now. The countersignature is gone.' },
+    { who: 'me', text: '…She can\'t do that.' },
+    { who: 'ekat', text: 'She did. And two of the Mirror Maiden\'s people left the branch twenty minutes ago asking where you fish. Sir, please. Don\'t go home.' },
+    { who: 'me', text: '(long pause) Delete your call log. Go home, Ekaterina. Thank you.' },
+  ];
+  const LULLABY = "(soft humming) …Sleep now, little fish, the sea is asleep, the boats are all home and the nets are all deep. Papa's at the window, the snow's on the pier, and your brother is coming, your brother is near. …Goodnight, Teucer. Sir Fang is on watch. Sleep.";
+  const TEUCER_FISH = [
+    { who: 'teucer', text: 'BROTHER IT\'S PULLING IT\'S PULLING—' },
+    { who: 'me', text: 'Hold it, hold it! Reel slow, Teucer, slow!' },
+    { who: 'teucer', text: 'I\'M REELING SLOW!!' },
+    { who: 'me', text: '(laughing) Look at that! Your first fish!' },
+    { who: 'teucer', text: 'IT\'S SO SMALL. I LOVE HIM. His name is Ajax Two.' },
   ];
 
   JC.store.seed('memos', [
-    { id: 'memo_speech', title: 'Gala — toast (do not give)', t: '-1 23:10', dur: 48, place: 'Golden Peony Hotel', fav: false,
-      text: "Thank you for coming. The Jin Group— (sigh) A-Ling is turning eighteen. He's… he's better than all of us. He took a stupid dog and a stupid uncle and a stupid name and he— (pause) That's the speech. …Too short. Fine. I'm not giving it." },
-    { id: 'memo_hanshi', title: 'Hanshi — directions', t: '-2 22:58', dur: 41, place: 'Lotus Pier Residence', fav: false,
-      text: "Gusu. Two hours by train. Cloud Recesses, east gate. Past the wall of rules, left at the bamboo. The tea house with the white peony bush. …Three o'clock. (pause) Not going. Just in case." },
-    { id: 'memo_board', title: 'Board talking points', t: '-4 05:40', dur: 134, place: 'Lotus Pier Residence', fav: false,
-      text: "Q4. One: shipping volume up eleven percent — don't let them talk over that. Two: the Lanling cold chain. Jin Group signs Monday or we walk. Three: slide seven. Slide seven is wrong. …Tang Mei says it's fine. It's not fine. Four: soup week. Why is soup week on the board agenda. (pause) Keep soup week. Morale. Five: Dog Friday. …No. (pause) Maybe. Don't write that down." },
-    { id: 'memo_sandu', title: 'Sandu — rattle, left rear', t: '-12 08:15', dur: 22, place: 'Lotus Pier Residence', fav: false,
-      text: "(engine) Hear that? That rattle. Left rear. Tell the mechanic it's the left rear, not the right. …I'm talking to my phone. Fine." },
-    { id: 'memo14', title: 'Untitled 14', t: '2024-06-21 23:48', dur: 72, place: 'Guanyin Temple Rd', fav: false, text: MEMO14, ambient: 'wind' },
-    { id: 'memo13', title: 'Untitled 13', t: '2024-06-21 23:41', dur: 6, place: 'Guanyin Temple Rd', fav: false, text: 'Wei Wu— …No.', ambient: 'wind' },
-    { id: 'memo_rain', title: 'Lotus Pier — rain on the lake', t: '2023-07-09 05:12', dur: 185, place: 'Lotus Pier', fav: false, text: '', ambient: 'rain' },
-    { id: 'memo_jiujiu', title: "A-Ling — 'jiujiu' (2010)", t: '2010-03-14 18:20', dur: 38, place: 'Lotus Pier', fav: true,
-      text: JIUJIU.map((p) => p.text).join(' '), parts: JIUJIU },
+    { id: 'memo31', title: 'New Recording 31', t: '+0 23:21', dur: 42, place: 'Pier 7, Liyue Harbor', fav: false,
+      text: MEMO31.map((p) => p.text).join(' '), parts: MEMO31, ambient: 'wind' },
+    { id: 'memo_spots', title: 'fishing spots', t: '-6 05:12', dur: 31, place: 'Pier 7, Liyue Harbor', fav: false,
+      text: "Pier 7 at slack tide, east side, under the third lamp. Guyun outer pillars — bluefin in autumn, don't tell Beidou. The rocks below Wangshu if the wind's from the north. Chihu Rock is for tourists. (pause) Xiansheng says the best fishing spot is \"wherever the conversation is good\". He has never caught a fish in his life." },
+    { id: 'memo_xiansheng', title: "for xiansheng (don't send)", t: '-12 23:58', dur: 108, place: 'Liuli Pavilion', fav: false, text: XIANSHENG, ambient: 'room' },
+    { id: 'memo_speech', title: 'gala — liyue customs (from xiansheng)', t: '2026-04-11 14:20', dur: 64, place: 'Northland Bank, Liyue Branch', fav: false,
+      text: "Okay, so. Don't point with chopsticks. Don't give clocks as gifts — xiansheng says it means something about funerals, which, ironic. Pour tea for others first. Tap two fingers when someone pours for you. (pause) He talked for forty minutes about the history of the tea-tapping thing. I didn't hear any of it. I was— it was a good forty minutes." },
+    { id: 'memo_lullaby', title: 'lullaby for Teucer', t: '2026-09-02 21:40', dur: 130, place: 'Pier View Residences', fav: true, text: LULLABY, ambient: 'room' },
+    { id: 'memo_teucer_fish', title: 'Teucer — first fish (2023)', t: '2023-07-22 06:10', dur: 58, place: 'Morepesok', fav: true,
+      text: TEUCER_FISH.map((p) => p.text).join(' '), parts: TEUCER_FISH, ambient: 'wind' },
+    { id: 'memo_sea', title: 'Morepesok — ice on the sea', t: '2025-12-30 04:50', dur: 172, place: 'Morepesok', fav: false, text: '', ambient: 'wind' },
+    { id: 'memo_rematch', title: 'rematch notes', t: '-20 01:05', dur: 27, place: 'The Alcor, Crux Pier', fav: false,
+      text: "Beidou drops her left shoulder before the overhead swing. Every time. (laughs) I still lost. Next time, stay inside her reach. Next time, don't laugh mid-fight." },
   ]);
 
   JC.icon.add({
@@ -107,7 +116,7 @@
     JC.os.island.stop('voicememo');
     rec.listeners.forEach((fn) => fn());
     if (!save) return null;
-    const m = JC.store.add('memos', { title: rec.name, t: JC.time.now(), dur, place: 'Jinxing Rd', fav: false, text: '', ambient: 'room', mine: true }, { front: true });
+    const m = JC.store.add('memos', { title: rec.name, t: JC.time.now(), dur, place: 'Liyue Harbor', fav: false, text: '', ambient: 'room', mine: true }, { front: true });
     JC.ui.toast('Saved “' + m.title + '”', { icon: 'waveform' });
     return m;
   }

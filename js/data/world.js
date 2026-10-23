@@ -110,45 +110,45 @@
     acts: [
       // Harbor Ride
       { id: 'clue_shared_ride', act: 'ride_view', match: (p) => idOf(p) === 'ride_1016_2258', fx: { set: { clue_shared_ride: true } } },
-      { id: 'ride_kids', act: 'ride_book', match: (p) => p.to === 'airport', fx: { set: { ride_kids: true } } },
+      { id: 'ride_kids', arc: 'fam', act: 'ride_book', match: (p) => p.to === 'airport', fx: { set: { ride_kids: true } } },
       { id: 'reported_lost', act: 'ride_report_lost', fx: { set: { reported_lost: true } } },
       // Northland Bank / Mail: Osial money trail and the kids' trip
-      { id: 'saw_wire', act: 'statement_view', match: (p) => idOf(p) === 'osial', fx: { set: { saw_wire: true } } },
-      { id: 'saw_travel', act: ['statement_view', 'mail_open'], match: (p) => idOf(p) === 'travel' || idOf(p) === 'mail_travel', fx: { set: { saw_travel: true } } },
-      { id: 'saw_protocol_pdf', act: 'attach_open', match: (p) => /osial/i.test(p.name || ''), fx: { set: { saw_protocol: true } } },
-      { id: 'saw_protocol_web', act: 'visit', match: (p) => /intranet\.northland\.sn\/.*osial/i.test(p.url || ''), fx: { set: { saw_protocol: true } } },
+      { id: 'saw_wire', arc: 'osial', act: 'statement_view', match: (p) => idOf(p) === 'osial', fx: { set: { saw_wire: true } } },
+      { id: 'saw_travel', arc: 'osial', act: ['statement_view', 'mail_open'], match: (p) => idOf(p) === 'travel' || idOf(p) === 'mail_travel', fx: { set: { saw_travel: true } } },
+      { id: 'saw_protocol_pdf', arc: 'osial', act: 'attach_open', match: (p) => /osial/i.test(p.name || ''), fx: { set: { saw_protocol: true } } },
+      { id: 'saw_protocol_web', arc: 'osial', act: 'visit', match: (p) => /intranet\.northland\.sn\/.*osial/i.test(p.url || ''), fx: { set: { saw_protocol: true } } },
       { id: 'clue_invoice', act: 'mail_open', match: (p) => idOf(p) === 'mail_invoice', fx: (p, s) => ({ set: Object.assign({ clue_invoice: true }, has(s, 'clue_archive') ? { knows_morax: true } : {}) }) },
       // Safari: the 1926 archive photo
       { id: 'clue_archive', act: 'visit', match: (p) => /archives\.ly\/.*1926/i.test(p.url || ''), fx: (p, s) => ({ set: Object.assign({ clue_archive: true }, has(s, 'clue_inscription') || has(s, 'clue_invoice') ? { knows_morax: true } : {}) }) },
       // Feiyun Market
-      { id: 'bought_teaset', act: ['purchase', 'auction_won'], match: (p) => idOf(p) === 'lot_teaset', fx: { set: { bought_teaset: true } } },
-      { id: 'teaset_lost', act: 'auction_lost', match: (p) => idOf(p) === 'lot_teaset', fx: { set: { teaset_lost: true } } },
-      { id: 'clue_inscription', act: 'item_view', match: (p, s) => idOf(p) === 'lot_teaset' && has(s, 'bought_teaset'), fx: (p, s) => ({ set: Object.assign({ clue_inscription: true }, has(s, 'clue_archive') ? { knows_morax: true } : {}) }) },
-      { id: 'lilies_sent', act: 'purchase', match: (p) => idOf(p) === 'lilies_wangsheng', fx: { set: { lilies_sent: true } } },
-      { id: 'gift_teucer', act: 'purchase', match: (p) => /^toy_/.test(idOf(p)), fx: { set: { gift_teucer: true } } },
-      { id: 'gift_tonia', act: 'purchase', match: (p) => idOf(p) === 'pen_tonia', fx: { set: { gift_tonia: true } } },
+      { id: 'bought_teaset', arc: 'zl', act: ['purchase', 'auction_won'], match: (p) => idOf(p) === 'lot_teaset', fx: { set: { bought_teaset: true } } },
+      { id: 'teaset_lost', arc: 'zl', act: 'auction_lost', match: (p) => idOf(p) === 'lot_teaset', fx: { set: { teaset_lost: true } } },
+      { id: 'clue_inscription', arc: 'zl', act: 'item_view', match: (p, s) => idOf(p) === 'lot_teaset' && has(s, 'bought_teaset'), fx: (p, s) => ({ set: Object.assign({ clue_inscription: true }, has(s, 'clue_archive') ? { knows_morax: true } : {}) }) },
+      { id: 'lilies_sent', arc: 'zl', act: 'purchase', match: (p) => idOf(p) === 'lilies_wangsheng', fx: { set: { lilies_sent: true } } },
+      { id: 'gift_teucer', arc: 'fam', act: 'purchase', match: (p) => /^toy_/.test(idOf(p)), fx: { set: { gift_teucer: true } } },
+      { id: 'gift_tonia', arc: 'fam', act: 'purchase', match: (p) => idOf(p) === 'pen_tonia', fx: { set: { gift_tonia: true } } },
       // Wanmin Go: Paimon's appetite is everyone's problem
-      { id: 'paimon_fed', act: 'order', match: (p) => p.to === 'paimon' || p.for === 'paimon', fx: (p) => ({ inc: { paimon_fed: 1, paimon_total: Math.round(p.total || 0) } }) },
+      { id: 'paimon_fed', arc: 'friends', act: 'order', match: (p) => p.to === 'paimon' || p.for === 'paimon', fx: (p) => ({ inc: { paimon_fed: 1, paimon_total: Math.round(p.total || 0) } }) },
       // Voice Memos
-      { id: 'memo31_heard', act: 'memo_play', match: (p) => idOf(p) === 'memo31', fx: { set: { memo31_heard: true } } },
-      { id: 'memo_zl_heard', act: 'memo_play', match: (p) => idOf(p) === 'memo_xiansheng', fx: { set: { memo_zl_heard: true } } },
-      { id: 'memo_zl_sent', act: 'memo_share', match: (p) => idOf(p) === 'memo_xiansheng' && hasMember(p.to, 'zl'), fx: { set: { memo_zl_sent: true, memo_zl_heard: true } } },
-      { id: 'lullaby_sent', act: 'memo_share', match: (p) => idOf(p) === 'memo_lullaby' && hasMember(p.to, 'teucer'), fx: { set: { lullaby_sent: true } } },
-      { id: 'memo31_yelan', act: 'memo_share', match: (p) => idOf(p) === 'memo31' && hasMember(p.to, 'yelan'), fx: { set: { memo31_to_yelan: true, memo31_heard: true } } },
+      { id: 'memo31_heard', arc: 'osial', act: 'memo_play', match: (p) => idOf(p) === 'memo31', fx: { set: { memo31_heard: true } } },
+      { id: 'memo_zl_heard', arc: 'zl', act: 'memo_play', match: (p) => idOf(p) === 'memo_xiansheng', fx: { set: { memo_zl_heard: true } } },
+      { id: 'memo_zl_sent', arc: 'zl', act: 'memo_share', match: (p) => idOf(p) === 'memo_xiansheng' && hasMember(p.to, 'zl'), fx: { set: { memo_zl_sent: true, memo_zl_heard: true } } },
+      { id: 'lullaby_sent', arc: 'fam', act: 'memo_share', match: (p) => idOf(p) === 'memo_lullaby' && hasMember(p.to, 'teucer'), fx: { set: { lullaby_sent: true } } },
+      { id: 'memo31_yelan', arc: 'osial', act: 'memo_share', match: (p) => idOf(p) === 'memo31' && hasMember(p.to, 'yelan'), fx: { set: { memo31_to_yelan: true, memo31_heard: true } } },
       // Find My
-      { id: 'knows_hideout', act: 'findmy_sound', match: (p) => idOf(p) === 'airpods', fx: { set: { knows_hideout: true } } },
-      { id: 'clue_unit3', act: 'findmy_view', match: (p) => idOf(p) === 'unit3', fx: { set: { clue_unit3: true } } },
+      { id: 'knows_hideout', arc: 'friends', act: 'findmy_sound', match: (p) => idOf(p) === 'airpods', fx: { set: { knows_hideout: true } } },
+      { id: 'clue_unit3', arc: 'osial', act: 'findmy_view', match: (p) => idOf(p) === 'unit3', fx: { set: { clue_unit3: true } } },
       // Photos
       { id: 'clue_bluefin', act: 'photo_view', match: (p) => idOf(p) === 'p_bluefin', fx: { set: { clue_bluefin: true } } },
-      { id: 'clue_abyss', act: 'photo_view', match: (p) => idOf(p) === 'p_abyss_map', fx: { set: { clue_abyss: true } } },
+      { id: 'clue_abyss', arc: 'friends', act: 'photo_view', match: (p) => idOf(p) === 'p_abyss_map', fx: { set: { clue_abyss: true } } },
       // Notes
-      { id: 'code_seen', act: ['note_unlock', 'note_open'], match: (p) => idOf(p) === 'n_osial', fx: { set: { code_seen: true } } },
-      { id: 'ledger_read', act: ['note_unlock', 'note_open'], match: (p) => idOf(p) === 'n_ledger', fx: { set: { ledger_read: true } } },
-      { id: 'clue_intranet', act: 'note_open', match: (p) => idOf(p) === 'n_logins', fx: { set: { clue_intranet: true } } },
+      { id: 'code_seen', arc: 'osial', act: ['note_unlock', 'note_open'], match: (p) => idOf(p) === 'n_osial', fx: { set: { code_seen: true } } },
+      { id: 'ledger_read', arc: 'zl', act: ['note_unlock', 'note_open'], match: (p) => idOf(p) === 'n_ledger', fx: { set: { ledger_read: true } } },
+      { id: 'clue_intranet', arc: 'osial', act: 'note_open', match: (p) => idOf(p) === 'n_logins', fx: { set: { clue_intranet: true } } },
       // Calendar
-      { id: 'dottore_cancelled', act: 'event_delete', match: (p) => idOf(p) === 'ev_dottore', fx: { set: { dottore_cancelled: true } } },
+      { id: 'dottore_cancelled', arc: 'fam', act: 'event_delete', match: (p) => idOf(p) === 'ev_dottore', fx: { set: { dottore_cancelled: true } } },
       // Reel Rush — beating Teucer is in character
-      { id: 'beat_teucer', act: 'game_score', match: (p) => p.score > 2047, fx: { set: { beat_teucer: true } } },
+      { id: 'beat_teucer', arc: 'fam', act: 'game_score', match: (p) => p.score > 2047, fx: { set: { beat_teucer: true } } },
       // Settings
       { id: 'changed_passcode', act: 'setting', match: (p) => p.key === 'passcode', fx: { set: { changed_passcode: true } } },
     ],

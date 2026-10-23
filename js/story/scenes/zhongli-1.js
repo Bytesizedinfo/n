@@ -1424,4 +1424,51 @@
       ],
     },
   });
+
+  // The player confesses to Zhongli (typed, or on a call). Never an ending: on Friday he already half knows; from
+  // Saturday it leads straight into the contract.
+  scene({
+    id: 'confess_zl',
+    trigger: { on: 'manual' },
+    nodes: {
+      start: [
+        { if: (s) => !!F(s).zl_contract, go: 'signed' },
+        { if: (s) => !!F(s).zl_admitted, go: 'again' },
+        { if: (s) => !!F(s).zl_guarded, go: 'guarded' },
+        { if: (s) => past(s, '+1 06:00'), go: 'saturday' },
+        { go: 'friday' },
+      ],
+      friday: [
+        { fx: { set: { zl_admitted: true, told_truth: true }, aff: { zl: 1 } } },
+        { typing: 4 },
+        { wait: 2 },
+        ...M(
+          { m: 'I suspected.', d: 1.8 },
+          'Not because of anything you wrote, exactly. Because of everything you did not. He has never once let me thank him for dinner without telling me the exact total.',
+          'Thank you for telling me. It is late, and you are holding something that belongs to a man who is having a very difficult night.',
+          'Please do not do anything foolish with it before morning. We will speak then, properly.',
+        ),
+      ],
+      saturday: [
+        { fx: { set: { zl_admitted: true, told_truth: true }, aff: { zl: 1 } } },
+        { typing: 3 },
+        ...M(
+          'I know.',
+          'I have known since a little after one o’clock this morning, when I stood in a funeral parlor and watched him wring the sea out of his sleeve.',
+          'Thank you for saying it yourself. It makes the next part easier.',
+        ),
+        cancel('zl_knows'),
+        { start: 'zl_contract' },
+      ],
+      again: M('I know. You have told me already. It is all right: I find people often need to say a true thing twice before they believe they have said it.'),
+      signed: M('I know. We have a contract, you and I. You do not need to keep confessing; you only need to keep it.'),
+      guarded: [
+        ...M(
+          'I know.',
+          'You refused my contract this morning. I have not forgotten. But I am glad you said it plainly now.',
+        ),
+        { fx: { aff: { zl: 1 } } },
+      ],
+    },
+  });
 })();

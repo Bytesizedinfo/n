@@ -11,64 +11,47 @@
 
   // ══ Seeds ════════════════════════════════════════════════════════
   JC.store.seed('calls', () => [
-    { id: 'c_wwx_3', contact: 'wwx', num: num('wwx'), t: P('+0 23:12') + 52e3, dir: 'missed', dur: 0, seen: false },
-    { id: 'c_wwx_2', contact: 'wwx', num: num('wwx'), t: P('+0 23:12') + 31e3, dir: 'missed', dur: 0, seen: false },
-    { id: 'c_wwx_1', contact: 'wwx', num: num('wwx'), t: P('+0 23:12') + 4e3, dir: 'missed', dur: 0, seen: false },
-    { id: 'c_jl_miss', contact: 'jl', num: num('jl'), t: P('+0 23:05'), dir: 'missed', dur: 0, seen: false },
-    { id: 'c_hq_0', contact: 'hq', num: num('hq'), t: P('+0 18:20'), dir: 'out', dur: 192 },
-    { id: 'c_huang_0', contact: 'huang', num: num('huang'), t: P('+0 10:15'), dir: 'in', dur: 108 },
-    { id: 'c_ea_0', contact: 'ea', num: num('ea'), t: P('+0 09:02'), dir: 'in', dur: 250 },
-    { id: 'c_school', contact: null, num: '+86 555 0418 6600', name: 'Lanling International School', label: 'office', t: P('-1 17:31'), dir: 'in', dur: 125 },
-    { id: 'c_jl_1', contact: 'jl', num: num('jl'), t: P('-1 15:52'), dir: 'out', dur: 41 },
-    { id: 'c_huang_1', contact: 'huang', num: num('huang'), t: P('-1 12:10'), dir: 'out', dur: 65 },
-    { id: 'c_ea_1', contact: 'ea', num: num('ea'), t: P('-1 09:05'), dir: 'in', dur: 150 },
-    { id: 'c_lxc_41', contact: 'lxc', num: num('lxc'), t: P('-2 22:05'), dir: 'out', dur: 2466 },
-    { id: 'c_wwx_w', contact: 'wwx', num: num('wwx'), t: P('-2 20:52'), dir: 'missed', dur: 0, seen: true },
-    { id: 'c_ea_2', contact: 'ea', num: num('ea'), t: P('-2 10:05'), dir: 'in', dur: 72 },
-    { id: 'c_jl_ft', contact: 'jl', num: num('jl'), t: P('-3 18:30'), dir: 'in', dur: 724, video: true },
-    { id: 'c_nhs', contact: 'nhs', num: num('nhs'), t: P('-3 11:33'), dir: 'out', dur: 0 },
-    { id: 'c_qr', contact: 'qr', num: num('qr'), t: P('-3 08:04'), dir: 'missed', dur: 0, seen: true },
-    { id: 'c_huang_m', contact: 'huang', num: num('huang'), t: P('-4 12:40'), dir: 'missed', dur: 0, seen: true },
-    { id: 'c_ea_4', contact: 'ea', num: num('ea'), t: P('-4 08:20'), dir: 'out', dur: 405 },
-    { id: 'c_wwx_ft', contact: 'wwx', num: num('wwx'), t: P('-5 22:10'), dir: 'missed', dur: 0, video: true, seen: true },
-    { id: 'c_huang_5', contact: 'huang', num: num('huang'), t: P('-5 19:35'), dir: 'in', dur: 182 },
-    { id: 'c_mian', contact: 'mian', num: num('mian'), t: P('-5 16:00'), dir: 'out', dur: 860, ft: true },
-    { id: 'c_jl_ft2', contact: 'jl', num: num('jl'), t: P('-6 20:00'), dir: 'out', dur: 492, video: true },
-    { id: 'c_liu_6', contact: 'liu', num: num('liu'), t: P('-6 11:10'), dir: 'in', dur: 220 },
-    { id: 'c_hq_7', contact: 'hq', num: num('hq'), t: P('-7 09:30'), dir: 'out', dur: 80 },
-    { id: 'c_liu_9', contact: 'liu', num: num('liu'), t: P('-9 09:40'), dir: 'in', dur: 120 },
-    { id: 'c_lxc_oct4', contact: 'lxc', num: num('lxc'), t: P('2026-10-04 21:30'), dir: 'in', dur: 1427 },
-    { id: 'c_lxc_sep27', contact: 'lxc', num: num('lxc'), t: P('2026-09-27 21:05'), dir: 'out', dur: 751 },
+    { id: 'c_paimon_miss', contact: 'paimon', num: num('paimon'), t: P('+0 23:46'), dir: 'missed', dur: 0, seen: false },
+    { id: 'c_tonia_miss', contact: 'tonia', num: num('tonia'), t: P('+0 23:30'), dir: 'missed', dur: 0, seen: false },
+    { id: 'c_ekat_warn', contact: 'ekat', num: num('ekat'), t: P('+0 23:21'), dir: 'in', dur: 124 },
+    { id: 'c_liuli', contact: null, num: '(0761) 555 0410', name: 'Liuli Pavilion', label: 'reservations', t: P('+0 12:10'), dir: 'out', dur: 95 },
+    { id: 'c_ekat_0', contact: 'ekat', num: num('ekat'), t: P('+0 09:04'), dir: 'in', dur: 212 },
+    { id: 'c_teucer_ft', contact: 'teucer', num: num('teucer'), t: P('-1 18:30'), dir: 'in', dur: 1310, video: true },
+    { id: 'c_zl_41', contact: 'zl', num: num('zl'), t: P('-1 22:05'), dir: 'out', dur: 2466 },
+    { id: 'c_signora_m', contact: 'signora', num: num('signora'), t: P('-1 16:48'), dir: 'missed', dur: 0, seen: true },
+    { id: 'c_mama_1', contact: 'mama', num: num('mama'), t: P('-2 20:00'), dir: 'out', dur: 1880 },
+    { id: 'c_ht_1', contact: 'ht', num: num('ht'), t: P('-2 13:22'), dir: 'in', dur: 64 },
+    { id: 'c_lumine_1', contact: 'lumine', num: num('lumine'), t: P('-3 19:12'), dir: 'out', dur: 210 },
+    { id: 'c_beidou_m', contact: 'beidou', num: num('beidou'), t: P('-3 01:40'), dir: 'missed', dur: 0, seen: true },
+    { id: 'c_pulci_1', contact: 'pulci', num: num('pulci'), t: P('-2 10:15'), dir: 'in', dur: 340 },
+    { id: 'c_ekat_3', contact: 'ekat', num: num('ekat'), t: P('-3 08:55'), dir: 'out', dur: 160 },
+    { id: 'c_zl_2', contact: 'zl', num: num('zl'), t: P('-4 21:30'), dir: 'in', dur: 1427 },
+    { id: 'c_teucer_2', contact: 'teucer', num: num('teucer'), t: P('-5 18:00'), dir: 'out', dur: 492, video: true },
+    { id: 'c_wanmin', contact: null, num: '(0761) 555 0161', name: 'Wanmin Restaurant', label: 'restaurant', t: P('-5 12:20'), dir: 'out', dur: 48 },
+    { id: 'c_scara_m', contact: 'scara', num: num('scara'), t: P('-6 03:03'), dir: 'missed', dur: 0, seen: true },
+    { id: 'c_zl_3', contact: 'zl', num: num('zl'), t: P('-8 21:05'), dir: 'out', dur: 751 },
+    { id: 'c_dottore', contact: 'dottore', num: num('dottore'), t: P('-9 09:00'), dir: 'in', dur: 31 },
   ]);
 
   JC.store.seed('voicemails', () => [
-    { id: 'vm_wwx', contact: 'wwx', num: num('wwx'), t: P('+0 23:13'), dur: 14, heard: false,
-      text: "pick up! …ok voicemail. um. sunday. I'll bring the soup. I mean, if— okay bye" },
-    { id: 'vm_qr', contact: 'qr', num: num('qr'), t: P('-3 08:05'), dur: 17, heard: true,
-      text: 'Jiang Cheng. This is Lan Qiren. I have sent the board’s letter to your email. I am telephoning to inform you that I have sent it. By email. Kindly read it, and reply by email. That is all.' },
-    { id: 'vm_huang', contact: 'huang', num: num('huang'), t: P('-4 12:41'), dur: 21, heard: true,
-      text: 'Boss. Huang here. East gate camera broken again, I fix already. No need call back. Also canteen auntie say you don’t eat lunch again. Eat lunch. …Okay. Bye-bye.' },
-    { id: 'vm_ajie', contact: 'ajie', num: num('ajie'), t: P('2009-09-12 16:20'), dur: 26, heard: true, vintage: true,
-      text: "A-Cheng! It's A-Jie. A-Ling said his first word today… okay it was 'ba' but I'm telling everyone it was 'jiujiu'. (laughs) Come home early, I made soup. A-Ling, say bye to jiujiu — ba! …Close enough. We love you. Bye-bye.",
-      parts: [
-        { who: 'ajie', text: "A-Cheng! It's A-Jie. A-Ling said his first word today… okay it was 'ba' but I'm telling everyone it was 'jiujiu'. (laughs) Come home early, I made soup. A-Ling, say bye to jiujiu —" },
-        { who: 'baby', text: 'ba!' },
-        { who: 'ajie', text: '…Close enough. We love you. Bye-bye.' },
-      ] },
-    { id: 'vm_mom', contact: 'mom', num: num('mom'), t: P('2008-07-19 18:12'), dur: 20, heard: true, vintage: true,
-      text: "A-Cheng. It's your mother. You left your phone on silent again. …Dinner is at six. Your sister made the soup. Bring Wei Ying, he's at the lake. And stand up straight when you come in. …I'll see you at dinner." },
-    { id: 'vm_dad', contact: 'dad', num: num('dad'), t: P('2008-06-28 06:52'), dur: 18, heard: true, vintage: true,
-      text: "A-Cheng, it's Dad. The first lotus opened on the east pond this morning. I wanted you to see it before your mother has it cut for the table. …Come down when you wake up. Bring your brother. That's all." },
+    { id: 'vm_mama', contact: 'mama', num: num('mama'), t: P('-1 21:12'), dur: 48, heard: true,
+      text: "Ajax, my sun, it's Mama. Nothing is wrong. I just wanted to hear your voice and you are busy selling toys, I know, I know. Papa says hello. Papa, say hello— he waved. Teucer is asleep with that wolf on his face. (humming) …Sleep now, little fish… I love you. Eat something." },
+    { id: 'vm_beidou', contact: 'beidou', num: num('beidou'), t: P('-3 01:41'), dur: 16, heard: true,
+      text: "Kid. It's Beidou. Rematch. Saturday night, my deck, ten o'clock. Bring your fancy water swords. Kazuha says he'll referee. He won't. Ha!" },
+    { id: 'vm_pulci', contact: 'pulci', num: num('pulci'), t: P('-4 11:02'), dur: 27, heard: true,
+      text: "Ajax, my boy. Old Pulcinella here. Lovely news! Your dear mother tells me the little ones want to see where you work. I've arranged everything — flights, a nice hotel, a car. Don't thank me. Family is the foundation of the Tsaritsa's house. We'll speak soon." },
+    { id: 'vm_ht', contact: 'ht', num: num('ht'), t: P('-7 15:30'), dur: 19, heard: true,
+      text: "Mr. Harbinger! Hu Tao here. Your consultant left his umbrella AND his wallet at the parlor again. I'm holding the umbrella hostage. The wallet I'm keeping. Kidding! …Mostly. Byeee~" },
   ]);
 
   JC.store.seed('phonefavs', () => [
-    { id: 'fav_jl', contact: 'jl', kind: 'call', num: num('jl') },
-    { id: 'fav_ea', contact: 'ea', kind: 'call', num: num('ea') },
-    { id: 'fav_huang', contact: 'huang', kind: 'call', num: num('huang') },
-    { id: 'fav_hq', contact: 'hq', kind: 'call', num: num('hq') },
+    { id: 'fav_teucer', contact: 'teucer', kind: 'call', num: num('teucer') },
+    { id: 'fav_zl', contact: 'zl', kind: 'call', num: num('zl') },
+    { id: 'fav_ekat', contact: 'ekat', kind: 'call', num: num('ekat') },
+    { id: 'fav_mama', contact: 'mama', kind: 'call', num: num('mama') },
   ]);
 
-  const GREETING = { custom: 'Jiang Cheng. Leave a message.', dflt: 'Your call has been forwarded to an automatic voice message system. Plus eight six, five five five, zero seven one six, zero five one five, is not available. At the tone, please record your message.' };
+  const GREETING = { custom: "Hey, it's Childe! Probably fishing. Or fighting. Leave a message 😁 — or don't, I'll call you back either way.", dflt: 'Your call has been forwarded to an automatic voice message system. Zero seven six one, five five five, zero one one one, is not available. At the tone, please record your message.' };
 
   // ══ Badge ════════════════════════════════════════════════════════
   const badge = () => { try { JC.story.phoneBadge(); } catch (e) { /* ignore */ } };
@@ -598,7 +581,7 @@
                 gp = JC.voiceBed.player(mode === 'custom' ? { who: 'me', text: GREETING.custom, dur: 3.2, seed: 'greet' } : { who: 'sys', text: GREETING.dflt, dur: 11, seed: 'greetd' });
                 gp.play(0);
               } }, JC.icon('play.fill', { size: 17 }), h('span', 'Play')),
-              mode === 'custom' ? h('div.ph-gbtn.red', { onTap: () => JC.ui.alert({ title: 'Record a New Greeting?', message: 'Callers would hear your voice instead of Jiang Cheng’s.', buttons: [{ text: 'Keep His', style: 'cancel' }] }) }, JC.icon('record.circle', { size: 18 }), h('span', 'Record')) : null),
+              mode === 'custom' ? h('div.ph-gbtn.red', { onTap: () => JC.ui.alert({ title: 'Record a New Greeting?', message: 'Callers would hear your voice instead of Childe’s.', buttons: [{ text: 'Keep His', style: 'cancel' }] }) }, JC.icon('record.circle', { size: 18 }), h('span', 'Record')) : null),
           ],
         });
       }
