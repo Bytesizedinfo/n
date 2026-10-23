@@ -1158,7 +1158,7 @@
       });
       // peaks
       if (z > 3 && z < 60) MOUNTAINS.forEach((m) => {
-        if (!m.peakName || m.peakName === 'Qiongqi Pass' || m.peakName === 'Burial Mounds') return;
+        if (!m.peakName || m.peakName === 'Qiongqi Pass') return;
         const [x, y] = proj(m.peak[0], m.peak[1]);
         if (x < 0 || x > w || y < 0 || y > h) return;
         const t = '▲ ' + m.peakName + (m.ele && z > 6 ? '  ' + m.ele : '');
@@ -1973,7 +1973,7 @@
       s += `<rect y="${horizon}" width="${W}" height="${H - horizon}" fill="#8aa45a"/>`;
       for (let i = 0; i < 14; i++) s += `<rect x="${i * 180}" y="${horizon + 10}" width="170" height="${H}" fill="${i % 2 ? '#7c9a4e' : '#94ae63'}"/>`;
       for (let i = 0; i < 80; i++) { const x = r() * W, y = horizon + 40 + r() * 200; s += `<path d="M${x} ${y} q8 -26 0 -40 q-8 14 0 40" fill="#4f8a3a"/><ellipse cx="${x}" cy="${y + 4}" rx="7" ry="4" fill="#f2efe7"/>`; }
-      s += `<rect x="900" y="${horizon - 90}" width="260" height="90" fill="#c9b18a"/><path d="M880 ${horizon - 90} l150 -50 l150 50z" fill="#7a5a3a"/><text x="1030" y="${horizon - 36}" font-size="28" text-anchor="middle" fill="#fff" font-family="Arial" font-weight="700">RADISHES</text>`;
+      s += `<rect x="900" y="${horizon - 90}" width="260" height="90" fill="#c9b18a"/><path d="M880 ${horizon - 90} l150 -50 l150 50z" fill="#7a5a3a"/><text x="1030" y="${horizon - 36}" font-size="28" text-anchor="middle" fill="#fff" font-family="Arial" font-weight="700">QINGCE</text>`;
     } else {
       // street scene with buildings
       const tall = kind === 'koi' || kind === 'hotel' ? 1.6 : kind === 'street' || kind === 'market' ? 1.0 : 0.8;
@@ -1984,7 +1984,7 @@
         for (let wy = horizon - bh + 16; wy < horizon - 20; wy += 26) for (let wx = x + 12; wx < x + bw - 16; wx += 24) s += `<rect x="${wx}" y="${wy}" width="12" height="14" fill="#9fb4c8" opacity=".75"/>`;
       }
       if (kind === 'koi') { s += `<rect x="1060" y="20" width="200" height="${horizon - 20}" fill="url(#gold)"/><path d="M1060 20 l100 -40 l100 40z" fill="#e7c25e"/>`; for (let wy = 50; wy < horizon - 10; wy += 22) s += `<rect x="1076" y="${wy}" width="168" height="8" fill="#fff3c4" opacity=".55"/>`; s += `<ellipse cx="1160" cy="${horizon + 70}" rx="260" ry="34" fill="#4f93c4"/><path d="M1080 ${horizon + 66} q14 -8 28 0 q-14 8 -28 0" fill="#ff8c3a"/><path d="M1200 ${horizon + 74} q14 -8 28 0 q-14 8 -28 0" fill="#fff" /><path d="M1240 ${horizon + 62} q12 -7 24 0 q-12 7 -24 0" fill="#ff6a2a"/>`; }
-      if (kind === 'hotel') s += `<rect x="1000" y="120" width="380" height="${horizon - 120}" fill="#efe5d2"/><rect x="1060" y="${horizon - 90}" width="260" height="90" fill="#6b4b2b"/><text x="1190" y="170" font-size="40" text-anchor="middle" fill="#b0822e" font-family="serif" font-weight="700">GOLDEN PEONY</text>`;
+      if (kind === 'hotel') s += `<rect x="1000" y="120" width="380" height="${horizon - 120}" fill="#efe5d2"/><rect x="1060" y="${horizon - 90}" width="260" height="90" fill="#6b4b2b"/><text x="1190" y="170" font-size="40" text-anchor="middle" fill="#b0822e" font-family="serif" font-weight="700">HARBOR GRAND</text>`;
       if (kind === 'station') s += `<rect x="700" y="${horizon - 160}" width="1000" height="160" fill="#dfe3e7"/><path d="M680 ${horizon - 160} q520 -120 1040 0z" fill="#9aa7b4"/><text x="1200" y="${horizon - 110}" font-size="36" text-anchor="middle" fill="#2c3e50" font-family="Arial" font-weight="700">STATION</text>`;
       if (kind === 'market') for (let i = 0; i < 18; i++) s += `<rect x="${i * 130 + 10}" y="${horizon - 50}" width="110" height="50" fill="${['#e2483d', '#f0a202', '#14a89a'][i % 3]}"/><circle cx="${i * 130 + 65}" cy="${horizon - 66}" r="12" fill="#ffcf5a"/>`;
       if (kind === 'temple' || kind === 'fortress') s += `<path d="M900 ${horizon - 60} l300 -110 l300 110z" fill="${kind === 'temple' ? '#8d3b2f' : '#3e3e44'}"/><rect x="960" y="${horizon - 60}" width="480" height="60" fill="${kind === 'temple' ? '#d9b382' : '#6d6d74'}"/>`;

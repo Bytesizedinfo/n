@@ -44,6 +44,16 @@ async function unlock(page) {
     await page.waitForTimeout(60);
   }
   await page.waitForTimeout(1000);
+  // the one-time "Set Up an Alternate Appearance?" Face ID prompt after a passcode unlock
+  for (let i = 0; i < 12; i++) {
+    const hit = await page.evaluate(() => {
+      const btn = Array.from(document.querySelectorAll('#screen .alert button, #screen .alert .alert-btn, #screen .alert [role="button"]')).find((x) => /^\s*Not Now\s*$/.test(x.textContent));
+      if (btn) { btn.click(); return true; }
+      return false;
+    });
+    if (hit) { await page.waitForTimeout(400); break; }
+    await page.waitForTimeout(250);
+  }
 }
 async function shot(page, name, o = {}) {
   const dir = o.dir || process.env.SHOTS || path.join(ROOT, '..', 'shots');

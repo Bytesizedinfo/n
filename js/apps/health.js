@@ -449,7 +449,7 @@
               JC.ui.list([{ header: 'Today', rows: md.map((x) => ({ title: x.slot, subtitle: x.log ? (x.log.status === 'taken' ? 'Taken at ' + U.fmtTime(x.log.t) : 'Skipped') : 'Not Logged', right: x.log ? h('span.hl-st', { class: x.log.status }, JC.icon(x.log.status === 'taken' ? 'checkmark.circle.fill' : 'xmark.circle.fill', { size: 22 })) : h('div.hl-logbtn', { onTap: (e) => { e.stopPropagation(); logMeds(); } }, 'Log'), onTap: x.log ? () => JC.ui.actionSheet({ title: x.slot + ' dose', actions: [{ text: 'Undo Log', style: 'destructive', onTap: () => JC.store.remove('hlmeds', x.log.id) }] }) : () => logMeds() })) }]),
               h('div.hl-chartcard', head, JC.hchart.chart({ kind: 'bars', data: dots, color: 'var(--hl-meds)', h: 120, ticks: [0, 1, 2], barW: 10, xLabels: [{ i: 0, text: U.fmtDate(HD.dayStart(today() - 13), 'md') }, { i: 13, text: 'Today' }], onScrub: (i) => { head.innerHTML = ''; if (i == null) head.append(h('div.hl-dh-k', 'LAST 14 DAYS'), valueNode(String(dots.reduce((a, d) => a + d.v, 0)), 'of 28 doses taken')); else head.append(h('div.hl-dh-k', 'DOSES TAKEN'), valueNode(String(dots[i].v), 'of 2'), h('div.hl-dh-d', dots[i].full)); } })),
               JC.ui.list([
-                { header: 'Interactions', rows: [{ title: 'Delusion', subtitle: 'Severe · Unknown effects. “We are collecting data.” — Northland Medical', icon: { glyph: 'exclamationmark.triangle.fill', bg: 'var(--orange)' } }, { title: 'Grapefruit', subtitle: 'Severe · Can raise Tacrolimus to unsafe levels.', icon: { glyph: 'exclamationmark.triangle.fill', bg: 'var(--red)' } }], footer: 'Medical ID note from A-Ling: “Do not give him alcohol. (He will not listen.)”' },
+                { header: 'Interactions', rows: [{ title: 'Delusion', subtitle: 'Severe · Unknown effects. “We are collecting data.” — Northland Medical', icon: { glyph: 'exclamationmark.triangle.fill', bg: 'var(--orange)' } }, { title: 'Grapefruit', subtitle: 'Severe · Can raise Tacrolimus to unsafe levels.', icon: { glyph: 'exclamationmark.triangle.fill', bg: 'var(--red)' } }], footer: 'Note from Ekaterina in his Medical ID: “Do NOT refer him to Dr. Dottore.”' },
                 { header: 'Details', rows: [{ title: 'Prescribed', detail: 'Since Mar 2024' }, { title: 'Prescriber', detail: 'Northland Medical · the Second' }, { title: 'Reminders', toggle: { on: prefs().medRem !== false, onChange: (v) => setPrefs({ medRem: v }) } }, { title: 'Archive Medication', destructive: true, onTap: () => JC.ui.alert({ title: 'Can’t Archive', message: 'Tacrolimus keeps a transplanted liver from being rejected. It is taken for life.', buttons: [{ text: 'OK' }] }) }] },
                 { header: 'Log History', rows: days.slice(0, 7).map((d) => { const ls = logs.filter((l) => l.day === d); return { title: d === today() ? 'Today' : U.fmtDate(HD.dayStart(d), 'long'), detail: ls.filter((l) => l.status === 'taken').length + ' of 2 taken' }; }) },
               ]),
@@ -536,7 +536,7 @@
         if (M[id].static) return M[id].static + ' ' + M[id].unit;
         return fmtNum(id, v) + ' ' + M[id].unit;
       }
-      function metricRows(ids) { return ids.map((id) => ({ title: M[id].name, subtitle: latestLabel(id), leading: catIcon(M[id].cat, 19), chevron: true, onTap: () => (M[id].static ? JC.ui.alert({ title: M[id].name, message: M[id].static + ' ' + M[id].unit + ' · Entered by Jiang Cheng', buttons: [{ text: 'OK' }] }) : openMetric(id)) })); }
+      function metricRows(ids) { return ids.map((id) => ({ title: M[id].name, subtitle: latestLabel(id), leading: catIcon(M[id].cat, 19), chevron: true, onTap: () => (M[id].static ? JC.ui.alert({ title: M[id].name, message: M[id].static + ' ' + M[id].unit + ' · Entered by Childe', buttons: [{ text: 'OK' }] }) : openMetric(id)) })); }
       function allDataPage() {
         return JC.ui.page({ title: 'All Health Data', bg: 'grouped', tint, content: () => {
           const byCat = {};
@@ -563,7 +563,7 @@
         Allergies: [['No known drug allergies', 'Recorded Sep 2, 2026']],
       };
       function recordsPage(k) {
-        return JC.ui.page({ title: k, bg: 'grouped', tint, content: () => [JC.ui.list([{ header: 'Northland Medical', rows: RECORDS[k].map(([t, s]) => ({ title: t, subtitle: s, onTap: () => JC.ui.alert({ title: t, message: s + '\n\nSource: Lotus Pier Hospital, Yunmeng.', buttons: [{ text: 'OK' }] }) })) }])] });
+        return JC.ui.page({ title: k, bg: 'grouped', tint, content: () => [JC.ui.list([{ header: 'Northland Medical', rows: RECORDS[k].map(([t, s]) => ({ title: t, subtitle: s, onTap: () => JC.ui.alert({ title: t, message: s + '\n\nSource: Northland Medical Wing, Liyue Branch.', buttons: [{ text: 'OK' }] }) })) }])] });
       }
       let browseQ = '';
       function browsePage() {
@@ -579,7 +579,7 @@
             }
             return [JC.ui.list([
               { header: 'Health Categories', rows: Object.keys(HD.CATS).map((c) => ({ title: HD.CATS[c].name, leading: catIcon(c, 21), chevron: true, onTap: () => push(categoryPage(c)) })) },
-              { header: 'Health Records', rows: Object.keys(RECORDS).map((k) => ({ title: k, leading: h('span.hl-cic', { style: { color: 'var(--blue)' } }, JC.icon('cross.case.fill', { size: 19 })), chevron: true, onTap: () => push(recordsPage(k)) })), footer: 'Records from Lotus Pier Hospital, Yunmeng. Last updated Sep 2, 2026.' },
+              { header: 'Health Records', rows: Object.keys(RECORDS).map((k) => ({ title: k, leading: h('span.hl-cic', { style: { color: 'var(--blue)' } }, JC.icon('cross.case.fill', { size: 19 })), chevron: true, onTap: () => push(recordsPage(k)) })), footer: 'Records from Northland Medical, shared “automatically”. Last updated Sep 30, 2026.' },
               { rows: [{ title: 'Medical ID', leading: h('span.hl-cic', { style: { color: 'var(--red)' } }, JC.icon('staroflife.fill', { size: 19 })), chevron: true, onTap: () => push(medicalPage()) }] },
             ])];
           },
@@ -607,7 +607,7 @@
         });
       }
       function detailsPage() {
-        return JC.ui.page({ title: 'Health Details', bg: 'grouped', tint, content: () => [h('div.hl-prof', JC.ui.avatar('me', 76)), JC.ui.list([{ rows: [['First Name', 'Ajax'], ['Last Name', '—'], ['Date of Birth', '20 Jul 2004 (22)'], ['Sex', 'Male'], ['Blood Type', 'O−'], ['Fitzpatrick Skin Type', 'Type III'], ['Wheelchair', 'No'], ['Medications That Affect Heart Rate', 'None']].map(([t, d]) => ({ title: t, detail: d })) }, { rows: [{ title: 'Edit', tinted: true, onTap: () => JC.ui.alert({ title: 'Edit Health Details', message: 'Health Details are synced from Jiang Cheng’s Apple Watch and can only be changed by him.', buttons: [{ text: 'OK' }] }) }] }])] });
+        return JC.ui.page({ title: 'Health Details', bg: 'grouped', tint, content: () => [h('div.hl-prof', JC.ui.avatar('me', 76)), JC.ui.list([{ rows: [['First Name', 'Ajax'], ['Last Name', '—'], ['Date of Birth', '20 Jul 2004 (22)'], ['Sex', 'Male'], ['Blood Type', 'O−'], ['Fitzpatrick Skin Type', 'Type III'], ['Wheelchair', 'No'], ['Medications That Affect Heart Rate', 'None']].map(([t, d]) => ({ title: t, detail: d })) }, { rows: [{ title: 'Edit', tinted: true, onTap: () => JC.ui.alert({ title: 'Edit Health Details', message: 'Health Details are synced from Childe’s Apple Watch and can only be changed by him.', buttons: [{ text: 'OK' }] }) }] }])] });
       }
       function devicesPage() {
         return JC.ui.page({ title: 'Devices', bg: 'grouped', tint, content: () => [JC.ui.list([{ rows: [{ title: 'Childe’s Apple Watch', subtitle: 'Apple Watch Ultra 3 · last synced Fri 23:25', icon: { glyph: 'clock', bg: 'var(--gray)' }, onTap: () => JC.ui.alert({ title: 'Childe’s Apple Watch', message: 'watchOS 26.0 · Last synced Friday at 23:25, at Pier 7. Water resistance: 100 m. It is still on his wrist, wherever his wrist is.', buttons: [{ text: 'OK' }] }) }, { title: 'Childe’s iPhone', subtitle: 'This iPhone', icon: { glyph: 'iphone', bg: 'var(--gray)' } }] }])] });
@@ -672,7 +672,7 @@
         JC.ui.sheet({
           title: 'Share with Tonia', detent: 'large', left: { text: 'Cancel' },
           right: { text: 'Share', onTap: () => { setPrefs({ share: 'accepted', topics: Array.from(sel) }); try { JC.story.act('health_share', { to: 'tonia', accept: true, topics: Array.from(sel) }); } catch (e) { /* ignore */ } JC.audio.play('success'); JC.ui.toast('Sharing with Tonia', { icon: 'person.2.fill' }); } },
-          content: (s) => [h('div.hl-prof', JC.ui.avatar('tonia', 64), h('div.hl-prof-n', 'Tonia'), h('div.hl-req-s', 'Choose what Tonia can see. She will see Friday night.')), JC.ui.list([{ header: 'Topics', rows: [['heart', 'Heart Rate', 'heart'], ['sleep', 'Sleep', 'sleep'], ['steps', 'Steps', 'activity'], ['meds', 'Medications', 'meds'], ['mind', 'State of Mind', 'mind']].map(([k, t, c]) => ({ title: t, leading: catIcon(c, 19), toggle: { on: sel.has(k), onChange: (v) => { if (v) sel.add(k); else sel.delete(k); } } })), footer: 'A-Ling will be able to see these topics and get notified about significant changes — like a heart rate of 121 BPM at 22:50.' }])],
+          content: (s) => [h('div.hl-prof', JC.ui.avatar('tonia', 64), h('div.hl-prof-n', 'Tonia'), h('div.hl-req-s', 'Choose what Tonia can see. She will see Friday night.')), JC.ui.list([{ header: 'Topics', rows: [['heart', 'Heart Rate', 'heart'], ['sleep', 'Sleep', 'sleep'], ['steps', 'Steps', 'activity'], ['meds', 'Medications', 'meds'], ['mind', 'State of Mind', 'mind']].map(([k, t, c]) => ({ title: t, leading: catIcon(c, 19), toggle: { on: sel.has(k), onChange: (v) => { if (v) sel.add(k); else sel.delete(k); } } })), footer: 'Tonia will be able to see these topics and get notified about significant changes — like a heart rate of 121 BPM at 22:50.' }])],
         });
       }
       function sharePerson() {

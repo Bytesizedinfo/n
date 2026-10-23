@@ -97,7 +97,7 @@
     return Object.assign({ title, node: h('div.w-page', { class: cls }, kids), reader: o.reader || null }, o);
   }
   function errorPage(url, msg) {
-    return { title: 'Cannot Open Page', node: h('div.w-page.w-err', h('div.w-err-ic', JC.icon('exclamationmark.triangle.fill', { size: 46 })), h('div.w-err-t', 'Safari Can’t Open the Page'), h('div.w-err-s', msg), A(SEARCH(String(url).replace(/^https?:\/\//, '')), 'Search Wavesearch instead')) };
+    return { title: 'Cannot Open Page', node: h('div.w-page.w-err', h('div.w-err-ic', JC.icon('exclamationmark.triangle.fill', { size: 46 })), h('div.w-err-t', 'Safari Can’t Open the Page'), h('div.w-err-s', msg), A(SEARCH(String(url).replace(/^https?:\/\//, '')), 'Search Irminsul instead')) };
   }
   function notFound(s, ctx) {
     return page('w-404', 'Page not found', [h('div.w-404-code', '404'), h('div.w-404-t', 'We couldn’t find that page.'), h('div.w-404-s', ctx.path + ' isn’t on ' + s.name + '.'), A('https://' + ctx.host + '/', 'Go to ' + s.name + ' home'), ' · ', A(SEARCH(unslug(ctx.path.split('/').pop())), 'Search for it')]);
@@ -108,7 +108,7 @@
     const label = words.join(' ') || host;
     const real = /^(google|baidu|bing|yahoo|youtube|facebook|instagram|twitter|x|tiktok|weibo|wechat|apple|amazon|taobao|wikipedia|reddit|netflix|openai|chatgpt)\./.test(host);
     if (real) {
-      return page('w-err', 'Cannot Connect', [h('div.w-err-ic', JC.icon('wifi.slash', { size: 46 })), h('div.w-err-t', 'Safari Can’t Connect to the Server'), h('div.w-err-s', 'Safari can’t open “' + host + '” because the server isn’t responding from this network. Everyone here uses Wavesearch anyway.'), A(SEARCH(label), 'Search Wavesearch for “' + label + '”')]);
+      return page('w-err', 'Cannot Connect', [h('div.w-err-ic', JC.icon('wifi.slash', { size: 46 })), h('div.w-err-t', 'Safari Can’t Connect to the Server'), h('div.w-err-s', 'Safari can’t open “' + host + '” because the server isn’t responding from this network. Everyone here uses Irminsul anyway.'), A(SEARCH(label), 'Search Irminsul for “' + label + '”')]);
     }
     return page('w-parked', host, [
       h('div.w-pk-top', h('div.w-pk-dom', host), h('div.w-pk-sale', 'This domain may be for sale')),

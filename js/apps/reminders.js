@@ -535,7 +535,7 @@
         let picked = false;
         const s = ui.sheet({
           title: 'Choose Person', detent: 'large', left: { text: 'Cancel', onTap: () => { if (!picked) cancel(); } },
-          content: () => [ui.list([{ rows: JC.contacts.people().filter((c) => !['ajie', 'mom', 'dad'].includes(c.id)).map((c) => ({ avatar: c.id, avatarSize: 34, title: c.display, onTap: () => { picked = true; s.close(); cb(c.id); } })) }])],
+          content: () => [ui.list([{ rows: JC.contacts.people().map((c) => ({ avatar: c.id, avatarSize: 34, title: c.display, onTap: () => { picked = true; s.close(); cb(c.id); } })) }])],
           onClose: () => { if (!picked) cancel(); },
         });
       }

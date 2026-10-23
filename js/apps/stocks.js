@@ -260,7 +260,7 @@
               h('div.stk-news-h', h('div.stk-news-k', 'Top Stories'), h('div.stk-news-sub', 'From The Liyue Herald and partners')),
               ns.length ? newsCard(ns[0], true) : null,
               h('div.stk-newslist', ns.slice(1).map((n) => newsCard(n))),
-              h('div.stk-foot', 'Quotes are delayed. Every company here is fictional. Even the radishes.'),
+              h('div.stk-foot', 'Quotes are delayed. Every company here is fictional. Even Sea Lantern Logistics. Especially Sea Lantern Logistics.'),
             ];
           },
         });

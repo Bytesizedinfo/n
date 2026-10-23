@@ -397,7 +397,7 @@
             h('div.fm-lost-t', JC.icon('lock.fill', { size: 16 }), ' Lost Mode · Activated'),
             h('div.fm-lost-s', 'Activated from a Wangsheng Funeral Parlor computer. This iPhone is locked and shows this message:'),
             h('div.fm-lost-msg', JC.state.d.lost.message || 'This iPhone has been lost.'),
-            h('div.fm-lost-call.tap', { onTap: () => JC.story.dial(JC.state.d.lost.contact || 'hq', JC.state.d.lost.phone ? { num: JC.state.d.lost.phone } : undefined) }, JC.icon('phone.fill', { size: 15 }), ' ' + (JC.state.d.lost.phone || 'Call Owner'))));
+            h('div.fm-lost-call.tap', { onTap: () => JC.story.dial(JC.state.d.lost.contact || 'ekat', JC.state.d.lost.phone ? { num: JC.state.d.lost.phone } : undefined) }, JC.icon('phone.fill', { size: 15 }), ' ' + (JC.state.d.lost.phone || 'Call Owner'))));
         }
         out.push(JC.ui.list([{ header: 'Notifications', rows: [
           d.offline ? { title: 'Notify When Found', toggle: { on: !!S.notify[d.id], onChange: (v) => { S.notify[d.id] = v; save(); } } } : { title: 'Notify When Left Behind', subtitle: d.self ? 'Not available for this iPhone' : null, toggle: { on: !!S.notify[d.id], disabled: d.self, onChange: (v) => { S.notify[d.id] = v; save(); if (v) JC.ui.toast('You’ll be notified if you leave it behind'); } } },
@@ -506,7 +506,7 @@
       }
       function markLost(d) {
         if (d.self && JC.state.d.lost) {
-          JC.ui.alert({ title: 'Lost Mode Is On', message: 'This iPhone was marked as lost from a Wangsheng Funeral Parlor computer. To turn off Lost Mode, the owner has to unlock it — or you could just call him.', buttons: [{ text: 'Not Now', style: 'cancel' }, { text: 'Call Owner', style: 'default', onTap: () => JC.story.dial(JC.state.d.lost.contact || 'hq', JC.state.d.lost.phone ? { num: JC.state.d.lost.phone } : undefined) }] });
+          JC.ui.alert({ title: 'Lost Mode Is On', message: 'This iPhone was marked as lost from a Wangsheng Funeral Parlor computer. To turn off Lost Mode, the owner has to unlock it — or you could just call him.', buttons: [{ text: 'Not Now', style: 'cancel' }, { text: 'Call Owner', style: 'default', onTap: () => JC.story.dial(JC.state.d.lost.contact || 'ekat', JC.state.d.lost.phone ? { num: JC.state.d.lost.phone } : undefined) }] });
           return;
         }
         if (d.self) {
@@ -538,7 +538,7 @@
       function addMenu(anchor) {
         if (tab === 'people') JC.ui.menu(anchor, [
           { text: 'Share My Location', icon: 'location.fill', onTap: () => JC.ui.actionSheet({ title: 'Share My Location', actions: ['zl', 'lumine', 'ht', 'mama', 'tonia'].map((cid) => ({ text: JC.contacts.short(cid), onTap: () => { const p = people().find((q) => q.id === cid) || { id: cid, name: JC.contacts.short(cid) }; shareWith(p); } })) }) },
-          { text: 'Ask to Follow Location', icon: 'person.badge.plus', onTap: () => JC.ui.actionSheet({ title: 'Ask to Follow', message: 'They’ll get a request from “Childe”.', actions: ['zl', 'ht', 'paimon', 'wn'].map((cid) => ({ text: JC.contacts.short(cid), onTap: () => { JC.story.act('findmy_ask', { to: cid }); JC.ui.toast('Request sent to ' + JC.contacts.short(cid), { icon: 'paperplane.fill' }); } })) }) },
+          { text: 'Ask to Follow Location', icon: 'person.badge.plus', onTap: () => JC.ui.actionSheet({ title: 'Ask to Follow', message: 'They’ll get a request from “Childe”.', actions: ['zl', 'ht', 'paimon', 'tonia'].map((cid) => ({ text: JC.contacts.short(cid), onTap: () => { JC.story.act('findmy_ask', { to: cid }); JC.ui.toast('Request sent to ' + JC.contacts.short(cid), { icon: 'paperplane.fill' }); } })) }) },
         ]);
         else if (tab === 'devices') JC.ui.menu(anchor, [{ text: 'Add AirTag', icon: 'airtag', onTap: () => addItem() }, { text: 'Add Other Item', icon: 'plus', onTap: () => addItem() }, '-', { text: 'Identify Found Item', icon: 'magnifyingglass', onTap: () => identifyItem() }]);
         else JC.ui.menu(anchor, [{ text: 'Add AirTag', icon: 'airtag', onTap: () => addItem() }, { text: 'Add Other Item', icon: 'plus', onTap: () => addItem() }, '-', { text: 'Identify Found Item', icon: 'magnifyingglass', onTap: () => identifyItem() }]);
