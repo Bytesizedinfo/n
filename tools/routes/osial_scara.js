@@ -5,6 +5,6 @@ module.exports = {
   calls: 'answer',
   auto: { scara: 'sus' },
   steps: [
-    { until: 's.sus.scara >= 8', within: 30000 },
+    { until: '(s.flags.scara_quiz_fail || 0) >= 2', within: 30000 },
   ],
 };
