@@ -269,7 +269,7 @@
       const mt = parse(m.t);
       const dup = out.some((x) => famOf(x) === famOf(m) && (x.card == null || famOf(x) !== 'bank' || JC.bank.isBankCard(x.card)) &&
         Math.abs(Math.abs(Number(x.amount) || 0) - Math.abs(m.amount)) < 0.5 && Math.abs(parse(x.t) - mt) <= 45 * 60000);
-      if (!dup) out.push(Object.assign({}, m));
+      if (!dup) out.push(Object.assign({}, m, { t: mt }));
     });
     return out;
   }

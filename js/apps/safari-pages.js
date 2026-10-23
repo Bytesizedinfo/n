@@ -776,7 +776,7 @@
         art('p_heyu_stage', 'w-heyu-hero'),
         h('div.w-heyu-sec', h('h2', '“The Divine Damsel of Devastation”'), h('p', 'A god makes a contract with a city and keeps it for six thousand years. A retelling of the founding of Liyue in two acts.'),
           [['Sat 17 Oct · 15:00 matinee', 'SOLD OUT · returns at the box office'], ['Sat 17 Oct · 19:30', 'Few seats'], ['Sun 18 Oct', 'No performance — Rite of Parting']].map(([d, s]) => h('div.w-heyu-row', h('b', d), h('span', s))),
-          Btn('Call the box office', () => JC.callui && JC.callui.dialNumber('(0761) 555 0156'), 'w-btn-heyu'), Btn('Your tickets (Wallet)', () => JC.os.open('wallet', { card: 'yunjin' }), 'w-btn-ghost')),
+          Btn('Call the box office', () => JC.callui && JC.callui.dialNumber('(0761) 555 0156'), 'w-btn-heyu'), Btn('Your tickets (Wallet)', () => JC.os.open('wallet', { card: 'opera' }), 'w-btn-ghost')),
         h('div.w-foot', 'Heyu Tea House · Tea service during the interval · Box seats include osmanthus tea and almond tofu'))]),
     },
   });

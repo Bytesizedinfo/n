@@ -280,3 +280,10 @@
 [data-app="weather"] .wx-dtr { display: flex; justify-content: space-between; padding: 11px 16px; border-bottom: .5px solid var(--sep); font-size: 15px; font-variant-numeric: tabular-nums; }
 [data-app="weather"] .wx-dtr:last-child { border-bottom: 0; }
 [data-app="weather"] .wx-dtr span:first-child { color: var(--label2); }
+
+/* Snezhnaya snow and the Osial storm */
+[data-app="weather"] :is(.wx-bg, .wx-lcard).snow-d { background: linear-gradient(180deg, #8ea3b8 0%, #b1c0cf 52%, #d2dbe4 100%); }
+[data-app="weather"] :is(.wx-bg, .wx-lcard).snow-n { background: linear-gradient(180deg, #121a28 0%, #24324a 50%, #3c4d68 100%); }
+[data-app="weather"] :is(.wx-bg, .wx-lcard).storm-n { background: linear-gradient(180deg, #0b0f16 0%, #1b2430 45%, #2c3644 100%); }
+[data-app="weather"] .wx-bg.storm-n.flash { background: linear-gradient(180deg, #c9d4e8 0%, #8fa0bb 45%, #4d5b70 100%); }
+[data-app="weather"] .wx-bg:is(.snow-d, .snow-n, .storm-n) .wx-cloud { opacity: .55; }

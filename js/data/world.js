@@ -149,6 +149,9 @@
       { id: 'dottore_cancelled', arc: 'fam', act: 'event_delete', match: (p) => idOf(p) === 'ev_dottore', fx: { set: { dottore_cancelled: true } } },
       // Reel Rush — beating Teucer is in character
       { id: 'beat_teucer', arc: 'fam', act: 'game_score', match: (p) => p.score > 2047, fx: { set: { beat_teucer: true } } },
+      // Health
+      { id: 'clue_fall', act: 'health_view', match: (p) => idOf(p) === 'fall', fx: { set: { clue_fall: true } } },
+      { id: 'health_tonia', arc: 'fam', act: 'health_share', match: (p) => p.to === 'tonia' && p.accept, once: true, fx: { set: { tonia_sees_health: true }, aff: { tonia: 1 }, sus: { tonia: 1 } } },
       // Settings
       { id: 'changed_passcode', act: 'setting', match: (p) => p.key === 'passcode', fx: { set: { changed_passcode: true } } },
     ],
@@ -182,7 +185,6 @@
 
     siri: {
       where: 'You’re near Pier 7, Liyue Harbor.',
-      weather: 'It’s 18° and clear in Liyue Harbor. Rain is expected later this weekend.',
       owner: 'This iPhone belongs to Childe. You are not Childe.',
       joke: 'Why don’t Fatui agents play hide-and-seek? Good luck hiding from Signora. (Childe added this joke to my database.)',
       extra: [

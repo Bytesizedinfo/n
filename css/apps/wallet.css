@@ -31,26 +31,36 @@
 .wl-pmid b { font-size: 17px; font-weight: 700; }
 
 /* card designs */
-.wl-c-ycb { background: radial-gradient(circle at 85% -10%, rgba(150, 100, 255, .38), transparent 46%), radial-gradient(circle at -5% 120%, rgba(255, 210, 140, .16), transparent 50%), linear-gradient(135deg, #2a2433, #0b0a0e); }
-.wl-c-ycb::after, .wl-c-ymj::after { content: ""; position: absolute; right: -40px; bottom: -60px; width: 240px; height: 240px; opacity: .12; background: no-repeat center / contain url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='none' stroke='white' stroke-width='2'%3E%3Cpath d='M50 85C38 70 36 50 50 20c14 30 12 50 0 65z'/%3E%3Cpath d='M50 85C32 78 22 62 24 38c18 12 26 30 26 47z'/%3E%3Cpath d='M50 85c18-7 28-23 26-47-18 12-26 30-26 47z'/%3E%3Cpath d='M50 85C28 84 12 72 8 54c20 2 34 14 42 31z'/%3E%3Cpath d='M50 85c22-1 38-13 42-31-20 2-34 14-42 31z'/%3E%3C/svg%3E"); }
-.wl-c-ymj { background: radial-gradient(circle at 10% -20%, rgba(255, 255, 255, .22), transparent 40%), linear-gradient(140deg, #8a66e0, #5134a6 55%, #2c1b63); }
+.wl-c-nb { background: radial-gradient(circle at 85% -10%, rgba(120, 190, 255, .35), transparent 46%), radial-gradient(circle at -5% 120%, rgba(160, 220, 255, .14), transparent 50%), linear-gradient(135deg, #10263d, #050b14); }
+.wl-c-nb::after { content: "❄"; position: absolute; right: -10px; bottom: -40px; font-size: 200px; line-height: 1; color: #fff; opacity: .07; }
 .wl-c-cash { color: #111; background: #fbfbfd; }
 .wl-c-cash::before { background: none; }
 .wl-cash-swirl { position: absolute; right: -50px; top: 40px; width: 240px; height: 240px; border-radius: 50%; filter: blur(22px); opacity: .7; background: conic-gradient(from 30deg, #ff5f6d, #ffc371, #47e891, #42a5ff, #b06cff, #ff5f6d); }
 #screen.dark .wl-c-cash { background: #1f1f22; color: #fff; }
 .wl-c-metro { background: radial-gradient(circle at 90% 10%, rgba(255, 213, 120, .35), transparent 40%), linear-gradient(135deg, #d4142f, #8b0a20); }
 .wl-metro-koi { position: absolute; right: 26px; top: 70px; width: 130px; height: 90px; opacity: .3; background: radial-gradient(ellipse 40px 16px at 40% 40%, #ffd27a 98%, transparent), radial-gradient(ellipse 30px 12px at 70% 70%, #fff 98%, transparent), radial-gradient(circle 4px at 26% 38%, #8b0a20 98%, transparent); }
-.wl-c-hotel { color: #2b1d05; background: radial-gradient(circle at 15% 0%, rgba(255, 255, 255, .55), transparent 45%), linear-gradient(135deg, #f3dfa2, #cfa651 55%, #a07a2c); }
-.wl-c-hotel .wl-bank { font-family: Georgia, 'Times New Roman', serif; font-size: 14px; letter-spacing: .14em; }
-.wl-c-gala { color: #f0d58a; background: radial-gradient(circle at 80% 0%, rgba(240, 213, 138, .25), transparent 50%), linear-gradient(165deg, #1d1912, #3a2c14 60%, #17130d); }
-.wl-gala-t { position: absolute; left: 18px; right: 18px; top: 50px; font-family: Georgia, 'Times New Roman', serif; font-size: 21px; font-style: italic; color: #fff3cf; }
-.wl-c-gala .wl-pmid { top: 92px; }
-.wl-c-sandu { background: radial-gradient(circle at 80% 100%, rgba(190, 150, 255, .35), transparent 50%), linear-gradient(135deg, #43307a, #1b1233); }
-.wl-car-art { position: absolute; right: 18px; top: 62px; color: rgba(255, 255, 255, .85); }
-.wl-c-petk { background: radial-gradient(circle at 12% 20%, rgba(255, 255, 255, .2) 0 14px, transparent 15px), radial-gradient(circle at 88% 82%, rgba(255, 255, 255, .14) 0 30px, transparent 31px), linear-gradient(135deg, #22aea8, #0f6f6b); }
+.wl-c-hotel { color: #fff8e6; background: radial-gradient(circle at 15% 0%, rgba(255, 255, 255, .25), transparent 45%), linear-gradient(135deg, #2c3e57, #17263a 55%, #0b1522); }
+.wl-c-hotel .wl-bank { font-family: Georgia, 'Times New Roman', serif; font-size: 14px; letter-spacing: .14em; color: #e9cf8f; }
+.wl-c-opera { color: #ffd9a0; background: radial-gradient(circle at 80% 0%, rgba(255, 190, 120, .28), transparent 50%), linear-gradient(165deg, #4a1220, #6d1f2f 60%, #2a0f15); }
+.wl-gala-t { position: absolute; left: 18px; right: 18px; top: 50px; font-family: Georgia, 'Times New Roman', serif; font-size: 21px; font-style: italic; color: #fff1d8; }
+.wl-c-opera .wl-pmid { top: 92px; }
+.wl-c-flight { color: #fff; background: radial-gradient(circle at 90% 0%, rgba(255, 230, 168, .3), transparent 45%), linear-gradient(140deg, #c7352c, #8f1d17); }
+.wl-board { position: absolute; left: 18px; right: 18px; top: 46px; display: flex; align-items: center; justify-content: space-between; }
+.wl-board > div { display: flex; flex-direction: column; line-height: 1.05; }
+.wl-board > div:last-child { text-align: right; }
+.wl-board b { font-size: 34px; font-weight: 800; letter-spacing: .02em; }
+.wl-board small { font-size: 11px; opacity: .8; }
+.wl-board-plane { font-size: 22px; opacity: .9; }
+.wl-c-flight .wl-pmid { top: 108px; }
+.wl-c-wangsheng { color: #f0b46a; background: radial-gradient(circle at 85% 15%, rgba(240, 180, 106, .22), transparent 40%), linear-gradient(135deg, #3b1d18, #1e1210); }
+.wl-c-wanmin { color: #fff; background: radial-gradient(circle at 15% 10%, rgba(255, 220, 150, .3), transparent 40%), linear-gradient(135deg, #f0762b, #b7410e); }
+.wl-c-knockout { color: #fff; background: radial-gradient(circle at 80% 90%, rgba(255, 90, 90, .3), transparent 50%), linear-gradient(135deg, #2a2a30, #0f0f12); }
+.wl-stamps { position: absolute; left: 18px; right: 18px; top: 74px; display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+.wl-stamps i { display: flex; align-items: center; justify-content: center; height: 36px; border-radius: 50%; border: 1.5px dashed rgba(255, 255, 255, .45); font-style: normal; font-size: 18px; }
+.wl-stamps i.on { border-style: solid; background: rgba(255, 255, 255, .18); }
 .wl-qr { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); padding: 9px; border-radius: 14px; background: #fff; line-height: 0; }
 .wl-bar { position: absolute; left: 50%; bottom: 18px; transform: translateX(-50%); padding: 8px 10px; border-radius: 12px; background: #fff; line-height: 0; }
-.wl-card.wl-sel.wl-c-gala, .wl-card.wl-sel.wl-c-petk { height: 320px; }
+.wl-card.wl-sel.wl-c-opera, .wl-card.wl-sel.wl-c-flight, .wl-card.wl-sel.wl-c-wangsheng, .wl-card.wl-sel.wl-c-wanmin, .wl-card.wl-sel.wl-c-knockout { height: 320px; }
 .wl-card.flip > :not(.wl-backface) { visibility: hidden; }
 .wl-backface { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; background: rgba(0, 0, 0, .28); color: #fff; text-align: center; }
 .wl-backface b { font-size: 19px; font-weight: 700; padding: 0 20px; }

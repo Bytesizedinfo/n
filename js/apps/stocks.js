@@ -1,6 +1,6 @@
 /* Stocks — iOS 26 Stocks: watchlist with sparklines & change pills, search to add, edit (reorder/remove),
    detail sheet with an interactive chart (1D–5Y, drag to scrub), stats and fictional business news that
-   reacts to story flags. All companies are fictional (Lanling Stock Exchange). */
+   reacts to story flags. All companies are fictional (Liyue Exchange, Zapolyarny Exchange). */
 (function () {
   'use strict';
   const JC = window.JC;
@@ -14,25 +14,23 @@
   // ── universe ─────────────────────────────────────────────────────
   // price = today's close; chg = today's % change; vol = daily volatility; drift5y = total 5-year return factor
   const SYMS = [
-    { s: 'YMCI', name: 'Yunmeng Composite', idx: true, price: 3287.41, chg: 0.62, vol: 0.009, drift5y: 1.32, about: 'The Yunmeng Composite tracks the 180 largest companies listed in Yunmeng and Lanling.' },
-    { s: 'YMJ', name: 'Yunmeng Jiang Group', price: 186.40, chg: 1.79, vol: 0.014, drift5y: 2.9, pe: 18.4, mcap: 412.6, eps: 10.13, yld: 1.2, beta: 0.86, sector: 'Logistics & Food', about: 'Yunmeng Jiang Group (YMJ) operates shipping, cold-chain logistics and lotus-farm foods from its headquarters at Lotus Pier, Yunmeng. CEO: Jiang Cheng.', events: [[-1180, 0.82], [-640, 1.12], [-12, 1.04]] },
-    { s: 'KOI', name: 'Jin Group', price: 92.15, chg: -0.84, vol: 0.016, drift5y: 0.74, pe: 22.1, mcap: 288.3, eps: 4.17, yld: 2.4, beta: 1.08, sector: 'Conglomerate', about: 'Jin Group is a Lanling conglomerate (property, hospitality, entertainment) headquartered at Koi Tower. Heir apparent: Jin Ling.', events: [[-575, 0.71], [-420, 1.08]] },
-    { s: 'NIE', name: 'Nie Corp', price: 47.88, chg: 0.21, vol: 0.008, drift5y: 1.41, pe: 15.2, mcap: 96.4, eps: 3.15, yld: 3.1, beta: 0.62, sector: 'Industrials', about: 'Nie Corp is a Qinghe industrial group with a small, inexplicably profitable hand-painted fan division. Chairman: Nie Huaisang.' },
-    { s: 'GUSU', name: 'Gusu Lan Education', price: 61.30, chg: 2.94, vol: 0.011, drift5y: 1.08, pe: 26.8, mcap: 54.2, eps: 2.29, yld: 1.8, beta: 0.71, sector: 'Education', about: 'Gusu Lan Education runs Gusu Lan Academy (the Cloud Recesses campus) and its summer programs. Chancellor: Lan Xichen.', events: [[-280, 0.84], [-15, 1.16]] },
-    { s: 'RADSH', name: 'Yiling Radish Co.', price: 0.42, chg: 31.25, vol: 0.07, drift5y: 2.2, pe: null, mcap: 0.031, eps: -0.02, yld: 0, beta: 2.9, sector: 'Agriculture', about: 'Yiling Radish Co. grows radishes on Burial Mounds hill and runs a weekend market stall. Founder: Wei Wuxian. Listed on the LSE Growth Board in 2024 “as a joke”.', young: 560 },
-    { s: 'WAVE', name: 'Wavelet Inc.', price: 142.70, chg: -1.12, vol: 0.02, drift5y: 1.9, pe: 41.3, mcap: 198.0, eps: 3.46, yld: 0, beta: 1.4, sector: 'Social Media', about: 'Wavelet is a social app for photos, gossip and #BalconyGate.' },
-    { s: 'SWFT', name: 'Swift Ride Holdings', price: 23.42, chg: 0.47, vol: 0.017, drift5y: 0.9, pe: 33.0, mcap: 41.7, eps: 0.71, yld: 0, beta: 1.2, sector: 'Transport', about: 'Swift Ride runs ride-hailing across Lanling and Yunmeng. Lost items can be reported in the app.' },
-    { s: 'LTEA', name: 'Cloud Recesses Tea Co.', price: 18.95, chg: 0.32, vol: 0.01, drift5y: 1.25, pe: 19.9, mcap: 6.4, eps: 0.95, yld: 2.2, beta: 0.5, sector: 'Consumer', about: 'Tea from the Cloud Recesses estate. Their white peony is a bestseller in Yunmeng, oddly.' },
-    { s: 'GPHT', name: 'Golden Peony Hotels', price: 33.10, chg: -0.24, vol: 0.012, drift5y: 1.1, pe: 24.6, mcap: 12.8, eps: 1.35, yld: 1.4, beta: 0.9, sector: 'Hospitality', about: 'Golden Peony Hotels operates luxury hotels in Lanling.' },
-    { s: 'LEAT', name: 'Lotus Eats Ltd.', price: 12.06, chg: 1.35, vol: 0.022, drift5y: 0.8, pe: 58.1, mcap: 9.1, eps: 0.21, yld: 0, beta: 1.5, sector: 'Food Delivery', about: 'Food delivery across Yunmeng, Lanling and Gusu.' },
-    { s: 'PETK', name: 'Pet Kingdom', price: 7.82, chg: 0.51, vol: 0.015, drift5y: 1.3, pe: 21.2, mcap: 2.1, eps: 0.37, yld: 1.1, beta: 0.7, sector: 'Retail', about: 'Pet supplies. Sells a lot of 20 kg dog food bags to one customer in Lanling.' },
-    { s: 'KOIR', name: 'Koi Records', price: 9.40, chg: 3.08, vol: 0.025, drift5y: 1.6, pe: 29.7, mcap: 3.3, eps: 0.32, yld: 0, beta: 1.3, sector: 'Entertainment', about: 'Record label behind Koi Pond Boys and Peony & the Golden Carp. A Jin Group subsidiary.' },
-    { s: 'WEN', name: 'Wen Corp', price: 0, chg: 0, vol: 0, delisted: true, about: 'Wen Corp was delisted in 2009 following the collapse of its holding company.' },
+    { s: 'LYX', name: 'Liyue Exchange Composite', idx: true, price: 6120.38, chg: -0.41, vol: 0.009, drift5y: 1.38, about: 'The Liyue Exchange Composite tracks the 200 largest companies listed on the Liyue Exchange, founded under contract with Rex Lapis. Trading floor: Feiyun Slope.' },
+    { s: 'SNZ', name: 'Zapolyarny 50', idx: true, price: 1488.02, chg: 0.33, vol: 0.008, drift5y: 1.21, about: 'The fifty largest companies on the Zapolyarny Exchange, Snezhnaya. Northland Bank Group is its largest component.' },
+    { s: 'NBK', name: 'Northland Bank Group', price: 412.60, chg: 1.12, vol: 0.012, drift5y: 2.4, pe: 11.8, mcap: 2410.0, eps: 34.97, yld: 3.4, beta: 0.9, sector: 'Banking', about: 'Northland Bank Group is a Snezhnayan bank with branches across Teyvat and the largest creditor of several nations. Board: eleven executive directors. Liyue Branch Director: Tartaglia.', events: [[-900, 1.2], [-215, 1.14], [-14, 1.05]] },
+    { s: 'CRUX', name: 'Crux Shipping Co.', price: 58.25, chg: 2.18, vol: 0.016, drift5y: 1.7, pe: 14.2, mcap: 38.6, eps: 4.1, yld: 2.8, beta: 1.1, sector: 'Shipping', about: 'The Crux Fleet’s commercial arm: cargo, escort and passenger services from Liyue Harbor. Captain: Beidou. Shareholders’ meetings are held on deck.', events: [[-6, 1.04]] },
+    { s: 'FCG', name: 'Feiyun Commerce Guild', price: 133.70, chg: 0.58, vol: 0.011, drift5y: 1.55, pe: 21.4, mcap: 96.2, eps: 6.25, yld: 1.9, beta: 0.8, sector: 'Retail & Auctions', about: 'The Feiyun Commerce Guild runs Feiyun Market, Liyue’s largest marketplace and auction house, from Feiyun Slope.' },
+    { s: 'WSF', name: 'Wangsheng Funeral Services', price: 77.77, chg: 7.70, vol: 0.02, drift5y: 1.3, pe: 27.7, mcap: 7.7, eps: 2.81, yld: 0.77, beta: 0.4, sector: 'Services', about: 'Liyue’s oldest funeral parlour, entrusted with the Rite of Parting. Director: Hu Tao (77th). Dividend: 0.77%. Of course.', events: [[-15, 1.21]] },
+    { s: 'WMG', name: 'Wanmin Go Holdings', price: 24.18, chg: 1.04, vol: 0.022, drift5y: 1.1, pe: 44.0, mcap: 11.9, eps: 0.55, yld: 0, beta: 1.4, sector: 'Food Delivery', about: 'Food delivery across Liyue Harbor, built on Wanmin Restaurant. Head chef and largest shareholder of good ideas: Xiangling.' },
+    { s: 'HRD', name: 'Harbor Ride Ltd.', price: 19.42, chg: -0.36, vol: 0.017, drift5y: 0.95, pe: 31.0, mcap: 14.3, eps: 0.63, yld: 0, beta: 1.2, sector: 'Transport', about: 'Ride-hailing and sampan water taxis across Liyue Harbor. Lost items can be reported in the app.' },
+    { s: 'RPL', name: 'Ripple Inc.', price: 211.30, chg: -1.48, vol: 0.02, drift5y: 2.1, pe: 52.1, mcap: 320.4, eps: 4.06, yld: 0, beta: 1.5, sector: 'Social Media', about: 'Ripple is a photo and stories app popular across Teyvat. Its most-followed account in Liyue is a funeral parlour.' },
+    { s: 'MNT', name: 'Mingyun Toys & Games', price: 16.05, chg: 0.94, vol: 0.015, drift5y: 1.4, pe: 18.0, mcap: 3.1, eps: 0.89, yld: 1.5, beta: 0.7, sector: 'Consumer', about: 'Makers of Glacier Guardians. The Frost Fortress (lights up!) is this season’s bestseller in Snezhnaya, for reasons the company cannot explain.' },
+    { s: 'JDC', name: 'Jade Chamber Bonds', idx: true, price: 98.40, chg: -0.12, vol: 0.003, drift5y: 0.98, about: 'Liyue sovereign debt, issued by the Qixing. Largest holder: Northland Bank Group.' },
+    { s: 'SLL', name: 'Sea Lantern Logistics', price: 1.06, chg: 18.40, vol: 0.09, drift5y: 1, pe: null, mcap: 0.009, eps: -0.31, yld: 0, beta: 3.2, sector: 'Shipping', young: 16, about: 'Sea Lantern Logistics listed on the Liyue Growth Board three weeks ago. It describes itself as a shipping company. It owns no ships. Its only client is a Northland account.' },
   ];
   const BY = {};
   SYMS.forEach((x) => { BY[x.s] = x; });
 
-  JC.store.seed('stockwatch', [{ id: 'w', list: ['YMCI', 'YMJ', 'KOI', 'NIE', 'GUSU', 'RADSH'], mode: 'pct' }]);
+  JC.store.seed('stockwatch', [{ id: 'w', list: ['LYX', 'SNZ', 'NBK', 'CRUX', 'FCG', 'WSF', 'MNT'], mode: 'pct' }]);
   const watch = () => JC.store.get('stockwatch', 'w') || { list: [], mode: 'pct' };
   const flag = (f) => !!(JC.story && JC.story.flag && JC.story.flag(f));
   const redUp = () => !!((JC.state.d.settings.prefs || {})['stk.redup']);
@@ -63,7 +61,7 @@
       let r = drift + gauss(R) * x.vol;
       if (ev[i + 1]) r += Math.log(ev[i + 1]);
       p = p / Math.exp(r);
-      if (sym === 'RADSH') p = Math.max(0.05, p);
+      if (sym === 'SLL') p = Math.max(0.5, p);
       out[i] = p;
     }
     cache[sym] = out;
@@ -85,7 +83,7 @@
       const left = steps - i;
       const pull = (close - p) / left;
       p = p + pull + gauss(R) * x.vol * open * 0.18;
-      if (sym === 'RADSH' && dayKey === 0 && i === Math.round(steps * 0.78)) p *= 1.18; // the livestream
+      if (sym === 'SLL' && dayKey === 0 && i === Math.round(steps * 0.78)) p *= 1.18; // nobody knows why
       pts.push(p);
     }
     pts[steps - 1] = close;
@@ -134,43 +132,48 @@
   }
   function quote(sym) {
     const x = BY[sym];
-    if (x.delisted) return { price: 0, chg: 0, pct: 0, delisted: true };
+    if (x.delisted || (sym === 'SLL' && (flag('leaked_ning') || flag('leaked_yelan')))) return { price: 0, chg: 0, pct: 0, delisted: true };
     const d = daily(sym);
     const n = d.length;
     const prev = d[n - 2];
     let after = null;
-    if (sym === 'KOI' && (flag('car_cover') || flag('car_handled'))) after = flag('car_cover') ? -3.4 : -2.1;
-    if (sym === 'GUSU' && flag('tea_yes')) after = 1.8;
-    if (sym === 'RADSH' && (flag('wwx_invited') || flag('memo_sent'))) after = 12.0;
-    if (sym === 'PETK' && flag('dog_friday')) after = 4.0;
-    if (sym === 'YMJ' && flag('ops_soup')) after = 0.6;
-    if (sym === 'LTEA' && flag('tea_yes')) after = 2.6;
+    const now = JC.time.now();
+    if (sym === 'NBK' && flag('osial_sent')) after = -11.3;
+    else if (sym === 'NBK' && (flag('leaked_ning') || flag('leaked_yelan'))) after = -6.8;
+    else if (sym === 'NBK' && flag('card_frozen')) after = -0.4;
+    if (sym === 'LYX' && flag('osial_sent')) after = -8.9;
+    if (sym === 'JDC' && flag('osial_sent')) after = -4.2;
+    if (sym === 'SLL' && flag('osial_sent')) after = 212.0;
+    if (sym === 'FCG' && flag('bought_teaset')) after = 1.6;
+    if (sym === 'WMG' && Number(JC.story && JC.story.flag && JC.story.flag('paimon_total')) > 3000) after = 3.2;
+    if (sym === 'MNT' && flag('gift_teucer')) after = 0.9;
+    if (sym === 'WSF' && now >= JC.time.parse('+2 13:00')) after = 4.4;
+    if (sym === 'CRUX' && flag('rematch_won')) after = -1.5;
     return { price: d[n - 1], prev, chg: d[n - 1] - prev, pct: ((d[n - 1] - prev) / prev) * 100, after, afterPrice: after != null ? d[n - 1] * (1 + after / 100) : null };
   }
   const dp = (sym) => (BY[sym].price < 1 ? 3 : 2);
   const curOn = () => !!((JC.state.d.settings.prefs || {})['stk.cur']);
-  const fmtP = (sym, v) => (curOn() && !BY[sym].idx ? '¥' : '') + v.toLocaleString('en-US', { minimumFractionDigits: dp(sym), maximumFractionDigits: dp(sym) });
+  const fmtP = (sym, v) => (curOn() && !BY[sym].idx ? 'ℳ' : '') + v.toLocaleString('en-US', { minimumFractionDigits: dp(sym), maximumFractionDigits: dp(sym) });
   const fmtPct = (v) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2) + '%';
   const fmtChg = (sym, v) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(dp(sym));
-  const fmtCap = (b) => (b == null ? '—' : b >= 1 ? '¥' + b.toFixed(1) + 'B' : '¥' + Math.round(b * 1000) + 'M');
+  const fmtCap = (b) => (b == null ? '—' : b >= 1 ? 'ℳ' + b.toFixed(1) + 'B' : 'ℳ' + Math.round(b * 1000) + 'M');
 
   // ── news ─────────────────────────────────────────────────────────
   function news() {
     const N = [];
     const t = (s) => JC.time.parse(s);
-    if (flag('car_cover') || flag('car_handled')) N.push({ id: 'n_car', sym: 'KOI', t: JC.time.now() - 12 * 60e3, src: 'Lanling Evening Post', art: 'p_koi_pond_car', title: flag('car_cover') ? '#KoiPondGate: Jin Group heir’s car found in Koi Tower pond; family declines to comment' : 'Jin Group heir’s car found in Koi Tower pond; nobody hurt, koi “unbothered”', body: [flag('car_cover') ? 'A dark purple sedan registered to Yunmeng Jiang Group was found partially submerged in the famous koi pond outside Koi Tower shortly after midnight, hours after the Jin Group’s Autumn Charity Gala. A Jin Group spokesperson blamed “a valet incident”. The valet says he has never seen the car before.' : 'A dark purple sedan was towed from the koi pond outside Koi Tower in the early hours of Saturday. Witnesses described a very large black dog sitting calmly on the roof during the operation.', 'Jin Group shares slipped in after-hours trading on the Lanling Stock Exchange. “It is not the first time something has ended up in that pond,” one analyst noted. “It is the first time it was a car.”', 'Lotus Pier declined to comment. A source close to the family said only: “He is fine. The koi are fine. The car is not fine.”'] });
-    if (flag('tea_yes')) N.push({ id: 'n_tea', sym: 'LTEA', t: JC.time.now() - 25 * 60e3, src: 'Gusu Herald', art: 'p_tea_hanshi', title: 'White peony futures spike on “unusual demand from a single buyer in Yunmeng”', body: ['Cloud Recesses Tea Co. reported an overnight surge in orders for its white peony blend. The tea, brewed at exactly 85°C, is a favourite of Gusu Lan Education’s chancellor.', 'Analysts also noted a modest after-hours rise in Gusu Lan Education shares, citing what one called “cross-river synergies”. Asked to elaborate, she smiled and said nothing further.'] });
-    if (flag('ops_soup')) N.push({ id: 'n_soup', sym: 'YMJ', t: JC.time.now() - 40 * 60e3, src: 'Yunmeng Evening News', art: 'p_ops_lotusroots', title: 'YMJ turns a 400 kg lotus root mix-up into company-wide soup day', body: ['A typo turned an order of 40 kg of lotus root into 400 kg at Yunmeng Jiang Group this week. Instead of returning it, the company is reportedly making lotus root and pork rib soup for every employee.', '“Visionary,” said one logistics analyst. “Or a very large pot.”'] });
-    if (flag('dog_friday')) N.push({ id: 'n_dog', sym: 'PETK', t: JC.time.now() - 55 * 60e3, src: 'Lanling Financial Daily', art: 'p_dogfriday_poster', title: 'YMJ approves “Bring Your Dog to Work Friday”; Pet Kingdom rises 4%', body: ['Yunmeng Jiang Group will allow employees to bring dogs to its Lotus Pier offices on Fridays, according to an internal poster seen by this newspaper. The policy was proposed by operations manager Liu Qian.', 'Pet Kingdom shares rose in after-hours trading. One investor called it “the most bullish poster I have ever seen”.'] });
-    if (flag('wwx_invited') || flag('memo_sent')) N.push({ id: 'n_rad2', sym: 'RADSH', t: JC.time.now() - 30 * 60e3, src: 'Lanling Financial Daily', art: 'p_radish_cake', title: 'Yiling Radish Co. rallies on rumours of a Lotus Pier “partnership”', body: ['Shares of the tiny radish grower jumped again after its founder posted a photo of a soup pot with the caption “sunday 🙏”.', 'Yunmeng Jiang Group did not respond to questions about a supply deal. Yiling Radish Co. did not respond either, because its investor relations department is also its founder, and he was “busy crying a little”.'] });
+    const now = JC.time.now();
+    if (flag('osial_sent') && now >= t('+2 23:00')) N.push({ id: 'n_flood', sym: 'NBK', t: t('+2 23:20'), src: 'The Liyue Herald', art: 'p_storm_guyun', title: 'Liyue markets halted as sea surges at Guyun; Northland Bank named in leaked operation document', body: ['Trading in Liyue-listed securities was halted overnight after a sea surge struck the waterfront minutes after the founder’s lanterns went out.', 'A document circulating on Ripple names Northland Bank’s Liyue director, Tartaglia, as the sole signatory of an operation called “Osial”. The Bank declined to comment.', 'Sea Lantern Logistics, a three-week-old shipping company with no ships, rose 212% in after-hours trading.'] });
+    if (flag('leaked_ning') || flag('leaked_yelan')) N.push({ id: 'n_halt', sym: 'SLL', t: now - 35 * 60e3, src: 'Liyue Exchange', art: 'p_unit3', title: 'Trading in Sea Lantern Logistics suspended at the request of the Jade Chamber', body: ['The Liyue Exchange has suspended trading in Sea Lantern Logistics “pending enquiries by the Office of the Tianquan”.', 'The company, which listed three weeks ago, received ℳ3.8 million in transfers from a single Northland corporate account.', 'Northland Bank Group shares fell in after-hours trading.'] });
+    if (flag('bought_teaset')) N.push({ id: 'n_tea', sym: 'FCG', t: now - 25 * 60e3, src: 'The Liyue Herald', art: 'p_teaset', title: 'Guizhong-era tea set sets a Feiyun Market record', body: ['A seven-piece celadon tea set sold just after midnight on Feiyun Market, outbidding “jade_connoisseur_88” in the final minute.', 'Experts read the worn inscription on the pot as “for Morax — G.”'] });
+    if (Number(JC.story && JC.story.flag && JC.story.flag('paimon_total')) > 3000) N.push({ id: 'n_paimon', sym: 'WMG', t: now - 15 * 60e3, src: 'Harbor Business', art: 'p_paimon_food', title: 'Wanmin Go raises guidance after “one extraordinary customer” orders the entire menu', body: ['Wanmin Go Holdings said weekend orders were running well ahead of forecast, citing “a single, very small, very hungry customer”.', 'Head chef Xiangling said: “I love her.”'] });
     N.push(
-      { id: 'n_gala', sym: 'KOI', t: t('+0 22:30'), src: 'Lanling Evening Post', art: 'p_gala_hall', title: 'Jin Group’s Autumn Charity Gala raises ¥38 million at Koi Tower', body: ['The Jin Group’s annual gala at Koi Tower raised ¥38 million for children’s hospitals across Lanling. Guests included Gusu Lan Education chancellor Lan Xichen, Nie Corp chairman Nie Huaisang and Yunmeng Jiang Group chief Jiang Cheng, who was seated — unusually — at the head table.', 'Heir apparent Jin Ling, who turns 18 on Sunday, gave a brief speech and was seen leaving early with “a very large dog”.', 'A seating chart obtained by this newspaper appears to have been changed by hand on the morning of the event.'] },
-      { id: 'n_ymj', sym: 'YMJ', t: t('+0 16:05'), src: 'Lanling Financial Daily', art: 'p_lotus_pond_day', title: 'Yunmeng Jiang Group posts record third quarter as lotus exports surge', body: ['Yunmeng Jiang Group reported its strongest quarter since listing, with revenue up 14% on growth in cold-chain shipping and lotus-farm foods.', 'Chief executive Jiang Cheng declined to join the earnings call. A written statement read: “The numbers speak for themselves.”', 'Shares closed up 1.8%. Analysts at three brokerages raised their targets; a fourth said it “would not dare”.'] },
-      { id: 'n_gusu', sym: 'GUSU', t: t('+0 11:20'), src: 'Gusu Herald', art: 'p_cloud_recesses', title: 'Gusu Lan Education climbs as Chancellor Lan Xichen returns to public life', body: ['Shares of Gusu Lan Education rose nearly 3% after the academy confirmed that Chancellor Lan Xichen will attend tonight’s Jin Group gala — his first public appearance since stepping back last year.', 'Board chair Lan Qiren said in a statement that the academy’s 3,000 rules “remain in force, and are not up for discussion”.'] },
-      { id: 'n_radsh', sym: 'RADSH', t: t('+0 14:41'), src: 'Lanling Financial Daily', art: 'p_radishes', title: 'Yiling Radish Co. jumps 31% after founder’s livestream features a “mystery guest” on guqin', body: ['Yiling Radish Co., the smallest company on the Lanling Growth Board, soared after its founder hosted a livestream from his farm in which an unnamed guest played the guqin for forty minutes without speaking.', 'Trading was halted twice. The company’s market value is now roughly the price of a nice car.', '“Radish futures are extremely volatile,” said one analyst. “I don’t know why I’m covering them.”'] },
-      { id: 'n_nie', sym: 'NIE', t: t('-1 09:30'), src: 'Qinghe Business Weekly', art: null, title: 'Nie Corp chairman on record fan sales: “I don’t know, I don’t know!”', body: ['Nie Corp’s hand-painted fan division posted another record quarter. Asked how a hobby brand outsold the group’s steel division in Lanling, chairman Nie Huaisang said he did not know.', 'People familiar with the company say he knows exactly.'] },
-      { id: 'n_idx', sym: 'YMCI', t: t('+0 15:10'), src: 'Lanling Financial Daily', art: null, title: 'Yunmeng Composite closes higher for a third straight session', body: ['The Yunmeng Composite rose 0.6% on Friday, led by logistics and education stocks. Volume was light ahead of the weekend.'] },
-      { id: 'n_wave', sym: 'WAVE', t: t('+0 23:39'), src: 'Lanling Evening Post', art: 'p_shot_gossip', title: '#BalconyGate trends on Wavelet after anonymous gossip account posts gala photo', body: ['An anonymous Wavelet account, @teaspiller_qh, posted a photo from the Koi Tower balcony with the caption “#BalconyGate 👀”. It has been shared 41,000 times.', 'Wavelet declined to identify the account. The account declined to identify itself, adding “hehe~”.'] },
+      { id: 'n_rite', sym: 'WSF', t: t('+0 18:40'), src: 'The Liyue Herald', art: 'p_yujing_lanterns', title: 'Wangsheng Funeral Services up 7.7% ahead of the Rite of Parting', body: ['Shares of Liyue’s oldest funeral parlour rose 7.7% on Friday as the city prepared for Sunday’s Rite of Parting on Yujing Terrace.', 'Director Hu Tao told analysts that the Rite would be “the funeral of seventy-seven lifetimes” and offered each of them a coupon.'] },
+      { id: 'n_nbk', sym: 'NBK', t: t('+0 16:05'), src: 'Snezhnaya Financial Times', art: 'p_northland_lobby', title: 'Northland Bank nears historic Liyue debt deal; “item of cultural significance” to change hands', body: ['Northland Bank Group shares rose 1.1% on reports that the bank is close to writing off a large part of Liyue’s sovereign debt.', 'In exchange, the bank would receive “an item of cultural significance” after the Rite of Parting. A spokesperson for the Office of the Eighth declined to say what the item is.'] },
+      { id: 'n_sll', sym: 'SLL', t: t('+0 14:41'), src: 'Harbor Business', art: null, title: 'Sea Lantern Logistics jumps 18% for no apparent reason', body: ['Sea Lantern Logistics, which listed three weeks ago and owns no ships, rose 18% on Friday on volume of just 4,000 shares.', 'Asked about the company’s business, its registered office — a desk on Pier 11 — did not answer the phone.'] },
+      { id: 'n_crux', sym: 'CRUX', t: t('-6 10:00'), src: 'The Liyue Herald', art: 'p_alcor_deck', title: 'Crux Shipping rises as the Alcor returns to port', body: ['Crux Shipping shares rose after the fleet’s flagship returned from six weeks at sea.', 'Captain Beidou told shareholders: “Profits are up. Also I want a rematch with the ginger one.”'] },
+      { id: 'n_lyx', sym: 'LYX', t: t('+0 15:10'), src: 'Harbor Business', art: null, title: 'Liyue Exchange slips as traders wait out the Rite of Parting', body: ['The Liyue Exchange Composite fell 0.4% on Friday. The exchange will close on Sunday for the Rite of Parting and reopen on Monday.', '“Nobody wants to be long Liyue the day its god is buried,” one trader said. “Or short it. Imagine if he’s watching.”'] },
+      { id: 'n_mnt', sym: 'MNT', t: t('-3 12:00'), src: 'Snezhnaya Financial Times', art: null, title: 'Glacier Guardians Frost Fortress sells out in Morepesok', body: ['Mingyun Toys & Games said its Frost Fortress playset had sold out in Snezhnaya’s coastal towns.', 'A spokesperson said one eight-year-old in Morepesok had “personally told every child in his school about it”.'] },
     );
     return N.sort((a, b) => b.t - a.t);
   }
@@ -202,7 +205,7 @@
       function pill(sym) {
         const qq = quote(sym);
         const mode = watch().mode;
-        const txt = qq.delisted ? 'Delisted' : mode === 'pct' ? fmtPct(qq.pct) : mode === 'chg' ? fmtChg(sym, qq.chg) : fmtCap(BY[sym].mcap);
+        const txt = qq.delisted ? 'Halted' : mode === 'pct' ? fmtPct(qq.pct) : mode === 'chg' ? fmtChg(sym, qq.chg) : fmtCap(BY[sym].mcap);
         return h('div.stk-pill', { style: { background: qq.delisted ? 'var(--gray)' : mode === 'cap' ? 'var(--gray)' : colorFor(qq.pct) }, onTap: (e) => { e.stopPropagation(); const order = ['pct', 'chg', 'cap']; JC.store.update('stockwatch', 'w', { mode: order[(order.indexOf(mode) + 1) % 3] }); JC.audio.haptic(6); } }, txt);
       }
       function row(sym, opts) {
@@ -225,7 +228,7 @@
       function addSym(sym) { if (!watch().list.includes(sym)) JC.store.update('stockwatch', 'w', { list: watch().list.concat(sym) }); JC.ui.toast('Added ' + sym + ' to My Symbols', { icon: 'checkmark' }); }
       function shareSym(sym) {
         const qq = quote(sym);
-        JC.ui.share({ title: BY[sym].name + ' (' + sym + ')', subtitle: qq.delisted ? 'Delisted' : fmtP(sym, qq.price) + ' · ' + fmtPct(qq.pct), payload: { kind: 'link', text: sym + ' ' + (qq.delisted ? 'delisted' : fmtP(sym, qq.price) + ' (' + fmtPct(qq.pct) + ')'), url: 'https://stocks.apple.com/symbol/' + sym } });
+        JC.ui.share({ title: BY[sym].name + ' (' + sym + ')', subtitle: qq.delisted ? 'Halted' : fmtP(sym, qq.price) + ' · ' + fmtPct(qq.pct), payload: { kind: 'link', text: sym + ' ' + (qq.delisted ? 'delisted' : fmtP(sym, qq.price) + ' (' + fmtPct(qq.pct) + ')'), url: 'https://stocks.apple.com/symbol/' + sym } });
       }
       function newsCard(n, big) {
         return h('div.stk-news', { class: { big }, onTap: () => openArticle(n) },
@@ -241,10 +244,10 @@
           content: () => {
             if (q) {
               const hits = SYMS.filter((x) => (x.s + ' ' + x.name).toLowerCase().includes(q));
-              if (!hits.length) return [JC.ui.empty({ icon: 'magnifyingglass', title: 'No Results', text: 'Try a symbol like YMJ or KOI.' })];
+              if (!hits.length) return [JC.ui.empty({ icon: 'magnifyingglass', title: 'No Results', text: 'Try a symbol like NBK or CRUX.' })];
               return [h('div.stk-sh', 'Symbols'), h('div.stk-results', hits.map((x) => {
                 const inW = watch().list.includes(x.s);
-                return h('div.stk-res', { onTap: () => openDetail(x.s) }, h('div.stk-row-l', h('div.stk-sym', x.s), h('div.stk-name', x.name + (x.delisted ? ' · Delisted' : ' · LSE'))),
+                return h('div.stk-res', { onTap: () => openDetail(x.s) }, h('div.stk-row-l', h('div.stk-sym', x.s), h('div.stk-name', x.name + (x.delisted ? ' · Halted' : ' · LYX'))),
                   h('div.stk-add', { class: { on: inW }, onTap: (e) => { e.stopPropagation(); if (inW) removeSym(x.s); else addSym(x.s); } }, JC.icon(inW ? 'checkmark' : 'plus', { size: 16, weight: 2.6 })));
               }))];
             }
@@ -253,8 +256,8 @@
             return [
               h('div.stk-sh', h('span', 'My Symbols'), h('span.stk-sh-r.tap', { onTap: () => editSheet() }, 'Edit')),
               list.length ? h('div.stk-list', list.map((s) => row(s))) : JC.ui.empty({ icon: 'chart.line.uptrend.xyaxis', title: 'No Symbols', text: 'Search to add symbols to your watchlist.' }),
-              h('div.stk-market', JC.icon('clock', { size: 13 }), ' Lanling Stock Exchange · Closed · prices at 15:00 close'),
-              h('div.stk-news-h', h('div.stk-news-k', 'Top Stories'), h('div.stk-news-sub', 'From Lanling Financial Daily and partners')),
+              h('div.stk-market', JC.icon('clock', { size: 13 }), ' Liyue Exchange · Closed · prices at 15:00 close'),
+              h('div.stk-news-h', h('div.stk-news-k', 'Top Stories'), h('div.stk-news-sub', 'From The Liyue Herald and partners')),
               ns.length ? newsCard(ns[0], true) : null,
               h('div.stk-newslist', ns.slice(1).map((n) => newsCard(n))),
               h('div.stk-foot', 'Quotes are delayed. Every company here is fictional. Even the radishes.'),
@@ -321,6 +324,7 @@
       function openDetail(sym) {
         const x = BY[sym];
         if (!x) return;
+        try { JC.story.act('stock_view', { id: sym }); } catch (e) { /* ignore */ }
         JC.kb.hide();
         const sh = JC.ui.sheet({
           title: '', detent: 'large', cls: 'stk-sheet', noHead: false,
@@ -336,7 +340,7 @@
         const x = BY[sym];
         const qq = quote(sym);
         if (qq.delisted) {
-          return [h('div.stk-dh', h('div.stk-dsym', sym), h('div.stk-dname', x.name)), JC.ui.empty({ icon: 'exclamationmark.triangle.fill', title: 'Delisted', text: x.about + ' Its last trade was on November 2, 2009.' })];
+          return [h('div.stk-dh', h('div.stk-dsym', sym), h('div.stk-dname', x.name)), JC.ui.empty({ icon: 'exclamationmark.triangle.fill', title: 'Trading Halted', text: x.about + ' Trading was suspended at the request of the Office of the Tianquan.' })];
         }
         const ser = series(sym, range);
         const vs = ser.pts.map((p) => p.v);
@@ -369,7 +373,7 @@
         const d1 = series(sym, '1D').pts.map((p) => p.v);
         const y1 = series(sym, '1Y').pts.map((p) => p.v);
         const R = rnd('vol:' + sym);
-        const volM = x.idx ? null : (x.mcap * (0.6 + R() * 0.8) * (sym === 'RADSH' ? 900 : 1));
+        const volM = x.idx ? null : (x.mcap * (0.6 + R() * 0.8) * (sym === 'SLL' ? 900 : 1));
         const stats = [
           ['Open', fmtP(sym, d1[0])], ['High', fmtP(sym, Math.max(...d1))], ['Low', fmtP(sym, Math.min(...d1))],
           ['Vol', volM == null ? '—' : volM.toFixed(1) + 'M'], ['P/E', x.pe ? x.pe.toFixed(1) : '—'], ['Mkt Cap', fmtCap(x.mcap)],
@@ -382,7 +386,7 @@
         statsEl.addEventListener('scroll', () => { const i = Math.round(statsEl.scrollLeft / statsEl.clientWidth); Array.from(dots.children).forEach((d, k) => d.classList.toggle('on', k === i)); }, { passive: true });
         const ns = news().filter((n) => n.sym === sym);
         return [
-          h('div.stk-dh', h('div.stk-dsym', sym), h('div.stk-dname', x.name + (x.idx ? ' · Index' : ' · LSE · ' + (x.sector || '')))),
+          h('div.stk-dh', h('div.stk-dsym', sym), h('div.stk-dname', x.name + (x.idx ? ' · Index' : ' · ' + (sym === 'NBK' ? 'ZPX' : 'LYX') + ' · ' + (x.sector || '')))),
           h('div.stk-dq', priceEl, chgEl, whenEl,
             qq.after != null ? h('div.stk-after', 'After Hours: ', h('b', fmtP(sym, qq.afterPrice)), h('span', { style: { color: colorFor(qq.after) } }, ' ' + fmtPct(qq.after))) : null),
           seg,
@@ -399,7 +403,7 @@
       function openArticle(n) {
         JC.ui.sheet({
           title: '', detent: 'large', left: { icon: 'xmark' },
-          right: { icon: 'square.and.arrow.up', bold: false, onTap: () => { JC.ui.share({ title: n.title, subtitle: n.src, art: n.art, payload: { kind: 'link', text: n.title, url: 'https://news.lanling.example/' + n.id } }); return false; } },
+          right: { icon: 'square.and.arrow.up', bold: false, onTap: () => { JC.ui.share({ title: n.title, subtitle: n.src, art: n.art, payload: { kind: 'link', text: n.title, url: 'https://liyueherald.ly/markets/' + n.id } }); return false; } },
           content: () => [h('div.stk-art',
             h('div.stk-art-src', n.src), h('div.stk-art-t', n.title), h('div.stk-art-time', U.fmtDate(n.t, 'long') + ' · ' + U.fmtTime(n.t)),
             n.art ? JC.art.el(n.art, { cls: 'stk-art-img' }) : null,

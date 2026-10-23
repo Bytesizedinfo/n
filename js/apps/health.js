@@ -1,4 +1,4 @@
-/* Health — iOS 26 Health: Summary (pinned metrics, highlights), Sharing (A-Ling's request), Browse/Search,
+/* Health — iOS 26 Health: Summary (pinned metrics, highlights), Sharing (Tonia's request), Browse/Search,
    metric detail pages with D/W/M/6M/Y charts, Medical ID, Medications log, State of Mind log. */
 (function () {
   'use strict';
@@ -18,6 +18,9 @@
     'cross.case.fill': '<rect x="3" y="7" width="18" height="13" rx="2.5" fill="currentColor" stroke="none"/><path d="M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7" /><path d="M12 10.5v6M9 13.5h6" style="stroke:var(--knock,#fff)" stroke-width="2"/>',
     'square.and.arrow.up.circle': '<circle cx="12" cy="12" r="9"/><path d="M12 7v8M9 10l3-3 3 3"/>',
     'figure.strengthtraining.traditional': '<circle cx="12" cy="4.5" r="1.8" fill="currentColor" stroke="none"/><path d="M12 7.5v6l-2.5 6.5M12 13.5l2.5 6.5M4 9.5h16M5.5 7.5v4M18.5 7.5v4"/>',
+    'figure.pool.swim': '<circle cx="15.5" cy="6" r="1.8" fill="currentColor" stroke="none"/><path d="M5 12.5 9.5 9l3.5 2.5 2.5-2M3 17c1.5 1 3 1 4.5 0s3-1 4.5 0 3 1 4.5 0 3-1 4.5 0"/>',
+    'figure.martial.arts': '<circle cx="9" cy="4.5" r="1.8" fill="currentColor" stroke="none"/><path d="M9 7.5 8 13l-3 7M8 13l4 2 1 5M9 9l5-2 5 1M9 9 5 11"/>',
+    'figure.fishing': '<circle cx="7" cy="5" r="1.8" fill="currentColor" stroke="none"/><path d="M7 8v6l-2 6M7 14l2.5 6M7 10l4-1 8-6M19 3v11"/><circle cx="19" cy="15.5" r="1.2"/>',
     'face.smiling': '<circle cx="12" cy="12" r="9"/><path d="M8.5 14c.9 1.4 2.1 2 3.5 2s2.6-.6 3.5-2"/><circle cx="9" cy="10" r="1" fill="currentColor" stroke="none"/><circle cx="15" cy="10" r="1" fill="currentColor" stroke="none"/>',
   });
 
@@ -31,12 +34,12 @@
   };
   const ASSOC = ['Health', 'Fitness', 'Self-Care', 'Hobbies', 'Identity', 'Spirituality', 'Community', 'Family', 'Friends', 'Partner', 'Dating', 'Tasks', 'Work', 'Education', 'Travel', 'Weather', 'Current Events', 'Money'];
   const WORKOUTS = [
-    { id: 'w0', d: 0, type: 'Outdoor Run', icon: 'figure.run', km: 6.2, time: 1908, kcal: 412, hr: 152, pace: '5′08″', start: '07:02', place: 'Lanling Riverside', elev: 18, cadence: 172 },
-    { id: 'w1', d: -2, type: 'Outdoor Run', icon: 'figure.run', km: 6.0, time: 1874, kcal: 398, hr: 149, pace: '5′12″', start: '06:10', place: 'Lotus Pier Lakeside', elev: 9, cadence: 170 },
-    { id: 'w2', d: -3, type: 'Functional Strength Training', icon: 'figure.strengthtraining.traditional', km: 0, time: 3120, kcal: 356, hr: 118, start: '05:34', place: 'YMJ Gym', elev: 0 },
-    { id: 'w3', d: -4, type: 'Outdoor Run', icon: 'figure.run', km: 7.1, time: 2262, kcal: 471, hr: 154, pace: '5′19″', start: '06:02', place: 'Lotus Pier Lakeside', elev: 12, cadence: 171 },
-    { id: 'w4', d: -6, type: 'Outdoor Run', icon: 'figure.run', km: 5.4, time: 1702, kcal: 351, hr: 147, pace: '5′15″', start: '06:40', place: 'Yunmeng Lake Pavilion', elev: 6, cadence: 169 },
-    { id: 'w5', d: -7, type: 'Functional Strength Training', icon: 'figure.strengthtraining.traditional', km: 0, time: 2940, kcal: 330, hr: 121, start: '05:31', place: 'YMJ Gym', elev: 0 },
+    { id: 'w0', d: 0, type: 'Outdoor Run', icon: 'figure.run', km: 14.2, time: 3896, kcal: 948, hr: 158, pace: '4′34″', start: '05:30', place: 'Harbor Promenade → Chihu Rock → Pier 7', elev: 96, cadence: 182 },
+    { id: 'w1', d: -1, type: 'Open Water Swim', icon: 'figure.pool.swim', km: 2.4, time: 2460, kcal: 610, hr: 141, start: '05:40', place: 'Pier 7 → Guyun buoy line', elev: 0 },
+    { id: 'w2', d: -2, type: 'Martial Arts', icon: 'figure.martial.arts', km: 0, time: 3480, kcal: 702, hr: 151, start: '21:30', place: 'Third-Round Knockout', elev: 0 },
+    { id: 'w3', d: -3, type: 'Outdoor Run', icon: 'figure.run', km: 12.8, time: 3610, kcal: 851, hr: 155, pace: '4′42″', start: '05:31', place: 'Harbor Promenade', elev: 74, cadence: 180 },
+    { id: 'w4', d: -5, type: 'Fishing', icon: 'figure.fishing', km: 0.6, time: 14400, kcal: 420, hr: 74, start: '02:10', place: 'Pier 7', elev: 0 },
+    { id: 'w5', d: -6, type: 'Outdoor Run', icon: 'figure.run', km: 15.1, time: 4210, kcal: 1002, hr: 160, pace: '4′39″', start: '05:29', place: 'Feiyun Slope hill repeats', elev: 212, cadence: 183 },
   ];
   const prefs = () => JC.store.get('hlprefs', 'p') || { pins: [], share: 'pending', topics: [] };
   const setPrefs = (patch) => JC.store.update('hlprefs', 'p', patch);
@@ -102,7 +105,7 @@
           const md = medsToday();
           const pend = md.find((x) => !x.log && HD.dayStart(d) + (x.slot === '08:00' ? 8 : 20) * 3600e3 <= t);
           return card({ icon: catIcon('meds'), color: HD.CATS.meds.color, title: 'Medications', time: pend ? pend.slot : 'Today',
-            value: h('div.hl-med-v', h('div.hl-med-n', 'Tacrolimus'), h('div.hl-med-s', '2 mg Capsule')),
+            value: h('div.hl-med-v', h('div.hl-med-n', 'NM-2'), h('div.hl-med-s', '1 tablet · Northland Medical')),
             sub: pend ? pend.slot + ' · Not Logged' : 'All doses logged today',
             action: pend ? h('div.hl-logbtn', { onTap: (e) => { e.stopPropagation(); logMeds(); } }, 'Log') : h('div.hl-logged', JC.icon('checkmark.circle.fill', { size: 22 })),
             onTap: () => push(medsPage()), menu: unpin });
@@ -111,7 +114,7 @@
           const last = JC.store.all('hlmind').slice().sort((a, b) => b.t - a.t)[0];
           const c = mindCounts();
           return card({ icon: catIcon('mind'), color: HD.CATS.mind.color, title: 'State of Mind', time: last ? U.fmtRelative(last.t) : '',
-            value: h('div.hl-med-v', h('div.hl-med-n', last ? last.feel[0] : 'Not Logged'), h('div.hl-med-s', 'Logged ' + (c.Annoyed || 0) + ' times: Annoyed')),
+            value: h('div.hl-med-v', h('div.hl-med-n', last ? last.feel[0] : 'Not Logged'), h('div.hl-med-s', 'Logged ' + (c.Excited || 0) + ' times: Excited')),
             sub: last ? VAL[last.valence] + ' · ' + (last.feel.join(', ')) : null,
             action: h('div.hl-logbtn', { onTap: (e) => { e.stopPropagation(); logMind(); } }, 'Log'),
             onTap: () => push(mindPage()), menu: unpin });
@@ -122,8 +125,9 @@
         if (id === 'heart') {
           const hs = HD.hourly('heart', d, t).filter((b) => b.hi != null);
           const last = hs[hs.length - 1];
-          const latest = last ? (last.lo + Math.round((last.hi - last.lo) * 0.25)) : null;
-          return card({ icon: catIcon('heart'), color: cat.color, title: 'Heart Rate', time: last ? U.fmtTime(Math.min(t, last.t + 40 * 60e3)) : '', value: valueNode(String(latest || '—'), 'BPM'), sub: 'Latest',
+          const atSync = last && last.t + 3600e3 > HD.SYNC_END;
+          const latest = last ? (atSync ? 149 : last.lo + Math.round((last.hi - last.lo) * 0.25)) : null;
+          return card({ icon: catIcon('heart'), color: cat.color, title: 'Heart Rate', time: last ? U.fmtTime(Math.min(t, last.t + 40 * 60e3, HD.SYNC_END)) : '', value: valueNode(String(latest || '—'), 'BPM'), sub: atSync ? 'Last reading · then nothing' : 'Latest',
             chart: JC.hchart.spark({ kind: 'range', data: HD.hourly('heart', d, t), color: cat.color, barW: 3 }), onTap: () => openMetric('heart'), menu: unpin });
         }
         if (id === 'sleep') {
@@ -142,12 +146,12 @@
         const t = now();
         const items = [];
         const hr = HD.hourly('heart', 0, Math.max(t, HD.dayStart(0) + 23.8 * 3600e3));
-        items.push({ cat: 'heart', title: 'Heart Rate', text: 'Your heart rate reached 121 BPM at 22:50 while you seemed to be inactive. That’s higher than usual for you at this time of night.', chart: JC.hchart.chart({ kind: 'range', data: hr.slice(16), color: 'var(--hl-heart)', h: 92, w: 300, barW: 7, xLabels: [{ i: 0, text: '4 PM' }, { i: 4, text: '8 PM' }, { i: 7, text: '11 PM' }], annotate: [{ i: 6, text: '121' }], ticks: [60, 90, 120] }), open: () => push(hrEventPage()) });
+        items.push({ cat: 'heart', title: 'Hard Fall', text: 'Your Apple Watch detected a hard fall at Pier 7 at 23:24, while your heart rate was 168 BPM. You didn’t respond, so no one was contacted. Your watch hasn’t reported since 23:25.', chart: JC.hchart.chart({ kind: 'range', data: hr.slice(16), color: 'var(--hl-heart)', h: 92, w: 300, barW: 7, xLabels: [{ i: 0, text: '16' }, { i: 4, text: '20' }, { i: 7, text: '23' }] }), open: () => push(hrEventPage()) });
         const sl = HD.series('sleep', 'W', t).buckets;
-        items.push({ cat: 'sleep', title: 'Sleep', text: 'On average, you slept 4 hr 52 min a night this week — about 2 hours less than your 7 hr sleep goal.', chart: JC.hchart.chart({ kind: 'bars', data: sl.map((b) => ({ v: b.v ? b.v / 60 : 0 })), color: 'var(--hl-sleep)', h: 92, w: 300, barW: 14, goal: { v: 7, label: 'Goal 7 hr' }, ticks: [0, 4, 8], fmtY: (v) => v + 'h', xLabels: sl.map((b, i) => ({ i, text: 'SSMTWTF'[new Date(b.t).getDay()] })) }), open: () => openMetric('sleep', 'W') });
-        items.push({ cat: 'activity', title: 'Running', text: 'Your 6.2 km run this morning was your longest outdoor run in 5 days, at an average pace of 5′08″ per kilometre.', open: () => push(workoutPage('w0')) });
-        items.push({ cat: 'activity', title: 'Steps', text: 'You’re averaging more steps this week than last week — about 11,900 steps a day.', open: () => openMetric('steps', 'W') });
-        items.push({ cat: 'mind', title: 'Mindful Minutes', text: 'You haven’t recorded any mindful minutes in the last 30 days.', open: () => openMetric('mindful', 'M') });
+        items.push({ cat: 'sleep', title: 'Sleep', text: 'On average, you slept 5 hr 10 min a night this week — almost 2 hours less than your 7 hr sleep goal.', chart: JC.hchart.chart({ kind: 'bars', data: sl.map((b) => ({ v: b.v ? b.v / 60 : 0 })), color: 'var(--hl-sleep)', h: 92, w: 300, barW: 14, goal: { v: 7, label: 'Goal 7 hr' } }), open: () => openMetric('sleep', 'W') });
+        items.push({ cat: 'activity', title: 'Running', text: 'Your 14.2 km run this morning was your second-longest this month, at an average pace of 4′34″ per kilometre. Cardio Fitness: High.', open: () => push(workoutPage('w0')) });
+        items.push({ cat: 'meds', title: 'Medications', text: 'You haven’t logged NM-2 as taken since October 1. Northland Medical will be notified of missed doses.', open: () => push(medsPage()) });
+        items.push({ cat: 'mind', title: 'Mindful Minutes', text: 'You haven’t recorded any mindful minutes in the last 30 days. Fishing doesn’t count. (It might.)', open: () => openMetric('mindful', 'M') });
         return items.map((x) => h('div.hl-hl', { onTap: x.open }, h('div.hl-hl-top', catIcon(x.cat, 15), h('span', { style: { color: HD.CATS[x.cat].color } }, x.title), JC.icon('chevron.right', { size: 12, weight: 2.6, cls: 'hl-chev' })), h('div.hl-hl-t', x.text), x.chart ? h('div.hl-hl-chart', x.chart) : null));
       }
       function summaryPage() {
@@ -160,7 +164,7 @@
             return [
               notifOn ? h('div.hl-alert', { onTap: () => push(hrEventPage()) },
                 h('div.hl-alert-ic', JC.icon('heart.fill', { size: 18 })),
-                h('div.hl-alert-m', h('div.hl-alert-t', 'High Heart Rate'), h('div.hl-alert-s', 'Your heart rate rose to 121 BPM at 22:50 while you seemed to be inactive for 10 minutes.')),
+                h('div.hl-alert-m', h('div.hl-alert-t', 'Hard Fall Detected · 23:24'), h('div.hl-alert-s', 'Pier 7, Liyue Harbor. Heart rate 168 BPM. You didn’t respond. Apple Watch hasn’t reported since 23:25.')),
                 h('div.hl-alert-x', { onTap: (e) => { e.stopPropagation(); setPrefs({ hrDismissed: true }); } }, JC.icon('xmark', { size: 13, weight: 2.8 }))) : null,
               h('div.hl-sec-h', h('span', 'Pinned'), h('span.hl-edit.tap', { onTap: () => editPins() }, 'Edit')),
               h('div.hl-cards', p.pins.map(pinCard).filter(Boolean)),
@@ -169,7 +173,7 @@
               h('div.hl-hls', highlights().slice(0, 3)),
               h('div.hl-sec-h', h('span', 'Get More from Health')),
               h('div.hl-promo', { onTap: () => push(checklistPage()) }, h('div.hl-promo-ic', JC.icon('checkmark.shield.fill', { size: 26 })), h('div', h('div.hl-promo-t', 'Health Checklist'), h('div.hl-promo-s', 'Check that health and safety features are set up the way you want.')), JC.icon('chevron.right', { size: 13, weight: 2.6, cls: 'hl-chev' })),
-              h('div.hl-foot', 'Data from Jiang Cheng’s Apple Watch and iPhone'),
+              h('div.hl-foot', 'Data from Childe’s Apple Watch (last synced Fri 23:25) and iPhone'),
             ];
           },
         });
@@ -286,12 +290,12 @@
           out.push(JC.ui.list([{ rows: [
             { title: 'Resting Rate', detail: fmtNum('resting', HD.dayValue('resting', today(), now())) + ' BPM', onTap: () => push(metricPage('resting')) },
             { title: 'Walking Average', detail: fmtNum('walkhr', HD.dayValue('walkhr', today(), now())) + ' BPM', onTap: () => push(metricPage('walkhr')) },
-            { title: 'Workout', detail: '152 BPM', onTap: () => push(workoutPage('w0')) },
+            { title: 'Workout', detail: '158 BPM', onTap: () => push(workoutPage('w0')) },
             { title: 'Heart Rate Variability', detail: fmtNum('hrv', HD.dayValue('hrv', today(), now())) + ' ms', onTap: () => push(metricPage('hrv')) },
-          ] }, { header: 'Notifications', rows: [{ title: 'High Heart Rate', subtitle: 'Today at 22:50 · 121 BPM', icon: { glyph: 'heart.fill', bg: 'var(--red)' }, chevron: true, onTap: () => push(hrEventPage()) }, { title: 'High Heart Rate Notifications', detail: '120 BPM', chevron: true, onTap: () => push(hrNotifPage()) }] }]));
+          ] }, { header: 'Notifications', rows: [{ title: 'Hard Fall · High Heart Rate', subtitle: 'Fri at 23:24 · 168 BPM · Pier 7', icon: { glyph: 'heart.fill', bg: 'var(--red)' }, chevron: true, onTap: () => push(hrEventPage()) }, { title: 'High Heart Rate Notifications', detail: '120 BPM', chevron: true, onTap: () => push(hrNotifPage()) }] }]));
         }
         if (id === 'sleep') {
-          out.push(JC.ui.list([{ header: 'Sleep Schedule', rows: [{ title: 'Every Day', subtitle: '23:30 – 07:00 · Goal 7 hr', chevron: true, onTap: () => JC.ui.alert({ title: 'Sleep Schedule', message: 'Bedtime 23:30, wake up 07:00.\n\nJiang Cheng has met his sleep goal once this month.', buttons: [{ text: 'OK' }] }) }, { title: 'Sleep Focus', detail: JC.state.d.settings.focus === 'sleep' ? 'On' : 'Off', chevron: true, onTap: () => JC.os.open('settings', { page: 'focus' }) }] }]));
+          out.push(JC.ui.list([{ header: 'Sleep Schedule', rows: [{ title: 'Every Day', subtitle: '23:30 – 07:00 · Goal 7 hr', chevron: true, onTap: () => JC.ui.alert({ title: 'Sleep Schedule', message: 'Bedtime 23:30, wake up 05:15.\n\nChilde has met his sleep goal twice this month. Both nights were in Morepesok.', buttons: [{ text: 'OK' }] }) }, { title: 'Sleep Focus', detail: JC.state.d.settings.focus === 'sleep' ? 'On' : 'Off', chevron: true, onTap: () => JC.os.open('settings', { page: 'focus' }) }] }]));
         }
         if (id === 'mindful') {
           out.push(h('div.hl-btnrow', h('div.hl-bigbtn', { onTap: () => mindfulSession() }, JC.icon('leaf.fill', { size: 18 }), 'Start a 1-Minute Breathe')));
@@ -341,7 +345,7 @@
               rows.push({ header: 'Nights', rows: ser.buckets.slice().reverse().filter((b) => b.v).map((b) => ({ title: fmtSleep(b.v), detail: b.full })) });
             } else {
               const hs = HD.hourly(id, today(), t).filter((b) => (b.v != null && b.v !== 0) || b.hi != null).reverse();
-              rows.push({ header: 'Today', rows: hs.map((b) => ({ title: b.hi != null ? b.lo + '–' + b.hi + ' BPM' : fmtNum(id, b.v) + ' ' + m.unit, detail: U.fmtTime(b.t), subtitle: 'Jiang Cheng’s Apple Watch' })) });
+              rows.push({ header: 'Today', rows: hs.map((b) => ({ title: b.hi != null ? b.lo + '–' + b.hi + ' BPM' : fmtNum(id, b.v) + ' ' + m.unit, detail: U.fmtTime(b.t), subtitle: 'Childe’s Apple Watch' })) });
               const ser = HD.series(id, 'M', t);
               rows.push({ header: 'Daily', rows: ser.buckets.slice(0, -1).reverse().map((b) => ({ title: b.hi != null ? b.lo + '–' + b.hi + ' BPM' : fmtNum(id, b.v) + ' ' + m.unit, detail: b.full })) });
             }
@@ -351,23 +355,24 @@
       }
       function sourcesPage(id) {
         return JC.ui.page({ title: 'Data Sources & Access', bg: 'grouped', tint, content: () => [JC.ui.list([
-          { header: 'Apps Allowed to Read Data', rows: [{ title: 'Lotus Leap', icon: { app: 'lotusleap' }, detail: 'Not Allowed', onTap: () => JC.ui.alert({ title: 'Lotus Leap', message: 'Lotus Leap asked to read your Heart Rate “for a fun feature”. You said no.', buttons: [{ text: 'OK' }] }) }] },
-          { header: 'Data Sources', rows: [{ title: 'Jiang Cheng’s Apple Watch', icon: { glyph: 'clock', bg: 'var(--gray)' }, check: true }, { title: 'Jiang Cheng’s iPhone', icon: { glyph: 'iphone', bg: 'var(--gray)' }, check: true }], footer: 'When more than one source records the same data, Health uses the source at the top of the list.' },
+          { header: 'Apps Allowed to Read Data', rows: [{ title: 'Northland Medical', icon: { glyph: 'cross.case.fill', bg: '#0f2740' }, detail: 'Heart, Sleep, Workouts', onTap: () => JC.ui.alert({ title: 'Northland Medical', message: 'Access granted March 2024, as a “condition of Board membership”. The Office of the Second reads this data. Every day.', buttons: [{ text: 'OK' }] }) }, { title: 'Reel Rush', icon: { app: 'reelrush' }, detail: 'Not Allowed', onTap: () => JC.ui.alert({ title: 'Reel Rush', message: 'Reel Rush asked to read your Heart Rate “to measure how excited you are when you catch a fish”. You said no. (You were very excited.)', buttons: [{ text: 'OK' }] }) }] },
+          { header: 'Data Sources', rows: [{ title: 'Childe’s Apple Watch', icon: { glyph: 'clock', bg: 'var(--gray)' }, check: true }, { title: 'Childe’s iPhone', icon: { glyph: 'iphone', bg: 'var(--gray)' }, check: true }], footer: 'When more than one source records the same data, Health uses the source at the top of the list.' },
         ])] });
       }
       function hrEventPage() {
         const pts = [];
-        const t0 = HD.dayStart(0) + (22 * 60 + 30) * 60e3;
-        const prof = [84, 85, 86, 86, 88, 87, 89, 90, 91, 93, 95, 96, 98, 101, 104, 107, 110, 113, 116, 118, 121, 120, 119, 118, 117, 116, 115, 114, 113, 112, 110, 106, 103, 99, 96, 94, 92, 91, 90, 89, 88];
+        const t0 = HD.dayStart(0) + (23 * 60 + 4) * 60e3;
+        const prof = [74, 76, 78, 77, 79, 82, 84, 88, 93, 101, 109, 118, 129, 141, 152, 158, 163, 165, 168, 161, 149];
         prof.forEach((v, i) => pts.push({ v, t: t0 + i * 60e3, full: U.fmtTime(t0 + i * 60e3) }));
-        return JC.ui.page({ title: 'High Heart Rate', bg: 'grouped', tint, content: () => {
-          const head = h('div.hl-dh', h('div.hl-dh-k', 'HIGHEST'), valueNode('121', 'BPM'), h('div.hl-dh-d', 'Today at 22:50'));
-          const ch = JC.hchart.chart({ kind: 'line', data: pts, color: 'var(--hl-heart)', h: 190, goal: { v: 120, label: '120 BPM' }, yMin: 70, yMax: 130, ticks: [70, 100, 130], xLabels: [{ i: 0, text: U.fmtTime(t0).replace(/ [AP]M/, '') }, { i: 20, text: U.fmtTime(t0 + 20 * 60e3).replace(/ [AP]M/, '') }, { i: 40, text: U.fmtTime(t0 + 40 * 60e3).replace(/ [AP]M/, '') }], onScrub: (i) => { head.innerHTML = ''; if (i == null) head.append(h('div.hl-dh-k', 'HIGHEST'), valueNode('121', 'BPM'), h('div.hl-dh-d', 'Today at 22:50')); else head.append(h('div.hl-dh-k', 'HEART RATE'), valueNode(String(pts[i].v), 'BPM'), h('div.hl-dh-d', pts[i].full)); } });
+        try { JC.story.act('health_view', { id: 'fall' }); } catch (e) { /* ignore */ }
+        return JC.ui.page({ title: 'Hard Fall', bg: 'grouped', tint, content: () => {
+          const head = h('div.hl-dh', h('div.hl-dh-k', 'HIGHEST'), valueNode('168', 'BPM'), h('div.hl-dh-d', 'Friday at 23:24 · then no data'));
+          const ch = JC.hchart.chart({ kind: 'line', data: pts, color: 'var(--hl-heart)', h: 190, goal: { v: 150, label: '150 BPM' }, yMin: 60, yMax: 180, ticks: [60, 120, 180], xLabels: [{ i: 0, text: U.fmtTime(t0).replace(/ [AP]M/, '') }, { i: 10, text: U.fmtTime(t0 + 10 * 60e3).replace(/ [AP]M/, '') }, { i: 20, text: U.fmtTime(t0 + 20 * 60e3).replace(/ [AP]M/, '') }] });
           return [
             h('div.hl-chartcard', head, ch),
-            JC.ui.list([{ rows: [{ custom: h('div.hl-about', 'Your heart rate rose above 120 BPM while you seemed to be inactive for 10 minutes starting at 22:50. A heart rate that stays high while you are at rest may be caused by stress, caffeine, alcohol, or a strong emotion.') }] },
-              { rows: [{ title: 'Activity at the Time', detail: 'Standing still' }, { title: 'Location', detail: 'Koi Tower' }, { title: 'Source', detail: 'Apple Watch' }] },
-              { rows: [{ title: 'High Heart Rate Notifications', chevron: true, onTap: () => push(hrNotifPage()) }, { title: 'Learn More', tinted: true, onTap: () => JC.os.open('safari', { url: 'support.apple.com/heart-rate-notifications' }) }] }]),
+            JC.ui.list([{ rows: [{ custom: h('div.hl-about', 'At 23:24 your Apple Watch detected a hard fall. Your heart rate had climbed from 74 to 168 BPM in about ten minutes, while you weren’t running. You didn’t respond to the alert, so Emergency SOS was cancelled. One minute later the watch stopped reporting — the kind of thing that happens when a watch goes into deep water.') }] },
+              { rows: [{ title: 'Location', detail: 'Pier 7, Liyue Harbor', onTap: () => JC.os.open('maps', { place: 'pier7' }) }, { title: 'Activity at the Time', detail: 'Not a workout' }, { title: 'Emergency SOS', detail: 'Cancelled (no response)' }, { title: 'Last reading', detail: 'Fri 23:25 · 149 BPM' }, { title: 'Source', detail: 'Childe’s Apple Watch' }] },
+              { rows: [{ title: 'Where is the watch now?', tinted: true, onTap: () => JC.os.open('findmy', { tab: 'devices' }) }, { title: 'High Heart Rate Notifications', chevron: true, onTap: () => push(hrNotifPage()) }] }]),
           ];
         } });
       }
@@ -376,7 +381,7 @@
           const thr = prefs().hrThr || 120;
           return [JC.ui.list([{ rows: [{ title: 'High Heart Rate Notifications', toggle: { on: prefs().hrOn !== false, onChange: (v) => setPrefs({ hrOn: v }) } }], footer: 'You’ll be notified if your heart rate stays above the chosen BPM for 10 minutes while you seem to be inactive.' },
             { header: 'Threshold', rows: [100, 110, 120, 130, 140, 150].map((v) => ({ title: v + ' BPM', check: thr === v, onTap: () => { setPrefs({ hrThr: v }); pg.render(); } })) },
-            { header: 'Recent', rows: [{ title: 'Today, 22:50', detail: '121 BPM', chevron: true, onTap: () => push(hrEventPage()) }] }])];
+            { header: 'Recent', rows: [{ title: 'Friday, 23:24 · Pier 7', detail: '168 BPM', chevron: true, onTap: () => push(hrEventPage()) }] }])];
         } });
       }
 
@@ -415,16 +420,16 @@
           right: { text: 'Done', onTap: () => {
             pend.forEach((p) => {
               const st = choice[p.slot];
-              JC.store.add('hlmeds', { med: 'tacrolimus', slot: p.slot, day: today(), status: st, t: now() });
-              try { JC.story.act('med_log', { med: 'tacrolimus', slot: p.slot, status: st }); } catch (e) { /* ignore */ }
+              JC.store.add('hlmeds', { med: 'nm2', slot: p.slot, day: today(), status: st, t: now() });
+              try { JC.story.act('med_log', { med: 'nm2', slot: p.slot, status: st }); } catch (e) { /* ignore */ }
             });
             JC.audio.play('success');
             JC.ui.toast(pend.length > 1 ? 'Doses logged' : 'Dose logged', { icon: 'pills.fill' });
           } },
-          content: () => [h('div.hl-medlog', h('div.hl-med-hero', h('div.hl-pill', JC.icon('pills.fill', { size: 30 })), h('div', h('div.hl-med-n', 'Tacrolimus'), h('div.hl-med-s', '2 mg Capsule · Immunosuppressant'))),
-            pend.map((p) => h('div.hl-medrow', h('div', h('div.hl-medrow-t', p.slot), h('div.hl-medrow-s', p.slot === '20:00' ? 'Scheduled · during the gala' : 'Scheduled')),
+          content: () => [h('div.hl-medlog', h('div.hl-med-hero', h('div.hl-pill', JC.icon('pills.fill', { size: 30 })), h('div', h('div.hl-med-n', 'NM-2'), h('div.hl-med-s', '1 tablet · “Delusion stabiliser”'))),
+            pend.map((p) => h('div.hl-medrow', h('div', h('div.hl-medrow-t', p.slot), h('div.hl-medrow-s', p.slot === '20:00' ? 'Scheduled · reported to Northland Medical' : 'Scheduled')),
               JC.ui.segmented({ items: ['Taken', 'Skipped'], value: 0, onChange: (i) => { choice[p.slot] = i ? 'skipped' : 'taken'; } }))),
-            h('div.hl-med-warn', JC.icon('exclamationmark.triangle.fill', { size: 14 }), 'Tacrolimus interacts with alcohol and grapefruit. Take at the same times every day.'))],
+            h('div.hl-med-warn', JC.icon('exclamationmark.triangle.fill', { size: 14 }), 'Missed doses are reported to the Office of the Second. Do not combine with Delusion use. (Ekaterina’s note: “or do. just don’t let him run tests on you.”)'))],
         });
       }
       function medsPage() {
@@ -440,12 +445,12 @@
             for (let d = today() - 13; d <= today(); d++) { const ls = logs.filter((l) => l.day === d && l.status === 'taken'); dots.push({ v: ls.length, full: U.fmtDate(HD.dayStart(d), 'md') + ' · ' + ls.length + ' of 2 taken', color: ls.length === 2 ? 'var(--hl-meds)' : 'var(--orange)' }); }
             const head = h('div.hl-dh', h('div.hl-dh-k', 'LAST 14 DAYS'), valueNode(String(dots.reduce((a, d) => a + d.v, 0)), 'of 28 doses taken'));
             return [
-              h('div.hl-med-hero.card', h('div.hl-pill', JC.icon('pills.fill', { size: 30 })), h('div', h('div.hl-med-n', 'Tacrolimus'), h('div.hl-med-s', '2 mg Capsule · Twice a day at 08:00 and 20:00'))),
+              h('div.hl-med-hero.card', h('div.hl-pill', JC.icon('pills.fill', { size: 30 })), h('div', h('div.hl-med-n', 'NM-2'), h('div.hl-med-s', '1 tablet · Twice a day at 08:00 and 20:00'))),
               JC.ui.list([{ header: 'Today', rows: md.map((x) => ({ title: x.slot, subtitle: x.log ? (x.log.status === 'taken' ? 'Taken at ' + U.fmtTime(x.log.t) : 'Skipped') : 'Not Logged', right: x.log ? h('span.hl-st', { class: x.log.status }, JC.icon(x.log.status === 'taken' ? 'checkmark.circle.fill' : 'xmark.circle.fill', { size: 22 })) : h('div.hl-logbtn', { onTap: (e) => { e.stopPropagation(); logMeds(); } }, 'Log'), onTap: x.log ? () => JC.ui.actionSheet({ title: x.slot + ' dose', actions: [{ text: 'Undo Log', style: 'destructive', onTap: () => JC.store.remove('hlmeds', x.log.id) }] }) : () => logMeds() })) }]),
               h('div.hl-chartcard', head, JC.hchart.chart({ kind: 'bars', data: dots, color: 'var(--hl-meds)', h: 120, ticks: [0, 1, 2], barW: 10, xLabels: [{ i: 0, text: U.fmtDate(HD.dayStart(today() - 13), 'md') }, { i: 13, text: 'Today' }], onScrub: (i) => { head.innerHTML = ''; if (i == null) head.append(h('div.hl-dh-k', 'LAST 14 DAYS'), valueNode(String(dots.reduce((a, d) => a + d.v, 0)), 'of 28 doses taken')); else head.append(h('div.hl-dh-k', 'DOSES TAKEN'), valueNode(String(dots[i].v), 'of 2'), h('div.hl-dh-d', dots[i].full)); } })),
               JC.ui.list([
-                { header: 'Interactions', rows: [{ title: 'Alcohol', subtitle: 'Moderate · May increase side effects. Avoid while taking Tacrolimus.', icon: { glyph: 'exclamationmark.triangle.fill', bg: 'var(--orange)' } }, { title: 'Grapefruit', subtitle: 'Severe · Can raise Tacrolimus to unsafe levels.', icon: { glyph: 'exclamationmark.triangle.fill', bg: 'var(--red)' } }], footer: 'Medical ID note from A-Ling: “Do not give him alcohol. (He will not listen.)”' },
-                { header: 'Details', rows: [{ title: 'Prescribed', detail: 'Since Sep 2008' }, { title: 'Prescriber', detail: 'Lotus Pier Hospital' }, { title: 'Reminders', toggle: { on: prefs().medRem !== false, onChange: (v) => setPrefs({ medRem: v }) } }, { title: 'Archive Medication', destructive: true, onTap: () => JC.ui.alert({ title: 'Can’t Archive', message: 'Tacrolimus keeps a transplanted liver from being rejected. It is taken for life.', buttons: [{ text: 'OK' }] }) }] },
+                { header: 'Interactions', rows: [{ title: 'Delusion', subtitle: 'Severe · Unknown effects. “We are collecting data.” — Northland Medical', icon: { glyph: 'exclamationmark.triangle.fill', bg: 'var(--orange)' } }, { title: 'Grapefruit', subtitle: 'Severe · Can raise Tacrolimus to unsafe levels.', icon: { glyph: 'exclamationmark.triangle.fill', bg: 'var(--red)' } }], footer: 'Medical ID note from A-Ling: “Do not give him alcohol. (He will not listen.)”' },
+                { header: 'Details', rows: [{ title: 'Prescribed', detail: 'Since Mar 2024' }, { title: 'Prescriber', detail: 'Northland Medical · the Second' }, { title: 'Reminders', toggle: { on: prefs().medRem !== false, onChange: (v) => setPrefs({ medRem: v }) } }, { title: 'Archive Medication', destructive: true, onTap: () => JC.ui.alert({ title: 'Can’t Archive', message: 'Tacrolimus keeps a transplanted liver from being rejected. It is taken for life.', buttons: [{ text: 'OK' }] }) }] },
                 { header: 'Log History', rows: days.slice(0, 7).map((d) => { const ls = logs.filter((l) => l.day === d); return { title: d === today() ? 'Today' : U.fmtDate(HD.dayStart(d), 'long'), detail: ls.filter((l) => l.status === 'taken').length + ' of 2 taken' }; }) },
               ]),
             ];
@@ -543,22 +548,22 @@
         const cat = HD.CATS[c];
         return JC.ui.page({ title: cat.name, bg: 'grouped', tint: cat.color, content: () => {
           const ids = Object.keys(M).filter((id) => M[id].cat === c);
-          const extra = c === 'activity' ? [{ title: 'Workouts', leading: catIcon('activity', 19), subtitle: '6 this week', chevron: true, onTap: () => push(workoutsPage()) }] : c === 'meds' ? [{ title: 'Tacrolimus', leading: catIcon('meds', 19), subtitle: '2 mg · twice daily', chevron: true, onTap: () => push(medsPage()) }] : c === 'mind' ? [{ title: 'State of Mind', leading: catIcon('mind', 19), subtitle: 'Annoyed', chevron: true, onTap: () => push(mindPage()) }] : [];
+          const extra = c === 'activity' ? [{ title: 'Workouts', leading: catIcon('activity', 19), subtitle: '6 this week', chevron: true, onTap: () => push(workoutsPage()) }] : c === 'meds' ? [{ title: 'NM-2', leading: catIcon('meds', 19), subtitle: '2 mg · twice daily', chevron: true, onTap: () => push(medsPage()) }] : c === 'mind' ? [{ title: 'State of Mind', leading: catIcon('mind', 19), subtitle: 'Annoyed', chevron: true, onTap: () => push(mindPage()) }] : [];
           const rows = metricRows(ids).concat(extra);
           if (!rows.length) return [JC.ui.empty({ icon: cat.icon, title: 'No Data', text: c === 'cycle' ? 'Cycle Tracking isn’t set up.' : 'Nothing has been recorded in ' + cat.name + '.' })];
           return [JC.ui.list([{ rows }])];
         } });
       }
       const RECORDS = {
-        Conditions: [['Status post liver transplantation', 'Since September 2008 · Lotus Pier Hospital'], ['Immunosuppressed state', 'On Tacrolimus']],
-        'Lab Results': [['Tacrolimus trough', '6.8 ng/mL · target 5–8 · Sep 2, 2026'], ['ALT', '26 U/L · normal'], ['AST', '24 U/L · normal'], ['Total bilirubin', '0.8 mg/dL · normal'], ['Creatinine', '0.94 mg/dL · normal']],
-        Medications: [['Tacrolimus 2 mg capsule', 'Twice daily · since 2008']],
-        Procedures: [['Liver transplantation, living donor (right lobe)', 'Sep 13, 2008 · Surgeon: Dr. Wen Qing · Donor: anonymous'], ['Annual transplant review', 'Sep 2, 2026']],
+        Conditions: [['Hydro Vision bearer', 'Since 2018 · do not remove'], ['Delusion use (authorised)', 'Since March 2024 · monitored by Northland Medical'], ['Old injuries', 'Left shoulder (2023) · ribs (2024, 2025)']],
+        'Lab Results': [['Delusion exposure index', '7.9 · “elevated” · Sep 30, 2026'], ['Resting heart rate after Delusion use', '74 BPM · baseline 49'], ['Blood sample', '“Retained for research” · Sep 30, 2026'], ['Family baseline', 'Requested: T. (age 8) · Mon Oct 19']],
+        Medications: [['NM-2, 1 tablet', 'Twice daily · since Mar 2024 · prescriber: the Second']],
+        Procedures: [['Medical review, Morepesok Clinic', '2018 · age 14 · “Found on the shore after three months missing. No injuries. Pupils unusual.”'], ['Board medical, Zapolyarny', 'Mar 2024 · cleared for Delusion use'], ['Quarterly review', 'Sep 30, 2026 · Northland Medical Wing, Liyue']],
         Immunizations: [['Influenza', 'Oct 3, 2025'], ['Hepatitis B (series)', '2008'], ['Tetanus booster', '2021']],
         Allergies: [['No known drug allergies', 'Recorded Sep 2, 2026']],
       };
       function recordsPage(k) {
-        return JC.ui.page({ title: k, bg: 'grouped', tint, content: () => [JC.ui.list([{ header: 'Lotus Pier Hospital', rows: RECORDS[k].map(([t, s]) => ({ title: t, subtitle: s, onTap: () => JC.ui.alert({ title: t, message: s + '\n\nSource: Lotus Pier Hospital, Yunmeng.', buttons: [{ text: 'OK' }] }) })) }])] });
+        return JC.ui.page({ title: k, bg: 'grouped', tint, content: () => [JC.ui.list([{ header: 'Northland Medical', rows: RECORDS[k].map(([t, s]) => ({ title: t, subtitle: s, onTap: () => JC.ui.alert({ title: t, message: s + '\n\nSource: Lotus Pier Hospital, Yunmeng.', buttons: [{ text: 'OK' }] }) })) }])] });
       }
       let browseQ = '';
       function browsePage() {
@@ -586,7 +591,7 @@
       function profileSheet() {
         const sh = JC.ui.sheet({
           title: '', detent: 'large', right: { text: 'Done' },
-          content: () => [h('div.hl-prof', JC.ui.avatar('me', 84), h('div.hl-prof-n', 'Jiang Cheng')), JC.ui.list([
+          content: () => [h('div.hl-prof', JC.ui.avatar('me', 84), h('div.hl-prof-n', 'Ajax')), JC.ui.list([
             { rows: [{ title: 'Health Details', chevron: true, onTap: () => { sh.close(); push(detailsPage()); } }, { title: 'Medical ID', chevron: true, onTap: () => { sh.close(); push(medicalPage()); } }] },
             { header: 'Features', rows: [{ title: 'Health Checklist', chevron: true, onTap: () => { sh.close(); push(checklistPage()); } }, { title: 'Notifications', chevron: true, onTap: () => { sh.close(); push(hrNotifPage()); } }] },
             { header: 'Privacy', rows: [{ title: 'Apps', chevron: true, onTap: () => { sh.close(); push(sourcesPage('steps')); } }, { title: 'Research Studies', chevron: true, onTap: () => JC.ui.alert({ title: 'Research Studies', message: 'You aren’t enrolled in any studies.', buttons: [{ text: 'OK' }] }) }, { title: 'Devices', chevron: true, onTap: () => { sh.close(); push(devicesPage()); } }] },
@@ -595,35 +600,30 @@
         });
       }
       function exportData() {
-        JC.ui.alert({ title: 'Export Health Data', message: 'This will create a file containing all of Jiang Cheng’s health and fitness data. It may take a few minutes.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Export', style: 'default' }] }).then((r) => {
+        JC.ui.alert({ title: 'Export Health Data', message: 'This will create a file containing all of Childe’s health and fitness data. Northland Medical already has a copy.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Export', style: 'default' }] }).then((r) => {
           if (r.index !== 1) return;
           JC.ui.toast('Exporting…', { icon: 'square.and.arrow.up' });
           setTimeout(() => JC.ui.share({ title: 'export.zip', subtitle: 'Health Data · 1.2 GB', payload: { kind: 'text', text: 'export.zip (Health data, 1.2 GB)' } }), 1600);
         });
       }
       function detailsPage() {
-        return JC.ui.page({ title: 'Health Details', bg: 'grouped', tint, content: () => [h('div.hl-prof', JC.ui.avatar('me', 76)), JC.ui.list([{ rows: [['First Name', 'Cheng'], ['Last Name', 'Jiang'], ['Date of Birth', '15 May 1992 (34)'], ['Sex', 'Male'], ['Blood Type', 'O+'], ['Fitzpatrick Skin Type', 'Type III'], ['Wheelchair', 'No'], ['Medications That Affect Heart Rate', 'None']].map(([t, d]) => ({ title: t, detail: d })) }, { rows: [{ title: 'Edit', tinted: true, onTap: () => JC.ui.alert({ title: 'Edit Health Details', message: 'Health Details are synced from Jiang Cheng’s Apple Watch and can only be changed by him.', buttons: [{ text: 'OK' }] }) }] }])] });
+        return JC.ui.page({ title: 'Health Details', bg: 'grouped', tint, content: () => [h('div.hl-prof', JC.ui.avatar('me', 76)), JC.ui.list([{ rows: [['First Name', 'Ajax'], ['Last Name', '—'], ['Date of Birth', '20 Jul 2004 (22)'], ['Sex', 'Male'], ['Blood Type', 'O−'], ['Fitzpatrick Skin Type', 'Type III'], ['Wheelchair', 'No'], ['Medications That Affect Heart Rate', 'None']].map(([t, d]) => ({ title: t, detail: d })) }, { rows: [{ title: 'Edit', tinted: true, onTap: () => JC.ui.alert({ title: 'Edit Health Details', message: 'Health Details are synced from Jiang Cheng’s Apple Watch and can only be changed by him.', buttons: [{ text: 'OK' }] }) }] }])] });
       }
       function devicesPage() {
-        return JC.ui.page({ title: 'Devices', bg: 'grouped', tint, content: () => [JC.ui.list([{ rows: [{ title: 'Jiang Cheng’s Apple Watch', subtitle: 'Apple Watch Series 11 · last synced 23:46', icon: { glyph: 'clock', bg: 'var(--gray)' }, onTap: () => JC.ui.alert({ title: 'Jiang Cheng’s Apple Watch', message: 'watchOS 26.0 · Last synced a minute ago over iCloud. It is still on his wrist, and it is still counting his heartbeats.', buttons: [{ text: 'OK' }] }) }, { title: 'Jiang Cheng’s iPhone', subtitle: 'iPhone 17 Pro · this iPhone', icon: { glyph: 'iphone', bg: 'var(--gray)' } }] }])] });
+        return JC.ui.page({ title: 'Devices', bg: 'grouped', tint, content: () => [JC.ui.list([{ rows: [{ title: 'Childe’s Apple Watch', subtitle: 'Apple Watch Ultra 3 · last synced Fri 23:25', icon: { glyph: 'clock', bg: 'var(--gray)' }, onTap: () => JC.ui.alert({ title: 'Childe’s Apple Watch', message: 'watchOS 26.0 · Last synced Friday at 23:25, at Pier 7. Water resistance: 100 m. It is still on his wrist, wherever his wrist is.', buttons: [{ text: 'OK' }] }) }, { title: 'Childe’s iPhone', subtitle: 'This iPhone', icon: { glyph: 'iphone', bg: 'var(--gray)' } }] }])] });
       }
       function medicalPage() {
         const row = (k, v) => h('div.hl-mid-row', h('div.hl-mid-k', k), h('div.hl-mid-v', v));
+        const MID = JC.world.medicalId;
         return JC.ui.page({
           title: 'Medical ID', bg: 'grouped', tint: 'var(--red)',
-          right: [JC.ui.navBtn({ text: 'Edit', onTap: () => JC.ui.alert({ title: 'Edit Medical ID', message: 'Only Jiang Cheng can edit his Medical ID. It requires his Apple Account password.', buttons: [{ text: 'OK' }] }) })],
-          content: () => {
-            const aj = JC.contacts.get('ajie'), jl = JC.contacts.get('jl');
-            return [
-              h('div.hl-mid-head', JC.ui.avatar('me', 64), h('div', h('div.hl-mid-n', 'Jiang Cheng'), h('div.hl-mid-a', '15 May 1992 (34 years)'))),
-              h('div.hl-mid-card', row('Medical Conditions', 'Liver transplant recipient (2008).'), row('Medical Notes', 'Immunosuppressed. Do not give him alcohol. (He will not listen.) — A-Ling'), row('Allergies & Reactions', 'None. (Wei Wuxian. — A-Ling)'), row('Medications', 'Tacrolimus 2 mg, twice daily.'), row('Blood Type', 'O+'), row('Organ Donor', 'Yes'), row('Height', '183 cm'), row('Weight', '72 kg')),
-              JC.ui.list([{ header: 'Emergency Contacts', rows: [
-                { title: aj ? aj.display : 'A-Jie 🪷', subtitle: 'sister', avatar: 'ajie', onTap: () => JC.ui.alert({ title: 'A-Jie', message: 'This number is no longer in service. Jiang Cheng never removed her.', buttons: [{ text: 'OK' }] }) },
-                { title: jl ? jl.display : 'A-Ling', subtitle: 'nephew', avatar: 'jl', onTap: () => JC.os.open('contacts', { contact: 'jl' }) },
-              ] },
+          right: [JC.ui.navBtn({ text: 'Edit', onTap: () => JC.ui.alert({ title: 'Edit Medical ID', message: 'Only Childe can edit his Medical ID. It requires his Apple Account password. (Ekaterina wrote most of it.)', buttons: [{ text: 'OK' }] }) })],
+          content: () => [
+            h('div.hl-mid-head', JC.ui.avatar('me', 64), h('div', h('div.hl-mid-n', MID.name), h('div.hl-mid-a', MID.age))),
+            h('div.hl-mid-card', MID.rows.map(([k, v]) => row(k, v))),
+            JC.ui.list([{ header: 'Emergency Contacts', rows: MID.contacts.map((c) => ({ title: (JC.contacts.get(c.id) || {}).display || c.fallback, subtitle: c.rel, avatar: c.id, onTap: () => JC.os.open('contacts', { contact: c.id }) })) },
               { rows: [{ title: 'Show When Locked', detail: 'On' }, { title: 'Share During Emergency Call', detail: 'On' }], footer: 'Your Medical ID can be viewed when iPhone is locked by tapping Emergency, then Medical ID.' }]),
-            ];
-          },
+          ],
         });
       }
       function checklistPage() {
@@ -633,9 +633,9 @@
           return [JC.ui.list([{ rows: [
             { title: 'Medical ID', subtitle: 'Shown when iPhone is locked', right: ok('Set Up'), onTap: () => push(medicalPage()) },
             { title: 'Emergency SOS', subtitle: 'Call with Hold and Release', right: ok('On'), onTap: () => JC.os.open('settings', { page: 'sos' }) },
-            { title: 'Fall Detection', subtitle: 'Apple Watch', right: ok('On'), onTap: () => JC.ui.alert({ title: 'Fall Detection', message: 'Fall Detection is on for Jiang Cheng’s Apple Watch.', buttons: [{ text: 'OK' }] }) },
+            { title: 'Fall Detection', subtitle: 'Apple Watch', right: ok('On'), onTap: () => JC.ui.alert({ title: 'Fall Detection', message: 'Fall Detection is on for Childe’s Apple Watch. It went off on Friday at 23:24.', buttons: [{ text: 'OK' }] }) },
             { title: 'High Heart Rate Notifications', subtitle: 'Above ' + (p.hrThr || 120) + ' BPM', right: ok('On'), onTap: () => push(hrNotifPage()) },
-            { title: 'Irregular Rhythm Notifications', subtitle: 'Apple Watch', right: p.irn ? ok('On') : h('span.hl-setup', 'Set Up'), onTap: () => { if (p.irn) return; JC.ui.alert({ title: 'Irregular Rhythm Notifications', message: 'Set up requires Jiang Cheng’s Apple Watch to be nearby. It isn’t.', buttons: [{ text: 'OK' }] }); } },
+            { title: 'Irregular Rhythm Notifications', subtitle: 'Apple Watch', right: p.irn ? ok('On') : h('span.hl-setup', 'Set Up'), onTap: () => { if (p.irn) return; JC.ui.alert({ title: 'Irregular Rhythm Notifications', message: 'Set up requires Childe’s Apple Watch to be nearby. It isn’t.', buttons: [{ text: 'OK' }] }); } },
             { title: 'Walking Steadiness Notifications', subtitle: 'iPhone', right: p.wsn ? ok('On') : h('span.hl-setup', 'Set Up'), onTap: () => { setPrefs({ wsn: !p.wsn }); pg.render(); } },
           ] }])];
         } });
@@ -650,36 +650,36 @@
             const out = [];
             if (p.share === 'pending') {
               out.push(h('div.hl-req',
-                h('div.hl-req-top', JC.ui.avatar('jl', 46), h('div', h('div.hl-req-t', 'A-Ling would like to see your Health data'), h('div.hl-req-s', 'Requested Wednesday · “i want to see if u actually sleep”'))),
-                h('div.hl-req-list', ['Heart Rate', 'Sleep', 'Steps', 'Medications'].map((t) => h('span.hl-req-chip', t))),
+                h('div.hl-req-top', JC.ui.avatar('tonia', 46), h('div', h('div.hl-req-t', 'Tonia would like to see your Health data'), h('div.hl-req-s', 'Requested Wednesday · “mama says you don’t sleep. i want proof.”'))),
+                h('div.hl-req-list', ['Heart Rate', 'Sleep', 'Steps'].map((t) => h('span.hl-req-chip', t))),
                 h('div.hl-req-btns',
-                  h('div.hl-req-btn.decline', { onTap: () => { setPrefs({ share: 'declined' }); try { JC.story.act('health_share', { to: 'jl', accept: false }); } catch (e) { /* ignore */ } JC.ui.toast('Request declined', { icon: 'xmark' }); } }, 'Decline'),
+                  h('div.hl-req-btn.decline', { onTap: () => { setPrefs({ share: 'declined' }); try { JC.story.act('health_share', { to: 'tonia', accept: false }); } catch (e) { /* ignore */ } JC.ui.toast('Request declined', { icon: 'xmark' }); } }, 'Decline'),
                   h('div.hl-req-btn.accept', { onTap: () => acceptShare() }, 'Accept'))));
             }
             if (p.share === 'accepted') {
-              out.push(JC.ui.list([{ header: 'Sharing With', rows: [{ title: 'A-Ling', subtitle: (p.topics || []).map((t) => ({ heart: 'Heart Rate', sleep: 'Sleep', steps: 'Steps', meds: 'Medications', mind: 'State of Mind' }[t])).join(', '), avatar: 'jl', chevron: true, onTap: () => sharePerson() }], footer: 'A-Ling can see a summary of the data you chose. Only you can see your data in Health.' }]));
+              out.push(JC.ui.list([{ header: 'Sharing With', rows: [{ title: 'Tonia', subtitle: (p.topics || []).map((t) => ({ heart: 'Heart Rate', sleep: 'Sleep', steps: 'Steps', meds: 'Medications', mind: 'State of Mind' }[t])).join(', '), avatar: 'tonia', chevron: true, onTap: () => sharePerson() }], footer: 'Tonia can see a summary of the data you chose — including Friday night.' }]));
             }
-            if (p.share === 'declined') out.push(JC.ui.list([{ rows: [{ title: 'You declined A-Ling’s request', subtitle: 'He can ask again. He will.', avatar: 'jl', onTap: () => JC.ui.actionSheet({ actions: [{ text: 'Share with A-Ling Instead', onTap: () => acceptShare() }] }) }] }]));
+            if (p.share === 'declined') out.push(JC.ui.list([{ rows: [{ title: 'You declined Tonia’s request', subtitle: 'She can ask again. She will. She is fifteen.', avatar: 'tonia', onTap: () => JC.ui.actionSheet({ actions: [{ text: 'Share with Tonia Instead', onTap: () => acceptShare() }] }) }] }]));
             out.push(h('div.hl-share-hero', h('div.hl-share-ic', JC.icon('person.2.fill', { size: 34 })), h('div.hl-share-t', 'Share Your Health Data'), h('div.hl-share-s', 'Keep friends and family up to date on how you’re doing by securely sharing your Health data.'), h('div.hl-next', { onTap: () => inviteSheet() }, 'Share with Someone')));
-            out.push(JC.ui.list([{ header: 'Sharing With You', rows: [{ title: 'No one is sharing Health data with you.', subtitle: 'Invite someone to share — they’ll see a request in their Health app.' }] }, { rows: [{ title: 'Share with Your Doctor', tinted: true, onTap: () => JC.ui.alert({ title: 'Share with Your Doctor', message: 'Lotus Pier Hospital supports sharing. Jiang Cheng hasn’t connected it — his doctor already calls every month.', buttons: [{ text: 'OK' }] }) }] }]));
+            out.push(JC.ui.list([{ header: 'Apps Reading Your Data', rows: [{ title: 'Northland Medical (the Second)', subtitle: 'Heart Rate, Sleep, Workouts · mandatory', icon: { glyph: 'cross.case.fill', bg: '#0f2740' }, onTap: () => JC.ui.alert({ title: 'Northland Medical', message: '“Sharing is a condition of Board membership.” You cannot turn this off from Health. You could take the watch off. He did, sort of, at 23:25.', buttons: [{ text: 'OK' }] }) }] }, { header: 'Sharing With You', rows: [{ title: 'No one is sharing Health data with you.', subtitle: 'Invite someone to share — they’ll see a request in their Health app.' }] }]));
             if ((p.invites || []).length) out.push(JC.ui.list([{ header: 'Invitations Sent', rows: p.invites.map((c) => ({ title: JC.contacts.name(c), avatar: c, detail: 'Pending', swipe: [{ text: 'Cancel', color: 'var(--red)', onTap: () => setPrefs({ invites: prefs().invites.filter((x) => x !== c) }) }] })) }]));
             return out;
           },
         });
       }
       function acceptShare() {
-        const sel = new Set(prefs().topics && prefs().topics.length ? prefs().topics : ['heart', 'sleep', 'steps', 'meds']);
+        const sel = new Set(prefs().topics && prefs().topics.length ? prefs().topics : ['heart', 'sleep', 'steps']);
         JC.ui.sheet({
-          title: 'Share with A-Ling', detent: 'large', left: { text: 'Cancel' },
-          right: { text: 'Share', onTap: () => { setPrefs({ share: 'accepted', topics: Array.from(sel) }); try { JC.story.act('health_share', { to: 'jl', accept: true, topics: Array.from(sel) }); } catch (e) { /* ignore */ } JC.audio.play('success'); JC.ui.toast('Sharing with A-Ling', { icon: 'person.2.fill' }); } },
-          content: (s) => [h('div.hl-prof', JC.ui.avatar('jl', 64), h('div.hl-prof-n', 'A-Ling'), h('div.hl-req-s', 'Choose what A-Ling can see.')), JC.ui.list([{ header: 'Topics', rows: [['heart', 'Heart Rate', 'heart'], ['sleep', 'Sleep', 'sleep'], ['steps', 'Steps', 'activity'], ['meds', 'Medications', 'meds'], ['mind', 'State of Mind', 'mind']].map(([k, t, c]) => ({ title: t, leading: catIcon(c, 19), toggle: { on: sel.has(k), onChange: (v) => { if (v) sel.add(k); else sel.delete(k); } } })), footer: 'A-Ling will be able to see these topics and get notified about significant changes — like a heart rate of 121 BPM at 22:50.' }])],
+          title: 'Share with Tonia', detent: 'large', left: { text: 'Cancel' },
+          right: { text: 'Share', onTap: () => { setPrefs({ share: 'accepted', topics: Array.from(sel) }); try { JC.story.act('health_share', { to: 'tonia', accept: true, topics: Array.from(sel) }); } catch (e) { /* ignore */ } JC.audio.play('success'); JC.ui.toast('Sharing with Tonia', { icon: 'person.2.fill' }); } },
+          content: (s) => [h('div.hl-prof', JC.ui.avatar('tonia', 64), h('div.hl-prof-n', 'Tonia'), h('div.hl-req-s', 'Choose what Tonia can see. She will see Friday night.')), JC.ui.list([{ header: 'Topics', rows: [['heart', 'Heart Rate', 'heart'], ['sleep', 'Sleep', 'sleep'], ['steps', 'Steps', 'activity'], ['meds', 'Medications', 'meds'], ['mind', 'State of Mind', 'mind']].map(([k, t, c]) => ({ title: t, leading: catIcon(c, 19), toggle: { on: sel.has(k), onChange: (v) => { if (v) sel.add(k); else sel.delete(k); } } })), footer: 'A-Ling will be able to see these topics and get notified about significant changes — like a heart rate of 121 BPM at 22:50.' }])],
         });
       }
       function sharePerson() {
-        JC.ui.actionSheet({ title: 'Sharing with A-Ling', actions: [{ text: 'Change Topics', onTap: () => acceptShare() }, { text: 'Stop Sharing', style: 'destructive', onTap: () => { setPrefs({ share: 'declined' }); JC.ui.toast('Stopped sharing with A-Ling', { icon: 'xmark' }); } }] });
+        JC.ui.actionSheet({ title: 'Sharing with Tonia', actions: [{ text: 'Change Topics', onTap: () => acceptShare() }, { text: 'Stop Sharing', style: 'destructive', onTap: () => { setPrefs({ share: 'declined' }); JC.ui.toast('Stopped sharing with Tonia', { icon: 'xmark' }); } }] });
       }
       function inviteSheet() {
-        const people = ['lxc', 'wwx', 'ea', 'sz', 'wn', 'huang', 'nhs'];
+        const people = ['mama', 'ekat', 'zl', 'lumine', 'ht', 'anthon'];
         const sh = JC.ui.sheet({ title: 'Share with Someone', detent: 'large', left: { text: 'Cancel' }, content: () => [JC.ui.list([{ header: 'Suggested', rows: people.map((c) => ({ title: JC.contacts.name(c), avatar: c, onTap: () => { sh.close(); const inv = prefs().invites || []; if (!inv.includes(c)) setPrefs({ invites: inv.concat(c) }); try { JC.story.act('health_share', { to: c, invite: true }); } catch (e) { /* ignore */ } JC.ui.toast('Invitation sent to ' + JC.contacts.short(c), { icon: 'paperplane.fill' }); } })) }])] });
       }
 

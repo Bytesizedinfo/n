@@ -1,5 +1,6 @@
-/* Health — deterministic data for Jiang Cheng's Health app. Facts: docs/STORY.md
-   (6.2 km run this morning, 121 BPM at 22:50, sleep averaging 4 h 52 m, Tacrolimus 2 mg twice daily). */
+/* Health — deterministic data for Childe's Health app. Facts: docs/STORY.md
+   (14.2 km run Friday at 05:30, 168 BPM and a hard fall at Pier 7 at 23:24, then the watch stops reporting;
+   sleep averaging 5 h 10 m; Northland Medical's NM-2 tablets, which he stopped taking two weeks ago). */
 (function () {
   'use strict';
   const JC = window.JC;
@@ -51,43 +52,44 @@
   };
   Object.keys(M).forEach((k) => { M[k].id = k; });
 
-  // scripted day: Fri 16 Oct (d = 0) and early Sat (d = 1)
-  const STEPS0 = [0, 0, 0, 0, 0, 160, 420, 7420, 640, 360, 290, 420, 540, 230, 180, 310, 270, 430, 360, 640, 410, 380, 560, 150];
-  const STEPS1 = [90, 60, 0, 0, 0, 0, 0, 220, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
-  const HR0 = [[54, 61], [52, 58], [51, 57], [52, 59], [53, 60], [56, 88], [62, 104], [96, 171], [70, 112], [64, 92], [66, 94], [65, 90], [68, 96], [64, 88], [63, 86], [66, 92], [64, 90], [66, 95], [70, 98], [76, 102], [74, 96], [72, 98], [84, 121], [72, 98]];
-  const HR1 = [[66, 88], [58, 70], [55, 64], [54, 62], [53, 61], [54, 63], [56, 74], [64, 96]];
-  const DIST_PROFILE = [0, 0, 0, 0, 0, 0.02, 0.04, 0.55, 0.05, 0.03, 0.02, 0.03, 0.04, 0.02, 0.02, 0.03, 0.02, 0.03, 0.03, 0.04, 0.03, 0.03, 0.03, 0.01];
+  // scripted day: Fri 16 Oct (d = 0). The watch is on Childe's wrist, not with this phone: it last reported at 23:25.
+  const SYNC_END = BASE + (23 * 60 + 25) * 60e3;
+  const STEPS0 = [0, 0, 0, 0, 0, 7980, 9120, 610, 420, 530, 610, 480, 520, 300, 260, 410, 380, 520, 640, 930, 520, 380, 890, 1460];
+  const STEPS1 = Array(24).fill(0);
+  const HR0 = [[50, 56], [49, 55], [48, 54], [49, 56], [51, 60], [96, 174], [118, 166], [72, 104], [64, 92], [66, 94], [65, 90], [68, 96], [64, 88], [63, 86], [66, 92], [64, 90], [66, 95], [70, 98], [76, 102], [74, 96], [72, 98], [70, 94], [78, 112], [74, 168]];
+  const HR1 = [];
+  const DIST_PROFILE = [0, 0, 0, 0, 0, 0.42, 0.40, 0.02, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.02, 0.03];
 
   function dailyRaw(metric, d) {
     const R = rnd(metric + ':' + d);
     const run = isRunDay(d);
     switch (metric) {
       case 'steps': return d === 0 ? STEPS0.reduce((a, b) => a + b, 0) : d === 1 ? STEPS1.reduce((a, b) => a + b, 0) : Math.round(run ? 10800 + R() * 3600 : 5200 + R() * 3400);
-      case 'distance': return d === 0 ? 9.1 : Math.round(dailyRaw('steps', d) * 0.00068 * 10) / 10;
+      case 'distance': return d === 0 ? 17.4 : Math.round(dailyRaw('steps', d) * 0.00068 * 10) / 10;
       case 'active': return Math.round(360 + dailyRaw('steps', d) * 0.031 + R() * 40);
-      case 'exercise': return d === 0 ? 46 : d === 1 ? 2 : Math.round(run ? 36 + R() * 18 : 6 + R() * 14);
+      case 'exercise': return d === 0 ? 71 : d === 1 ? 0 : Math.round(run ? 36 + R() * 18 : 6 + R() * 14);
       case 'flights': return Math.round(3 + R() * 11);
-      case 'resting': return d === 0 ? 59 : Math.round(55 + R() * 6);
+      case 'resting': return d === 0 ? 52 : Math.round(49 + R() * 5);
       case 'walkhr': return Math.round(92 + R() * 9);
-      case 'hrv': return d === 0 ? 29 : Math.round(32 + R() * 16);
-      case 'vo2': return Math.round((45.6 + R() * 1.2 - (d < -200 ? 0.8 : 0)) * 10) / 10;
+      case 'hrv': return d === 0 ? 41 : Math.round(52 + R() * 18);
+      case 'vo2': return Math.round((58.4 + R() * 1.2 - (d < -200 ? 0.8 : 0)) * 10) / 10;
       case 'mindful': return 0;
-      case 'weight': return Math.round((72 + (R() - 0.5) * 0.8) * 10) / 10;
+      case 'weight': return Math.round((71 + (R() - 0.5) * 0.8) * 10) / 10;
       case 'height': return 183;
       case 'resp': return Math.round((14.2 + R() * 1.8) * 10) / 10;
       case 'oxygen': return Math.round(96 + R() * 3);
-      case 'noise': return d === 0 ? 74 : Math.round(58 + R() * 10);
-      case 'caffeine': return d === 0 ? 380 : Math.round(200 + R() * 260);
+      case 'noise': return d === 0 ? 71 : Math.round(58 + R() * 10);
+      case 'caffeine': return d === 0 ? 95 : Math.round(40 + R() * 90);
       case 'steadiness': return 100;
       default: return 0;
     }
   }
-  const SLEEP7 = { '-6': 311, '-5': 243, '-4': 380, '-3': 271, '-2': 289, '-1': 238, '0': 312 };
+  const SLEEP7 = { '-6': 322, '-5': 288, '-4': 341, '-3': 266, '-2': 301, '-1': 335, '0': 317 };
   function sleepMin(d) { // minutes asleep in the night that ENDS on day d
     if (SLEEP7[d] != null) return SLEEP7[d];
     if (d === 1) return 0;
     const R = rnd('sleep:' + d);
-    return Math.round(dow(d) === 0 || dow(d) === 6 ? 300 + R() * 90 : 225 + R() * 105);
+    return Math.round(dow(d) === 0 || dow(d) === 6 ? 300 + R() * 90 : 270 + R() * 75);
   }
   // last night's stages (Thu 15 → Fri 16): minutes from 23:52
   const STAGES0 = [['awake', 0, 6], ['core', 6, 38], ['deep', 38, 64], ['core', 64, 98], ['rem', 98, 116], ['core', 116, 150], ['deep', 150, 172], ['core', 172, 204], ['awake', 204, 208], ['rem', 208, 236], ['core', 236, 268], ['rem', 268, 290], ['core', 290, 322], ['awake', 322, 328]];
@@ -103,7 +105,7 @@
     const total = dailyRaw(metric, d);
     for (let hr = 0; hr < 24; hr++) {
       const t = dayStart(d) + hr * 3600e3;
-      if (hr > lastHour) { out.push({ t }); continue; }
+      if (hr > lastHour || t > SYNC_END) { out.push({ t }); continue; }
       let b = { t };
       if (metric === 'heart') {
         const src = d === 0 ? HR0 : d === 1 ? HR1 : null;
@@ -134,6 +136,7 @@
     const cur = dayIdx(nowMs);
     if (d > cur) return null;
     const m = M[metric];
+    if (dayStart(d) > SYNC_END && !manual(metric).some((x) => dayIdx(x.t) === d)) return metric === 'sleep' || m.agg !== 'sum' ? null : 0;
     if (metric === 'sleep') return d === cur + 1 ? null : sleepMin(d) + manual('sleep').filter((x) => dayIdx(x.t) === d).reduce((a, x) => a + x.v, 0);
     if (d === cur || manual(metric).some((x) => dayIdx(x.t) === d)) {
       const hs = hourly(metric, d, nowMs);
@@ -229,26 +232,28 @@
 
   // ── seeds (persist edits) ─────────────────────────────────────────
   JC.store.seed('hldata', []);
-  JC.store.seed('hlprefs', [{ id: 'p', pins: ['steps', 'workouts', 'heart', 'sleep', 'mindful', 'meds', 'mind'], share: 'pending', topics: ['heart', 'sleep', 'steps', 'meds'], invites: [] }]);
+  JC.store.seed('hlprefs', [{ id: 'p', pins: ['heart', 'workouts', 'steps', 'sleep', 'meds', 'mind', 'mindful'], share: 'pending', topics: ['heart', 'sleep', 'steps'], invites: [] }]);
+  // NM-2 from Northland Medical: taken until 1 Oct (the day Liyue's god "died"), skipped ever since
   const medSeed = [];
-  for (let d = -13; d <= 0; d++) {
+  for (let d = -27; d <= 0; d++) {
     ['08:00', '20:00'].forEach((slot, k) => {
-      if (d === 0 && k === 1) return; // tonight's dose: not logged (the gala)
+      if (d === 0 && k === 1) return; // tonight's dose: not logged
       const R = rnd('med' + d + slot);
-      const late = Math.round(R() * 9);
-      medSeed.push({ id: 'med_' + d + '_' + k, med: 'tacrolimus', slot, day: d, status: d === -9 && k === 1 ? 'taken' : 'taken', t: dayStart(d) + (k ? 20 : 8) * 3600e3 + late * 60e3 + (d === -9 && k === 1 ? 95 * 60e3 : 0) });
+      const late = Math.round(R() * 25);
+      const skipped = d >= -15;
+      medSeed.push({ id: 'med_' + d + '_' + k, med: 'nm2', slot, day: d, status: skipped ? 'skipped' : 'taken', t: dayStart(d) + (k ? 20 : 8) * 3600e3 + late * 60e3 });
     });
   }
   JC.store.seed('hlmeds', medSeed);
   const mindSeed = [
-    ['-13 07:58', 'moment', -1, ['Annoyed'], ['Work']], ['-12 23:40', 'moment', -2, ['Annoyed', 'Frustrated'], ['Family']], ['-11 06:10', 'moment', 0, ['Calm'], ['Fitness']],
-    ['-10 13:22', 'moment', -1, ['Annoyed'], ['Work']], ['-9 21:05', 'moment', -2, ['Stressed', 'Annoyed'], ['Work']], ['-8 18:30', 'day', -1, ['Annoyed', 'Overwhelmed'], ['Family', 'Work']],
-    ['-7 22:11', 'moment', -1, ['Annoyed'], ['Family']], ['-5 10:47', 'moment', -2, ['Irritated', 'Annoyed'], ['Work']], ['-3 08:15', 'moment', -1, ['Annoyed'], ['Tasks']],
-    ['-2 22:58', 'moment', 1, ['Hopeful', 'Confused'], ['Friends']], ['-1 16:20', 'moment', -1, ['Annoyed', 'Worried'], ['Family']], ['+0 22:52', 'moment', -1, ['Annoyed', 'Confused', 'Hopeful'], ['Friends']],
+    ['-13 06:40', 'moment', 2, ['Excited', 'Passionate'], ['Fitness']], ['-12 23:40', 'moment', -1, ['Lonely'], ['Family']], ['-11 21:10', 'moment', 2, ['Happy', 'Amused'], ['Friends']],
+    ['-10 13:22', 'moment', -1, ['Frustrated'], ['Work']], ['-9 21:05', 'moment', 1, ['Content'], ['Partner']], ['-8 18:30', 'day', -2, ['Guilty', 'Worried'], ['Work', 'Family']],
+    ['-7 05:58', 'moment', 3, ['Excited'], ['Fitness']], ['-5 22:47', 'moment', 2, ['Happy', 'Grateful'], ['Partner']], ['-3 00:15', 'moment', -2, ['Guilty', 'Anxious'], ['Work']],
+    ['-2 22:58', 'moment', 2, ['Happy', 'Excited'], ['Family']], ['-1 23:59', 'moment', -2, ['Anxious', 'Guilty'], ['Work', 'Family']], ['+0 22:40', 'moment', 3, ['Happy', 'Hopeful', 'Confused'], ['Partner']],
   ].map(([t, kind, valence, feel, assoc], i) => ({ id: 'mind_' + i, t, kind, valence, feel, assoc }));
   JC.store.seed('hlmind', mindSeed);
-  // older logs, summarised (so totals add up: Annoyed × 47)
-  JC.store.seed('hlmindsum', [{ id: 'sum', counts: { Annoyed: 37, Stressed: 19, Frustrated: 15, Irritated: 9, Overwhelmed: 7, Worried: 6, Content: 5, Calm: 3, Hopeful: 1, Grateful: 1, Disappointed: 4 } }]);
+  // older logs, summarised (so totals add up: Excited × 40)
+  JC.store.seed('hlmindsum', [{ id: 'sum', counts: { Excited: 36, Happy: 22, Passionate: 14, Guilty: 11, Lonely: 9, Anxious: 6, Content: 5, Hopeful: 4, Amused: 8, Grateful: 3, Worried: 5 } }]);
 
-  JC.healthData = { M, CATS, DAY, BASE, dayIdx, dayStart, series, hourly, dayValue, sleepMin, sleepNight, hash, rnd };
+  JC.healthData = { M, CATS, DAY, BASE, SYNC_END, dayIdx, dayStart, series, hourly, dayValue, sleepMin, sleepNight, hash, rnd };
 })();

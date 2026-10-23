@@ -9,57 +9,68 @@
   const ui = JC.ui;
 
   // ── climate data (day 0 = Fri 16 Oct 2026) ─────────────────────────────────
-  // c: condition per day; per-hour overrides tell tonight's story (Lanling rain until 3, Gusu mist until 10 …)
+  // c: condition per day; per-hour overrides tell the weekend's story (calm harbor, a quiet sea at Guyun, snow up north).
+  // If Osial is set loose on Sunday night, liyue and guyun turn to storm from 23:00 (see stormAt).
   const D = (c, hi, lo, pop) => ({ c, hi, lo, pop: pop || 0 });
   const CLIMATE = {
-    lanling: { name: 'Lanling', region: 'China', tz: 8, sun: ['06:24', '17:41'], wind: [12, 18, 'NE', 45], aqi: 42, pres: 1009,
-      days: [D('rain', 17, 11, 90), D('drizzle', 16, 11, 60), D('sunny', 21, 12), D('partly', 21, 13, 10), D('rain', 18, 14, 80), D('showers', 18, 12, 50), D('cloudy', 19, 12, 20), D('sunny', 21, 12), D('sunny', 22, 13), D('partly', 20, 14, 10), D('cloudy', 19, 13, 20)],
-      hours: { 1: [[0, 'rain'], [3, 'cloudy'], [6, 'drizzle'], [10, 'cloudy'], [14, 'partly']] },
-      summary: { 0: 'Rain expected to continue until 3 AM. Wind gusts are up to 18 km/h.', 1: 'Drizzle around sunrise, clearing to partly cloudy by the afternoon.' } },
-    yunmeng: { name: 'Yunmeng', region: 'China', tz: 8, sun: ['06:20', '17:44'], wind: [9, 14, 'SE', 135], aqi: 58, pres: 1014,
-      days: [D('partly', 22, 15, 10), D('sunny', 23, 14), D('sunny', 22, 14), D('partly', 22, 15, 10), D('rain', 19, 15, 70), D('showers', 19, 14, 40), D('partly', 21, 14, 10), D('sunny', 23, 14), D('sunny', 23, 15), D('cloudy', 21, 15, 20), D('partly', 22, 15, 10)],
-      summary: { 0: 'Partly cloudy tonight, clearing by dawn. Sunny all weekend.', 2: 'Sunny all day — a clear evening on the lake. Low 14° tonight.' } },
-    gusu: { name: 'Gusu', region: 'China', tz: 8, sun: ['06:14', '17:30'], wind: [4, 7, 'N', 0], aqi: 21, pres: 1016,
-      days: [D('mist', 15, 9, 20), D('sunny', 16, 9), D('sunny', 18, 10), D('partly', 17, 11, 10), D('rain', 14, 11, 80), D('mist', 14, 10, 30), D('cloudy', 15, 10, 20), D('partly', 16, 10, 10), D('sunny', 17, 9), D('mist', 15, 10, 20), D('cloudy', 15, 11, 20)],
-      hours: { 1: [[0, 'mist'], [10, 'sunny']] },
-      summary: { 0: 'Mist in the mountains overnight. Visibility under 1 km near Cloud Recesses.', 1: 'Mist until 10 AM, then sunny and still. 16° at 3 PM.' } },
-    qinghe: { name: 'Qinghe', region: 'China', tz: 8, sun: ['06:31', '17:28'], wind: [18, 30, 'NW', 315], aqi: 87, pres: 1021,
-      days: [D('sunny', 13, 5), D('sunny', 14, 5), D('partly', 13, 6, 10), D('cloudy', 11, 4, 20), D('cloudy', 10, 3, 20), D('sunny', 12, 3), D('sunny', 13, 4), D('partly', 12, 5, 10), D('cloudy', 10, 4, 20), D('rain', 9, 4, 60), D('sunny', 11, 2)],
-      summary: { 0: 'Clear and cold tonight with a brisk northwest wind. Low 5°.' } },
-    yiling: { name: 'Yiling', region: 'China', tz: 8, sun: ['06:33', '17:52'], wind: [7, 11, 'W', 270], aqi: 35, pres: 1012,
-      days: [D('cloudy', 16, 10, 20), D('drizzle', 15, 10, 40), D('partly', 19, 11, 10), D('sunny', 20, 11), D('rain', 17, 12, 70), D('cloudy', 16, 11, 20), D('partly', 18, 11, 10), D('sunny', 19, 11), D('partly', 19, 12, 10), D('cloudy', 17, 12, 20), D('rain', 16, 12, 60)],
-      hours: { 1: [[0, 'cloudy'], [4, 'drizzle'], [8, 'cloudy']] },
-      summary: { 0: 'Mostly cloudy. Drizzle possible after 4 AM on the hill.' } },
+    liyue: { name: 'Liyue Harbor', region: 'Liyue', tz: 8, sun: ['06:24', '17:52'], wind: [9, 15, 'SE', 135], aqi: 34, pres: 1015,
+      days: [D('sunny', 24, 17), D('sunny', 24, 18), D('partly', 23, 18, 10), D('showers', 21, 17, 40), D('sunny', 24, 18), D('partly', 23, 18, 10), D('cloudy', 22, 17, 20), D('sunny', 24, 17), D('sunny', 25, 18), D('partly', 23, 18, 10), D('showers', 21, 17, 50)],
+      hours: { 2: [[0, 'partly'], [18, 'cloudy']] },
+      summary: { 0: 'Clear and calm tonight. A light sea breeze off the harbor.', 1: 'Sunny all day — good lantern-lighting weather tonight on Yujing Terrace.', 2: 'Cloud building offshore this evening. The lanterns go out at 23:00.' } },
+    guyun: { name: 'Guyun Stone Forest', region: 'Liyue · marine', tz: 8, sun: ['06:21', '17:50'], wind: [3, 5, 'E', 90], aqi: 18, pres: 1012,
+      days: [D('mist', 22, 17, 10), D('partly', 22, 17), D('mist', 21, 17, 10), D('rain', 19, 16, 70), D('cloudy', 21, 17, 20), D('partly', 22, 17, 10), D('mist', 21, 17, 10), D('sunny', 22, 17), D('partly', 22, 18), D('cloudy', 21, 17, 20), D('rain', 19, 16, 60)],
+      hours: { 0: [[0, 'mist']], 2: [[0, 'mist'], [10, 'partly'], [20, 'mist']] },
+      summary: { 0: 'Sea state glassy, swell 0.2 m. Mariners report a low hum around the outer pillars.', 2: 'Unusually still. Visibility falls after dark. Keep clear of pillar G-17.' } },
+    morepesok: { name: 'Morepesok', region: 'Snezhnaya', tz: 3, sun: ['08:41', '15:58'], wind: [14, 24, 'N', 0], aqi: 12, pres: 1024,
+      days: [D('snow', -2, -7, 70), D('snow', -2, -8, 80), D('cloudy', -1, -6, 20), D('snow', -3, -9, 70), D('snow', -5, -11, 60), D('cloudy', -4, -10, 20), D('sunny', -3, -12), D('snow', -6, -13, 70), D('snow', -7, -14, 80), D('cloudy', -6, -12, 20), D('sunny', -5, -14)],
+      summary: { 0: 'Light snow on the bay. Ice fishing weather, according to every father in Morepesok.' } },
+    zapolyarny: { name: 'Zapolyarny', region: 'Snezhnaya', tz: 3, sun: ['09:02', '15:31'], wind: [18, 30, 'NE', 45], aqi: 22, pres: 1027,
+      days: [D('snow', -8, -15, 90), D('snow', -9, -16, 80), D('snow', -8, -14, 70), D('cloudy', -10, -17, 20), D('snow', -11, -18, 80), D('snow', -10, -17, 70), D('cloudy', -9, -15, 20), D('snow', -12, -19, 80), D('sunny', -13, -21), D('snow', -12, -18, 70), D('snow', -11, -17, 80)],
+      summary: { 0: 'Heavy snow overnight. The airport is operating normally. Snezhnaya does not cancel flights for snow.' } },
+    mondstadt: { name: 'Mondstadt', region: 'Mondstadt', tz: 7, sun: ['06:55', '18:01'], wind: [22, 36, 'W', 270], aqi: 15, pres: 1011,
+      days: [D('partly', 17, 10, 10), D('sunny', 18, 11), D('sunny', 18, 11), D('partly', 17, 12, 10), D('showers', 15, 10, 50), D('cloudy', 15, 9, 20), D('sunny', 17, 10), D('partly', 17, 11, 10), D('sunny', 18, 10), D('showers', 14, 9, 60), D('partly', 16, 10, 10)],
+      summary: { 0: 'Gusty west winds off Starfell Lake. Dandelion seeds expected.' } },
+    fontaine: { name: 'Court of Fontaine', region: 'Fontaine', tz: 6, sun: ['07:12', '18:20'], wind: [8, 14, 'SW', 225], aqi: 28, pres: 1009,
+      days: [D('drizzle', 18, 12, 60), D('showers', 18, 13, 50), D('rain', 17, 13, 80), D('cloudy', 17, 12, 20), D('drizzle', 18, 13, 60), D('rain', 16, 12, 80), D('showers', 17, 12, 50), D('cloudy', 18, 13, 20), D('drizzle', 18, 13, 60), D('rain', 17, 12, 80), D('showers', 17, 12, 50)],
+      summary: { 0: 'It is raining in Fontaine. It is always raining in Fontaine.' } },
   };
   // more cities for search (generic forecasts)
   const MORE = [
-    ['beijing', 'Beijing', 'China', 8, 16, 5], ['shanghai', 'Shanghai', 'China', 8, 23, 17], ['hongkong', 'Hong Kong', 'China', 8, 28, 23], ['chengdu', 'Chengdu', 'China', 8, 20, 15],
-    ['wuhan', 'Wuhan', 'China', 8, 22, 15], ['hangzhou', 'Hangzhou', 'China', 8, 23, 16], ['tokyo', 'Tokyo', 'Japan', 9, 21, 15], ['seoul', 'Seoul', 'South Korea', 9, 18, 9],
-    ['singapore', 'Singapore', 'Singapore', 8, 31, 25], ['london', 'London', 'United Kingdom', 1, 14, 8], ['paris', 'Paris', 'France', 2, 15, 8], ['newyork', 'New York', 'United States', -4, 17, 10],
-    ['vancouver', 'Vancouver', 'Canada', -7, 12, 7], ['sydney', 'Sydney', 'Australia', 11, 22, 14], ['dubai', 'Dubai', 'United Arab Emirates', 4, 34, 26], ['moscow', 'Moscow', 'Russia', 3, 8, 2],
+    ['qingce', 'Qingce Village', 'Liyue', 8, 21, 14], ['wangshu', 'Wangshu Inn', 'Liyue', 8, 20, 13], ['stonegate', 'Stone Gate', 'Liyue', 8, 19, 12], ['mingyun', 'Mingyun Village', 'Liyue', 8, 23, 17],
+    ['jueyun', 'Jueyun Karst', 'Liyue', 8, 15, 9], ['chasm', 'The Chasm', 'Liyue', 8, 17, 10], ['springvale', 'Springvale', 'Mondstadt', 7, 16, 9], ['inazuma', 'Inazuma City', 'Inazuma', 9, 21, 16],
+    ['ritou', 'Ritou', 'Inazuma', 9, 22, 17], ['sumeru', 'Sumeru City', 'Sumeru', 7, 29, 22], ['aaru', 'Aaru Village', 'Sumeru', 7, 34, 20], ['poisson', 'Poisson', 'Fontaine', 6, 17, 12],
+    ['natlan', 'Natlan', 'Natlan', 6, 31, 22], ['snezhnaya', 'Snezhnaya (Palace)', 'Snezhnaya', 3, -9, -16], ['dragonspine', 'Dragonspine', 'Mondstadt', 7, -6, -14],
   ];
   const CONDS = ['sunny', 'partly', 'cloudy', 'rain', 'sunny', 'partly'];
+  const COLD = ['snow', 'cloudy', 'snow', 'sunny', 'snow', 'cloudy'];
   function climate(id) {
     if (CLIMATE[id]) return CLIMATE[id];
     const m = MORE.find((x) => x[0] === id);
-    if (!m) return CLIMATE.lanling;
+    if (!m) return CLIMATE.liyue;
     const seed = m[0].split('').reduce((a, c) => a + c.charCodeAt(0), 0);
     CLIMATE[id] = { name: m[1], region: m[2], tz: m[3], sun: ['06:' + (10 + seed % 40), '17:' + (20 + seed % 35)], wind: [6 + seed % 14, 12 + seed % 18, ['N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW'][seed % 8], (seed % 8) * 45], aqi: 20 + seed % 70, pres: 1008 + seed % 14,
-      days: Array.from({ length: 11 }, (_, i) => { const c = CONDS[(seed + i * 3) % CONDS.length]; const w = ((seed + i * 7) % 5) - 2; return D(c, m[4] + w, m[5] + w, c === 'rain' ? 70 : c === 'cloudy' ? 20 : 0); }), summary: {} };
+      days: Array.from({ length: 11 }, (_, i) => { const c = (m[4] < 2 ? COLD : CONDS)[(seed + i * 3) % CONDS.length]; const w = ((seed + i * 7) % 5) - 2; return D(c, m[4] + w, m[5] + w, c === 'rain' ? 70 : c === 'cloudy' ? 20 : 0); }), summary: {} };
     return CLIMATE[id];
   }
-  JC.store.seed('wxcities', [{ id: 'lanling', current: true }, { id: 'yunmeng' }, { id: 'gusu' }, { id: 'qinghe' }, { id: 'yiling' }]);
+  JC.store.seed('wxcities', [{ id: 'liyue', current: true }, { id: 'guyun' }, { id: 'morepesok' }, { id: 'zapolyarny' }, { id: 'mondstadt' }, { id: 'fontaine' }]);
 
   // ── model ──────────────────────────────────────────────────────────────────
   const DAY0 = new Date(2026, 9, 16).getTime();
   const HR = 3600e3;
-  const NAMES = { sunny: 'Sunny', clear: 'Clear', partly: 'Partly Cloudy', cloudy: 'Mostly Cloudy', rain: 'Rain', showers: 'Showers', drizzle: 'Drizzle', mist: 'Mist' };
+  const NAMES = { sunny: 'Sunny', clear: 'Clear', partly: 'Partly Cloudy', cloudy: 'Mostly Cloudy', rain: 'Rain', showers: 'Showers', drizzle: 'Drizzle', mist: 'Mist', snow: 'Snow', storm: 'Violent Storm' };
   function localNow(cid) { const c = climate(cid); return JC.time.now() + (c.tz - 8) * HR; }
   function dayIdx(t) { const d = new Date(t); return Math.round((new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime() - DAY0) / 864e5); }
   function dayOf(cid, i) { const c = climate(cid); const k = Math.max(0, Math.min(c.days.length - 1, i)); return c.days[k]; }
   const hm = (s) => { const [a, b] = s.split(':').map(Number); return a + b / 60; };
   function isNight(cid, t) { const c = climate(cid); const d = new Date(t); const x = d.getHours() + d.getMinutes() / 60; return x < hm(c.sun[0]) || x >= hm(c.sun[1]); }
+  /** Osial: if the authorization went out, the sea rises at 23:00 on Sunday */
+  function stormAt(cid, t) {
+    if (cid !== 'liyue' && cid !== 'guyun') return false;
+    const f = (JC.state.d && JC.state.d.flags) || {};
+    return !!f.osial_sent && t >= DAY0 + (2 * 24 + 23) * HR && t < DAY0 + (3 * 24 + 9) * HR;
+  }
   function condAt(cid, t) {
+    if (stormAt(cid, t)) return 'storm';
     const c = climate(cid);
     const i = dayIdx(t);
     const hr = new Date(t).getHours();
@@ -75,32 +86,33 @@
     const x = d.getHours() + d.getMinutes() / 60;
     const today = dayOf(cid, i), prev = dayOf(cid, i - 1), next = dayOf(cid, i + 1);
     let v;
-    // evening cooling is slow at first (k^1.3), so Lanling reads 14° at 23:47 like the widget
+    // evening cooling is slow at first (k^1.3), so the harbor still reads 18° at 23:47 like the widget
     if (x < 6) { const k = Math.pow((x + 9) / 15, 1.3); v = prev.hi - (prev.hi - today.lo) * k; }
     else if (x < 15) { const k = (x - 6) / 9; v = today.lo + (today.hi - today.lo) * (1 - Math.cos(k * Math.PI)) / 2; }
     else { const k = Math.pow((x - 15) / 15, 1.3); v = today.hi - (today.hi - next.lo) * k; }
     const cond = condAt(cid, t);
     if (cond === 'rain' || cond === 'showers') v -= 0.3;
+    if (cond === 'storm') v -= 4;
     return v;
   }
   function popAt(cid, t) {
     const cond = condAt(cid, t);
-    return { rain: 90, showers: 60, drizzle: 50, mist: 10, cloudy: 10, partly: 0, sunny: 0, clear: 0 }[cond] || 0;
+    return { storm: 100, rain: 90, showers: 60, drizzle: 50, snow: 80, mist: 10, cloudy: 10, partly: 0, sunny: 0, clear: 0 }[cond] || 0;
   }
   function wig(cid, t) { const seed = cid.split('').reduce((a, c) => a + c.charCodeAt(0), 0); const n = Math.sin((Math.floor(t / HR) + seed) * 12.9898) * 43758.5453; return n - Math.floor(n); }
-  function mmAt(cid, t) { const cond = condAt(cid, t); const base = { rain: 0.6, showers: 0.45, drizzle: 0.15 }[cond] || 0; return base ? Math.round(base * (0.45 + wig(cid, t)) * 10) / 10 : 0; }
+  function mmAt(cid, t) { const cond = condAt(cid, t); const base = { storm: 9, rain: 0.6, showers: 0.45, drizzle: 0.15, snow: 0.3 }[cond] || 0; return base ? Math.round(base * (0.45 + wig(cid, t)) * 10) / 10 : 0; }
   function metrics(cid, t) {
     const c = climate(cid);
     const cond = condAt(cid, t);
     const temp = tempAt(cid, t);
     const night = isNight(cid, t);
-    const hum = { rain: 93, showers: 86, drizzle: 90, mist: 98, cloudy: 76, partly: 64, sunny: 48, clear: 58 }[cond];
-    const vis = { rain: 6, showers: 9, drizzle: 9, mist: 0.8, cloudy: 16, partly: 24, sunny: 30, clear: 28 }[cond];
-    const windF = cond === 'mist' ? 0.6 : 1;
+    const hum = { storm: 99, rain: 93, showers: 86, drizzle: 90, mist: 98, snow: 88, cloudy: 76, partly: 64, sunny: 48, clear: 58 }[cond];
+    const vis = { storm: 0.4, rain: 6, showers: 9, drizzle: 9, mist: 0.8, snow: 3, cloudy: 16, partly: 24, sunny: 30, clear: 28 }[cond];
+    const windF = cond === 'mist' ? 0.6 : cond === 'storm' ? 6 : 1;
     const wind = Math.round(c.wind[0] * windF), gust = Math.round(c.wind[1] * windF);
     const feels = temp - (wind > 15 ? 3 : wind > 8 ? 1.6 : 0.5) - (hum > 90 ? 0.4 : 0);
     const hour = new Date(t).getHours();
-    const uvBase = { sunny: 5, partly: 4, cloudy: 2, mist: 1, drizzle: 1, showers: 1, rain: 1, clear: 0 }[cond];
+    const uvBase = { sunny: 5, partly: 4, cloudy: 2, mist: 1, drizzle: 1, showers: 1, rain: 1, snow: 1, storm: 0, clear: 0 }[cond];
     const uv = night ? 0 : Math.max(0, Math.round(uvBase * Math.sin(Math.max(0, Math.min(1, (hour - 6) / 12)) * Math.PI)));
     return { cond, temp, night, hum, dew: temp - (100 - hum) / 5, vis, wind, gust, dir: c.wind[2], deg: c.wind[3], feels, uv, pres: c.pres + (cond === 'rain' ? 0 : 3), aqi: c.aqi };
   }
@@ -112,7 +124,7 @@
   /** live conditions for widgets (home screen, lock screen) */
   JC.weather = {
     now(cid) {
-      cid = cid || 'lanling';
+      cid = cid || 'liyue';
       const t = JC.time.now();
       const m = metrics(cid, t);
       const d = dayOf(cid, dayIdx(t));
@@ -138,6 +150,8 @@
       case 'mist': inner = cloud(0, -3, 0.95) + '<g stroke="#d1d1d6" stroke-width="1.8" stroke-linecap="round"><path d="M4 17.5h16M6 21h12"/></g>'; break;
       case 'drizzle': inner = cloud(0, -3, 0.95) + '<g fill="#5ac8fa"><circle cx="9" cy="19.5" r="1"/><circle cx="13" cy="21" r="1"/><circle cx="16.5" cy="19.5" r="1"/></g>'; break;
       case 'showers': inner = (night ? '' : '<g transform="translate(6 -4) scale(.65)">' + sun + '</g>') + cloud(-1, -2, 1) + drops(2); break;
+      case 'snow': inner = cloud(0, -3, 0.95) + '<g fill="#fff"><circle cx="8.5" cy="19.5" r="1.1"/><circle cx="12.5" cy="21.2" r="1.1"/><circle cx="16.5" cy="19.5" r="1.1"/></g>'; break;
+      case 'storm': inner = cloud(0, -3, 0.95, '#8e8e93') + '<path d="M12.5 15.5 9.5 20h3l-1.5 3.5 4-5h-3l1.5-3z" fill="#ffd60a"/>' + drops(2); break;
       default: inner = cloud(0, -3, 0.95) + drops(3);
     }
     const s = document.createElement('span');
@@ -166,6 +180,8 @@
   const reduce = () => (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) || (JC.state.d && JC.state.d.settings && JC.state.d.settings.reduceMotion);
   function skyClass(m) {
     const n = m.night;
+    if (m.cond === 'storm') return 'storm-n';
+    if (m.cond === 'snow') return n ? 'snow-n' : 'snow-d';
     if (m.cond === 'rain' || m.cond === 'showers' || m.cond === 'drizzle') return n ? 'rain-n' : 'rain-d';
     if (m.cond === 'mist') return n ? 'mist-n' : 'mist-d';
     if (m.cond === 'cloudy') return n ? 'cloud-n' : 'cloud-d';
@@ -183,15 +199,17 @@
       kind = k;
       el.className = 'wx-bg ' + skyClass(m);
       layers.innerHTML = '';
-      const cloudy = /cloud|partly|mist|rain/.test(kind);
+      const cloudy = /cloud|partly|mist|rain|snow|storm/.test(kind);
       if (cloudy) for (let i = 0; i < (kind.startsWith('partly') ? 3 : 5); i++) layers.appendChild(h('div.wx-cloud', { style: { top: (8 + i * 9) + '%', animationDuration: (60 + i * 17) + 's', animationDelay: (-i * 13) + 's', opacity: String(kind.startsWith('partly') ? 0.5 : 0.7) } }));
       if (kind.startsWith('mist')) for (let i = 0; i < 4; i++) layers.appendChild(h('div.wx-fog', { style: { top: (30 + i * 14) + '%', animationDuration: (40 + i * 11) + 's', animationDelay: (-i * 9) + 's' } }));
       if (kind.startsWith('clear-d') || kind.startsWith('partly-d')) layers.appendChild(h('div.wx-sunglow'));
       const W = 402, H = (JC.os && JC.os.H) || 874;
       canvas.width = W; canvas.height = H;
       parts = [];
-      if (kind.startsWith('rain')) {
-        const n = kind.endsWith('-dz') ? 60 : 150;
+      if (kind.startsWith('snow')) {
+        for (let i = 0; i < 120; i++) parts.push({ x: Math.random() * W, y: Math.random() * H, r: 1 + Math.random() * 2.4, v: 30 + Math.random() * 50, p: Math.random() * 6.28 });
+      } else if (kind.startsWith('rain') || kind.startsWith('storm')) {
+        const n = kind.endsWith('-dz') ? 60 : kind.startsWith('storm') ? 320 : 150;
         for (let i = 0; i < n; i++) parts.push({ x: Math.random() * W, y: Math.random() * H, l: 10 + Math.random() * 16, v: 520 + Math.random() * 380, a: 0.18 + Math.random() * 0.3 });
       } else if (kind === 'clear-n' || kind === 'partly-n' || kind === 'cloud-n') {
         const n = kind === 'clear-n' ? 110 : 40;
@@ -203,10 +221,19 @@
       const ctx = canvas.getContext('2d');
       const W = canvas.width, H = canvas.height;
       ctx.clearRect(0, 0, W, H);
-      if (kind && kind.startsWith('rain')) {
-        ctx.lineCap = 'round';
+      if (kind && kind.startsWith('snow')) {
+        const tt = performance.now() / 1000;
         parts.forEach((p) => {
-          p.y += p.v * dt; p.x -= p.v * dt * 0.12;
+          p.y += p.v * dt; p.x += Math.sin(tt + p.p) * 12 * dt;
+          if (p.y > H) { p.y = -4; p.x = Math.random() * W; }
+          ctx.fillStyle = 'rgba(255,255,255,.85)';
+          ctx.beginPath(); ctx.arc(p.x, p.y, p.r, 0, 6.283); ctx.fill();
+        });
+      } else if (kind && (kind.startsWith('rain') || kind.startsWith('storm'))) {
+        ctx.lineCap = 'round';
+        if (kind.startsWith('storm') && Math.random() < 0.006) { el.classList.add('flash'); setTimeout(() => el.classList.remove('flash'), 140); }
+        parts.forEach((p) => {
+          p.y += p.v * dt * (kind.startsWith('storm') ? 1.6 : 1); p.x -= p.v * dt * (kind.startsWith('storm') ? 0.45 : 0.12);
           if (p.y > H) { p.y = -p.l; p.x = Math.random() * (W + 60); }
           ctx.strokeStyle = `rgba(210,225,245,${p.a})`;
           ctx.lineWidth = 1.1;
@@ -256,7 +283,7 @@
       let pages = [];
       let visible = true;
       const cities = () => JC.store.all('wxcities');
-      const cur = () => (cities()[idx] || cities()[0] || { id: 'lanling' }).id;
+      const cur = () => (cities()[idx] || cities()[0] || { id: 'liyue' }).id;
 
       function build() {
         pages.forEach((p) => p.sky.stop());
@@ -374,8 +401,8 @@
       }
       function radarEl(cid, mini) {
         const c = climate(cid);
-        const wet = /rain|drizzle|showers/.test(condAt(cid, localNow(cid)));
-        const el = h('div.wx-radar' + (mini ? '.mini' : ''), { html: `<svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice"><rect width="400" height="260" class="wxm-sea"/><path class="wxm-land" d="M0 0h400v180c-30 10-60 40-90 50-50 18-110 10-160 30H0z"/><path class="wxm-park" d="M40 60c20-14 50-10 58 8 6 16-10 30-30 30-22 0-40-22-28-38zM300 40c18-8 40 0 40 16s-22 24-38 18c-14-6-16-26-2-34z"/><path class="wxm-river" d="M0 120C60 110 90 130 120 150"/><path class="wxm-lake" d="M120 150c30-20 80-24 110-4 20 14 16 40-10 52-30 14-80 10-100-8-14-14-12-30 0-40z"/><path class="wxm-road" d="M30 40 C120 70 200 90 260 150 M260 150 C300 190 340 210 400 220 M150 0 C160 60 180 120 170 160 M220 0 C230 40 250 70 300 90 C340 104 370 100 400 96"/><path class="wxm-road2" d="M0 90 C60 92 110 84 150 70 M260 150 C250 110 280 70 330 60 M60 160 C90 170 110 190 120 230"/><g class="wxm-lbl"><text x="64" y="84">${c.name === 'Gusu' ? 'Cloud Recesses' : 'Park'}</text><text x="320" y="62">Hills</text><text x="175" y="178">Lake</text></g></svg>` });
+        const wet = /rain|drizzle|showers|snow|storm/.test(condAt(cid, localNow(cid)));
+        const el = h('div.wx-radar' + (mini ? '.mini' : ''), { html: `<svg viewBox="0 0 400 260" preserveAspectRatio="xMidYMid slice"><rect width="400" height="260" class="wxm-sea"/><path class="wxm-land" d="M0 0h400v180c-30 10-60 40-90 50-50 18-110 10-160 30H0z"/><path class="wxm-park" d="M40 60c20-14 50-10 58 8 6 16-10 30-30 30-22 0-40-22-28-38zM300 40c18-8 40 0 40 16s-22 24-38 18c-14-6-16-26-2-34z"/><path class="wxm-river" d="M0 120C60 110 90 130 120 150"/><path class="wxm-lake" d="M120 150c30-20 80-24 110-4 20 14 16 40-10 52-30 14-80 10-100-8-14-14-12-30 0-40z"/><path class="wxm-road" d="M30 40 C120 70 200 90 260 150 M260 150 C300 190 340 210 400 220 M150 0 C160 60 180 120 170 160 M220 0 C230 40 250 70 300 90 C340 104 370 100 400 96"/><path class="wxm-road2" d="M0 90 C60 92 110 84 150 70 M260 150 C250 110 280 70 330 60 M60 160 C90 170 110 190 120 230"/><g class="wxm-lbl"><text x="64" y="84">${c.region === 'Liyue' || /marine/.test(c.region) ? 'Jueyun Karst' : 'Park'}</text><text x="320" y="62">Hills</text><text x="175" y="178">${/marine/.test(c.region) ? 'Guyun' : 'Bay'}</text></g></svg>` });
         const blobs = h('div.wx-blobs', { class: { dry: !wet } });
         if (wet) for (let i = 0; i < 6; i++) blobs.appendChild(h('i', { style: { left: (10 + i * 15) + '%', top: (15 + (i % 3) * 22) + '%', animationDelay: (-i * 1.7) + 's' } }));
         el.append(blobs, h('div.wx-pin', h('span', deg(tempAt(cid, localNow(cid))))), h('div.wx-pinname', c.name));
@@ -417,6 +444,7 @@
         pager.style.transition = instant ? 'none' : 'transform .45s var(--ease)';
         pager.style.transform = `translateX(${-idx * 402}px)`;
         pages.forEach((p, k) => { if (k === idx && visible) p.sky.start(); else p.sky.stop(); });
+        try { JC.story.act('weather_view', { id: cur() }); } catch (e) { /* ignore */ }
         dots.innerHTML = '';
         cities().forEach((c, k) => dots.appendChild(k === 0 && c.current ? h('span.wx-dot.loc', { class: { on: k === idx }, onTap: () => go(k) }, JC.icon('wx.loc', { size: 9 })) : h('span.wx-dot', { class: { on: k === idx }, onTap: () => go(k) })));
       }
@@ -511,13 +539,13 @@
         const unit = prefs().unit;
         ui.menu(anchor, [
           { text: editing ? 'Done' : 'Edit List', icon: 'pencil', onTap: () => { editing = !editing; renderList(); } },
-          { text: 'Notifications', icon: 'bell', onTap: () => ui.alert({ title: 'Weather Notifications', message: 'Severe weather and next-hour precipitation alerts for My Location are on.\n\nNext hour: rain continues in Lanling.', buttons: [{ text: 'OK' }] }) },
+          { text: 'Notifications', icon: 'bell', onTap: () => ui.alert({ title: 'Weather Notifications', message: 'Severe weather and next-hour precipitation alerts for My Location are on.' + (stormAt('liyue', JC.time.now()) ? '\n\n⚠️ RED WARNING: abnormal sea surge from Guyun. Move away from the waterfront.' : '\n\nNext hour: clear and calm in Liyue Harbor.'), buttons: [{ text: 'OK' }] }) },
           '-',
           { text: 'Celsius', sub: '°C', checked: unit === 'C', onTap: () => { JC.state.set('apx_weather', Object.assign(prefs(), { unit: 'C' })); renderList(); build(); } },
           { text: 'Fahrenheit', sub: '°F', checked: unit === 'F', onTap: () => { JC.state.set('apx_weather', Object.assign(prefs(), { unit: 'F' })); renderList(); build(); } },
           '-',
           { text: 'Units', icon: 'slider.horizontal.3', onTap: () => ui.alert({ title: 'Units', message: 'Wind: km/h · Precipitation: mm · Pressure: hPa · Distance: km', buttons: [{ text: 'OK' }] }) },
-          { text: 'Report an Issue', icon: 'exclamationmark.triangle.fill', onTap: () => ui.actionSheet({ title: 'What’s wrong with the weather in ' + climate(cur()).name + '?', actions: [{ text: 'It’s raining', onTap: () => ui.toast('Thanks. (It is.)') }, { text: 'It’s foggy', onTap: () => ui.toast('Thanks for your report') }, { text: 'It’s clear', onTap: () => ui.toast('Thanks for your report') }] }) },
+          { text: 'Report an Issue', icon: 'exclamationmark.triangle.fill', onTap: () => ui.actionSheet({ title: 'What’s wrong with the weather in ' + climate(cur()).name + '?', actions: [{ text: 'It’s raining', onTap: () => ui.toast(condAt(cur(), JC.time.now()) === 'storm' ? 'Thanks. (It is. A lot.)' : 'Thanks. (It isn’t.)') }, { text: 'It’s foggy', onTap: () => ui.toast('Thanks for your report') }, { text: 'It’s clear', onTap: () => ui.toast('Thanks for your report') }] }) },
         ]);
       }
       function preview(id) {
@@ -561,7 +589,7 @@
           title: 'Precipitation', detent: 'large', cls: 'wx-mapsheet', right: { text: 'Done' }, onClose: () => clearInterval(playing),
           content: () => [h('div.wx-mapwrap', radar), h('div.wx-mapctrl', play, h('div.wx-mapsl', slider), lbl),
             h('div.wx-maplegend', h('span', 'Light'), h('i'), h('span', 'Heavy')),
-            ui.list([{ rows: [{ title: 'Open in Maps', icon: { glyph: 'map.fill', bg: 'var(--green)' }, chevron: true, onTap: () => { const pl = { lanling: 'koi-tower', yunmeng: 'lotus-pier', gusu: 'cloud-recesses', qinghe: 'unclean-realm', yiling: 'radish-farm' }[cid]; JC.os.open('maps', pl ? { place: pl } : { search: climate(cid).name }); } }] }])],
+            ui.list([{ rows: [{ title: 'Open in Maps', icon: { glyph: 'map.fill', bg: 'var(--green)' }, chevron: true, onTap: () => { const pl = { liyue: 'pier7', guyun: 'guyun', morepesok: 'morepesok', zapolyarny: 'zapolyarny', qingce: 'qingce', wangshu: 'wangshu', stonegate: 'stonegate', mingyun: 'mingyun', chasm: 'chasm' }[cid]; JC.os.open('maps', pl ? { place: pl } : { search: climate(cid).name }); } }] }])],
         });
       }
       const METRIC = {
@@ -570,11 +598,11 @@
         wind: { title: 'Wind', unit: ' km/h', f: (cid, t) => metrics(cid, t).wind + (Math.sin(new Date(t).getHours() / 3) * 2), color: 'var(--teal)', kind: 'line', sum: (cid) => 'Wind from the ' + climate(cid).wind[2] + '. Gusts up to ' + climate(cid).wind[1] + ' km/h.' },
         precip: { title: 'Precipitation', unit: ' mm', f: (cid, t) => mmAt(cid, t), color: 'var(--blue)', kind: 'bar', sum: (cid, i) => (dayOf(cid, i).pop ? dayOf(cid, i).pop + '% chance of precipitation.' : 'No precipitation expected.') },
         feels: { title: 'Feels Like', unit: '°', f: (cid, t) => Tf(metrics(cid, t).feels), color: 'var(--orange)', kind: 'line', sum: () => 'Wind and humidity make it feel slightly cooler than the actual temperature.' },
-        hum: { title: 'Humidity', unit: '%', f: (cid, t) => metrics(cid, t).hum, color: 'var(--cyan)', kind: 'line', sum: () => 'Relative humidity stays high while it rains.' },
-        vis: { title: 'Visibility', unit: ' km', f: (cid, t) => metrics(cid, t).vis, color: 'var(--mint)', kind: 'line', sum: (cid) => (cid === 'gusu' ? 'Mist keeps visibility below 1 km until mid-morning.' : 'Visibility improves as the rain clears.') },
+        hum: { title: 'Humidity', unit: '%', f: (cid, t) => metrics(cid, t).hum, color: 'var(--cyan)', kind: 'line', sum: () => 'Humid by the sea, as always.' },
+        vis: { title: 'Visibility', unit: ' km', f: (cid, t) => metrics(cid, t).vis, color: 'var(--mint)', kind: 'line', sum: (cid) => (cid === 'guyun' ? 'Sea mist around the pillars keeps visibility low after dark.' : 'Visibility is good across the harbor.') },
         pres: { title: 'Pressure', unit: ' hPa', f: (cid, t) => metrics(cid, t).pres, color: 'var(--indigo)', kind: 'line', sum: () => 'Pressure is steady.' },
         sun: { title: 'Sunrise & Sunset', unit: '°', f: (cid, t) => { const c = climate(cid); const d = new Date(t); const x = d.getHours() + d.getMinutes() / 60; const k = (x - hm(c.sun[0])) / (hm(c.sun[1]) - hm(c.sun[0])); return Math.round(Math.sin(k * Math.PI) * 52); }, color: 'var(--yellow)', kind: 'line', sum: (cid) => 'Sunrise ' + climate(cid).sun[0] + ' · Sunset ' + climate(cid).sun[1] + '. Daylight: about 11 hr 17 min.', axisLabel: 'sun altitude' },
-        aqi: { title: 'Air Quality', unit: '', f: (cid, t) => Math.round(climate(cid).aqi + Math.sin(new Date(t).getHours() / 2.5) * 6), color: 'var(--green)', kind: 'line', sum: (cid) => (climate(cid).aqi <= 50 ? 'Good. Rain has cleared the air.' : 'Moderate. Unusually sensitive people should consider reducing prolonged outdoor exertion.') },
+        aqi: { title: 'Air Quality', unit: '', f: (cid, t) => Math.round(climate(cid).aqi + Math.sin(new Date(t).getHours() / 2.5) * 6), color: 'var(--green)', kind: 'line', sum: (cid) => (climate(cid).aqi <= 50 ? 'Good. The sea breeze keeps the air clean.' : 'Moderate. Unusually sensitive people should consider reducing prolonged outdoor exertion.') },
       };
       function detailSheet(cid, key, dayI) {
         const M = METRIC[key] || METRIC.temp;
