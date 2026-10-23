@@ -653,18 +653,17 @@
     id: 'fam_mama_ring', thread: 'mama', ch: 'sun_night',
     trigger: { on: 'chapter', ch: 'sun_night', delay: 300 },
     nodes: {
-      start: [{ call: 'call_mama_sun' }, { wait: 40 }, { if: (s) => !F(s).mama_picked, go: 'missed' }],
-      missed: [{ start: 'fam_mama_missed' }],
+      start: [{ call: 'call_mama_sun' }],
     },
   });
 
   S.call({
     id: 'call_mama_sun', from: 'mama', ring: 25,
     onHangup: [{ start: 'fam_mama_hungup' }],
+    missed: [{ start: 'fam_mama_missed' }],
     voicemail: 'My sun. It\'s Sunday. You always answer on Sundays. …It\'s all right. You\'re busy. Eat something, and call your Mama.',
     nodes: {
       start: [
-        { fx: { set: { mama_picked: true } } },
         { say: 'My sun! You answered. It\'s Sunday. You always answer on Sundays.' },
         { say: 'Don\'t say anything yet. Let me count how late it is there. …Too late. You should be asleep.' },
         { choice: [

@@ -114,7 +114,12 @@ function staticCheck() {
       else if (t.on === 'act' && !t.act) errors.push(`scene ${id}: act trigger without act`);
     });
   });
-  Object.entries(d.calls).forEach(([id, c]) => { if (!id.startsWith('_dial_')) checkGraph('call', id, c); if (c.from && !contacts.has(c.from)) errors.push(`call ${id}: unknown from ${c.from}`); });
+  Object.entries(d.calls).forEach(([id, c]) => {
+    if (!id.startsWith('_dial_')) checkGraph('call', id, c);
+    if (c.from && !contacts.has(c.from)) errors.push(`call ${id}: unknown from ${c.from}`);
+    // onHangup / missed are step lists run as asides
+    ['onHangup', 'missed'].forEach((k) => (c[k] || []).forEach((st) => { if (st.start) { startedScenes.add(st.start); if (!d.scenes[st.start]) errors.push(`call ${id}.${k}: start unknown scene ${st.start}`); } }));
+  });
   d.dial.forEach((x) => { if (!x.cid.startsWith('_') && !d.calls[x.callId]) errors.push(`dialScript ${x.cid}: unknown call ${x.callId}`); });
   d.susHooks.forEach((x) => { if (!d.scenes[x.sceneId]) errors.push(`onSuspicion ${x.cid}: unknown scene ${x.sceneId}`); });
   d.totalHooks.forEach((x) => { if (!d.scenes[x.sceneId]) errors.push(`onTotalSuspicion: unknown scene ${x.sceneId}`); });
@@ -343,20 +348,38 @@ async function playRoute(page, route) {
         const v = cond();
         if (v) return v;
         const c = JC.story.call();
-        if (c && !opts.keepCall) {
+        const keep = typeof opts.keepCall === 'function' ? c && opts.keepCall(c) : opts.keepCall;
+        if (c && !keep) {
           if (c.phase === 'ringing' && c.dir === 'in') { if (callPolicy === 'answer') { JC.story.answer(); log.push('answer ' + c.cid); } else { JC.story.decline(); log.push('decline ' + c.cid); } }
           else if (c.pend) { log.push('call ' + c.cid + ': ' + c.pend.options[0].label); JC.story.callChoose(0); }
         }
+        if (R.auto) autoChoose();
         if (!JC.time.frozen) H.advance(4000);
         await H.sleep(20);
       }
       return false;
     };
-    const fail = (i, msg) => ({ ok: false, name: R.name, step: i, msg, ended: JC.state.d.ended, log: log.slice(-12), flags: JC.state.d.flags });
+    /** route.auto: [threads], true (every thread) or { thread: 'warm' | 'sus' }: answer their pending choices with the
+        warmest option (aff − 2·sus), or with the one that raises suspicion most */
+    const sum = (o) => Object.values(o || {}).reduce((a, b) => a + (Number(b) || 0), 0);
+    const policy = (tid) => (R.auto === true ? 'warm' : Array.isArray(R.auto) ? (R.auto.includes(tid) ? 'warm' : null) : R.auto[tid] || null);
+    const autoChoose = () => {
+      JC.story.threads().forEach((t) => {
+        const pol = policy(t.id);
+        if (!pol) return;
+        const p = JC.story.pending(t.id);
+        if (!p || !p.options.length) return;
+        let best = p.options[0], score = -1e9;
+        p.options.forEach((o) => { const fx = o.fx || {}; const sc = pol === 'sus' ? sum(fx.sus) - sum(fx.aff) : sum(fx.aff) - 2 * sum(fx.sus); if (sc > score) { score = sc; best = o; } });
+        log.push('auto ' + t.id + ': ' + String(best.label).slice(0, 50));
+        JC.story.choose(t.id, best.i);
+      });
+    };
+    const fail = (i, msg) => ({ ok: false, name: R.name, step: i, msg, ended: JC.state.d.ended, log: log.slice(-12), flags: JC.state.d.flags, runs: JC.state.d.runs.map((r) => r.sc + '.' + r.node + '[' + r.i + ']' + (r.wait ? ' wait:' + r.wait : '')) });
     const steps = R.steps || [];
     for (let i = 0; i < steps.length; i++) {
       const st = steps[i];
-      const max = st.within || 3600;
+      const max = st.within || (st.choose && st.choose.within) || 3600;
       if (st.choose) {
         const want = st.choose;
         const got = await until(() => { const p = JC.story.pending(want.thread); if (!p) return null; const o = p.options.find((x) => match(want.match, x.label) || match(want.match, x.text || '')); return o ? { o } : null; }, max);
@@ -383,7 +406,7 @@ async function playRoute(page, route) {
         log.push('dial ' + st.dial);
         await H.sleep(Math.round(8000 / ((JC.state.d.settings.timeScale) || 1)));
       } else if (st.answer) {
-        const ok = await until(() => { const c = JC.story.call(); return c && c.phase === 'ringing' && c.dir === 'in' && (st.answer === true || c.cid === st.answer); }, max, { keepCall: true });
+        const ok = await until(() => { const c = JC.story.call(); return c && c.phase === 'ringing' && c.dir === 'in' && (st.answer === true || c.cid === st.answer); }, max, { keepCall: (c) => st.answer === true || c.cid === st.answer });
         if (!ok) return fail(i, 'no incoming call' + (st.answer === true ? '' : ' from ' + st.answer));
         JC.story.answer();
         log.push('answer');
@@ -393,6 +416,8 @@ async function playRoute(page, route) {
         if (!got) return fail(i, 'call option never offered: ' + want.match);
         log.push('call: ' + got.o.label);
         JC.story.callChoose(got.o.i);
+      } else if (st.run) {
+        try { (typeof st.run === 'function' ? st.run : new Function(st.run))(); log.push('run'); } catch (e) { return fail(i, 'run step threw: ' + e.message); }
       } else if (st.hangup) {
         JC.story.hangup();
       } else if (st.send) {
@@ -415,7 +440,7 @@ async function playRoute(page, route) {
     await until(() => JC.state.d.ended, R.maxSec || 4 * 3600, { allowEnd: true });
     const ev = endEv();
     const ended = JC.state.d.ended;
-    return Object.assign({ ok: ended === R.expect, name: R.name, expect: R.expect, ended, also: (ev && ev.also) || [], log: log.slice(-12) }, H.summary());
+    return Object.assign({ ok: ended === R.expect, name: R.name, expect: R.expect, ended, also: (ev && ev.also) || [], log: log.slice(-12), sus: JC.state.d.sus, flags: JC.state.d.flags, runs: JC.state.d.runs.map((r) => r.sc + '.' + r.node + '[' + r.i + ']' + (r.wait ? ' wait:' + r.wait : '')) }, H.summary());
   }, { route: ser(route), scale });
 }
 
@@ -563,7 +588,7 @@ function lintReport(L) {
       tallyRun(r);
       if (r.ended) unlocked[r.ended] = (unlocked[r.ended] || 0) + 1;
       if (r.ok) console.log(`  PASS  ${route.name} → ${r.ended}${r.chapters && r.chapters.length ? ' (chapters ' + r.chapters.join(',') + ')' : ''}`);
-      else { fail(); console.log(`  FAIL  ${route.name}: ${r.msg || 'ended ' + r.ended + ', expected ' + route.expect}${r.step != null ? ' (step ' + r.step + ')' : ''}\n        last: ${JSON.stringify(r.log)}`); }
+      else { fail(); console.log(`  FAIL  ${route.name}: ${r.msg || 'ended ' + r.ended + ', expected ' + route.expect}${r.step != null ? ' (step ' + r.step + ')' : ''}\n        last: ${JSON.stringify(r.log)}${verbose && r.runs ? '\n        runs: ' + JSON.stringify(r.runs) + '\n        flags: ' + JSON.stringify(Object.keys(r.flags || {}).filter((k) => r.flags[k])) + (r.sus ? '\n        sus: ' + JSON.stringify(r.sus) : '') : ''}`); }
     }
   }
   // chapters & aftermath

@@ -17,8 +17,8 @@ needs (names, passcode, app names, jokes, the bank, start time…) lives in **`j
    `#screen.dark`; your CSS must look right in both.
 3. **Logical points.** The screen is 402 × 874 CSS px (iPhone 17 Pro points). Never use `vh`/`vw` inside the phone.
    Use `var(--safe-top)` (54px, status bar + island) and `var(--safe-bottom)` (34px, home indicator) for padding.
-4. **Own your files.** Only edit the files your task owns. If you need something from core, write a note in
-   `docs/REQUESTS.md` and work around it locally.
+4. **Own your files.** Only edit the files your task owns. If you need something from core, note it in your report
+   and work around it locally.
 5. **Story acts.** Apps must report meaningful player actions with `JC.story.act(name, payload)` (list below) so the
    story can react.
 6. **No external resources** except Google Fonts (already loaded). No images from the web. Illustrations come from `JC.art`.
@@ -103,7 +103,7 @@ JC.store.on('notes', fn)         // fn(collection) after any change; returns uns
 - `calls` `{id, contact, num, t, dir:'in'|'out'|'missed', dur, video}`
 - `voicemails` `{id, contact, num, t, dur, text, heard}`
 - `memos` `{id, title, t, dur, text, place, fav}`
-- `posts` `{id, by, t, art, text, likes, liked, comments:[{by, text, t}]}` (`by` = Wavelet handle)
+- `posts` `{id, by, t, art, text, likes, liked, comments:[{by, text, t}]}` (`by` = Ripple handle)
 - `tx` `{id, card, merchant, amount (+ charge, − credit), t, cat, note, place, pending, contact, app}` (JC.bank writes these)
 - `orders` `{id, rest, items:[{name, qty, price}], total, t, status, to}`
 - `rides` `{id, from, to, t, end, price, driver:{name, car, plate, rating}, status}`
@@ -185,7 +185,7 @@ JC.ui.list([
   { header: 'Connectivity', footer: 'Footer text', rows: [
     { icon: { glyph: 'airplane', bg: 'var(--orange)' }, title: 'Airplane Mode', toggle: { on, onChange } },
     { icon: { glyph: 'wifi', bg: 'var(--blue)' }, title: 'Wi-Fi', detail: 'Golden Peony Guest', chevron: true, onTap },
-    { title: 'Name', subtitle: 'Second line', avatar: 'jl', detail: '11:47', onTap,
+    { title: 'Name', subtitle: 'Second line', avatar: 'teucer', detail: '11:47', onTap,
       swipe: [{ text: 'Delete', color: 'var(--red)', icon: 'trash', onTap }],   // trailing swipe actions
       lead: [{ text: 'Pin', color: 'var(--orange)', onTap }] },
     { title: 'Sign Out', destructive: true, center: true, onTap },
@@ -230,13 +230,13 @@ JC.app({
     // win.setStatus('light'|'dark'|'auto')
     // win.close()  go home
     return {
-      intent(intent) {},          // deep link while running, e.g. { thread: 'wwx' }
+      intent(intent) {},          // deep link while running, e.g. { thread: 'zl' }
       show() {}, hide() {},       // foreground/background
       back() { return true },     // optional: handle edge-swipe/Esc; return true if handled
     };
   },
 });
-JC.os.open('messages', { thread: 'wwx' })   // open an app (with optional intent)
+JC.os.open('messages', { thread: 'zl' })   // open an app (with optional intent)
 JC.os.home()
 JC.os.setWallpaper(id) / JC.os.setAppearance('light'|'dark'|'auto') / JC.os.dark (bool)
 JC.os.toggles (wifi, bt, airplane, focus, silent, flashlight, lowPower, rotationLock) / JC.os.setToggle(key, on)
@@ -253,49 +253,50 @@ open: { app, intent }, thread })`.
 ### Authoring: threads (history)
 ```js
 JC.story.thread({
-  id: 'wwx',                 // thread id (DMs use the contact id)
-  members: ['wwx'],          // contact ids, not including 'me'
+  id: 'teucer',              // thread id (DMs use the contact id)
+  members: ['teucer'],       // contact ids, not including 'me'
   name: null,                // group name (groups only)
   pinned: true, muted: false,
   service: 'imessage',       // 'imessage' (blue) | 'sms' (green)
-  fails: false,              // true: everything the player sends shows "Not Delivered" (A-Jie)
+  fails: false,              // true: everything the player sends shows "Not Delivered"
   history: [
-    ['-2 21:03', 'wwx', 'jiang cheng'],
-    ['-2 21:03', 'wwx', 'jiang cheng!!!'],
-    ['-2 21:30', 'me',  'What.'],
-    ['-2 21:31', 'wwx', '', { img: 'p_radishes' }],
-    ['+0 23:40', 'wwx', 'u left without saying bye!!! rude.', { u: 1 }],   // u:1 = unread (shows on the lock screen)
+    ['-2 21:03', 'teucer', 'brother'],
+    ['-2 21:03', 'teucer', 'BROTHER!!!'],
+    ['-2 21:30', 'me',     'Teucer!! 😁'],
+    ['-2 21:31', 'teucer', '', { img: 'p_teucer_drawing' }],
+    ['+0 23:40', 'teucer', 'we are on the PLANE tomorrow!!! 🐟', { u: 1 }],   // u:1 = unread (shows on the lock screen)
   ],
 });
 ```
 History tuple: `[time, from, text, extra?]` — `from` is `'me'` or a contact id; `extra` may contain:
 `u:1` (unread), `img:'artId'`, `voice:{ dur: 12, text: 'transcript' }`, `link:{ title, site, art, url }`,
-`loc:{ place: 'koi-tower' }`, `react:[{ by: 'me'|'wwx', t: 'love'|'like'|'dislike'|'haha'|'emph'|'q' }]`,
+`loc:{ place: 'pier7' }`, `react:[{ by: 'me'|'teucer', t: 'love'|'like'|'dislike'|'haha'|'emph'|'q' }]`,
 `unsent:true`, `edited:true`, `fail:true` (Not Delivered), `effect:'slam'|'loud'|'gentle'|'invisible'`,
-`sys:true` (centered system line, e.g. "Wei Wuxian named the conversation …"), `sticker:'🐶'`.
+`sys:true` (centered system line, e.g. "Tonia named the conversation …"), `sticker:'🐟'`.
 A message whose text is only 1–3 emoji renders large automatically.
 
 ### Authoring: scenes (live, branching)
 ```js
 JC.story.scene({
-  id: 'jl_car',
-  thread: 'jl',                         // default thread for steps
+  id: 'fam_teucer_plane',
+  thread: 'teucer',                     // default thread for steps
+  arc: 'fam', ch: 'fri_night',
   trigger: { on: 'unlock', delay: 180 },
-  when: (s) => !s.flags.burned,         // optional guard checked when the trigger fires
+  when: (s) => !s.flags.lost_mode,      // optional guard checked when the trigger fires
   nodes: {
     start: [
-      { m: 'jiujiu' },
-      { m: 'jiujiu', d: 0.6 },
-      { m: 'JIUJIU' },
-      { m: 'ok dont be mad', img: 'p_fairy_roof' },
+      { m: 'brother' },
+      { m: 'brother', d: 0.6 },
+      { m: 'BROTHER' },
+      { m: 'i am awake on the PLANE', img: 'p_teucer_window' },
       { choice: [
-          { t: 'JIN LING.', fx: { aff: { jl: 1 } }, go: 'yell' },
-          { t: 'Are you hurt?', fx: { aff: { jl: 2 } }, go: 'hurt' },
-          { t: "It's okay sweetie, cars can be replaced 🥰", fx: { sus: { jl: 4 } }, go: 'sweet' },
+          { t: "Teucer, it's late. Put the watch away.", fx: { aff: { teucer: 1 } }, go: 'late' },
+          { t: 'Did you bring Sir Fang?', fx: { aff: { teucer: 2 } }, go: 'fang' },
+          { t: 'Who is this?', fx: { sus: { teucer: 4 } }, go: 'who' },
           { t: '[Leave him on read]', silent: true, go: 'ignored' },
         ], timeout: 90, onTimeout: 'ignored' },
     ],
-    yell: [ { m: 'ok good ur normal' }, ... , { fx: { set: { car_handled: true } } } ],
+    late: [ { m: 'ok ok ok' }, ... , { fx: { set: { teucer_slept: true } } } ],
   },
 });
 ```
@@ -311,9 +312,9 @@ tick instead of skipping the scene), `arc: 'zl'` (which story arc owns the scene
 | `{ on: 'scene', scene, delay }` | after another scene finishes |
 | `{ on: 'flag', flag, delay }` | when a flag becomes truthy |
 | `{ on: 'act', act: 'memo_play' \| ['a', 'b'], match: (p, s) => bool, delay }` | when an app reports the act (any of the list) |
-| `{ on: 'open', thread: 'ajie' }` / `{ on: 'open', app: 'voicememos' }` | when that thread / app is opened |
+| `{ on: 'open', thread: 'skirk' }` / `{ on: 'open', app: 'voicememos' }` | when that thread / app is opened |
 | `{ on: 'time', at: '+1 06:55' }` | when the in-game clock reaches `at` (`'+N HH:MM'`, `'YYYY-MM-DD HH:MM'`, or `'HH:MM'` = day 0, or day 1 before noon). Fires correctly with a fast chapter clock. |
-| `{ on: 'chapter', ch: 'sat_am', delay }` | `delay` s of play time after that chapter began |
+| `{ on: 'chapter', ch: 'sat_dawn', delay }` | `delay` s of play time after that chapter began |
 | `{ on: 'sus', who: 'tonia' \| 'total', at: 6, delay }` | when suspicion of `who` (or the sum) reaches `at` |
 | `{ on: 'manual' }` | only by a `start` step / `JC.story.start(id)` / an onAct rule |
 
@@ -355,16 +356,17 @@ Flags the engine sets itself: `told_truth` (any confession), `card_frozen` (JC.b
 ### Authoring: calls
 ```js
 JC.story.call({
-  id: 'call_wn', from: 'wn', video: false,
-  missed: [ { start: 'wn_texts_after_missed' } ],   // steps run if declined / unanswered (rings 25 s)
-  voicemail: 'Mr. Jiang, it's Wen Ning…',           // optional voicemail left when missed
+  id: 'call_ekat', from: 'ekat', video: false,
+  missed: [ { start: 'ekat_texts_after_missed' } ],   // steps run if declined / unanswered (rings 25 s)
+  onHangup: [ { start: 'ekat_hung_up' } ],             // steps run if the player hangs up mid-call
+  voicemail: 'Sir, it\'s Ekaterina…',                  // optional voicemail left when missed
   nodes: {
-    start: [ { say: 'M-Mr. Jiang? It's Wen Ning. Sorry. Jin Ling said…' },
-             { choice: [ { t: '(Stay silent)', go: 'silent' }, { t: '"…Mm."', go: 'mm' }, { t: 'Tell him the truth', go: 'truth' } ] } ],
-    silent: [ { say: '…Mr. Jiang? Your breathing sounds… different.' }, { hangup: true } ],
+    start: [ { say: 'Sir? It\'s Ekaterina. I\'m sorry to call so late.' },
+             { choice: [ { t: '(Stay silent)', go: 'silent' }, { t: '"…Mm."', go: 'mm' }, { t: 'Tell her the truth', go: 'truth' } ] } ],
+    silent: [ { say: '…Sir? Your breathing sounds… different.' }, { hangup: true } ],
   },
 });
-JC.story.dialScript('jl', 'call_jl_out', (s) => s.flags.car_handled);   // what happens when the PLAYER calls jl
+JC.story.dialScript('ekat', 'call_ekat_out', (s) => s.flags.ekat_warned);   // what happens when the PLAYER calls ekat
 ```
 Call steps: `say` (line from the caller, shown as live captions), `choice` (player options; spoken lines in quotes,
 actions in parentheses), `hangup` (they hang up), plus every normal step. Unscripted outgoing calls get a sensible
@@ -375,9 +377,9 @@ outgoing ring time all scale with `timeScale`.
 
 ### Authoring: endings & intro
 ```js
-JC.story.ending({ id: 'reunited', n: 9, title: 'Lotus Pier, Reunited', tag: 'Family', art: 'end_reunited',
-  hint: 'Some invitations are thirteen years late. Send them anyway.',
-  text: ['paragraph', '…'], jc: ['When he got his phone back…', '…'] });
+JC.story.ending({ id: 'teucer', n: 14, title: 'The Toy Factory', tag: 'Family', art: 'end_teucer',
+  hint: 'Keep the lie, lovingly. Every child deserves a factory.',
+  text: ['paragraph', '…'], jc: ['When Childe got his phone back…', '…'] });
 JC.story.intro = ['11:47 PM. Liyue Harbor.', '…'];   // prologue lines, one per screen (fallback: JC.world.introFallback)
 JC.story.lockNotifs = [ { app: 'phone', title: 'Missed Call', body: 'Tonia (3)', t: '+0 23:12' } ];
 JC.story.onSuspicion('tonia', 8, 'caught_tonia');   // start scene when suspicion reaches a threshold
@@ -431,7 +433,7 @@ live in the save (`s.acts[name]`, `s.actOnce[id]`), so rewind is exact. `JC.worl
 ### Chapters (multi-day play)
 ```js
 JC.story.chapter({
-  id: 'sat_am', n: 2, title: 'The Kids Land', label: 'Saturday morning',
+  id: 'sat_dawn', n: 2, title: 'Cranes', label: 'Saturday morning',
   at: '+1 06:50',                 // the clock jumps here when the chapter begins (ignored for the first chapter)
   card: 'Saturday, 06:50. You fell asleep on the couch with his phone on your chest.',   // time-skip card text
   clockRate: 10,                  // in-game seconds per play second while current (× timeScale). Default 1.
@@ -442,7 +444,7 @@ JC.story.chapter({
 });
 ```
 Register chapters in play order. The first chapter begins at the first unlock. Scenes join a chapter with
-`ch: 'sat_am'`; `required: true` scenes define when it is done; `expire: 'nodeName' | true` says what happens if the
+`ch: 'sat_dawn'`; `required: true` scenes define when it is done; `expire: 'nodeName' | true` says what happens if the
 chapter ends first.
 - **Default settle:** the chapter has at least one `required` scene, every required scene has finished (or was
   skipped/expired), and none of the chapter's scenes is mid-conversation (no pending choice, no typing; a run sitting
@@ -603,8 +605,7 @@ app registers.
 | `wavelet` | Ripple | Instagram-like |
 | `lotuseats` | Wanmin Go | food delivery |
 | `swift` | Harbor Ride | rides |
-| `lotusleap` | (removed) | to be replaced by `reelrush` (Reel Rush, fishing game) |
-| `reelrush` | Reel Rush | new |
+| `reelrush` | Reel Rush | new; canvas fishing game |
 | `northland` | Northland Bank | new; the app for `JC.bank` |
 | `feiyun` | Feiyun Market | new; marketplace with auctions |
 | everything else | the iOS name (Messages, Phone, Wallet…) | |

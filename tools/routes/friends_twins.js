@@ -15,5 +15,6 @@ module.exports = {
     { until: "s.chapter === 'sun_rite'", within: 9000 },
     { choose: { thread: 'lumine', match: /^Do it, comrade/ }, within: 1200 },
     { assert: 's.flags.lumine_guard' },
+    { answer: 'wangsheng', within: 20000 },
   ],
 };

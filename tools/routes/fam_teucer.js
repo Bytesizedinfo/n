@@ -11,9 +11,10 @@ module.exports = {
     { choose: { thread: 'mama', match: /Wangshu Inn/ } },
     { choose: { thread: 'tonia', match: /Head of Accounts/ } },
     { until: 's.flags.deal_childe', within: 7200 },
+    { choose: { thread: 'teucer', match: /Ekaterina runs the whole factory/, within: 7200 } },
     { choose: { thread: 'teucer', match: /Never too busy for you/, within: 7200 } },
     { choose: { thread: 'teucer', match: /Mingyun Toys/, within: 7200 } },
     { act: ['purchase', { id: 'toy_frost_fortress', total: 2400 }] },
-    { assert: 's.flags.gift_teucer && s.flags.factory_zl' },
+    { until: 's.flags.gift_teucer && s.flags.factory_zl', within: 600 },
   ],
 };

@@ -5,7 +5,7 @@ module.exports = {
   steps: [
     { until: "s.chapter === 'sun_night'", within: 9000 },
     { choose: { thread: 'skirk', match: /^Master\?|I'm listening/ }, within: 1500 },
-    { assert: 's.flags.skirk_answered && s.flags.clue_abyss' },
+    { until: 's.flags.skirk_answered && s.flags.clue_abyss', within: 120 },
     { choose: { thread: 'skirk', match: /I.m coming/ }, within: 200 },
     { act: ['directions', { place: 'chasm' }] },
   ],

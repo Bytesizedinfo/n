@@ -14,6 +14,6 @@ module.exports = {
     { until: "s.chapter === 'sat_night'", within: 7200 },
     { act: ['order', { rest: 'wanmin', to: 'northland', total: 688, items: [{ name: 'Pelmeni', qty: 40, price: 17 }] }] },
     { choose: { thread: 'teucer', match: /lullaby for Teucer/, within: 3600 } },
-    { assert: 's.flags.beat_teucer && s.flags.lullaby_sent && (s.flags.ops_morale || 0) >= 2' },
+    { until: 's.flags.beat_teucer && s.flags.lullaby_sent && (s.flags.ops_morale || 0) >= 2', within: 600 },
   ],
 };

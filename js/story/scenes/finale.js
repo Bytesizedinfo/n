@@ -697,39 +697,6 @@
   // ══════════════════════════════════════════════════════════════
   // Core mid-story endings (no arc owns these triggers)
   // ══════════════════════════════════════════════════════════════
-  // total suspicion ≥ 25 → Fatui Hospitality
-  S.scene({
-    id: 'core_caught_total', thread: 'signora', arc: 'core',
-    trigger: { on: 'sus', who: 'total', at: 25, delay: 6 },
-    when: (s) => !F(s).lost_mode,
-    nodes: {
-      start: [
-        { notify: { app: 'findmy', title: 'Find My', body: 'This iPhone’s location is now being shared with Northland Bank Group IT.' } },
-        { m: 'Tartaglia.', d: 2 },
-        { m: 'Or whoever you are. Half of Liyue has noticed you are not him. I noticed on Friday.' },
-        { m: 'Stay exactly where you are. Two of my colleagues are bringing tea.' },
-        { wait: 5 },
-        { ending: 'caught_fatui' },
-      ],
-    },
-  });
-  // a Ripple post with a location after Saturday noon → they know where the phone is
-  S.onAct({
-    id: 'core_post_loc', act: 'post', once: true, arc: 'core',
-    match: (p, s) => !!(p && (p.loc || p.place)) && s.now >= JC.time.parse('+1 12:00') && !F(s).lost_mode,
-    start: 'core_caught_post', delay: 4,
-  });
-  S.scene({
-    id: 'core_caught_post', thread: 'signora', arc: 'core', trigger: { on: 'manual' },
-    nodes: {
-      start: [
-        { m: 'A photograph. With a location. How generous of you, Tartaglia.', d: 2 },
-        { m: 'Stay there.' },
-        { wait: 5 },
-        { ending: 'caught_fatui' },
-      ],
-    },
-  });
   // Harbor Ride → report the phone as a found item → Return to Sender
   S.scene({
     id: 'core_reported_lost', thread: 'ride', arc: 'core',

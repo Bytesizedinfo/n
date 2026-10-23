@@ -222,7 +222,7 @@
     const step = stepAt(run);
     if (!step || !step.choice) return null;
     const opts = visibleOptions(step, run);
-    return { options: opts.map((o, i) => ({ i, label: o.label || o.t, text: o.t, silent: !!o.silent })), timeout: step.timeout || 0, left: run.tleft > 0 ? run.tleft : 0 };
+    return { options: opts.map((o, i) => ({ i, label: o.label || o.t, text: o.t, silent: !!o.silent, fx: typeof o.fx === 'object' ? o.fx : null })), timeout: step.timeout || 0, left: run.tleft > 0 ? run.tleft : 0 };
   };
 
   function visibleOptions(step, run) {
@@ -577,7 +577,7 @@
           run.phase = 'typing';
           if (tid) { th(tid).typing = from; JC.bus.emit('story:typing', { thread: tid, who: from }); }
           run.until = at(step.d != null ? step.d * 1000 / speed() : typingMs(step.m));
-          return;
+          continue; // returns at the top unless fast-forward already passed it
         }
         run.phase = null;
         if (tid) {
@@ -601,7 +601,7 @@
           call.lines.push({ who: step.from || call.cid, text: step.say });
           JC.bus.emit('story:call', call);
           run.until = at(U.clamp(1100 + step.say.length * 48, 1500, 6500) / speed());
-          return;
+          continue;
         }
         run.phase = null;
         run.i++;
@@ -644,7 +644,7 @@
       if (step.go) { run.node = step.go; run.i = 0; continue; }
       if (step.start) { startScene(step.start, { delay: step.delay || 0, th: step.inThread || null }); run.i++; continue; }
       if (step.wait != null) {
-        if (run.phase !== 'wait') { run.phase = 'wait'; run.until = at(step.wait * 1000 / speed()); return; }
+        if (run.phase !== 'wait') { run.phase = 'wait'; run.until = at(step.wait * 1000 / speed()); continue; }
         run.phase = null;
         run.i++;
         continue;
@@ -655,7 +655,7 @@
           run.phase = 'typing';
           if (tid) { th(tid).typing = from; JC.bus.emit('story:typing', { thread: tid, who: from }); }
           run.until = at(step.typing * 1000 / speed());
-          return;
+          continue;
         }
         run.phase = null;
         if (tid) { th(tid).typing = null; JC.bus.emit('story:typing', { thread: tid, who: null }); }

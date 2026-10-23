@@ -1247,7 +1247,7 @@
   // ── Fatui Hospitality (total suspicion ≥ 25, or a Ripple post with a location after Saturday noon) ──
   S.onAct({
     id: 's2_post_loc', act: 'post', arc: 'osial', once: true,
-    match: (p, s) => !!(p && p.loc) && s.now >= at('+1 12:00') && alive(s),
+    match: (p, s) => !!(p && (p.loc || p.place)) && s.now >= at('+1 12:00') && alive(s),
     fx: { set: { fatui_saw_post: true } }, start: 'caught_fatui', delay: 30,
   });
   scene({

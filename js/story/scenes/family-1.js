@@ -249,10 +249,7 @@
         { m: 'Okay.' },
         free('tonia'),
         { call: 'call_tonia_plane', delay: 4 },
-        { wait: 40 },
-        { if: (s) => !F(s).tonia_call_picked, go: 'nocall' },
       ],
-      nocall: [{ start: 'fam_tonia_stupid' }],
       end: [{ m: 'Goodnight, bratik.' }, free('tonia')],
       exp: [free('tonia')],
     },
@@ -262,9 +259,9 @@
   S.call({
     id: 'call_tonia_plane', from: 'tonia', ring: 25,
     onHangup: [{ start: 'fam_tonia_hungup' }],
+    missed: [{ start: 'fam_tonia_stupid' }],
     nodes: {
       start: [
-        { fx: { set: { tonia_call_picked: true } } },
         { say: '(Engine hum. A child snoring very close to the microphone.)', from: 'sys' },
         { say: "Ajax? Don't hang up. I can hear you breathing." },
         { say: 'Just say something. Say “Tonia, go to sleep.” You always say that.' },
@@ -932,19 +929,16 @@
         { m: 'i want to show u the SEA' },
         { m: 'calling u NOW 📞' },
         { call: 'call_teucer_ft', delay: 2 },
-        { wait: 40 },
-        { if: (s) => !F(s).ft_picked, go: 'missed' },
       ],
-      missed: [{ start: 'fam_ft_missed' }],
     },
   });
 
   S.call({
     id: 'call_teucer_ft', from: 'teucer', video: true, ring: 25,
     onHangup: [{ start: 'fam_ft_hung' }],
+    missed: [{ start: 'fam_ft_missed' }],
     nodes: {
       start: [
-        { fx: { set: { ft_picked: true } } },
         { say: '(FaceTime. A blur of ginger hair, then a nostril, then all of Teucer, much too close to the camera.)', from: 'sys' },
         { say: 'BROTHER! BROTHER, HI! …Brother, your screen is BLACK.' },
         { choice: [
@@ -1055,6 +1049,7 @@
         { m: 'I have a screenshot of your face.' },
         { m: "I've sent it to the Millelith and to my mother." },
         { m: 'Where is my brother?' },
+        { start: 'fam_ft_police', delay: 150 },
         { choice: [
           { t: "He's safe. I'm going to give his phone back.", go: 'safe' },
           { t: "I found it on a pier. I'm sorry.", go: 'pier' },
@@ -1068,6 +1063,18 @@
     },
   });
 
+  // nobody answers Tonia: the Millelith come anyway
+  scene({
+    id: 'fam_ft_police', thread: 'tonia', trigger: { on: 'manual' },
+    nodes: {
+      start: [
+        { m: 'Fine. Say nothing.' },
+        { m: 'The Millelith traced the phone. They say two minutes. Stay where you are.' },
+        { wait: 6 },
+        { ending: 'facetime' },
+      ],
+    },
+  });
   scene({
     id: 'fam_ft_after', thread: 'teucer', trigger: { on: 'manual' },
     nodes: {

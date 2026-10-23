@@ -9,5 +9,6 @@ module.exports = {
     { assert: 's.sus.ht >= 3' },
     { until: "s.chapter === 'sat_noon'", within: 4000 },
     { choose: { thread: 'ht', match: /lampshade/ }, within: 1200 },
+    { choose: { thread: 'ht', match: /Who am I, then/ }, within: 3600 },
   ],
 };
