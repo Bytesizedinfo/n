@@ -166,7 +166,7 @@
       'item_view', 'bid', 'purchase', 'auction_won', 'auction_lost', 'order',
       'ride_view', 'ride_book', 'ride_report_lost', 'game_score', 'game_catch',
       'post', 'like', 'comment', 'dm', 'story_view', 'voicemail_play', 'call_start', 'call_end', 'facetime_cam',
-      'health_view', 'stock_view', 'weather_view', 'music_play', 'setting',
+      'health_view', 'health_share', 'stock_view', 'weather_view', 'music_play', 'setting',
     ],
 
     gossip: [
