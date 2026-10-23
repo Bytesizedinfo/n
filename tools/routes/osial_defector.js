@@ -17,7 +17,6 @@ module.exports = {
     { choose: { thread: 'yelan', match: /Keep his name out of it/ }, within: 600 },
     { run: 'JC.bank.freeze(true)' },
     { assert: 's.flags.card_frozen && s.flags.ekat_warned && s.flags.yelan_protects_childe' },
-    { until: "s.chapter === 'sun_night'", within: 20000 },
-    { choose: { thread: 'signora', match: /^No\.$/ }, within: 3600 },
+    { choose: { thread: 'signora', match: /^Make me\./ }, within: 20000 },
   ],
 };
