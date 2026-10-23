@@ -12,50 +12,93 @@
     const d = JC.state.d;
     d.apps = d.apps || {};
     const cur = d.apps.findmy || (d.apps.findmy = {});
-    const def = { sharingWith: ['jl', 'ea'], removed: [], favs: ['jl'], rules: [], notify: { airpods: true, macbook: false, ipad: false, fairy: false, 'sandu-keys': true }, sharing: true, names: {}, pwTries: 0, sounds: {}, friendReq: true };
+    const def = { sharingWith: ['ekat', 'lumine'], removed: [], favs: ['teucer'], rules: [], notify: { airpods: true, macbook: false, ipad: false, sirfang: true, unit3: false }, sharing: true, names: {}, pwTries: 0, sounds: {}, friendReq: true };
     Object.keys(def).forEach((k) => { if (!(k in cur)) cur[k] = def[k]; });
     return cur;
   }
   const save = () => JC.state.save();
   const F = () => (JC.state.d.flags || {});
-  const morning = () => !!(F().night_done || F().lost_mode || F().finale || JC.state.d.lost);
+  const T = (x) => JC.time.parse(x);
+  const now = () => JC.time.now();
+  const morning = () => !!(F().lost_mode || F().finale || JC.state.d.lost);
   const AGO = (ms) => { const m = Math.round((JC.time.now() - ms) / 60000); return m < 1 ? 'Now' : m < 60 ? m + ' min ago' : U.fmtTime(ms); };
+  const PL = (id) => { try { const p = MV().place(id); return p ? [p.x, p.y] : MV().HOME.slice(); } catch (e) { return [234.4, 152.4]; } };
+  const lerp = (a, b, k) => [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k];
+  const chapter = () => { try { const c = JC.story.currentChapter(); return c ? c.id : 'fri_night'; } catch (e) { return 'fri_night'; } };
+
+  // where the kids are: in the air Friday night, then wherever the player (and the story) put them
+  function kidsWhere() {
+    const f = F();
+    const dep = T('+0 23:50'), arr = T('+1 07:40'), home = T('+3 13:10'), homeArr = T('+3 21:00');
+    const t = now();
+    if (t < arr) {
+      const k = Math.max(0, Math.min(1, (t - dep) / (arr - dep)));
+      return { at: lerp([156, 0.6], PL('airport'), k), label: t < dep ? 'Zapolyarny Airport, Snezhnaya' : 'In flight · LA 711', place: t < dep ? 'zapolyarny' : null, t, moving: t >= dep };
+    }
+    if (t >= home) {
+      const k = Math.max(0, Math.min(1, (t - home) / (homeArr - home)));
+      return { at: lerp(PL('airport'), [156, 0.6], k), label: k >= 1 ? 'Zapolyarny Airport, Snezhnaya' : 'In flight · LA 712', place: null, t, moving: k < 1 };
+    }
+    let place = 'airport';
+    if (t > arr + 50 * 60000) {
+      if (f.fatui_pickup && !f.kids_rescued) place = 'liyue-grand';
+      else if (f.kids_wangshu) place = 'wangshu';
+      else if (f.kids_alcor) place = 'alcor';
+      else if (f.kids_grand) place = 'liyue-grand';
+      else if (f.kids_apartment) place = 'apartment';
+      else if (f.kids_zl) place = 'wangsheng';
+      else place = 'wangshu';
+      if (chapter() === 'sat_noon' && (f.factory_zl || f.factory_bank)) place = f.factory_bank ? 'northland' : 'mingyun';
+      if (chapter() === 'sun_rite') place = 'yujing';
+    }
+    const p = MV().place(place);
+    return { at: PL(place), label: p ? (p.short || p.name) + ', ' + (p.city || 'Liyue Harbor') : 'Liyue Harbor', place, t: t - 120000 };
+  }
 
   // ── what is where ─────────────────────────────────────────────────────
   function people() {
     const S = st();
     const list = [
-      { id: 'jl', kind: 'person', name: 'A-Ling', contact: 'jl', since: JC.time.parse('2024-09-01 10:00'),
-        where: () => morning() ? { at: [172.72, 88.92], label: 'Koi Tower Residences, Lanling', place: 'koi-residences', t: JC.time.now() - 120000 } : { at: [171.31, 90.47], label: 'Koi Tower Koi Pond, Lanling', place: 'koi-pond', t: JC.time.now() } },
-      { id: 'wwx', kind: 'person', name: 'Wei Wuxian', contact: 'wwx', since: JC.time.parse('-2 20:14'), started: true,
-        where: () => morning() ? { at: [52.95, 63.12], label: 'The Jingshi, Gusu', place: 'jingshi', t: JC.time.now() - 900000 } : { at: [175.72, 96.08], label: 'Lanling Night Market, Lanling', place: 'night-market', t: JC.time.now() - 60000 } },
-      { id: 'ea', kind: 'person', name: 'Tang Mei (EA)', contact: 'ea', noLocation: true },
+      { id: 'teucer', kind: 'person', name: 'Teucer', contact: 'teucer', since: T('2024-12-24 10:00'), family: true,
+        where: () => kidsWhere() },
+      { id: 'lumine', kind: 'person', name: 'Lumine', contact: 'lumine', since: T('2026-05-02 18:00'),
+        where: () => {
+          const f = F(), c = chapter();
+          if (f.lumine_pickup && c === 'sat_dawn') return { at: PL('airport'), label: 'Liyue Harbor International', place: 'airport', t: now() - 60000 };
+          if (f.lumine_guard && (c === 'sun_rite' || c === 'sun_night')) { const k = kidsWhere(); return Object.assign({}, k, { t: now() - 60000 }); }
+          if (c === 'sun_rite') return { at: PL('yujing'), label: 'Yujing Terrace, Liyue Harbor', place: 'yujing', t: now() - 300000 };
+          if (c === 'fri_night') return { at: PL('wanmin-rest'), label: 'Wanmin Restaurant, Chihu Rock', place: 'wanmin-rest', t: now() - 60000 };
+          return { at: PL('liuli'), label: 'Feiyun Slope, Liyue Harbor', place: 'liuli', t: now() - 600000 };
+        } },
+      { id: 'ekat', kind: 'person', name: 'Ekaterina', contact: 'ekat', since: T('2026-03-12 09:30'),
+        where: () => (F().ekat_warned ? { at: PL('northland'), label: 'Location Not Available', place: null, t: T('+1 06:10'), last: true } : { at: PL('northland'), label: 'Northland Bank, Harbor Road', place: 'northland', t: now() - 180000 }) },
     ];
     return list.filter((p) => !S.removed.includes(p.id));
   }
   function devices() {
     const lost = JC.state.d.lost;
     return [
-      { id: 'iphone', kind: 'device', name: 'Jiang Cheng’s iPhone', glyph: 'iphone', model: 'iPhone 17 Pro', self: true, battery: () => JC.os.battery(), lost: !!lost,
-        where: () => ({ at: MV().HOME.slice(), label: 'Jinxing Road 27, Lanling', place: 'player-home', t: JC.time.now() }) },
-      { id: 'macbook', kind: 'device', name: 'Jiang Cheng’s MacBook Pro', glyph: 'laptopcomputer', model: 'MacBook Pro 14-inch', battery: () => 64,
-        where: () => ({ at: [180.62, 97.86], label: 'Golden Peony Hotel, Lanling', place: 'golden-peony', t: JC.time.now() - 240000 }) },
-      { id: 'ipad', kind: 'device', name: 'Jiang Cheng’s iPad', glyph: 'ipad', model: 'iPad Pro 13-inch', battery: () => 31,
-        where: () => ({ at: [256.92, 146.18], label: 'Lotus Pier Residence, Yunmeng', place: 'lp-residence', t: JC.time.now() - 3 * 3600000 }) },
-      { id: 'airpods', kind: 'device', name: 'Jiang Cheng’s AirPods Pro', glyph: 'airpods', model: 'AirPods Pro (3rd generation)', offline: true, battery: () => null,
-        where: () => ({ at: [171.66, 90.14], label: 'Koi Tower, Lanling', place: 'koi-tower', t: JC.time.parse('+0 22:58'), last: true }) },
+      { id: 'iphone', kind: 'device', name: 'Childe’s iPhone', glyph: 'iphone', model: 'iPhone 17 Pro', self: true, battery: () => JC.os.battery(), lost: !!lost,
+        where: () => (chapter() === 'fri_night' ? { at: PL('pier7'), label: 'Pier 7, Liyue Harbor', place: 'pier7', t: now() } : { at: MV().HOME.slice(), label: 'Chihu Rock, Lane 3, Liyue Harbor', place: 'player-home', t: now() }) },
+      { id: 'airpods', kind: 'device', name: 'Childe’s AirPods Pro', glyph: 'airpods', model: 'AirPods Pro (3rd generation)', battery: () => (now() >= T('+1 00:20') ? 38 : null),
+        get offline() { return now() < T('+1 00:20'); },
+        where: () => (now() < T('+1 00:20')
+          ? { at: PL('pier7'), label: 'Pier 7, Liyue Harbor', place: 'pier7', t: T('+0 23:24'), last: true }
+          : { at: PL('wangsheng'), label: 'Wangsheng Funeral Parlor, Feiyun Slope', place: 'wangsheng', t: now() - 90000 }) },
+      { id: 'macbook', kind: 'device', name: 'Childe’s MacBook Pro', glyph: 'laptopcomputer', model: 'MacBook Pro 14-inch', battery: () => 64,
+        where: () => ({ at: PL('apartment'), label: 'Pier View Residences, Liyue Harbor', place: 'apartment', t: now() - 240000 }) },
+      { id: 'ipad', kind: 'device', name: 'Childe’s iPad', glyph: 'ipad', model: 'iPad Pro 13-inch', battery: () => 31,
+        where: () => ({ at: PL('northland'), label: 'Northland Bank, Harbor Road', place: 'northland', t: now() - 3 * 3600000 }) },
     ];
   }
   function items() {
     return [
-      { id: 'fairy', kind: 'item', name: 'Fairy', emoji: '🐕', art: 'av_fairy', owner: 'jl', shared: true, desc: 'AirTag · Shared by A-Ling',
-        where: () => {
-          if (F().fairy_taken) return { at: [185.64, 94.14], label: 'With You', place: 'player-home', t: JC.time.now() };
-          if (morning()) return { at: [172.74, 88.9], label: 'Koi Tower Residences, Lanling', place: 'koi-residences', t: JC.time.now() - 300000 };
-          return { at: [171.27, 90.43], label: 'Koi Tower Koi Pond, Lanling', place: 'koi-pond', t: JC.time.now() };
-        } },
-      { id: 'sandu-keys', kind: 'item', name: 'Sandu keys', emoji: '🔑', desc: 'AirTag · Spare key',
-        where: () => (morning() ? { at: [172.7, 88.95], label: 'Koi Tower Residences, Lanling', place: 'koi-residences', t: JC.time.now() - 600000 } : { at: [171.34, 90.5], label: 'Koi Tower Koi Pond, Lanling', place: 'koi-pond', t: JC.time.now() }) },
+      { id: 'sirfang', kind: 'item', name: 'Sir Fang', emoji: '🐺', art: 'mk_sirfang', owner: 'mama', shared: true, desc: 'AirTag · Shared by Mama',
+        where: () => kidsWhere() },
+      { id: 'unit3', kind: 'item', name: 'U3 — G-17', emoji: '📡', desc: 'AirTag · “Unit 3”',
+        where: () => ({ at: [284.2, 152.4], label: 'Guyun Stone Forest, Liyue Bay', place: 'guyun', t: now() - 30 * 60000 }) },
+      { id: 'rod', kind: 'item', name: 'Rod (birthday)', emoji: '🎣', desc: 'AirTag · on the reel',
+        where: () => ({ at: PL('pier7'), label: chapter() === 'fri_night' ? 'With You' : 'Pier 7, Liyue Harbor', place: 'pier7', t: now() - 60000 }) },
     ];
   }
   const all = () => people().concat(devices(), items());
@@ -200,31 +243,31 @@
             detail: d.self ? 'With You' : distTo(w),
             onTap: () => openDetail(d.id),
           };
-        }) }], { cls: 'fm-list' }), h('div.fm-foot', 'Devices signed in with jiang.cheng@lotuspier.yunmeng')];
+        }) }], { cls: 'fm-list' }), h('div.fm-foot', 'Devices signed in with tartaglia@northland.sn')];
       }
       function itemList() {
         return [JC.ui.list([{ rows: items().map((it) => {
           const w = it.where();
-          return { leading: h('div.fm-itemic', it.art && JC.art.has(it.art) ? JC.art.el(it.art, { cls: 'fm-itemart' }) : it.emoji), title: dname(it), subtitle: w.label, subtitle2: AGO(w.t) + (it.shared ? ' · Shared by A-Ling' : ''), detail: w.label === 'With You' ? 'With You' : distTo(w), onTap: () => openDetail(it.id) };
+          return { leading: h('div.fm-itemic', it.art && JC.art.has(it.art) ? JC.art.el(it.art, { cls: 'fm-itemart' }) : it.emoji), title: dname(it), subtitle: w.label, subtitle2: AGO(w.t) + (it.shared ? ' · Shared by Mama' : ''), detail: w.label === 'With You' ? 'With You' : distTo(w), onTap: () => openDetail(it.id) };
         }) }], { cls: 'fm-list' }),
         JC.ui.list([{ rows: [{ icon: { glyph: 'plus', bg: 'var(--green)' }, title: 'Add AirTag', onTap: () => addItem() }, { icon: { glyph: 'magnifyingglass', bg: 'var(--blue)' }, title: 'Identify Found Item', onTap: () => identifyItem() }] }], { cls: 'fm-list' })];
       }
       function meView() {
         const S = st();
         return [
-          h('div.fm-me', h('div.fm-me-av', JC.ui.avatar('me', 64)), h('div.fm-me-n', 'Jiang Cheng'), h('div.fm-me-l', JC.icon('location.fill', { size: 13 }), ' Jinxing Road 27, Lanling')),
+          h('div.fm-me', h('div.fm-me-av', JC.ui.avatar('me', 64)), h('div.fm-me-n', 'Childe'), h('div.fm-me-l', JC.icon('location.fill', { size: 13 }), ' Chihu Rock, Lane 3, Liyue Harbor')),
           JC.ui.list([{ header: 'Location', rows: [
             { title: 'Share My Location', toggle: { on: S.sharing, onChange: (v) => { S.sharing = v; save(); JC.ui.toast(v ? 'Sharing location from This iPhone' : 'Location sharing off', { icon: 'location.fill' }); render(); } } },
             { title: 'Location', detail: 'This iPhone' },
-            { title: 'Location Name', detail: S.locName || 'None', chevron: true, onTap: (e) => JC.ui.menu(e.currentTarget, ['Home', 'Work', 'School', 'Gym', 'None', 'Custom…'].map((n) => ({ text: n, checked: (S.locName || 'None') === n, onTap: () => { if (n === 'Custom…') JC.ui.alert({ title: 'Custom Label', input: { placeholder: 'Label' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Done', style: 'default' }] }).then((r) => { if (r.index === 1 && r.value) { S.locName = r.value; save(); render(); } }); else { S.locName = n; save(); render(); if (n === 'Home') JC.ui.toast('“Home”? This is not Jiang Cheng’s home.', { icon: 'house.fill' }); } } }))) },
-          ], footer: 'Jiang Cheng is sharing his location with ' + S.sharingWith.map((id) => JC.contacts.short(id)).join(' and ') + '.' },
+            { title: 'Location Name', detail: S.locName || 'None', chevron: true, onTap: (e) => JC.ui.menu(e.currentTarget, ['Home', 'Work', 'School', 'Gym', 'None', 'Custom…'].map((n) => ({ text: n, checked: (S.locName || 'None') === n, onTap: () => { if (n === 'Custom…') JC.ui.alert({ title: 'Custom Label', input: { placeholder: 'Label' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Done', style: 'default' }] }).then((r) => { if (r.index === 1 && r.value) { S.locName = r.value; save(); render(); } }); else { S.locName = n; save(); render(); if (n === 'Home') JC.ui.toast('“Home”? This is not Childe’s home. It’s yours.', { icon: 'house.fill' }); } } }))) },
+          ], footer: 'Childe is sharing his location with ' + S.sharingWith.map((id) => JC.contacts.short(id)).join(' and ') + '.' },
           { header: 'Notifications', rows: [
             { title: 'Allow Friend Requests', toggle: { on: S.friendReq, onChange: (v) => { S.friendReq = v; save(); } } },
             { title: 'Receive Location Updates', toggle: { on: true, onChange: (v) => JC.ui.toast(v ? 'Location updates on' : 'Location updates off') } },
             { title: 'Customize Tracking Notifications', chevron: true, onTap: () => trackingSheet() },
           ] },
           { rows: [
-            { title: 'Help a Friend', chevron: true, onTap: () => JC.ui.alert({ title: 'Help a Friend', message: 'A friend can sign in here to find their own lost device. Sign them in with their Apple Account — not Jiang Cheng’s.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Sign In', style: 'default', onTap: () => signInFriend() }] }) },
+            { title: 'Help a Friend', chevron: true, onTap: () => JC.ui.alert({ title: 'Help a Friend', message: 'A friend can sign in here to find their own lost device. Sign them in with their Apple Account — not Childe’s.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Sign In', style: 'default', onTap: () => signInFriend() }] }) },
             { title: 'Accessibility: Separation Alerts', chevron: true, onTap: () => trackingSheet() },
           ] }], { cls: 'fm-list' }),
         ];
@@ -292,7 +335,7 @@
         const S = st();
         let who = 0, when = 0, where = 0, freq = 0;
         const w = p.where();
-        const locs = [w.label.split(',')[0], 'Lotus Pier', 'Lanling International School'];
+        const locs = [w.label.split(',')[0], 'Northland Bank', 'Pier 7'];
         const s = JC.ui.sheet({
           title: 'Add Notification', detent: 'large', left: { text: 'Cancel' },
           right: { text: 'Add', onTap: () => {
@@ -300,7 +343,7 @@
             const text = who === 0 ? 'Notify me when ' + p.name + ' ' + verb + ' ' + locs[where] + (freq ? ' (every time)' : '') : 'Notify ' + p.name + ' when I ' + ['arrive at', 'leave', 'am not at'][when] + ' ' + locs[where];
             S.rules.push({ id: U.uid('r'), who: p.id, text });
             save();
-            if (who === 1) JC.ui.alert({ title: p.name + ' Will Be Notified', message: p.name + ' will get a notification. From “Jiang Cheng”.', buttons: [{ text: 'OK' }] });
+            if (who === 1) JC.ui.alert({ title: p.name + ' Will Be Notified', message: p.name + ' will get a notification. From “Childe”.', buttons: [{ text: 'OK' }] });
             render();
           } },
           content: () => [
@@ -312,7 +355,7 @@
         });
       }
       function shareWith(p) {
-        JC.ui.actionSheet({ title: 'Share My Location with ' + p.name, message: p.name + ' will be able to see where this iPhone is — right now, Jinxing Road 27, Lanling.', actions: [
+        JC.ui.actionSheet({ title: 'Share My Location with ' + p.name, message: p.name + ' will be able to see where this iPhone is — right now, Chihu Rock, Liyue Harbor.', actions: [
           { text: 'Share for One Hour', onTap: () => doShare('for one hour') },
           { text: 'Share Until End of Day', onTap: () => doShare('until end of day') },
           { text: 'Share Indefinitely', onTap: () => doShare('indefinitely') },
@@ -352,7 +395,7 @@
         if (lost) {
           out.push(h('div.fm-lostcard',
             h('div.fm-lost-t', JC.icon('lock.fill', { size: 16 }), ' Lost Mode · Activated'),
-            h('div.fm-lost-s', 'Activated from Jiang Cheng’s MacBook Pro. This iPhone is locked and shows this message:'),
+            h('div.fm-lost-s', 'Activated from a Wangsheng Funeral Parlor computer. This iPhone is locked and shows this message:'),
             h('div.fm-lost-msg', JC.state.d.lost.message || 'This iPhone has been lost.'),
             h('div.fm-lost-call.tap', { onTap: () => JC.story.dial(JC.state.d.lost.contact || 'hq', JC.state.d.lost.phone ? { num: JC.state.d.lost.phone } : undefined) }, JC.icon('phone.fill', { size: 15 }), ' ' + (JC.state.d.lost.phone || 'Call Owner'))));
         }
@@ -363,10 +406,10 @@
         ] }, { rows: [
           { title: 'Rename This Device', tinted: true, onTap: () => JC.ui.alert({ title: 'Rename', input: { value: dname(d), placeholder: d.name }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Save', style: 'default' }] }).then((r) => { if (r.index === 1 && r.value) { S.names[d.id] = r.value.slice(0, 32); save(); render(); pins(); } }) },
           { title: 'Erase This Device', destructive: true, onTap: () => eraseDevice(d) },
-          d.offline ? { title: 'Remove This Device', destructive: true, onTap: () => needPassword('Remove ' + dname(d), 'Removing a device from Find My requires the Apple Account password for jiang.cheng@lotuspier.yunmeng.') } : null,
+          d.offline ? { title: 'Remove This Device', destructive: true, onTap: () => needPassword('Remove ' + dname(d), 'Removing a device from Find My requires the Apple Account password for tartaglia@northland.sn.') } : null,
         ] }, { header: 'Details', rows: [
           { title: 'Model', detail: d.model },
-          { title: 'Owner', detail: 'Jiang Cheng' },
+          { title: 'Owner', detail: 'Childe' },
           d.self ? { title: 'Battery', detail: (b || 0) + '%' } : null,
         ] }], { cls: 'fm-list' }));
         out.forEach((n) => n && sh.body.appendChild(n));
@@ -374,7 +417,7 @@
       function itemDetail(it) {
         const w = it.where();
         const S = st();
-        head.appendChild(dHead(it, w.label, AGO(w.t) + ' · ' + (w.label === 'With You' ? 'With You' : distTo(w)) + (it.shared ? ' · Shared by A-Ling' : '')));
+        head.appendChild(dHead(it, w.label, AGO(w.t) + ' · ' + (w.label === 'With You' ? 'With You' : distTo(w)) + (it.shared ? ' · Shared by Mama' : '')));
         const playing = S.sounds[it.id] && S.sounds[it.id] > Date.now();
         const acts = h('div.fm-acts',
           actBtn('speaker.wave.2.fill', playing ? 'Playing…' : 'Play Sound', () => playSound(it), { on: playing }),
@@ -385,16 +428,16 @@
           { title: 'Notify When Left Behind', toggle: { on: !!S.notify[it.id], onChange: (v) => { S.notify[it.id] = v; save(); } } },
           { title: 'Notify When Found', toggle: { on: false, disabled: true, onChange: () => {} }, subtitle: 'Available when the item is out of range' },
         ] }, { header: 'Share This AirTag', rows: it.shared ? [
-          { avatar: 'jl', avatarSize: 34, title: 'A-Ling', subtitle: 'Owner' },
-          { avatar: 'me', avatarSize: 34, title: 'Jiang Cheng', subtitle: 'Shared with you · Oct 2018' },
+          { avatar: 'mama', avatarSize: 34, title: 'Mama', subtitle: 'Owner' },
+          { avatar: 'me', avatarSize: 34, title: 'Childe', subtitle: 'Shared with you · Dec 2024' },
         ] : [
-          { avatar: 'me', avatarSize: 34, title: 'Jiang Cheng', subtitle: 'Owner' },
-          { title: 'Add Person…', tinted: true, onTap: () => JC.ui.alert({ title: 'Share “' + dname(it) + '”?', message: 'Share it with A-Ling? He already has the key, apparently.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Share', style: 'default', onTap: () => JC.ui.toast('Invitation sent to A-Ling', { icon: 'paperplane.fill' }) }] }) },
+          { avatar: 'me', avatarSize: 34, title: 'Childe', subtitle: 'Owner' },
+          { title: 'Add Person…', tinted: true, onTap: () => JC.ui.alert({ title: 'Share “' + dname(it) + '”?', message: 'Share it with Ekaterina? She already knows where everything is, apparently.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Share', style: 'default', onTap: () => JC.ui.toast('Invitation sent to A-Ling', { icon: 'paperplane.fill' }) }] }) },
         ] }, { header: 'Lost Mode', rows: [
-          { title: 'Enable', tinted: true, onTap: () => (it.shared ? JC.ui.alert({ title: 'Only the Owner Can Do This', message: 'A-Ling owns this AirTag. Only he can turn on Lost Mode for Fairy. (Fairy is not lost. Fairy is exactly where Fairy wants to be.)', buttons: [{ text: 'OK' }] }) : needPassword('Lost Mode', 'Enable Lost Mode for “' + dname(it) + '”? Enter the Apple Account password for jiang.cheng@lotuspier.yunmeng.')) },
+          { title: 'Enable', tinted: true, onTap: () => (it.shared ? JC.ui.alert({ title: 'Only the Owner Can Do This', message: 'Mama owns this AirTag. Only she can turn on Lost Mode for Sir Fang. (Sir Fang is not lost. Sir Fang is exactly where Teucer is.)', buttons: [{ text: 'OK' }] }) : needPassword('Lost Mode', 'Enable Lost Mode for “' + dname(it) + '”? Enter the Apple Account password for tartaglia@northland.sn.')) },
         ] }, { rows: [
-          { title: 'Rename Item', tinted: true, onTap: () => (it.shared ? JC.ui.toast('Only A-Ling can rename Fairy') : JC.ui.alert({ title: 'Rename', input: { value: dname(it) }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Save', style: 'default' }] }).then((r) => { if (r.index === 1 && r.value) { S.names[it.id] = r.value.slice(0, 24); save(); render(); pins(); } })) },
-          { title: it.shared ? 'Remove Yourself' : 'Remove Item', destructive: true, onTap: () => (it.shared ? JC.ui.alert({ title: 'Remove Yourself?', message: 'You won’t be able to see Fairy’s location anymore. A-Ling would have to share it again — and he would ask why.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Remove', style: 'destructive', onTap: () => JC.ui.toast('Not now. Fairy needs supervision.') }] }) : needPassword('Remove Item', 'Removing an AirTag requires the Apple Account password.')) },
+          { title: 'Rename Item', tinted: true, onTap: () => (it.shared ? JC.ui.toast('Only Mama can rename Sir Fang') : JC.ui.alert({ title: 'Rename', input: { value: dname(it) }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Save', style: 'default' }] }).then((r) => { if (r.index === 1 && r.value) { S.names[it.id] = r.value.slice(0, 24); save(); render(); pins(); } })) },
+          { title: it.shared ? 'Remove Yourself' : 'Remove Item', destructive: true, onTap: () => (it.shared ? JC.ui.alert({ title: 'Remove Yourself?', message: 'You won’t be able to see Sir Fang’s location anymore. Mama would have to share it again — and she would ask why.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Remove', style: 'destructive', onTap: () => JC.ui.toast('Not now. Sir Fang needs supervision.') }] }) : needPassword('Remove Item', 'Removing an AirTag requires the Apple Account password.')) },
         ] }], { cls: 'fm-list' }));
         out.forEach((n) => sh.body.appendChild(n));
       }
@@ -403,7 +446,7 @@
       function playSound(x) {
         const S = st();
         if (x.id === 'airpods') {
-          JC.ui.alert({ title: 'Play Sound?', message: 'Make sure AirPods aren’t in anyone’s ears. The sound will gradually get louder.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Play', style: 'default', onTap: () => setTimeout(() => JC.ui.alert({ title: 'AirPods Not Connected', message: 'Jiang Cheng’s AirPods Pro are out of range. Last seen near Koi Tower at ' + U.fmtTime(JC.time.parse('+0 22:58')) + '. They’ll play a sound if they come back in range.', buttons: [{ text: 'OK' }] }), 400) }] });
+          JC.ui.alert({ title: 'Play Sound?', message: 'Make sure AirPods aren’t in anyone’s ears. The sound will gradually get louder.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Play', style: 'default', onTap: () => setTimeout(() => (x.offline ? JC.ui.alert({ title: 'AirPods Not Connected', message: 'Childe’s AirPods Pro are out of range. Last seen at Pier 7 at ' + U.fmtTime(JC.time.parse('+0 23:24')) + '. They’ll play a sound if they come back in range.', buttons: [{ text: 'OK' }] }) : JC.ui.toast('Playing Sound on Childe’s AirPods Pro… faint chirping, somewhere on Feiyun Slope.', { icon: 'airpods' })), 400) }] });
           JC.story.act('findmy_sound', { id: x.id });
           return;
         }
@@ -426,8 +469,10 @@
         const msgs = {
           macbook: ['Playing Sound on ' + dname(x) + '…', 'Sound played in Room 1808 at the Golden Peony. Somewhere a laptop chirped at a sleeping man.'],
           ipad: ['Playing Sound on ' + dname(x) + '…', 'Sound played at Lotus Pier Residence. Old Huang will want to know why the iPad is singing at midnight.'],
-          fairy: ['Playing Sound on Fairy…', 'Fairy’s AirTag is chirping at the koi pond.'],
-          'sandu-keys': ['Playing Sound on Sandu keys…', 'The Sandu keys are chirping — in someone’s pocket, by the sound of it.'],
+          sirfang: ['Playing Sound on Sir Fang…', 'Sir Fang is chirping inside a backpack. Somewhere, a small boy is delighted.'],
+          unit3: ['Playing Sound on U3 — G-17…', 'Somewhere out at Guyun, a tag is chirping on a stone pillar. Nobody is there to hear it. (Probably.)'],
+          rod: ['Playing Sound on Rod…', 'The rod chirps from the reel. It sounds lonely.'],
+          airpods: ['Playing Sound on Childe’s AirPods Pro…', 'Faint chirping — from somewhere on Feiyun Slope. A building with very thick walls.'],
         };
         const m = msgs[x.id] || ['Playing Sound…', 'Sound played.'];
         JC.ui.toast(m[0], { icon: 'speaker.wave.2.fill' });
@@ -451,8 +496,8 @@
           S.pwTries = (S.pwTries || 0) + 1; save();
           const pw = (r.value || '').trim();
           setTimeout(() => {
-            if (pw === JC.world.passcode.code) JC.ui.alert({ title: 'Verification Failed', message: 'That’s the iPhone passcode, not the Apple Account password. Jiang Cheng is not *that* careless. (Only with the passcode.)', buttons: [{ text: 'OK' }] });
-            else if (S.pwTries >= 3) JC.ui.alert({ title: 'Verification Failed', message: 'The Apple Account password you entered is incorrect.\n\nForgot password? A reset code would be sent to Jiang Cheng’s trusted devices — including his MacBook Pro, which is in Room 1808 with him.', buttons: [{ text: 'OK' }] });
+            if (pw === JC.world.passcode.code) JC.ui.alert({ title: 'Verification Failed', message: 'That’s the iPhone passcode, not the Apple Account password. Childe is not *that* careless. (Only with the passcode.)', buttons: [{ text: 'OK' }] });
+            else if (S.pwTries >= 3) JC.ui.alert({ title: 'Verification Failed', message: 'The Apple Account password you entered is incorrect.\n\nForgot password? A reset code would be sent to Childe’s trusted devices — including his MacBook Pro, which is in Room 1808 with him.', buttons: [{ text: 'OK' }] });
             else JC.ui.alert({ title: 'Verification Failed', message: 'The Apple Account password you entered is incorrect.', buttons: [{ text: 'OK' }] });
             if (onFail) onFail();
           }, 900);
@@ -461,11 +506,11 @@
       }
       function markLost(d) {
         if (d.self && JC.state.d.lost) {
-          JC.ui.alert({ title: 'Lost Mode Is On', message: 'This iPhone was marked as lost from Jiang Cheng’s MacBook Pro. To turn off Lost Mode, the owner has to unlock it — or you could just call him.', buttons: [{ text: 'Not Now', style: 'cancel' }, { text: 'Call Owner', style: 'default', onTap: () => JC.story.dial(JC.state.d.lost.contact || 'hq', JC.state.d.lost.phone ? { num: JC.state.d.lost.phone } : undefined) }] });
+          JC.ui.alert({ title: 'Lost Mode Is On', message: 'This iPhone was marked as lost from a Wangsheng Funeral Parlor computer. To turn off Lost Mode, the owner has to unlock it — or you could just call him.', buttons: [{ text: 'Not Now', style: 'cancel' }, { text: 'Call Owner', style: 'default', onTap: () => JC.story.dial(JC.state.d.lost.contact || 'hq', JC.state.d.lost.phone ? { num: JC.state.d.lost.phone } : undefined) }] });
           return;
         }
         if (d.self) {
-          JC.ui.alert({ title: 'Mark This iPhone As Lost?', message: 'You’re holding it. Lost Mode would lock this iPhone and show the owner’s phone number on the Lock Screen.\n\nIt is lost, though. Jiang Cheng’s office — Lotus Pier HQ — answers all night.', stack: true, buttons: [{ text: 'Call Lotus Pier HQ', style: 'default', onTap: () => JC.story.dial('hq') }, { text: 'Continue Anyway', onTap: () => lostFlow(d) }, { text: 'Cancel', style: 'cancel' }] });
+          JC.ui.alert({ title: 'Mark This iPhone As Lost?', message: 'You’re holding it. Lost Mode would lock this iPhone and show the owner’s phone number on the Lock Screen.\n\nIt is lost, though. His office — Northland Bank, Liyue Branch — has a very attentive receptionist.', stack: true, buttons: [{ text: 'Call Lotus Pier HQ', style: 'default', onTap: () => JC.story.dial('hq') }, { text: 'Continue Anyway', onTap: () => lostFlow(d) }, { text: 'Cancel', style: 'cancel' }] });
           return;
         }
         lostFlow(d);
@@ -476,7 +521,7 @@
         let msg = 'This ' + (d.glyph === 'laptopcomputer' ? 'Mac' : d.glyph === 'ipad' ? 'iPad' : 'iPhone') + ' has been lost. Please call me.';
         const s = JC.ui.sheet({
           title: 'Mark As Lost', detent: 'large', left: { text: 'Cancel' },
-          right: { text: 'Next', onTap: () => { step++; if (step > 2) { needPassword('Activate Mark As Lost', 'Enter the Apple Account password for jiang.cheng@lotuspier.yunmeng to lock ' + dname(d) + '.'); return true; } s.render(); s.setTitle(['Mark As Lost', 'Phone Number', 'Message'][step]); return false; } },
+          right: { text: 'Next', onTap: () => { step++; if (step > 2) { needPassword('Activate Mark As Lost', 'Enter the Apple Account password for tartaglia@northland.sn to lock ' + dname(d) + '.'); return true; } s.render(); s.setTitle(['Mark As Lost', 'Phone Number', 'Message'][step]); return false; } },
           content: () => {
             if (step === 0) return [h('div.fm-flow', h('div.fm-flow-ic', JC.icon('lock.fill', { size: 40 })), h('div.fm-flow-t', 'Mark As Lost'), h('div.fm-flow-s', 'Mark As Lost locks ' + dname(d) + ', displays a message and phone number on its screen, suspends Wallet cards, and keeps tracking its location.'))];
             if (step === 1) return [h('div.fm-flow-s2', 'Enter a phone number where you can be reached. It will be shown on the Lock Screen.'), JC.ui.list([{ rows: [{ custom: JC.ui.input({ value: phone, placeholder: 'Phone number', cls: 'form-field fm-field', kbType: 'num', onInput: (v) => { phone = v; } }) }] }])];
@@ -487,13 +532,13 @@
       function eraseDevice(d) {
         JC.ui.alert({ title: 'Erase ' + dname(d) + '?', message: 'All content and settings will be erased. An erased device can’t be located or tracked.' + (d.self ? '\n\nYou would be erasing the iPhone in your hand. And everything on it. Everything.' : ''), buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Erase', style: 'destructive' }] }).then((r) => {
           if (r.index !== 1) return;
-          needPassword('Apple Account Password', 'Enter the password for jiang.cheng@lotuspier.yunmeng to erase ' + dname(d) + '.');
+          needPassword('Apple Account Password', 'Enter the password for tartaglia@northland.sn to erase ' + dname(d) + '.');
         });
       }
       function addMenu(anchor) {
         if (tab === 'people') JC.ui.menu(anchor, [
-          { text: 'Share My Location', icon: 'location.fill', onTap: () => JC.ui.actionSheet({ title: 'Share My Location', actions: ['wwx', 'lxc', 'nhs', 'huang', 'wn'].map((cid) => ({ text: JC.contacts.short(cid), onTap: () => { const p = people().find((q) => q.id === cid) || { id: cid, name: JC.contacts.short(cid) }; shareWith(p); } })) }) },
-          { text: 'Ask to Follow Location', icon: 'person.badge.plus', onTap: () => JC.ui.actionSheet({ title: 'Ask to Follow', message: 'They’ll get a request from “Jiang Cheng”.', actions: ['lxc', 'nhs', 'lwj', 'wn'].map((cid) => ({ text: JC.contacts.short(cid), onTap: () => { JC.story.act('findmy_ask', { to: cid }); JC.ui.toast('Request sent to ' + JC.contacts.short(cid), { icon: 'paperplane.fill' }); } })) }) },
+          { text: 'Share My Location', icon: 'location.fill', onTap: () => JC.ui.actionSheet({ title: 'Share My Location', actions: ['zl', 'lumine', 'ht', 'mama', 'tonia'].map((cid) => ({ text: JC.contacts.short(cid), onTap: () => { const p = people().find((q) => q.id === cid) || { id: cid, name: JC.contacts.short(cid) }; shareWith(p); } })) }) },
+          { text: 'Ask to Follow Location', icon: 'person.badge.plus', onTap: () => JC.ui.actionSheet({ title: 'Ask to Follow', message: 'They’ll get a request from “Childe”.', actions: ['zl', 'ht', 'paimon', 'wn'].map((cid) => ({ text: JC.contacts.short(cid), onTap: () => { JC.story.act('findmy_ask', { to: cid }); JC.ui.toast('Request sent to ' + JC.contacts.short(cid), { icon: 'paperplane.fill' }); } })) }) },
         ]);
         else if (tab === 'devices') JC.ui.menu(anchor, [{ text: 'Add AirTag', icon: 'airtag', onTap: () => addItem() }, { text: 'Add Other Item', icon: 'plus', onTap: () => addItem() }, '-', { text: 'Identify Found Item', icon: 'magnifyingglass', onTap: () => identifyItem() }]);
         else JC.ui.menu(anchor, [{ text: 'Add AirTag', icon: 'airtag', onTap: () => addItem() }, { text: 'Add Other Item', icon: 'plus', onTap: () => addItem() }, '-', { text: 'Identify Found Item', icon: 'magnifyingglass', onTap: () => identifyItem() }]);
@@ -510,7 +555,7 @@
           { title: 'AirTag', toggle: { on: true, onChange: () => {} } },
           { title: 'AirPods', toggle: { on: true, onChange: () => {} } },
           { title: 'Other Find My Accessories', toggle: { on: true, onChange: () => {} } },
-        ], footer: 'Get notified if an unknown item is found moving with you. (Fairy’s AirTag is known. Fairy is very known.)' }])] });
+        ], footer: 'Get notified if an unknown item is found moving with you. (Sir Fang’s AirTag is known. Sir Fang is very known.)' }])] });
       }
       function signInFriend() {
         JC.ui.alert({ title: 'Sign In', message: 'Enter your Apple Account email.', input: { placeholder: 'email@example.com', cap: 'none' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Next', style: 'default' }] }).then((r) => {

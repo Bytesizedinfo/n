@@ -10,49 +10,49 @@
 
   // ── seeds ────────────────────────────────────────────────────────────────
   JC.store.seed('maps_favs', [
-    { id: 'home', kind: 'home', place: 'lp-residence', label: 'Home' },
-    { id: 'work', kind: 'work', place: 'lotus-pier', label: 'Work' },
-    { id: 'fav_aling', kind: 'person', place: 'koi-residences', label: 'A-Ling', contact: 'jl' },
-    { id: 'fav_tea', kind: 'star', place: 'hanshi', label: 'Tea' },
+    { id: 'home', kind: 'home', place: 'apartment', label: 'Home' },
+    { id: 'work', kind: 'work', place: 'northland', label: 'Work' },
+    { id: 'fav_zl', kind: 'person', place: 'wangsheng', label: 'Xiansheng', contact: 'zl' },
+    { id: 'fav_fish', kind: 'star', place: 'pier7', label: 'Fishing' },
   ]);
   JC.store.seed('maps_recents', [
-    { id: 'rc1', kind: 'place', place: 'koi-tower', t: '+0 18:31', note: 'Directions from Golden Peony Hotel' },
-    { id: 'rc2', kind: 'place', place: 'lanling-intl', t: '-1 15:34' },
-    { id: 'rc3', kind: 'place', place: 'golden-peony', t: '-1 12:05', note: 'Directions from Lotus Pier' },
-    { id: 'rc4', kind: 'place', place: 'hanshi', t: '-2 22:52' },
-    { id: 'rc5', kind: 'search', q: 'lotus seed paste cake', t: '-3 21:16' },
-    { id: 'rc6', kind: 'place', place: 'pet-kingdom', t: '-6 18:11' },
-    { id: 'rc7', kind: 'place', place: 'silver-lotus', t: '-9 10:40' },
+    { id: 'rc1', kind: 'place', place: 'pier7', t: '+0 22:56', note: 'Directions from Liuli Pavilion' },
+    { id: 'rc2', kind: 'place', place: 'liuli', t: '+0 19:40' },
+    { id: 'rc3', kind: 'place', place: 'airport', t: '-1 23:10', note: 'Arrivals · Gate B' },
+    { id: 'rc4', kind: 'place', place: 'heyu', t: '-2 16:05' },
+    { id: 'rc5', kind: 'search', q: 'toy shop open sunday', t: '-3 21:16' },
+    { id: 'rc6', kind: 'place', place: 'wangshu', t: '-5 11:30' },
+    { id: 'rc7', kind: 'place', place: 'guyun', t: '-9 04:40' },
   ]);
   JC.store.seed('maps_guides', [
-    { id: 'g_aling', title: 'A-Ling', icon: 'graduationcap.fill', color: '#e8a400', places: ['lanling-intl', 'koi-residences', 'lanling-archery', 'peony-bakery'], notes: { 'peony-bakery': 'Lotus seed paste. Order 48 h ahead. Sunday.', 'lanling-archery': 'Bow restring — ask for Coach Ma.' } },
-    { id: 'g_fairy', title: 'Fairy', icon: 'pawprint.fill', color: '#3a3a3c', places: ['pet-kingdom', 'lanling-vet', 'peony-park'], notes: { 'pet-kingdom': 'Giant breed, 20 kg. Platinum Paw card in Wallet.', 'lanling-vet': 'Dr. Fang. Do not mention the sock incident.' } },
-    { id: 'g_gusu', title: 'Gusu', icon: 'leaf.fill', color: '#2fa36b', places: ['laoma-hotpot', 'cr-tea-shop', 'auntie-lu', 'gusu-teahouse'], notes: { 'laoma-hotpot': 'Summer ’07 — after the exams. Reunion Apr 2024 (I paid).', 'cr-tea-shop': 'White peony. The good tin.', 'auntie-lu': 'Lotus root & pork rib. Large. Delivers to Cloud Recesses.' } },
+    { id: 'g_fish', title: 'Fishing spots', icon: 'drop.fill', color: '#1f7fd0', places: ['pier7', 'guyun', 'alcor', 'wangshu'], notes: { pier7: 'Slack tide 23:00. East side, third lamp.', guyun: 'Bluefin in autumn. Stay off G-17 (don\'t ask).', alcor: 'Beidou says she knows a spot. She lies.', wangshu: 'Marsh carp. Boring. Xiansheng liked it.' } },
+    { id: 'g_zl', title: 'Xiansheng', icon: 'cup.and.saucer.fill', color: '#a87b3a', places: ['liuli', 'heyu', 'wangsheng', 'wanwen', 'yujing'], notes: { liuli: 'Every Friday. I pay.', heyu: 'He mouths the lyrics. Box 2 Sat.', wangsheng: 'His "office". Don\'t touch the coffins.', wanwen: 'The rock book.', yujing: 'He goes to watch the cranes. Says it\'s for the cranes.' } },
+    { id: 'g_kids', title: 'Kids’ visit (if)', icon: 'star.fill', color: '#f08c00', places: ['airport', 'mingyun', 'wanmin-rest', 'wangshu', 'pier7'], notes: { airport: 'LA 711 · Gate B · 07:40', mingyun: 'Frost Fortress in stock', 'wanmin-rest': 'Teucer will want EVERYTHING', wangshu: 'quiet. far from the bank.', pier7: 'fishing at dawn with T.' } },
   ]);
   JC.store.seed('maps_visits', [
-    { id: 'v1', place: 'golden-peony', t: '-1 15:20', end: '+0 23:36', note: 'Hotel · since Thursday' },
-    { id: 'v2', place: 'koi-tower', t: '+0 18:44', end: '+0 23:15' },
-    { id: 'v3', place: 'lanling-intl', t: '-1 15:52', end: '-1 17:10' },
-    { id: 'v4', place: 'pet-kingdom', t: '-6 18:20', end: '-6 18:48' },
-    { id: 'v5', place: 'ymj-warehouse', t: '-2 13:40', end: '-2 14:30' },
-    { id: 'v6', place: 'lotus-pier', t: '-1 07:30', end: '-1 11:40', note: 'Work' },
-    { id: 'v7', place: 'silver-lotus', t: '-9 10:55', end: '-9 11:25' },
-    { id: 'v8', place: 'yiling-cemetery', t: '2026-04-05 09:10', end: '2026-04-05 09:52' },
-    { id: 'v9', place: 'laoma-hotpot', t: '2024-04-13 18:40', end: '2024-04-13 22:41' },
+    { id: 'v1', place: 'pier7', t: '+0 23:09', end: '+0 23:26', note: 'Fishing' },
+    { id: 'v2', place: 'liuli', t: '+0 19:58', end: '+0 22:56' },
+    { id: 'v3', place: 'northland', t: '+0 09:05', end: '+0 18:40', note: 'Work' },
+    { id: 'v4', place: 'wangsheng', t: '-1 21:40', end: '-1 23:05' },
+    { id: 'v5', place: 'heyu', t: '-2 15:00', end: '-2 17:30' },
+    { id: 'v6', place: 'airport', t: '-1 23:00', end: '-1 23:25', note: 'Scouting arrivals' },
+    { id: 'v7', place: 'alcor', t: '2026-09-26 21:50', end: '2026-09-27 00:40' },
+    { id: 'v8', place: 'guyun', t: '2026-01-03 05:10', end: '2026-01-03 09:00', note: 'Bluefin!!' },
+    { id: 'v9', place: 'guyun', t: '2026-08-28 02:30', end: '2026-08-28 03:40' },
   ]);
 
   const REVIEWS = {
-    'laoma-hotpot': [['huaisang_fans', 5, 'The best hotpot of my youth!!! We came here after the summer exams in 2007 and again for our reunion hehe~ 🪭'], ['mianmian', 5, 'Loud, red, perfect. Someone always pays for everyone and pretends he didn’t.'], ['gusu_local', 4, 'Mala is properly numbing. The lamb is hand-cut. Expect a queue after 9 PM.']],
-    'koi-tower': [['lanling_walks', 5, 'The gold at sunset is ridiculous. The koi pond in the forecourt is the best free attraction in Lanling.'], ['koi_enjoyer', 4, 'Old Gold (the big koi) looked at me with contempt. 10/10.'], ['gala_guest', 5, 'Charity gala was beautiful. The balcony on 52 has the best moon view in the city.']],
-    'golden-peony': [['travel_with_tea', 5, 'Silk Moon rooftop bar has the best view of the river. Room service at 2 AM was perfect.'], ['business_trip', 5, 'Staff remembered my name and my tea. Slightly unsettling, very good.'], ['petparent', 4, 'They allowed our dog. Our very large dog. Bless them.']],
-    'cloud-recesses': [['mist_hiker', 5, 'Breathtaking at dawn. I was told off for walking too fast.'], ['student_2019', 3, 'Rule 1,882: no fun. Rule 1,883: see rule 1,882.'], ['tea_tourist', 5, 'Buy the white peony at the gate shop. Thank me later.']],
-    'pet-kingdom': [['fairy_fan', 5, 'Saw the biggest black dog of my life here. She ate a sample bag whole.'], ['catperson', 4, 'Good selection. Self-service dog wash is great.']],
-    'radish-farm': [['radish_reviewer', 5, 'The owner gave a 20-minute speech about radishes. Worth it. The radish cake is incredible.'], ['lanling_foodie', 5, 'Very spicy chili oil. VERY. Spicy.'], ['someone', 4, 'Owner screamed when my dog arrived. Radishes excellent though.']],
-    'lotus-pier': [['lake_photos', 5, 'The lotus gardens in July are unreal. Security guard (Mr. Huang?) gave us tea.'], ['history_buff', 5, 'Rebuilt beautifully after 2008. The nine-petal gate is stunning.']],
-    'yunmeng-lake': [['kite_dad', 5, 'Best kite wind anywhere. Bring two kites; one will end up in the lotus.'], ['sunrise_runner', 5, 'Sunrise over the lake from the pavilion — no words.']],
-    'guanyin-temple': [['quiet_mind', 5, 'Very peaceful. The bell at dusk carries across the whole lake.']],
-    'jinxing-police': [['honest_citizen', 5, 'Handed in a wallet I found at 2 AM. The officer called the owner right away. Easy.'], ['lanling_res', 4, 'Helpful lost & found desk, open all night.']],
-    'night-market': [['snackhunter', 5, 'The radish pop-up this weekend is run by a very loud man who teaches flute. Get the radish cake.'], ['skewer_king', 4, 'Lamb skewers at stall 41. Trust me.']],
+    liuli: [['harbor_gourmand', 5, 'The river room is magic. The gentleman at the next table explained the history of every dish for an hour. His companion paid. Every time.'], ['business_dinner', 5, 'Expensive. Worth it. Ask for the osmanthus wine.']],
+    wangsheng: [['respectful_visitor', 5, 'Very professional. The consultant knew more about funeral history than anyone alive. The director gave me a coupon for my own funeral.'], ['spooked', 3, 'Something was moving in Coffin 4. They said it was “inventory”.']],
+    pier7: [['night_angler', 5, 'Best night fishing in the harbor. There\'s a ginger guy here most Fridays who out-fishes everyone and won\'t shut up about it.'], ['tourist_88', 4, 'Pretty at sunset. Someone left a fishing rod and a cup of tea on the bench.']],
+    northland: [['account_holder', 2, 'Polite staff. Very large security guards. Chandelier looks at you.'], ['ex_debtor', 1, 'A cheerful young director came to "discuss my loan" and I have never paid anything faster in my life.']],
+    heyu: [['opera_lover', 5, 'Yun Jin is incomparable. Book weeks ahead.'], ['tea_first', 4, 'Come for the opera, stay for the jasmine tea.']],
+    'wanmin-rest': [['spice_seeker', 5, 'Hottest hotpot in Liyue. The red panda watched me eat. 10/10.'], ['paimon_official', 5, 'PAIMON GIVES THIS RESTAURANT INFINITY STARS!!!']],
+    alcor: [['sailor_jun', 5, 'Captain Beidou is a legend. Sparring night was the best thing I saw in Liyue.'], ['kazuha_fan', 5, 'A ronin read a haiku after the fight. I cried.']],
+    wangshu: [['quiet_traveler', 5, 'Almond tofu at sunrise over the marsh. Peaceful. The young man on the roof never sleeps.'], ['family_trip', 5, 'Safe, quiet, far from the noise of the harbor. Kids loved it.']],
+    guyun: [['boat_tours', 4, 'Stunning pillars. Our guide refused to go near the tallest one in the outer ring.'], ['fishing_guy', 5, 'Bluefin season is real. Someone caught a 41 kg monster in January.']],
+    chasm: [['urbex_ly', 2, 'Closed. Fenced. Lights at the bottom at 3 AM. We left.'], ['geologist', 4, 'Fascinating strata. Also: do not go down.']],
+    yujing: [['early_bird', 5, 'The cranes at dawn! Seven of them this week.'], ['local', 5, 'The Rite of Parting is on Sunday. Bring something white.']],
   };
   // ── prefs (persisted in the game state) ──
   function prefs() {
@@ -216,7 +216,7 @@
                 { text: 'Share', icon: 'square.and.arrow.up', onTap: () => sharePlace(f.place) },
                 { text: 'Rename', icon: 'pencil', onTap: () => renameFav(f) },
                 '-',
-                { text: 'Remove from Favorites', icon: 'trash', destructive: true, onTap: () => { if (f.id === 'home' || f.id === 'work') JC.ui.alert({ title: 'Can’t Remove ' + f.label, message: f.label + ' comes from Jiang Cheng’s contact card. Edit it in Contacts.', buttons: [{ text: 'OK' }] }); else { JC.store.remove('maps_favs', f.id); refresh(); } } },
+                { text: 'Remove from Favorites', icon: 'trash', destructive: true, onTap: () => { if (f.id === 'home' || f.id === 'work') JC.ui.alert({ title: 'Can’t Remove ' + f.label, message: f.label + ' comes from Childe’s contact card. Edit it in Contacts.', buttons: [{ text: 'OK' }] }); else { JC.store.remove('maps_favs', f.id); refresh(); } } },
               ] }));
               return el;
             }),
@@ -230,17 +230,17 @@
             h('div.maps-sec', h('div.maps-sec-h', h('span', 'Guides We Love')), h('div.maps-guides.hscroll', EDITORIAL.map((g) => guideTile(g, true)))),
             JC.ui.list([{ rows: [
               { icon: { glyph: 'clock.fill', bg: 'var(--purple)' }, title: 'Visited Places', subtitle: JC.store.all('maps_visits').length + ' places · On this iPhone', chevron: true, onTap: () => show(visitsCard()) },
-              { icon: { glyph: 'square.and.arrow.down', bg: 'var(--green)' }, title: 'Offline Maps', subtitle: 'Yunmeng & Lanling · 1.2 GB', chevron: true, onTap: () => offlineMaps() },
+              { icon: { glyph: 'square.and.arrow.down', bg: 'var(--green)' }, title: 'Offline Maps', subtitle: 'Liyue · 1.2 GB', chevron: true, onTap: () => offlineMaps() },
               { icon: { glyph: 'exclamationmark.bubble', bg: 'var(--orange)' }, title: 'Report an Issue', chevron: true, onTap: () => reportIssue() },
             ] }], { cls: 'maps-list' }),
-            h('div.maps-terms', h('span.tap', { onTap: () => JC.ui.alert({ title: 'Terms & Conditions', message: 'Map data © 2026 Wavemaps and its licensors. Look Around imagery is captured from public roads. Lotus fields are not shown to scale.', buttons: [{ text: 'OK' }] }) }, 'Terms & Conditions'), h('span', ' · '), h('span.tap', { onTap: () => JC.ui.alert({ title: 'Privacy', message: 'Maps is designed to protect your privacy. Your searches and places stay on this iPhone — which, to be clear, is not yours.', buttons: [{ text: 'OK' }] }) }, 'Privacy')),
+            h('div.maps-terms', h('span.tap', { onTap: () => JC.ui.alert({ title: 'Terms & Conditions', message: 'Map data © 2026 Wavemaps and its licensors. Look Around imagery is captured from public roads. Guyun’s stone pillars are not shown to scale.', buttons: [{ text: 'OK' }] }) }, 'Terms & Conditions'), h('span', ' · '), h('span.tap', { onTap: () => JC.ui.alert({ title: 'Privacy', message: 'Maps is designed to protect your privacy. Your searches and places stay on this iPhone — which, to be clear, is not yours.', buttons: [{ text: 'OK' }] }) }, 'Privacy')),
           ];
         },
       };
       const EDITORIAL = [
-        { id: 'ed_night', title: 'Lanling After Dark', icon: 'moon.fill', color: '#3a3a9c', places: ['night-market', 'golden-dumpling', 'night-owl-ll', 'koi-cafe', 'lotus-root-kitchen'], by: 'Lanling Daily', notes: {} },
-        { id: 'ed_mist', title: 'Mist & Tea in Gusu', icon: 'cup.and.saucer.fill', color: '#2f7d5b', places: ['cloud-recesses', 'cr-tea-shop', 'gusu-teahouse', 'auntie-lu', 'laoma-hotpot'], by: 'Gusu Tourism', notes: {} },
-        { id: 'ed_lake', title: 'Lotus Season, Yunmeng', icon: 'lotus.fill', color: '#c2456e', places: ['lotus-pier', 'yunmeng-lake', 'guanyin-temple', 'night-owl'], by: 'Wavemaps', notes: {} },
+        { id: 'ed_night', title: 'Liyue Harbor After Dark', icon: 'moon.fill', color: '#3a3a9c', places: ['wanmin-rest', 'third-round', 'xinyue', 'heyu', 'pier7'], by: 'The Liyue Herald', notes: {} },
+        { id: 'ed_rite', title: 'The Rite of Parting: a Visitor’s Guide', icon: 'flame.fill', color: '#8a6d3b', places: ['yujing', 'golden-house', 'jade', 'wangsheng'], by: 'Liyue Tourism', notes: {} },
+        { id: 'ed_country', title: 'Beyond the Harbor', icon: 'leaf.fill', color: '#2f7d5b', places: ['qingce', 'wangshu', 'guyun', 'stonegate'], by: 'Wavemaps', notes: {} },
       ];
       function guideTile(g, editorial) {
         const p0 = MV().place(g.places[0]);
@@ -281,7 +281,7 @@
               const recents = JC.store.all('maps_recents').slice().sort((a, b) => b.t - a.t).slice(0, 6).map(recentRow).filter(Boolean);
               return [
                 so.mode === 'fav' ? h('div.maps-hint', 'Choose a place to add to your Places.') : so.mode === 'stop' ? h('div.maps-hint', 'Choose a stop to add to your route.') : so.mode === 'guide' ? h('div.maps-hint', 'Choose a place to add to “' + so.guide.title + '”.') : null,
-                so.mode === 'from' ? JC.ui.list([{ rows: [{ leading: h('div.maps-recic.blue', JC.icon('location.fill', { size: 16 })), title: 'My Location', subtitle: 'Jinxing Road 27, Lanling', onTap: () => { back(); so.onPick(MV().userPlace()); } }] }], { cls: 'maps-list' }) : null,
+                so.mode === 'from' ? JC.ui.list([{ rows: [{ leading: h('div.maps-recic.blue', JC.icon('location.fill', { size: 16 })), title: 'My Location', subtitle: 'Chihu Rock, Lane 3, Liyue Harbor', onTap: () => { back(); so.onPick(MV().userPlace()); } }] }], { cls: 'maps-list' }) : null,
                 h('div.maps-sec', h('div.maps-sec-h', h('span', 'Find Nearby')), h('div.maps-cats', cats.map(([t, g, c, k]) => h('div.maps-cat', { onTap: () => showCategory(t, k.split(' '), so) }, h('div.maps-cat-ic', { style: { background: c } }, JC.icon(g, { size: 20, weight: 2.2 })), h('span', t))))),
                 recents.length ? h('div.maps-sec', h('div.maps-sec-h', h('span', 'Recently Viewed')), JC.ui.list([{ rows: recents }], { cls: 'maps-list' })) : null,
               ];
@@ -289,7 +289,7 @@
             const res = MV().search(q, { includeHome: true }).slice(0, 12);
             const rows = res.map((p) => placeRow(p, () => pickFromSearch(p, so)));
             const sugg = ['restaurants', 'hotels', 'coffee', 'tea', 'parks'].filter((s) => s.startsWith(q.toLowerCase()) && s !== q.toLowerCase()).map((s) => ({ leading: h('div.maps-recic', JC.icon('magnifyingglass', { size: 16, weight: 2.4 })), title: s[0].toUpperCase() + s.slice(1) + ' Nearby', onTap: () => showCategory(s[0].toUpperCase() + s.slice(1), [{ restaurants: 'food', hotels: 'hotel', coffee: 'cafe', tea: 'tea', parks: 'park' }[s]], so) }));
-            if (!rows.length && !sugg.length) return h('div.maps-noresults', JC.icon('magnifyingglass', { size: 36, weight: 1.6 }), h('div.maps-nr-t', 'No Results'), h('div.maps-nr-s', 'Wavemaps couldn’t find “' + q + '” in Yunmeng, Lanling, Gusu, Qinghe or Yiling.'), h('div.maps-nr-a.tap', { onTap: () => JC.os.open('safari', { search: q }) }, 'Search the web for “' + q + '”'));
+            if (!rows.length && !sugg.length) return h('div.maps-noresults', JC.icon('magnifyingglass', { size: 36, weight: 1.6 }), h('div.maps-nr-t', 'No Results'), h('div.maps-nr-s', 'Wavemaps couldn’t find “' + q + '” in Liyue.'), h('div.maps-nr-a.tap', { onTap: () => JC.os.open('safari', { search: q }) }, 'Search the web for “' + q + '”'));
             return JC.ui.list([{ rows: sugg.concat(rows) }], { cls: 'maps-list' });
           },
         };
@@ -479,7 +479,7 @@
           '-',
           { text: 'Copy Address', icon: 'doc.on.doc', onTap: () => { U.copy(p.addr || ''); JC.ui.toast('Copied', { icon: 'doc.on.doc' }); } },
           { text: 'Ride with Swift Ride', icon: 'car.fill', onTap: () => JC.os.open('swift', { to: p.id }) },
-          p.cat === 'food' || p.cat === 'cafe' || p.cat === 'tea' ? { text: 'Order on Lotus Eats', icon: 'bag.fill', onTap: () => JC.os.open('lotuseats', { rest: p.id }) } : null,
+          p.cat === 'food' || p.cat === 'cafe' || p.cat === 'tea' ? { text: 'Order on Wanmin Go', icon: 'bag.fill', onTap: () => JC.os.open('lotuseats', { rest: p.id }) } : null,
           { text: 'Report an Issue', icon: 'exclamationmark.bubble', onTap: () => reportIssue(p) },
         ]);
       }
@@ -494,9 +494,9 @@
           { text: 'Wrong Address or Location', onTap: thanks },
           { text: 'Wrong Hours or Phone', onTap: thanks },
           { text: 'Place Has Closed', onTap: thanks },
-          { text: 'Something Else…', onTap: () => JC.ui.alert({ title: 'Describe the Issue', input: { placeholder: 'e.g. “There is a car in the koi pond.”' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Send', style: 'default' }] }).then((r) => { if (r.index === 1) thanks(); }) },
+          { text: 'Something Else…', onTap: () => JC.ui.alert({ title: 'Describe the Issue', input: { placeholder: 'e.g. “There is a fishing rod abandoned on Pier 7.”' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Send', style: 'default' }] }).then((r) => { if (r.index === 1) thanks(); }) },
         ] });
-        function thanks() { JC.ui.alert({ title: 'Thank You', message: 'Wavemaps will review your report. You’ll get a notification when it’s resolved (on Jiang Cheng’s phone).', buttons: [{ text: 'OK' }] }); }
+        function thanks() { JC.ui.alert({ title: 'Thank You', message: 'Wavemaps will review your report. You’ll get a notification when it’s resolved (on Childe’s phone).', buttons: [{ text: 'OK' }] }); }
       }
       function renameFav(f) {
         JC.ui.alert({ title: 'Rename', input: { placeholder: f.label, value: f.label }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Save', style: 'default' }] }).then((r) => { if (r.index === 1 && r.value && r.value.trim()) { JC.store.update('maps_favs', f.id, { label: r.value.trim().slice(0, 18) }); refresh(); } });
@@ -574,7 +574,7 @@
       function visitsCard() {
         return {
           kind: 'visits', detent: 'full',
-          head: () => h('div.maps-cardhead', h('div.maps-ch-main', h('div.maps-ch-title', 'Visited Places'), h('div.maps-ch-sub', 'Detected on this iPhone · End-to-end encrypted')), xBtn('ellipsis', (e) => JC.ui.menu(e.currentTarget, [{ text: 'Clear History…', icon: 'trash', destructive: true, onTap: () => JC.ui.alert({ title: 'Clear Visited Places?', message: 'You’d be deleting Jiang Cheng’s history. On Jiang Cheng’s phone. Are you sure?', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Clear', style: 'destructive' }] }).then((r) => { if (r.index === 1) { JC.store.set('maps_visits', []); refresh(); } }) }, { text: 'Visited Places Settings', icon: 'gear', onTap: () => JC.ui.toast('Settings › Privacy › Location Services › System Services') }]), 'More'), xBtn('xmark', () => back(), 'Close')),
+          head: () => h('div.maps-cardhead', h('div.maps-ch-main', h('div.maps-ch-title', 'Visited Places'), h('div.maps-ch-sub', 'Detected on this iPhone · End-to-end encrypted')), xBtn('ellipsis', (e) => JC.ui.menu(e.currentTarget, [{ text: 'Clear History…', icon: 'trash', destructive: true, onTap: () => JC.ui.alert({ title: 'Clear Visited Places?', message: 'You’d be deleting Childe’s history. On Childe’s phone. Are you sure?', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Clear', style: 'destructive' }] }).then((r) => { if (r.index === 1) { JC.store.set('maps_visits', []); refresh(); } }) }, { text: 'Visited Places Settings', icon: 'gear', onTap: () => JC.ui.toast('Settings › Privacy › Location Services › System Services') }]), 'More'), xBtn('xmark', () => back(), 'Close')),
           body: () => {
             const vs = JC.store.all('maps_visits').slice().sort((a, b) => b.t - a.t);
             if (!vs.length) return JC.ui.empty({ icon: 'clock', title: 'No Visited Places', text: 'Places you visit will appear here.' });
@@ -587,8 +587,8 @@
       function offlineMaps() {
         JC.ui.sheet({ title: 'Offline Maps', detent: 'medium', left: { text: 'Done' }, content: () => [
           JC.ui.list([{ header: 'Downloaded', rows: [
-            { title: 'Yunmeng & Lanling', subtitle: '1.2 GB · Updated Oct 2', detail: '' },
-            { title: 'Gusu', subtitle: '410 MB · Updated Sep 25', detail: '' },
+            { title: 'Liyue Harbor & Guili Plains', subtitle: '1.2 GB · Updated Oct 2', detail: '' },
+            { title: 'Jueyun Karst', subtitle: '410 MB · Updated Sep 25', detail: '' },
           ] }, { rows: [
             { title: 'Download New Map', onTap: () => JC.ui.alert({ title: 'Not Enough Storage', message: '256 GB used of 256 GB. (Most of it is photos of one dog.)', buttons: [{ text: 'OK' }] }), cls: 'maps-linkrow' },
             { title: 'Automatic Updates', toggle: { on: true, onChange: () => {} } },
@@ -602,13 +602,13 @@
         const me = MV().userPlace();
         const card = {
           kind: 'me', detent: 'half',
-          head: () => h('div.maps-cardhead', h('div.maps-ch-main', h('div.maps-ch-title', 'My Location'), h('div.maps-ch-sub', 'Jinxing Road 27, Lanling')), xBtn('square.and.arrow.up', () => sharePlace(me), 'Share'), xBtn('xmark', () => back(), 'Close')),
+          head: () => h('div.maps-cardhead', h('div.maps-ch-main', h('div.maps-ch-title', 'My Location'), h('div.maps-ch-sub', 'Chihu Rock, Lane 3, Liyue Harbor')), xBtn('square.and.arrow.up', () => sharePlace(me), 'Share'), xBtn('xmark', () => back(), 'Close')),
           body: () => [
             h('div.maps-actions',
               h('div.maps-act.primary', { onTap: () => sharePlace(me) }, JC.icon('square.and.arrow.up', { size: 20 }), h('span', 'Share')),
               h('div.maps-act', { onTap: () => dropPin([me.x + 0.01, me.y - 0.01], 'Marked Location') }, JC.icon('mappin', { size: 20 }), h('span', 'Mark')),
               h('div.maps-act', { onTap: () => MV().lookAround('player-home') }, JC.icon('binoculars.fill', { size: 20 }), h('span', 'Look Around'))),
-            h('div.maps-me-info', h('div.maps-me-row', JC.icon('location.fill', { size: 14 }), h('span', 'Accuracy: 5 m · Jinxing District')), h('div.maps-me-row', JC.icon('building.2', { size: 14 }), h('span', '27 Jinxing Road, Jinxing District, Lanling')), h('div.maps-me-row', JC.icon('mountain.2.fill', { size: 14 }), h('span', 'Elevation 21 m'))),
+            h('div.maps-me-info', h('div.maps-me-row', JC.icon('location.fill', { size: 14 }), h('span', 'Accuracy: 5 m · Chihu Rock')), h('div.maps-me-row', JC.icon('building.2', { size: 14 }), h('span', 'Lane 3, Chihu Rock, Liyue Harbor')), h('div.maps-me-row', JC.icon('mountain.2.fill', { size: 14 }), h('span', 'Elevation 21 m'))),
             JC.ui.list([{ header: 'Nearby', rows: MV().places().filter((p) => p.id !== 'player-home' && MV().fromUser(p) < 3).sort((a, b) => MV().fromUser(a) - MV().fromUser(b)).map((p) => placeRow(p, () => openPlace(p.id))) }], { cls: 'maps-list' }),
           ],
           leave() {},
@@ -768,7 +768,7 @@
             h('div.maps-ride-brand', h('div.maps-ride-logo', JC.appIcon('swift')), h('div', h('b', 'Swift Ride'), h('span', 'Booked in the Swift Ride app'))),
             tiers.map(([k, n, d, wait]) => h('div.maps-route.ride', { onTap: () => JC.os.open('swift', { to: b.id, tier: k, from: a.isUser ? null : a.id }) },
               h('div.maps-route-main', h('div.maps-route-t', n), h('div.maps-route-s', d + ' · ' + wait + ' min away'), h('div.maps-route-s2', 'Drop-off ' + MV().fmtClockMin(new Date(JC.time.now()).getHours() * 60 + new Date(JC.time.now()).getMinutes() + wait + r.min))),
-              h('div.maps-ride-price', '¥' + MV().fare(r, k)))),
+              h('div.maps-ride-price', JC.util.fmtMoney(MV().fare(r, k))))),
             h('div.maps-hint', 'Prices are estimates and include the night surcharge (22:00–07:00).'));
         }
         show(card, { replace: o.replace || (top() && (top().kind === 'dir')) });
@@ -938,7 +938,7 @@
               { title: 'Traffic', toggle: { on: !!prefs().traffic || cur === 'driving', onChange: (on) => { setPref('traffic', on); map.setTraffic(on || prefs().style === 'driving'); } } },
               { title: 'Labels', toggle: { on: prefs().labels !== false, onChange: (on) => { setPref('labels', on); map.setLabels(on); } } },
               { title: 'Points of Interest', toggle: { on: prefs().pois !== false, onChange: (on) => { setPref('pois', on); map.setPois(on); } } },
-              { title: '3D Map', toggle: { on: false, onChange: () => JC.ui.alert({ title: '3D Not Available', message: '3D buildings aren’t available for Lanling yet. Koi Tower is, however, very tall. Trust us.', buttons: [{ text: 'OK' }] }) } },
+              { title: '3D Map', toggle: { on: false, onChange: () => JC.ui.alert({ title: '3D Not Available', message: '3D buildings aren’t available for Liyue Harbor yet. The Jade Chamber is, however, very high up. Trust us.', buttons: [{ text: 'OK' }] }) } },
             ] }]),
           ],
         });
@@ -969,22 +969,22 @@
         const s = JC.ui.sheet({
           title: '', detent: 'large', left: { text: 'Done' },
           content: () => [
-            h('div.maps-acct', JC.ui.avatar('me', 72), h('div.maps-acct-n', 'Jiang Cheng'), h('div.maps-acct-e', 'jiang.cheng@lotuspier.yunmeng')),
+            h('div.maps-acct', JC.ui.avatar('me', 72), h('div.maps-acct-n', 'Childe'), h('div.maps-acct-e', 'tartaglia@northland.sn')),
             JC.ui.list([{ rows: [
               { icon: { glyph: 'star.fill', bg: 'var(--yellow)' }, title: 'Places', detail: String(JC.store.all('maps_favs').length), chevron: true, onTap: () => { closeTop(); show(libraryCard()); } },
               { icon: { glyph: 'map.fill', bg: 'var(--blue)' }, title: 'Guides', detail: String(JC.store.all('maps_guides').length), chevron: true, onTap: () => { closeTop(); show(guideCard(JC.store.all('maps_guides')[0])); } },
               { icon: { glyph: 'clock.fill', bg: 'var(--purple)' }, title: 'Visited Places', chevron: true, onTap: () => { closeTop(); show(visitsCard()); } },
-              { icon: { glyph: 'star', bg: 'var(--orange)' }, title: 'Ratings & Photos', detail: '0', chevron: true, onTap: () => JC.ui.toast('Jiang Cheng has never rated anything. Of course he hasn’t.') },
-              { icon: { glyph: 'exclamationmark.bubble', bg: 'var(--red)' }, title: 'Reports', detail: '1', chevron: true, onTap: () => JC.ui.alert({ title: 'Your Reports', message: '“Lotus Pier gate shown on the wrong side of the road.” — Fixed, March 2026.', buttons: [{ text: 'OK' }] }) },
+              { icon: { glyph: 'star', bg: 'var(--orange)' }, title: 'Ratings & Photos', detail: '0', chevron: true, onTap: () => JC.ui.toast('Childe has rated 41 restaurants. All five stars. All the same restaurant. Of course he hasn’t.') },
+              { icon: { glyph: 'exclamationmark.bubble', bg: 'var(--red)' }, title: 'Reports', detail: '1', chevron: true, onTap: () => JC.ui.alert({ title: 'Your Reports', message: '“Pier 7 shown as Pier 6.” — Fixed, March 2026.', buttons: [{ text: 'OK' }] }) },
             ] }, { header: 'Preferences', rows: [
               { title: 'Avoid Highways', toggle: { on: !!prefs().avoidHwy, onChange: (v) => setPref('avoidHwy', v) } },
               { title: 'Avoid Tolls', toggle: { on: !!prefs().avoidTolls, onChange: (v) => setPref('avoidTolls', v) } },
-              { title: 'Preferred Transport', detail: 'Driving', onTap: () => JC.ui.toast('Jiang Cheng drives. Or is driven. Never cycles.') },
+              { title: 'Preferred Transport', detail: 'Driving', onTap: () => JC.ui.toast('Childe walks. Or runs. Usually toward a fight.') },
               { title: 'Distances', detail: 'Kilometres' },
               { title: 'Voice Volume', detail: { loud: 'Loud', normal: 'Normal', soft: 'Soft', none: 'No Voice' }[prefs().voice] || 'Normal', onTap: (e) => JC.ui.menu(e.currentTarget, ['loud', 'normal', 'soft', 'none'].map((k) => ({ text: { loud: 'Loud', normal: 'Normal', soft: 'Soft', none: 'No Voice' }[k], checked: prefs().voice === k, onTap: () => setPref('voice', k) }))) },
             ] }, { rows: [
               { title: 'Offline Maps', chevron: true, onTap: () => offlineMaps() },
-              { title: 'Share ETA Contacts', detail: 'Tang Mei', chevron: true, onTap: () => JC.ui.alert({ title: 'Share ETA', message: 'When Jiang Cheng starts navigating to Work, his ETA is shared automatically with Tang Mei (EA).', buttons: [{ text: 'OK' }] }) },
+              { title: 'Share ETA Contacts', detail: 'Ekaterina', chevron: true, onTap: () => JC.ui.alert({ title: 'Share ETA', message: 'When Childe starts navigating to Work, his ETA is shared automatically with Ekaterina.', buttons: [{ text: 'OK' }] }) },
               { title: 'Privacy & Data', chevron: true, onTap: () => JC.ui.alert({ title: 'Your Data', message: 'Maps doesn’t associate your data with your Apple Account. Wavemaps doesn’t know who you are. Nobody here does.', buttons: [{ text: 'OK' }] }) },
             ] }]),
           ],

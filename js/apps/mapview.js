@@ -1,7 +1,7 @@
-/* JC.mapview — the shared map of the region (Yunmeng · Lanling · Gusu · Qinghe · Yiling).
+/* JC.mapview — the shared map of Liyue (Liyue Harbor · Guyun Stone Forest · Jueyun Karst · Qingce · Wangshu · the Chasm).
    Geography + places seed, a road graph with turn-by-turn routing, a canvas renderer with
    pan / zoom / pinch / rotate, DOM pins, the pulsing user dot, a detent sheet, and static thumbnails.
-   Used by Maps, Find My, Swift Ride and Lotus Eats. World units are kilometres (x → east, y → south). */
+   Used by Maps, Find My, Harbor Ride and Wanmin Go. World units are kilometres (x → east, y → south). */
 (function () {
   'use strict';
   const JC = (window.JC = window.JC || {});
@@ -144,35 +144,33 @@
   }
   const normA = (a) => { while (a > Math.PI) a -= TAU; while (a < -Math.PI) a += TAU; return a; };
 
-  // ═══ Geography ═══════════════════════════════════════════════════════════
+  // ═══ Geography (Liyue: the harbor on the east coast, Guyun out at sea, Jueyun Karst to the west) ═══
   const WORLD = { w: 320, h: 240 };
-  const SEA = chaikin([[309, -4], [324, -4], [324, 244], [300, 244], [302.5, 224], [308, 208], [305, 191], [310, 172], [306.4, 156], [311, 138], [307, 120], [312, 101], [308, 83], [313, 64], [309, 46], [314, 27], [310, 12]], 3, true);
+  const METRO_CITY = 'Liyue Harbor';
+  const SEA = chaikin([[262, -4], [324, -4], [324, 244], [222, 244], [228, 225], [238, 205], [247, 186], [251, 168], [245.5, 157], [242.5, 151], [244.2, 146], [243.6, 140], [242.4, 133], [241.6, 127], [243.8, 119], [247, 110], [251.4, 100], [258.6, 92], [256.2, 82], [251.6, 74], [255, 60], [262, 40], [258, 20]], 3, true);
 
   const LAKES = [
-    { id: 'yunmeng', name: 'Yunmeng Lake', lz: 1.1, label: [262, 171], size: 15,
-      pts: chaikin([[233, 165], [235, 157.5], [238.6, 152.2], [243, 149], [248.4, 147.4], [253.2, 147.6], [257.4, 148.3], [261.6, 149.1], [267, 149.9], [273, 151.4], [279, 154.6], [284.5, 159.6], [287.6, 165.6], [287, 172], [283.4, 178.6], [277.4, 184], [270, 187.6], [261.4, 189.2], [252.4, 188.6], [244.4, 186], [238.4, 181], [234.8, 174]], 3, true) },
-    { id: 'peony', name: 'Peony Lake', lz: 26, label: [176.7, 86.3], size: 11, pts: chaikin(blob(176.7, 86.3, 1.25, 0.62, 10, 7, 0.12), 2, true) },
-    { id: 'koi', name: 'Koi Pond', lz: 180, label: [171.28, 90.42], size: 10, pts: chaikin(blob(171.28, 90.42, 0.11, 0.07, 9, 3, 0.1), 2, true) },
-    { id: 'cold', name: 'Cold Spring', lz: 60, label: [50.4, 62.2], size: 10, pts: chaikin(blob(50.4, 62.2, 0.34, 0.2, 9, 11, 0.15), 2, true) },
-    { id: 'qinghe-res', name: 'Qinghe Reservoir', lz: 5, label: [160.5, 40.5], size: 11, pts: chaikin(blob(160.5, 40.5, 3.6, 1.7, 12, 5, 0.25, -0.3), 2, true) },
-    { id: 'caiyi', name: 'Caiyi Lake', lz: 5, label: [88.5, 73.4], size: 11, pts: chaikin(blob(88.5, 73.4, 2.6, 1.3, 12, 9, 0.22, 0.2), 2, true) },
-    { id: 'bihu', name: 'Lotus Bay', lz: 99, label: [266, 196], size: 10, pts: chaikin(blob(299.5, 230, 3, 2, 10, 4, 0.2), 2, true) },
+    { id: 'dihua', name: 'Dihua Marsh', lz: 3, label: [125.6, 147.6], size: 12, pts: chaikin(blob(125.6, 147.6, 5.4, 2.8, 12, 7, 0.22, 0.2), 2, true) },
+    { id: 'luhua', name: 'Luhua Pool', lz: 4, label: [86.4, 73.6], size: 11, pts: chaikin(blob(86.4, 73.6, 2.4, 1.6, 12, 9, 0.2, -0.3), 2, true) },
+    { id: 'guili', name: 'Guili Pond', lz: 8, label: [166.4, 160.4], size: 10, pts: chaikin(blob(166.4, 160.4, 1.6, 0.9, 10, 5, 0.15), 2, true) },
+    { id: 'qingce-pond', name: 'Qingce Pond', lz: 14, label: [129.6, 66.6], size: 10, pts: chaikin(blob(129.6, 66.6, 0.6, 0.35, 9, 3, 0.1), 2, true) },
   ];
   const RIVERS = [
-    { name: 'Great River', w: 0.55, lz: 3, pts: chaikin([[-4, 95], [12, 93.5], [24, 96], [36, 94.5], [48, 97.5], [58, 96], [68, 93.2], [76, 93.2], [86, 98], [98, 101.5], [110, 100], [122, 103.5], [134, 102], [146, 103], [154, 101.2], [162, 100.4], [170, 100.8], [176, 100.2], [181, 99.4], [186, 100.6], [191, 103.6], [198, 109], [207, 115], [216, 121], [224, 128], [230, 136.4], [233.6, 145], [234.6, 153.4], [234.2, 159]], 3, false) },
-    { name: 'Great River', w: 0.5, lz: 3, pts: chaikin([[287.2, 166.5], [293, 164.6], [299, 167.6], [304, 166.2], [312, 168.4]], 2, false) },
-    { name: 'Cold Spring River', w: 0.13, lz: 6, pts: chaikin([[45.6, 51.4], [48.4, 56.6], [50.4, 62.2], [53.8, 67.4], [57.8, 71.4], [61.8, 74.8], [65.2, 78.6], [67.4, 82.4], [70.4, 87], [73.4, 90.8], [76, 93.2]], 2, false) },
-    { name: 'Qing River', w: 0.22, lz: 4, pts: chaikin([[178, -4], [177.4, 10], [176.4, 18], [177.8, 27], [180, 36], [181.6, 48], [183.2, 60], [185.2, 72], [187.6, 84], [188.8, 93], [189.4, 99], [190.6, 102.8]], 2, false) },
+    { name: 'Bishui River', w: 0.5, lz: 3, pts: chaikin([[58, 104], [74, 108], [92, 112], [108, 120], [118, 134], [126, 146], [140, 152], [156, 158], [172, 164], [188, 170], [204, 174], [220, 174], [234, 170], [246, 166]], 3, false) },
+    { name: 'Qingce Stream', w: 0.16, lz: 6, pts: chaikin([[129.6, 66.6], [128, 76], [124, 90], [120, 104], [116, 118], [118, 134]], 2, false) },
+    { name: 'Tianheng Creek', w: 0.12, lz: 8, pts: chaikin([[192, 128], [198, 134], [206, 146], [214, 158], [222, 168], [228, 172]], 2, false) },
   ];
   const MOUNTAINS = [
-    { name: 'Gusu Mountains', lz: 1.1, mist: true, peak: [37, 37], peakName: 'Mount Gusu', ele: '1,620 m',
-      pts: [[6, 44], [9, 31], [19, 19], [35, 13], [52, 17], [66, 26], [75, 39], [74.5, 51], [67.5, 61], [60, 66], [49, 67.5], [36, 67], [22, 62], [11, 54]] },
-    { name: 'Cloud Peak', lz: 99, peak: [47.8, 57.6], peakName: 'Cloud Peak', ele: '1,104 m', pts: [[43, 60], [46, 54], [51, 53], [54.5, 57], [53, 61.5], [47.5, 62.4]] },
-    { name: 'Qishan Hills', lz: 2, peak: [120, 25], peakName: 'Qishan', ele: '980 m', pts: [[92, 25], [100, 12], [118, 8], [136, 13], [146, 26], [142, 40], [128, 47], [110, 47], [97, 39]] },
-    { name: 'Qiongqi Hills', lz: 2.5, peak: [136.6, 145], peakName: 'Qiongqi Pass', ele: '640 m', pts: [[118, 150], [123, 137], [136, 130], [149, 136], [150, 150], [142, 161], [128, 165]] },
-    { name: 'Burial Mounds', lz: 3, dark: true, peak: [89.4, 179.6], peakName: 'Burial Mounds', ele: '412 m', pts: [[80, 182], [83, 174.5], [90, 171], [97, 174.5], [99.5, 182], [95, 189], [86.5, 190]] },
-    { name: 'Guanyin Hill', lz: 6, peak: [288.6, 123.6], pts: [[283.4, 123], [287, 119.4], [292, 120.4], [294, 125.4], [290, 129], [285, 128.2]] },
-    { name: 'Beiling Hills', lz: 2.5, peak: [182, 9], pts: [[158, 6], [170, 1.5], [192, 3], [201, 11], [195, 17], [181, 14.6], [166, 15]] },
+    { name: 'Jueyun Karst', lz: 1.1, mist: true, peak: [72, 88], peakName: 'Mt. Aocang', ele: '1,840 m',
+      pts: [[30, 92], [34, 74], [46, 60], [64, 54], [84, 58], [100, 70], [106, 88], [102, 104], [90, 116], [70, 120], [50, 116], [36, 106]] },
+    { name: 'Mt. Tianheng', lz: 2, peak: [192, 128], peakName: 'Mt. Tianheng', ele: '1,020 m', pts: [[180, 128], [184, 116], [194, 110], [203, 114], [206, 126], [201, 140], [190, 146], [182, 140]] },
+    { name: 'Mt. Hulao', lz: 2.4, peak: [178, 44], peakName: 'Mt. Hulao', ele: '860 m', pts: [[160, 44], [168, 32], [182, 28], [196, 36], [196, 50], [184, 58], [168, 56]] },
+    { name: 'The Chasm', lz: 2.6, dark: true, peak: [112, 205], peakName: 'The Chasm', ele: '−900 m', pts: [[92, 206], [98, 192], [112, 186], [128, 192], [132, 206], [122, 220], [104, 222]] },
+    { name: 'Lingju Hills', lz: 3, peak: [158, 196], peakName: 'Lingju Pass', ele: '540 m', pts: [[146, 198], [150, 188], [160, 184], [170, 190], [168, 202], [156, 206]] },
+    { name: 'Guyun Stone Forest', lz: 2, peak: [282, 160], peakName: 'Guyun Stone Forest', ele: '312 m', pts: [[276, 156], [279, 151.6], [284, 151], [288, 154.6], [288.6, 160], [285, 165], [279.6, 165.4], [276.4, 161.6]] },
+    { name: 'Guyun Stone Forest', lz: 6, peak: [292.4, 168.4], pts: blob(292.4, 168.4, 1.8, 1.4, 8, 31, 0.2) },
+    { name: 'Guyun Stone Forest', lz: 6, peak: [272.6, 170.6], pts: blob(272.6, 170.6, 1.6, 1.2, 8, 32, 0.2) },
+    { name: 'Guyun Stone Forest', lz: 6, peak: [289.4, 146.6], pts: blob(289.4, 146.6, 1.2, 1.0, 8, 33, 0.2) },
   ];
   MOUNTAINS.forEach((m) => {
     const c = centroid(m.pts);
@@ -184,20 +182,13 @@
   });
 
   const URBAN = [
-    { id: 'lanling', name: 'Lanling', rank: 1, sp: 0.42, ang: 0.0, label: [170.4, 92.6], seed: 11,
-      pts: [[148, 95], [149.5, 87], [155, 80], [163, 75.5], [172, 73.8], [181, 75], [189, 78.5], [195, 85], [197, 93], [195.5, 101], [191, 107.5], [183.5, 111.5], [174, 112.5], [164, 111], [156, 106.5], [150.5, 101.5]] },
-    { id: 'yunmeng', name: 'Yunmeng', rank: 1, sp: 0.38, ang: -0.12, label: [274.6, 137.4], seed: 12,
-      pts: [[253.4, 145.6], [256.5, 138], [262, 131.5], [270, 127.5], [279, 127.5], [286, 131], [290, 137.5], [288.5, 144.5], [282, 149.6], [273, 150.6], [264, 148.6]] },
-    { id: 'gusu', name: 'Gusu', rank: 2, sp: 0.3, ang: 0.08, label: [71.4, 80.4], seed: 13, canals: true,
-      pts: [[61, 82], [62.5, 76.5], [67, 73.5], [73, 74], [77.5, 78.5], [78, 85], [74.5, 90.5], [68, 91], [62.5, 88]] },
-    { id: 'qinghe', name: 'Qinghe', rank: 2, sp: 0.38, ang: 0.2, label: [179.2, 31.4], seed: 14,
-      pts: [[167, 29], [169, 22.5], [174.5, 18.8], [181.5, 19], [186.5, 24.5], [187, 32], [182, 37.5], [174, 38.5], [168.5, 35]] },
-    { id: 'yiling', name: 'Yiling', rank: 3, sp: 0.34, ang: -0.06, label: [105.2, 189.2], seed: 15,
-      pts: [[97, 190], [99.5, 185.5], [105, 184.5], [109.5, 187.5], [110, 193], [106, 197], [99.5, 196.5]] },
-    { id: 'caiyi', name: 'Caiyi Town', rank: 4, sp: 0.28, ang: 0.3, label: [84.8, 78.2], seed: 16, pts: blob(84.8, 78.2, 2.1, 1.5, 12, 16, 0.2) },
-    { id: 'qishan', name: 'Qishan', rank: 4, sp: 0.32, ang: -0.2, label: [121.4, 53.2], seed: 17, pts: blob(121.4, 53.2, 2.5, 1.7, 12, 17, 0.2) },
-    { id: 'baling', name: 'Baling', rank: 4, sp: 0.32, ang: 0.1, label: [214.2, 62.4], seed: 18, pts: blob(214.2, 62.4, 2.3, 1.7, 12, 18, 0.2) },
-    { id: 'lotus-bay', name: 'Lotus Bay', rank: 4, sp: 0.3, ang: 0.0, label: [266.4, 194.6], seed: 19, pts: blob(266.4, 194.6, 2.1, 1.3, 12, 19, 0.2) },
+    { id: 'liyue', name: 'Liyue Harbor', rank: 1, sp: 0.36, ang: 0.12, label: [222.6, 131.4], seed: 11,
+      pts: [[204, 120], [206, 112], [212, 106.6], [221, 104.6], [230, 105.6], [238, 108.6], [243, 114], [241.4, 122], [240.6, 130], [241.6, 138], [242.8, 146], [240.6, 152.6], [234, 156.4], [225, 157], [215, 154.4], [208, 148], [205.4, 140], [206.4, 130]] },
+    { id: 'qingce', name: 'Qingce Village', rank: 3, sp: 0.3, ang: 0.2, label: [131.2, 61.4], seed: 12, pts: blob(131.2, 61.4, 2.2, 1.6, 12, 12, 0.2) },
+    { id: 'wangshu', name: 'Wangshu', rank: 4, sp: 0.3, ang: -0.1, label: [121.6, 140.6], seed: 13, pts: blob(121.6, 140.6, 1.3, 1.0, 10, 13, 0.15) },
+    { id: 'stonegate', name: 'Stone Gate', rank: 4, sp: 0.3, ang: 0.0, label: [151.4, 20.6], seed: 14, pts: blob(151.4, 20.6, 1.8, 1.2, 10, 14, 0.2) },
+    { id: 'mingyun', name: 'Mingyun Village', rank: 4, sp: 0.3, ang: 0.1, label: [176.4, 214.6], seed: 15, pts: blob(176.4, 214.6, 1.9, 1.3, 10, 15, 0.2) },
+    { id: 'airport', name: 'Airport Spit', rank: 4, sp: 0.4, ang: 0.6, label: [252.2, 85.4], seed: 16, pts: blob(252.2, 85.4, 2.6, 1.8, 10, 16, 0.12, 0.6) },
   ];
   URBAN.forEach((u) => {
     u.pts = chaikin(u.pts, 3, true);
@@ -211,97 +202,59 @@
   function toGrid(u, x, y) { const dx = x - u.ox, dy = y - u.oy; return [dx * u.cos + dy * u.sin, -dx * u.sin + dy * u.cos]; }
 
   const PARKS = [
-    { name: 'Peony Park', lz: 6, pts: [[173.6, 84.4], [176, 83.4], [179.2, 83.8], [180.4, 86.2], [179.4, 88.4], [176.4, 88.9], [173.8, 87.6]] },
-    { name: 'Riverside Park', lz: 10, pts: [[160, 99.9], [166, 99.5], [172, 99.8], [177, 99.3], [181, 98.7], [185, 99.6], [185, 100.1], [181, 99.2], [177, 99.85], [172, 100.35], [166, 100.05], [160, 100.45]] },
-    { name: 'Koi Tower Plaza', lz: 60, pts: blob(171.3, 90.38, 0.3, 0.2, 12, 4, 0.05) },
-    { name: 'Lotus Pier Gardens', lz: 7, pts: [[254.4, 146.6], [255.6, 145.2], [258.2, 145.0], [260.4, 146.0], [260.4, 147.6], [257.2, 148.0], [255, 147.8]] },
-    { name: 'Yunmeng Wetland Park', lz: 5, pts: [[244, 187.4], [252, 189.8], [258, 191.6], [250, 193.8], [242, 191.2]] },
-    { name: 'Lanling Botanical Garden', lz: 7, pts: blob(157.2, 82.6, 1.5, 0.9, 12, 22, 0.15) },
-    { name: 'Old Town Garden', lz: 18, pts: blob(70.4, 80.4, 0.5, 0.32, 10, 23, 0.12) },
-    { name: 'Qinghe Hill Park', lz: 8, pts: blob(178.8, 20.6, 1.2, 0.7, 10, 24, 0.15) },
-    { name: 'Lakeside Promenade', lz: 9, pts: [[239.6, 149.4], [242.6, 147.6], [246.8, 146.8], [247, 147.4], [243, 148.4], [240.4, 150.4]] },
-    { name: 'Guanyin Temple Grounds', lz: 12, pts: blob(288.5, 123.9, 0.6, 0.4, 10, 25, 0.12) },
-    { name: 'Yiling Hill Cemetery', lz: 14, pts: blob(107.6, 195.2, 0.5, 0.3, 10, 26, 0.12) },
-    { name: 'Archery Fields', lz: 16, pts: blob(158.4, 85.4, 0.45, 0.3, 10, 27, 0.1) },
+    { name: 'Yujing Terrace', lz: 8, pts: [[210.2, 136.2], [213.4, 135.4], [215.6, 137.2], [215, 140.2], [211.6, 141], [209.6, 139]] },
+    { name: 'Harbor Promenade', lz: 9, pts: [[239.4, 124], [240.8, 124.6], [240.4, 132], [241.2, 140], [240.2, 140.4], [239.2, 132], [239, 126]] },
+    { name: 'Feiyun Slope Gardens', lz: 10, pts: blob(219.6, 121.8, 1.4, 0.8, 10, 21, 0.15) },
+    { name: 'Guili Plains', lz: 4, pts: blob(168, 160, 9, 5, 12, 22, 0.25) },
+    { name: 'Wangshu Inn Grounds', lz: 12, pts: blob(122.2, 141.4, 0.6, 0.4, 10, 23, 0.12) },
+    { name: 'Chihu Rock Park', lz: 12, pts: blob(238.6, 152, 0.9, 0.6, 10, 24, 0.12) },
   ].map((p) => Object.assign(p, { pts: chaikin(p.pts, 2, true) })).map((p) => Object.assign(p, { bb: bboxOf(p.pts), c: centroid(p.pts) }));
 
   const FORESTS = [
-    [[10, 46], [16, 32], [30, 21], [46, 20], [62, 30], [70, 44], [66, 58], [52, 62], [34, 62], [20, 58]],
-    [[44, 58], [52, 56.5], [58, 60], [59, 66.6], [55, 69.2], [49.4, 68.4], [45.6, 63]],
-    [[96, 30], [104, 16], [120, 12], [136, 18], [140, 32], [126, 42], [108, 42]],
-    [[122, 148], [128, 138], [142, 136], [146, 148], [138, 158], [126, 160]],
-    [[82, 182], [86, 175], [93, 174], [97, 180], [93, 187], [85, 188]],
-    [[162, 7], [176, 4], [194, 6], [196, 12], [180, 12], [166, 12]],
-    [[284, 122.4], [289, 120.4], [292.6, 124.6], [289, 127.6], [285.4, 126.6]],
+    [[34, 92], [40, 72], [56, 60], [78, 60], [96, 74], [100, 94], [88, 112], [64, 116], [44, 108]],
+    [[160, 46], [168, 34], [184, 30], [194, 40], [190, 54], [172, 56]],
+    [[182, 128], [186, 116], [198, 112], [204, 124], [198, 140], [186, 142]],
+    [[96, 204], [104, 192], [120, 190], [128, 204], [118, 216], [102, 216]],
+    [[146, 198], [154, 188], [166, 190], [166, 202], [154, 204]],
   ].map((p) => chaikin(p, 3, true));
   const FARMS = [
-    [[86, 160], [100, 152], [118, 158], [132, 170], [128, 188], [116, 200], [100, 206], [84, 200], [78, 182]],
-    [[94, 82], [112, 80], [134, 84], [146, 88], [140, 92], [118, 90], [98, 88]],
-    [[198, 86], [214, 82], [232, 92], [240, 110], [226, 116], [208, 104], [198, 96]],
-    [[148, 48], [166, 46], [172, 56], [168, 68], [152, 70], [144, 58]],
-    [[196, 128], [212, 126], [224, 138], [220, 156], [204, 160], [194, 146]],
-    [[74, 108], [90, 104], [100, 118], [96, 138], [80, 140], [70, 124]],
-    [[226, 194], [240, 196], [246, 210], [232, 220], [218, 212]],
-    [[292, 96], [304, 92], [306, 112], [296, 118], [288, 108]],
+    [[118, 54], [128, 50], [142, 54], [146, 66], [138, 74], [122, 72], [114, 64]],
+    [[140, 100], [158, 96], [172, 104], [170, 118], [152, 120], [140, 112]],
+    [[150, 160], [170, 152], [190, 158], [186, 176], [164, 182], [148, 174]],
+    [[160, 204], [176, 202], [188, 212], [178, 224], [162, 222]],
+    [[208, 166], [222, 162], [232, 176], [222, 188], [208, 182]],
   ].map((p) => chaikin(p, 3, true));
+  // glaze lily terraces at Qingce (drawn with the old "lotus" field style)
   const LOTUS = [
-    [[247.4, 148.0], [251, 147.5], [253.6, 147.9], [256.2, 148.4], [255.8, 149.6], [252.6, 150.4], [248.6, 150.0]],
-    [[236.4, 157.6], [238.2, 153.6], [240.6, 151], [241.8, 153.4], [239.6, 158.2], [237.2, 161]],
-    [[262, 150.0], [266.4, 150.5], [268, 151.8], [265, 152.6], [261.6, 151.6]],
-    [[252, 186.5], [258, 187.6], [256, 189], [250.4, 188.2]],
+    [[124.6, 57.6], [128.4, 56.8], [131.2, 57.8], [130.6, 59.4], [127, 59.8], [124.8, 59.2]],
+    [[133.4, 63.6], [136.4, 62.8], [138, 64.6], [136.6, 66.2], [133.6, 65.8]],
+    [[125.6, 63.4], [127.6, 62.8], [128.4, 64.6], [126.4, 65.4]],
   ].map((p) => chaikin(p, 2, true));
 
   // ── roads (cls: hwy | ring | prov | art | mtn) ───────────────────────────
   const R = (name, cls, pts, o) => Object.assign({ name, cls, pts }, o || {});
   const ROADS_RAW = [
-    // Lanling
-    R('Lanling Ring Expressway', 'ring', [[158.5, 80.2], [166, 77.2], [172.6, 76.4], [180, 77.6], [187, 80.8], [191.6, 86.2], [193.4, 92.8], [192.4, 99.6], [188.4, 105.6], [181.4, 109.2], [172.6, 110], [164.2, 108.8], [157.4, 104.6], [153.6, 98], [153.4, 90.6], [155.2, 84.6]], { closed: true, ref: 'R2', smooth: 2 }),
-    R('Jinlin Avenue', 'art', [[151, 90.6], [195.6, 90.6]]),
-    R('Koi Road', 'art', [[152.6, 84.3], [192.2, 84.3]]),
-    R('Jinxing Road', 'art', [[176.2, 94.6], [196.6, 94.6]]),
-    R('Station Road', 'art', [[158, 104.6], [189.2, 104.6]]),
-    R('Riverside Drive', 'art', [[150.6, 101.2], [156, 99.6], [162, 98.9], [168, 99.1], [173, 99.3], [177, 98.9], [181, 98.2], [185, 98.9], [189, 101], [192.6, 104.2]], { smooth: 2 }),
-    R('Peony Boulevard', 'art', [[172.6, 74.6], [172.6, 111.6]]),
-    R('Fangfei Road', 'art', [[161.8, 77], [161.8, 108.6]]),
-    R('Lantern Street', 'art', [[167.4, 80.6], [167.4, 99.1]]),
-    R('Golden Gate Avenue', 'art', [[181.4, 76], [181.4, 108.6]]),
-    R('Yaotai Road', 'art', [[191.8, 81], [191.8, 99.6]]),
-    R('Phoenix Road', 'art', [[150.6, 96.4], [176.2, 96.4]]),
-    // expressways out of Lanling
-    R('Gusu–Lanling Expressway', 'hwy', [[153.5, 94.2], [146, 95.2], [136, 94.6], [124, 93.2], [112, 91.8], [100, 90.6], [90, 88.6], [82, 87.2], [77.2, 86.4]], { ref: 'G50', smooth: 2 }),
-    R('Lanling–Yunmeng Expressway', 'hwy', [[193.1, 96.4], [200, 100.8], [208, 106.4], [216, 113.2], [224, 119.6], [232, 125.6], [240, 130.4], [248, 133.6], [256, 135.8], [260, 136.6]], { ref: 'G42', smooth: 2 }),
-    R('Qinghe Expressway', 'hwy', [[172.6, 76.4], [173.2, 68], [174.2, 58], [175.2, 48], [176.2, 38.6]], { ref: 'S12', smooth: 2 }),
-    R('Lanling–Yiling Expressway', 'hwy', [[157.4, 104.6], [151, 112], [144, 122], [137, 133], [131, 143], [127.6, 152], [122, 161], [115, 171], [109, 180], [104.4, 185]], { ref: 'G56', smooth: 2 }),
-    R('Gusu–Yiling Road', 'prov', [[68.6, 91], [73, 100], [76, 112], [80, 126], [86, 140], [92, 154], [97, 168], [100.6, 178], [104.4, 185]], { ref: 'S7', smooth: 2 }),
-    R('Qinghe–Yunmeng Road', 'prov', [[186.4, 27.6], [196, 36], [208, 46], [220, 58], [232, 74], [244, 92], [254, 108], [262, 120], [268.6, 125.6], [272.4, 127.6]], { ref: 'S20', smooth: 2 }),
-    R('Baling Road', 'prov', [[214.4, 52.4], [214.2, 62.4]], {}),
-    R('Gusu–Qishan Road', 'prov', [[68.6, 73.8], [72, 68], [80, 61], [92, 56.5], [106, 54.2], [121.4, 53.2]], { ref: 'S3', smooth: 2 }),
-    // Yunmeng
-    R('Lotus Pier Road', 'art', [[253.6, 145.8], [258, 145.7], [262, 144.4], [266, 143], [272, 141.6], [280, 141.4], [288.4, 142.2]], { smooth: 1 }),
-    R('Yunmeng Avenue', 'art', [[272.4, 127.6], [272.4, 151]]),
-    R('Station Road', 'art', [[260, 136.6], [268, 136.2], [276, 136], [288, 136.6]], { smooth: 1 }),
-    R('Guanyin Temple Road', 'mtn', [[279.6, 136.1], [283, 131.6], [286.2, 127.6], [288.2, 124.6]], { smooth: 1 }),
-    R('Warehouse Road', 'art', [[258.4, 140.4], [262.4, 137.2], [264.4, 136.4]]),
-    R('Lakeside Road', 'art', [[240.8, 150.6], [244.4, 148], [249, 146.4], [253.6, 145.8]], { smooth: 1 }),
-    R('Lake Ring Road', 'prov', [[288.4, 142.2], [290, 150], [291.4, 160], [290.6, 172], [286, 182], [278, 188.6], [268, 192], [257, 193], [246, 190.8], [237.6, 185.4], [232, 177], [230.2, 167], [231.6, 158.2], [235.6, 152.6], [240.8, 150.6]], { smooth: 2 }),
-    // Gusu
-    R('Gusu Main Street', 'art', [[61.6, 82.6], [77.4, 82.6]]),
-    R('Canal Road', 'art', [[68.6, 73.8], [68.6, 91]]),
-    R('Gusu East Road', 'art', [[77.2, 78], [77.2, 90.4]]),
-    R('Canal Street', 'art', [[63, 85.4], [77.2, 85.4]]),
-    R('Cloud Recesses Road', 'mtn', [[68.6, 75.2], [66.2, 74], [63.6, 72.6], [61.2, 71], [59, 70.2], [57.4, 68.8], [56, 67.6], [54.6, 66.8], [53.6, 65.6], [52.9, 64.8]], { smooth: 2 }),
-    R('Station Link', 'art', [[68.6, 77.6], [72.4, 77.2]]),
-    R('Caiyi Road', 'prov', [[77.2, 80], [81, 78.6], [84.8, 78.2]], { smooth: 1 }),
-    // Qinghe
-    R('Qinghe Avenue', 'art', [[176.2, 19.2], [176.2, 38.6]]),
-    R('Nie Road', 'art', [[168, 27.6], [186.4, 27.6]]),
-    R('Unclean Realm Road', 'mtn', [[176.2, 24.6], [177.4, 23.4], [178.2, 22.6]]),
-    R('Station Link', 'art', [[176.2, 30.4], [184.4, 30.4]]),
-    // Yiling
-    R('Yiling Main Road', 'art', [[98, 190.8], [109.6, 190.8]]),
-    R('Yiling Avenue', 'art', [[104.4, 185], [104.4, 196.4]]),
-    R('Burial Mounds Road', 'mtn', [[98, 190.8], [95.6, 188.6], [93.4, 186], [91.8, 183.6], [90.4, 181.6]], { smooth: 2 }),
-    R('Cemetery Lane', 'mtn', [[104.4, 193.6], [106.4, 194.6], [107.4, 195.2]]),
+    // Liyue Harbor
+    R('Harbor Ring Road', 'ring', [[208.4, 122], [212.6, 111.4], [221.4, 108.6], [231, 109.4], [238.4, 113], [239.4, 122], [238.6, 130], [239.2, 140], [238.6, 148.6], [233, 153.4], [224, 154.2], [214.6, 151], [209.4, 144.4], [207.8, 134]], { closed: true, ref: 'H1', smooth: 2 }),
+    R('Harbor Road', 'art', [[231, 109.4], [236.6, 116], [238.2, 124], [238.6, 132], [239.2, 140], [238.6, 148.6]], { smooth: 2 }),
+    R('Feiyun Slope', 'art', [[212.6, 117.6], [218.4, 120.4], [224.6, 123.2], [231.4, 125.6], [238.2, 126.2]], { smooth: 2 }),
+    R('Lantern Street', 'art', [[208.4, 129.4], [216, 130.4], [224, 131.6], [231.6, 132.4], [238.6, 132.6]]),
+    R('Yujing Terrace Road', 'mtn', [[224, 131.6], [219.4, 134], [215.4, 136.6], [212.4, 138.4], [209.4, 144.4]], { smooth: 2 }),
+    R('Chihu Rock Lane', 'art', [[226.6, 142.4], [231, 145], [235.4, 148.4], [238.6, 151]], { smooth: 2 }),
+    R('Jade Avenue', 'art', [[214.2, 108.8], [215.4, 120], [216.6, 132], [218, 144], [219.8, 153.6]]),
+    R('Lane of Stone Lions', 'art', [[222.6, 110.4], [224.6, 123.2], [226.6, 142.4], [227.6, 154.4]]),
+    R('Wanmin Street', 'art', [[231.6, 132.4], [233.6, 140], [235.4, 148.4]]),
+    R('Crux Pier Road', 'art', [[238.6, 140.4], [242.2, 141]]),
+    R('Pier 7 Boardwalk', 'art', [[238.6, 133.6], [241.4, 134.2]]),
+    // regional
+    R('Airport Expressway', 'hwy', [[231, 109.4], [238, 102], [244.6, 95], [250.4, 88.4], [252.2, 85.4]], { ref: 'E1', smooth: 2 }),
+    R('Guili Highway', 'prov', [[207.8, 134], [196, 150], [182, 156], [166, 154], [148, 148], [134, 144], [122.4, 141.2]], { ref: 'G2', smooth: 2 }),
+    R('Qingce Road', 'prov', [[148, 148], [146, 130], [142, 110], [138, 90], [134, 72], [131.2, 61.4]], { ref: 'G5', smooth: 2 }),
+    R('Stone Gate Road', 'prov', [[212.6, 111.4], [204, 96], [190, 80], [176, 64], [164, 44], [156, 30], [151.4, 20.6]], { ref: 'G1', smooth: 2 }),
+    R('Chasm Road', 'mtn', [[134, 144], [132, 160], [126, 176], [120, 190], [114, 200]], { smooth: 2 }),
+    R('Mingyun Road', 'prov', [[219.8, 153.6], [212, 170], [200, 186], [188, 202], [176.4, 214.6]], { ref: 'G7', smooth: 2 }),
+    R('Jueyun Trail', 'mtn', [[122.4, 141.2], [112, 128], [100, 112], [88, 98], [76, 90]], { smooth: 2 }),
+    R('Qingce Village Road', 'art', [[130, 60.6], [133.4, 62.4]]),
   ];
   const ROADS = ROADS_RAW.map((r, i) => {
     let pts = r.pts.map((p) => p.slice());
@@ -312,110 +265,86 @@
   });
 
   const RAIL = [
-    { name: 'Gusu–Lanling–Yunmeng High-Speed Railway', pts: chaikin([[72.6, 76.6], [84, 80.4], [100, 84.6], [120, 90], [140, 96], [156, 101.8], [166, 103.6], [173.6, 104.2], [186, 105.4], [200, 112], [220, 124], [240, 132.4], [256, 136.4], [264.4, 138.6]], 2, false) },
-    { name: 'Lanling–Qinghe Railway', pts: chaikin([[173.6, 104.2], [176.8, 96], [178.6, 86], [180.6, 74], [183, 58], [184.2, 44], [184.6, 30.2]], 2, false) },
-    { name: 'Gusu–Yiling Railway', pts: chaikin([[72.6, 76.6], [78, 92], [84, 116], [92, 140], [100, 166], [106.6, 186.6]], 2, false) },
+    { name: 'Northern Railway (Liyue–Snezhnaya)', pts: chaikin([[212.6, 112], [204, 96], [192, 80], [180, 62], [166, 40], [154, 22], [150, 4], [148, -4]], 2, false) },
+    { name: 'Coastal Line', pts: chaikin([[212.6, 112], [226, 104], [240, 98], [250.4, 88.6]], 2, false) },
   ];
   const METRO = [
-    { id: 'L1', name: 'Line 1', color: '#e5383b', st: [['Fangfei West', 156.2, 90.6], ['Fangfei Road', 161.8, 90.6], ['Lantern Street', 167.4, 90.6], ['Koi Tower', 172.6, 90.6], ['Lanling Mall', 177.2, 90.6], ['Golden Gate', 181.4, 90.6], ['Jinxing North', 186.2, 90.6], ['Yaotai Road', 191.8, 90.6]] },
-    { id: 'L2', name: 'Line 2', color: '#f0a202', st: [['Koi Road', 172.6, 84.3], ['Koi Tower', 172.6, 90.6], ['Night Market', 172.6, 95.4], ['Riverside', 172.6, 99.2], ['Lanling South Railway Station', 173.6, 104.2]] },
-    { id: 'L3', name: 'Line 3', color: '#14a89a', st: [['Lanling International', 164.2, 84.3], ['Koi Road', 172.6, 84.3], ['Peony Park', 177.4, 84.3], ['Golden Gate North', 181.4, 84.3], ['Golden Gate', 181.4, 90.6], ['Golden Peony', 181.2, 97.6], ['Jinxing Middle', 185.4, 95.2], ['Jinxing East', 189.6, 94.8]] },
+    { id: 'L1', name: 'Harbor Line', color: '#c8323c', st: [['Jade Avenue', 215.4, 120], ['Feiyun Slope', 224.6, 123.2], ['Northland', 231.4, 125.6], ['Harbor Road', 238.2, 126.2], ['Pier 7', 238.6, 133.6], ['Crux Pier', 238.9, 140.4], ['Chihu Rock', 236.6, 149.6]] },
+    { id: 'L2', name: 'Terrace Line', color: '#e0a526', st: [['Liyue Harbor Station', 212.6, 112], ['Jade Avenue', 215.4, 120], ['Lantern Street', 216, 130.4], ['Yujing Terrace', 212.4, 138.4], ['Golden House', 218, 144], ['South Gate', 219.8, 153.6]] },
+    { id: 'L3', name: 'Lantern Line', color: '#1f7fd0', st: [['Lantern Street', 216, 130.4], ['Wangsheng', 224, 131.6], ['Heyu', 228.6, 132], ['Pier 7', 238.6, 133.6]] },
   ];
   const RAIL_ST = [
-    { name: 'Gusu North Station', city: 'Gusu', at: [72.6, 76.6], place: 'gusu-north' },
-    { name: 'Lanling South Railway Station', city: 'Lanling', at: [173.6, 104.2], place: 'lanling-south' },
-    { name: 'Yunmeng Station', city: 'Yunmeng', at: [264.4, 138.6], place: 'yunmeng-station' },
-    { name: 'Qinghe East Station', city: 'Qinghe', at: [184.6, 30.2], place: 'qinghe-east' },
-    { name: 'Yiling Station', city: 'Yiling', at: [106.6, 186.6], place: null },
+    { name: 'Liyue Harbor Station', city: 'Liyue Harbor', at: [212.6, 112], place: 'liyue-station' },
+    { name: 'Airport Station', city: 'Airport Spit', at: [250.4, 88.6], place: 'airport' },
+    { name: 'Stone Gate Station', city: 'Stone Gate', at: [153, 22], place: null },
   ];
 
   const LABELS = [
-    { t: 'Gusu Mountains', at: [30, 44], k: 'mtn', z0: 1.0, z1: 7, size: 13 },
-    { t: 'Qishan Hills', at: [118, 30], k: 'mtn', z0: 1.4, z1: 9, size: 12 },
-    { t: 'Qiongqi Hills', at: [136, 150], k: 'mtn', z0: 1.8, z1: 9, size: 12 },
-    { t: 'Beiling Hills', at: [182, 9], k: 'mtn', z0: 2.2, z1: 10, size: 11 },
-    { t: 'Burial Mounds', at: [89.4, 177], k: 'mtn', z0: 2.6, z1: 40, size: 12, dark: true },
-    { t: 'Qiongqi Pass', at: [127.6, 152], k: 'pass', z0: 4, z1: 40, size: 11 },
-    { t: 'East Sea', at: [316, 120], k: 'water', z0: 1.0, z1: 12, size: 13 },
-    { t: 'JINLIN', at: [168.6, 88.2], k: 'dist', z0: 11, z1: 70 },
-    { t: 'PEONY HILL', at: [178.6, 80.4], k: 'dist', z0: 11, z1: 70 },
-    { t: 'FANGFEI', at: [158.8, 93.6], k: 'dist', z0: 11, z1: 70 },
-    { t: 'RIVERSIDE', at: [176.8, 97.4], k: 'dist', z0: 11, z1: 70 },
-    { t: 'JINXING', at: [187.4, 92.4], k: 'dist', z0: 11, z1: 70 },
-    { t: 'LANLING SOUTH', at: [176, 107.6], k: 'dist', z0: 11, z1: 70 },
-    { t: 'ACADEMY', at: [163, 81], k: 'dist', z0: 13, z1: 70 },
-    { t: 'OLD TOWN', at: [66.4, 84], k: 'dist', z0: 14, z1: 90 },
-    { t: 'LOTUS PIER', at: [256.4, 143.8], k: 'dist', z0: 9, z1: 60 },
-    { t: 'OLD TOWN', at: [276.6, 140.2], k: 'dist', z0: 11, z1: 70 },
-    { t: 'LOGISTICS PARK', at: [261.6, 135], k: 'dist', z0: 12, z1: 70 },
-    { t: 'CLOUD RECESSES', at: [51.6, 61.4], k: 'dist', z0: 16, z1: 90 },
+    { t: 'Jueyun Karst', at: [62, 84], k: 'mtn', z0: 1.0, z1: 7, size: 13 },
+    { t: 'Mt. Hulao', at: [178, 44], k: 'mtn', z0: 1.6, z1: 9, size: 12 },
+    { t: 'Mt. Tianheng', at: [192, 126], k: 'mtn', z0: 1.6, z1: 9, size: 12 },
+    { t: 'The Chasm', at: [112, 202], k: 'mtn', z0: 2, z1: 40, size: 12, dark: true },
+    { t: 'Guyun Stone Forest', at: [282, 176], k: 'water', z0: 1.2, z1: 30, size: 11 },
+    { t: 'Liyue Bay', at: [262, 128], k: 'water', z0: 1.0, z1: 14, size: 13 },
+    { t: 'Guili Plains', at: [170, 168], k: 'pass', z0: 2, z1: 20, size: 11 },
+    { t: 'Lingju Pass', at: [158, 194], k: 'pass', z0: 4, z1: 40, size: 11 },
+    { t: 'FEIYUN SLOPE', at: [220, 121], k: 'dist', z0: 11, z1: 70 },
+    { t: 'HARBOR', at: [236, 120], k: 'dist', z0: 11, z1: 70 },
+    { t: 'CHIHU ROCK', at: [234, 151], k: 'dist', z0: 11, z1: 70 },
+    { t: 'YUJING TERRACE', at: [211, 135.4], k: 'dist', z0: 11, z1: 70 },
+    { t: 'JADE QUARTER', at: [212, 126], k: 'dist', z0: 12, z1: 70 },
+    { t: 'LANTERN QUARTER', at: [226, 135.6], k: 'dist', z0: 12, z1: 70 },
   ];
 
   // ═══ Places (the `places` collection; Maps owns it) ═════════════════════
   const P = (id, name, city, x, y, cat, o) => Object.assign({ id, name, city, x, y, cat }, o);
+  const LH = 'Liyue Harbor';
   const PLACES = [
-    P('lotus-pier', 'Lotus Pier', 'Yunmeng', 258.6, 146.6, 'landmark', { addr: '1 Lotus Pier Road, Yunmeng', phone: '+86 555 0716 0000', hours: '24h', rating: 4.8, reviews: 1240, contact: 'hq', web: 'https://lotuspier.yunmeng', minZ: 1.4, look: 'lake', photos: ['p_lotus_pond_day', 'p_sunrise_lake', 'p_lotus_macro'], tags: ['ymj', 'yunmeng jiang group', 'headquarters', 'hq', 'work', 'lotus'],
-      sub: 'Headquarters · Historic Estate', desc: 'Lakeside estate of the Jiang family and headquarters of the Yunmeng Jiang Group (YMJ). The night desk at the main gate is staffed around the clock; the public lotus gardens open on summer weekends. Look for the nine-petal lotus over the gate.' }),
-    P('lp-residence', 'Lotus Pier Residence', 'Yunmeng', 256.9, 146.2, 'home', { addr: '3 Lotus Pier Road, Lotus Pier Estate, Yunmeng', minZ: 10, look: 'lake', sub: 'Private Residence', tags: ['home', 'house'], desc: 'Private residence on the Lotus Pier estate, overlooking the lotus ponds.' }),
-    P('koi-tower', 'Koi Tower', 'Lanling', 171.5, 90.0, 'landmark', { addr: '88 Jinlin Avenue, Jinlin District, Lanling', phone: '+86 555 0518 0001', hours: '07:00-24:00', rating: 4.7, reviews: 8400, web: 'https://koitower.lanling', minZ: 1.4, look: 'koi', photos: ['p_gala_hall', 'p_balcony_moon'], tags: ['jin group', 'gala', 'tower', 'skyscraper', 'koi'],
-      sub: 'Skyscraper · Jin Group Headquarters', desc: 'Headquarters of the Jin Group and Lanling’s tallest tower, crowned in gold. Tonight: Jin Group Autumn Charity Gala, Grand Hall (19:00). The koi pond in the forecourt is home to 88 koi, some older than the tower.' }),
-    P('golden-peony', 'Golden Peony Hotel', 'Lanling', 180.6, 97.9, 'hotel', { addr: '16 Riverside Drive, Riverside, Lanling', phone: '+86 555 0880 1808', hours: '24h', rating: 4.8, reviews: 3120, price: '¥¥¥¥', web: 'https://goldenpeony.lanling', minZ: 7, look: 'hotel', photos: ['p_hotel_lobby'], tags: ['hotel', 'room 1808', 'bar', 'riverside'],
-      sub: 'Hotel · ★★★★★', desc: 'Five-star riverside hotel known for its peony-filled lobby and the Silk Moon rooftop bar over the Great River. Valet parking; pets by arrangement (yes, even very large ones).' }),
-    P('player-home', 'Jinxing Road 27', 'Lanling', 185.6, 94.1, 'pin', { addr: '27 Jinxing Road, Jinxing District, Lanling', minZ: 14, look: 'street', sub: 'Residential Building', tags: ['address', 'jinxing'], desc: 'Twelve-storey residential building between the Qing River and Pet Kingdom. Convenience store on the ground floor.' }),
-    P('cloud-recesses', 'Cloud Recesses', 'Gusu', 52.2, 63.8, 'school', { addr: 'Cloud Recesses, Mount Gusu, Gusu', phone: '+86 555 0512 0000', hours: '09:00-17:00', rating: 4.9, reviews: 6010, web: 'https://cloudrecesses.gusu', minZ: 1.4, look: 'mountain', photos: ['p_cloud_recesses', 'p_rules_wall', 'p_gusu_moon'], tags: ['gusu lan academy', 'academy', 'campus', 'rules', 'lan'],
-      sub: 'University Campus · Gusu Lan Academy', desc: 'Hillside campus of Gusu Lan Academy, wrapped in mist most mornings. The Wall of Discipline lists some 3,000 rules; visitors are kindly asked to observe them (yes, all of them). Quiet hours 21:00–05:00.' }),
-    P('hanshi', 'The Hanshi', 'Gusu', 51.4, 63.0, 'tea', { addr: 'The Hanshi, Cloud Recesses, Gusu', phone: '+86 555 0512 0001', contact: 'lxc', hours: 'invite', minZ: 11, look: 'mountain', photos: ['p_tea_hanshi'], tags: ['tea', 'tea house', 'chancellor', 'zewu-jun', 'lan xichen'],
-      sub: 'Tea House · Private Residence', desc: 'Tea house and residence of the Chancellor of Gusu Lan Academy, among gentians at the quiet end of the campus. Visits by invitation.' }),
-    P('jingshi', 'The Jingshi', 'Gusu', 52.9, 63.1, 'home', { addr: 'The Jingshi, Cloud Recesses, Gusu', minZ: 11, look: 'mountain', tags: ['home', 'wei wuxian', 'lan wangji'], sub: 'Private Residence', desc: 'Private residence inside Cloud Recesses. A radish planter by the door; a rabbit hutch round the back.' }),
-    P('unclean-realm', 'The Unclean Realm', 'Qinghe', 178.4, 22.3, 'landmark', { addr: '1 Nie Road, Qinghe', phone: '+86 555 0225 0000', hours: 'Mon-Fri 09:00-18:00', rating: 4.3, reviews: 2210, web: 'https://niecorp.qinghe', minZ: 1.4, look: 'fortress', tags: ['nie corp', 'headquarters', 'fortress', 'fans'],
-      sub: 'Headquarters · Nie Corp', desc: 'Fortress-like headquarters of Nie Corp on Qinghe’s north hill. The gift shop sells hand-painted fans from Huaisang Fans.' }),
-    P('radish-farm', 'Yiling Radish Co.', 'Yiling', 90.0, 181.2, 'farm', { addr: 'Burial Mounds Hill, Yiling', phone: '+86 555 1031 0031', contact: 'wwx', hours: 'Sat-Sun 10:00-16:00', rating: 4.9, reviews: 318, web: 'https://radish.yiling', minZ: 3, look: 'farm', photos: ['p_radishes', 'p_radish_cake'], tags: ['radish', 'farm', 'farm stand', 'wei wuxian'],
-      sub: 'Farm · Farm Stand', desc: 'Tiny radish farm on the slope of Burial Mounds hill. Weekend farm stand and the occasional pop-up. “Radishes so good you’ll cry” (the owner, probably).' }),
-    P('laoma-hotpot', 'Laoma Hotpot (老妈火锅)', 'Gusu', 66.4, 85.0, 'food', { short: 'Laoma Hotpot', addr: '36 Canal Street, Old Town, Gusu', phone: '+86 555 0512 6688', hours: '11:00-02:00', rating: 4.6, reviews: 2930, price: '¥¥', web: 'https://laomahotpot.gusu', minZ: 9, look: 'gusu', photos: ['p_hotpot_alumni', 'food_hotpot'], tags: ['hotpot', 'restaurant', 'mala', 'food', 'dinner', 'laoma'],
-      sub: 'Hotpot Restaurant · ¥¥', desc: 'Gusu’s loudest hotpot since 1998: bone broth or numbing mala, hand-cut lamb, and a red sign you can see from the canal. A favourite with students after exams.' }),
-    P('lanling-intl', 'Lanling International School', 'Lanling', 164.2, 83.2, 'school', { addr: '2 Academy Road, Academy District, Lanling', phone: '+86 555 0418 6600', hours: 'Mon-Fri 07:30-17:30', rating: 4.5, reviews: 640, web: 'https://lanling-intl.lanling', minZ: 9, look: 'campus', tags: ['school', 'archery', 'jin ling', 'high school'],
-      sub: 'Private School', desc: 'Private K–12 school with an IB programme. Home of the regional champion archery team.' }),
-    P('guanyin-temple', 'Guanyin Temple', 'Yunmeng', 288.6, 124.0, 'temple', { addr: 'Guanyin Temple Road, Yunmeng', phone: '+86 555 0716 8888', hours: '06:00-18:00', rating: 4.7, reviews: 1930, minZ: 3, look: 'temple', tags: ['temple', 'shrine', 'guanyin'],
-      sub: 'Buddhist Temple', desc: 'Quiet hilltop temple on the road out of Yunmeng. The evening bell carries across the lake.' }),
-    P('yunmeng-lake', 'Yunmeng Lake Pavilion', 'Yunmeng', 240.6, 150.2, 'park', { addr: 'Lakeside Road, Yunmeng', hours: '24h', rating: 4.8, reviews: 4610, minZ: 5, look: 'lake', photos: ['p_kites', 'p_sunrise_lake', 'p_lotus_macro'], tags: ['park', 'pavilion', 'kites', 'lake', 'lotus'],
-      sub: 'Park · Scenic Lookout', desc: 'Old pavilion on the west shore of Yunmeng Lake, with a railing by Mianmian Studio. The best kite wind in the province, according to every child who grew up here.' }),
-    P('pet-kingdom', 'Pet Kingdom', 'Lanling', 182.9, 95.1, 'pet', { addr: '118 Jinxing Road, Jinxing District, Lanling', phone: '+86 555 0601 3300', hours: '09:00-21:00', rating: 4.4, reviews: 870, web: 'https://petkingdom.lanling', minZ: 11, look: 'street', photos: ['p_receipt'], tags: ['pet store', 'dog food', 'pets', 'grooming', 'dog'],
-      sub: 'Pet Store', desc: 'Pet superstore: giant-breed food, grooming, a self-service dog wash and the Platinum Paw membership desk.' }),
-    // extras used by the apps
-    P('koi-residences', 'Koi Tower Residences', 'Lanling', 172.7, 88.9, 'home', { addr: '90 Jinlin Avenue, Jinlin District, Lanling', phone: '+86 555 0888 0090', hours: '24h', minZ: 12, look: 'koi', tags: ['apartments', 'residence', 'jin ling'], sub: 'Residential Tower', desc: 'Residential tower beside Koi Tower with a 24-hour concierge (and a strict “dogs under 30 kg” rule that has never once been enforced).' }),
-    P('koi-pond', 'Koi Tower Koi Pond', 'Lanling', 171.28, 90.42, 'park', { short: 'Koi Pond', addr: 'Koi Tower Forecourt, 88 Jinlin Avenue, Lanling', hours: '24h', rating: 4.6, reviews: 2380, minZ: 40, look: 'koi', tags: ['pond', 'koi', 'fish'], sub: 'Water Garden', desc: 'Eighty-eight koi, three stone bridges and a strict no-wading policy. The oldest koi, Old Gold, is 41.' }),
-    P('lanling-south', 'Lanling South Railway Station', 'Lanling', 173.6, 104.2, 'transit', { short: 'Lanling South Station', addr: 'Station Road, Lanling South', hours: '05:30-24:00', rating: 4.1, reviews: 9800, minZ: 5, look: 'station', tags: ['train', 'railway', 'station', 'metro', 'high-speed'], sub: 'Railway Station', desc: 'High-speed trains to Gusu North, Yunmeng and Qinghe East. Metro Line 2.' }),
-    P('yunmeng-station', 'Yunmeng Station', 'Yunmeng', 264.4, 138.6, 'transit', { addr: 'Station Road, Yunmeng', hours: '05:30-23:30', rating: 4.2, reviews: 3400, minZ: 5, look: 'station', tags: ['train', 'railway', 'station'], sub: 'Railway Station', desc: 'High-speed trains to Lanling South and Gusu North.' }),
-    P('gusu-north', 'Gusu North Station', 'Gusu', 72.6, 76.6, 'transit', { addr: 'Station Link, Gusu', hours: '05:30-23:30', rating: 4.3, reviews: 2900, minZ: 5, look: 'station', tags: ['train', 'railway', 'station'], sub: 'Railway Station', desc: 'High-speed trains to Lanling South and Yunmeng; regional trains to Yiling. Shuttle bus to Cloud Recesses (not after 21:00 — quiet hours).' }),
-    P('qinghe-east', 'Qinghe East Station', 'Qinghe', 184.6, 30.2, 'transit', { addr: 'Station Link, Qinghe', hours: '05:30-23:30', rating: 4.0, reviews: 1500, minZ: 5, look: 'station', tags: ['train', 'railway', 'station'], sub: 'Railway Station', desc: 'Trains to Lanling South.' }),
-    P('ymj-warehouse', 'YMJ Warehouse B', 'Yunmeng', 261.2, 139.0, 'business', { addr: '6 Warehouse Road, Logistics Park, Yunmeng', phone: '+86 555 0716 0000', contact: 'hq', hours: '24h', minZ: 11, look: 'warehouse', tags: ['warehouse', 'ymj', 'logistics', 'lotus root'], sub: 'Warehouse · Yunmeng Jiang Group', desc: 'Cold-chain warehouse and canteen of the Yunmeng Jiang Group. New roof (2026) by Mianmian Studio. Currently holding a great deal of lotus root.' }),
-    P('night-market', 'Lanling Night Market', 'Lanling', 175.6, 96.0, 'food', { addr: 'Riverside Lane, Riverside, Lanling', hours: '18:00-02:00', rating: 4.5, reviews: 5200, minZ: 9, look: 'market', tags: ['night market', 'street food', 'skewers', 'snacks', 'food', 'pop-up'], sub: 'Night Market · ¥', desc: 'Two hundred stalls between Phoenix Road and the river: skewers, stinky tofu, sugar-painted koi. This weekend: a radish pop-up from Yiling.' }),
-    P('auntie-lu', 'Auntie Lu’s Soup Kitchen', 'Gusu', 67.6, 84.2, 'food', { addr: '12 Canal Road, Old Town, Gusu', phone: '+86 555 0512 3366', hours: '10:00-21:00', rating: 4.8, reviews: 1460, price: '¥', minZ: 13, look: 'gusu', photos: ['food_soup'], tags: ['soup', 'restaurant', 'lotus root soup', 'food'], sub: 'Soup Restaurant · ¥', desc: 'Slow-simmered soups since 1987. The lotus root & pork rib soup sells out by noon.' }),
-    P('grandma-qin', 'Grandma Qin’s Kitchen', 'Lanling', 168.8, 93.2, 'food', { addr: '41 Lantern Street, Jinlin, Lanling', phone: '+86 555 0888 4410', hours: '10:30-22:00', rating: 4.7, reviews: 2100, price: '¥¥', minZ: 13, look: 'street', photos: ['food_dumplings', 'food_noodles'], tags: ['home cooking', 'restaurant', 'vegetables', 'food'], sub: 'Home-style Restaurant · ¥¥', desc: 'Home-style cooking with an unreasonable number of vegetable dishes.' }),
-    P('night-owl', 'Night Owl Congee', 'Yunmeng', 273.4, 139.6, 'food', { addr: '9 Yunmeng Avenue, Old Town, Yunmeng', phone: '+86 555 0716 2424', hours: '24h', rating: 4.6, reviews: 1880, price: '¥', minZ: 13, look: 'street', photos: ['food_congee'], tags: ['congee', 'late night', '24 hours', 'food'], sub: 'Congee · 24 hours', desc: 'Congee, youtiao and salted duck egg, all night. Popular with logistics shift workers and one particular CEO.' }),
-    P('night-owl-ll', 'Night Owl Congee (Jinxing)', 'Lanling', 184.3, 95.3, 'food', { addr: '60 Jinxing Road, Jinxing District, Lanling', phone: '+86 555 0888 2424', hours: '24h', rating: 4.5, reviews: 960, price: '¥', minZ: 13, look: 'street', photos: ['food_congee'], tags: ['congee', 'late night', '24 hours', 'food'], sub: 'Congee · 24 hours', desc: 'The Lanling branch of the all-night congee shop.' }),
-    P('tea-leaf', 'Tea Leaf Milk Tea', 'Yunmeng', 270.8, 139.4, 'cafe', { addr: '21 Lotus Pier Road, Yunmeng', phone: '+86 555 0716 3838', hours: '10:00-22:00', rating: 4.4, reviews: 760, price: '¥', minZ: 14, look: 'street', photos: ['food_milktea'], tags: ['milk tea', 'bubble tea', 'drinks', 'cafe'], sub: 'Milk Tea Shop', desc: 'Brown sugar milk tea; bulk orders welcome (38 is a perfectly normal number).' }),
-    P('cr-tea-shop', 'Cloud Recesses Tea Shop', 'Gusu', 53.8, 65.6, 'tea', { addr: 'Main Gate, Cloud Recesses, Gusu', phone: '+86 555 0512 2000', hours: '08:00-17:00', rating: 4.9, reviews: 880, price: '¥¥¥', web: 'https://tea.cloudrecesses.gusu', minZ: 12, look: 'mountain', photos: ['p_tea_hanshi'], tags: ['tea', 'white peony', 'tea shop', 'gift'], sub: 'Tea Shop', desc: 'Mountain-grown white peony and Cloud Mist green from the Academy’s own terraces. Delivery to campus residences on request.' }),
-    P('cr-guesthouse', 'Cloud Recesses Guesthouse', 'Gusu', 54.6, 66.4, 'hotel', { addr: 'Main Gate, Cloud Recesses, Gusu', phone: '+86 555 0512 0066', hours: '24h', rating: 4.6, reviews: 540, price: '¥¥', minZ: 13, look: 'mountain', tags: ['hotel', 'guesthouse'], sub: 'Guesthouse', desc: 'Simple rooms at the foot of the Academy stairs. Lights out at 21:00. Really.' }),
-    P('gusu-teahouse', 'Gusu Tea House', 'Gusu', 70.8, 82.0, 'tea', { addr: '3 Gusu Main Street, Old Town, Gusu', phone: '+86 555 0512 2211', hours: '09:00-21:00', rating: 4.6, reviews: 1320, price: '¥¥', minZ: 13, look: 'gusu', photos: ['p_tea_hanshi'], tags: ['tea', 'tea house', 'snacks'], sub: 'Tea House', desc: 'Canal-side tea house with a pingtan singer on weekends.' }),
-    P('lanling-vet', 'Lanling Pet Hospital', 'Lanling', 167.0, 88.0, 'health', { addr: '5 Lantern Street, Jinlin, Lanling', phone: '+86 555 0888 1200', hours: '24h', rating: 4.8, reviews: 690, minZ: 13, look: 'street', tags: ['vet', 'veterinarian', 'animal hospital', 'dog', 'dr fang'], sub: 'Veterinary Hospital · 24 hours', desc: '24-hour animal hospital. Dr. Fang has treated Fairy for nine years and has stopped asking how.' }),
-    P('lanling-mall', 'Lanling Mall', 'Lanling', 177.2, 91.4, 'shopping', { addr: '200 Jinlin Avenue, Lanling', phone: '+86 555 0888 5000', hours: '10:00-22:00', rating: 4.4, reviews: 7200, minZ: 10, look: 'street', tags: ['mall', 'shopping', 'sneaker palace', 'sneakers', 'cinema'], sub: 'Shopping Mall', desc: 'Six floors of shops including Sneaker Palace, Koi Records and a rooftop cinema.' }),
-    P('lanling-motors', 'Lanling Motors', 'Lanling', 160.6, 96.9, 'auto', { addr: '77 Phoenix Road, Fangfei, Lanling', phone: '+86 555 0888 6600', hours: '09:00-19:00', rating: 4.2, reviews: 410, minZ: 13, look: 'street', tags: ['car dealer', 'cars', 'dealership'], sub: 'Car Dealership', desc: 'New and used cars. Deposits refundable within 24 hours (one customer has tested this).' }),
-    P('silver-lotus', 'Silver Lotus Jewelers', 'Yunmeng', 271.2, 141.2, 'shopping', { addr: '30 Lotus Pier Road, Yunmeng', phone: '+86 555 0716 6060', hours: '10:00-19:00', rating: 4.9, reviews: 230, minZ: 14, look: 'street', tags: ['jeweler', 'silver', 'restoration', 'bell'], sub: 'Jeweler · Silver Restoration', desc: 'Silversmiths since 1952. Restoration of heirloom silver; engraving while you wait.' }),
-    P('peony-park', 'Peony Park', 'Lanling', 176.8, 85.2, 'park', { addr: 'Koi Road, Peony Hill, Lanling', hours: '05:00-23:00', rating: 4.7, reviews: 6400, minZ: 8, look: 'park', tags: ['park', 'dog run', 'lake', 'peonies'], sub: 'Park', desc: 'Lanling’s favourite park: peony gardens, Peony Lake and an off-leash dog run that Fairy treats as her personal property.' }),
-    P('jinxing-police', 'Jinxing Road Police Station', 'Lanling', 187.2, 95.2, 'police', { addr: '140 Jinxing Road, Jinxing District, Lanling', phone: '+86 555 0888 0110', hours: '24h', rating: 4.1, reviews: 120, minZ: 13, look: 'street', tags: ['police', 'lost and found', 'lost property', 'found phone'], sub: 'Police Station · Lost & Found', desc: 'Neighbourhood police station. The Lost & Found desk is open 24 hours: found items can be handed in at any time, and the owner is contacted for you.' }),
-    P('yiling-ems', 'Yiling Emergency Medical Station', 'Yiling', 105.4, 191.6, 'health', { addr: '8 Yiling Main Road, Yiling', phone: '+86 555 0611 0120', hours: '24h', rating: 4.9, reviews: 210, minZ: 13, look: 'street', tags: ['ambulance', 'ems', 'paramedic', 'wen ning'], sub: 'Ambulance Station', desc: 'Emergency medical station serving Yiling and the Burial Mounds villages.' }),
-    P('koi-cafe', 'Koi Tower Café', 'Lanling', 171.9, 89.7, 'cafe', { addr: 'Lobby, Koi Tower, 88 Jinlin Avenue, Lanling', hours: '07:00-24:00', rating: 4.3, reviews: 1500, price: '¥¥', minZ: 15, look: 'koi', photos: ['food_lotus_cake', 'food_milktea'], tags: ['cafe', 'coffee', 'cake', 'milk tea'], sub: 'Café', desc: 'Lobby café with a view of the koi pond. Gold-leaf lotus cake for the brave.' }),
-    P('lotus-root-kitchen', 'Lotus Root Kitchen', 'Lanling', 176.6, 93.0, 'food', { addr: '12 Golden Lane, Riverside, Lanling', phone: '+86 555 0888 7171', hours: '11:00-01:00', rating: 4.7, reviews: 1730, price: '¥¥', minZ: 13, look: 'street', photos: ['food_soup', 'food_lotus_cake'], tags: ['yunmeng food', 'soup', 'lotus root', 'restaurant'], sub: 'Yunmeng Cuisine · ¥¥', desc: 'Yunmeng home cooking in Lanling: lotus root and pork rib soup, sweet osmanthus lotus root, lake fish.' }),
-    P('golden-dumpling', 'Golden Dumpling House', 'Lanling', 179.0, 93.6, 'food', { addr: '8 Golden Gate Avenue, Lanling', phone: '+86 555 0888 8686', hours: '10:00-02:00', rating: 4.5, reviews: 2600, price: '¥', minZ: 13, look: 'street', photos: ['food_dumplings', 'food_baozi'], tags: ['dumplings', 'baozi', 'restaurant', 'late night'], sub: 'Dumplings · ¥', desc: 'Pleated by hand, eighteen folds each, until 2 AM.' }),
-    P('peony-bakery', 'Peony Bakery', 'Lanling', 174.4, 92.2, 'cafe', { addr: '3 Peony Boulevard, Lanling', phone: '+86 555 0888 2018', hours: '08:00-21:00', rating: 4.8, reviews: 1980, price: '¥¥', minZ: 14, look: 'street', photos: ['food_lotus_cake', 'p_cake_lotus'], tags: ['bakery', 'cake', 'birthday cake', 'lotus seed paste'], sub: 'Bakery', desc: 'Custom celebration cakes; lotus seed paste is the house speciality. Order 48 hours ahead.' }),
-    P('lanling-archery', 'Lanling Archery Club', 'Lanling', 158.4, 85.4, 'sports', { addr: '18 Koi Road, Academy District, Lanling', phone: '+86 555 0888 3390', hours: '08:00-21:00', rating: 4.6, reviews: 280, minZ: 13, look: 'campus', tags: ['archery', 'sports', 'club'], sub: 'Archery Range', desc: 'Indoor and outdoor ranges; home ground of the Lanling International team.' }),
-    P('yiling-cemetery', 'Yiling Hill Cemetery', 'Yiling', 107.6, 195.2, 'park', { addr: 'Cemetery Lane, Yiling', hours: '06:00-18:00', minZ: 14, look: 'farm', tags: ['cemetery', 'camphor tree'], sub: 'Cemetery', desc: 'Small hillside cemetery behind the old clinic, shaded by an old camphor tree.' }),
+    P('pier7', 'Pier 7', LH, 241.0, 134.2, 'landmark', { addr: 'Pier 7, Harbor Promenade, Liyue Harbor', hours: '24h', rating: 4.6, reviews: 1820, minZ: 6, look: 'lake', photos: ['p_pier7_rod', 'p_zl_pier', 'p_catch_1'], tags: ['pier', 'fishing', 'harbor', 'sea'],
+      sub: 'Pier · Fishing Spot', desc: 'An old stone pier at the end of the Harbor Promenade, popular with night fishermen. Slack tide around 23:00. Signs ask visitors not to leave bait on the benches.' }),
+    P('northland', 'Northland Bank, Liyue Branch', LH, 230.8, 118.6, 'business', { short: 'Northland Bank', addr: '1 Harbor Road, Liyue Harbor', phone: '(0761) 555 0110', contact: 'ekat', hours: 'Mon-Fri 09:00-17:00', rating: 3.1, reviews: 412, web: 'https://northland.sn/liyue', minZ: 6, look: 'street', photos: ['p_northland_lobby'], tags: ['bank', 'northland', 'snezhnaya', 'fatui', 'office'],
+      sub: 'Bank · Snezhnayan', desc: 'Liyue branch of the Northland Bank Group. Ice-blue marble lobby, very polite staff, very large security guards. Reviews mention “an unsettling chandelier”.' }),
+    P('wangsheng', 'Wangsheng Funeral Parlor', LH, 221.4, 129.6, 'business', { addr: '77 Feiyun Slope, Liyue Harbor', phone: '(0761) 555 0144', contact: 'ht', hours: '24h', rating: 4.9, reviews: 777, web: 'https://wangsheng.ly', minZ: 7, look: 'temple', photos: ['p_wangsheng_door', 'p_coffin4'], tags: ['funeral', 'parlor', 'hu tao', 'zhongli', 'coffin'],
+      sub: 'Funeral Parlor · Since the 1st Director', desc: 'Seventy-seven generations of funerals. Currently running an autumn sale: second coffin half price. The consultant is available for historical questions at any hour.' }),
+    P('liuli', 'Liuli Pavilion', LH, 226.4, 126.4, 'food', { addr: '18 Feiyun Slope, Liyue Harbor', phone: '(0761) 555 0410', hours: '11:00-23:00', rating: 4.9, reviews: 3410, price: 'ℳℳℳℳ', web: 'https://liuli.ly', minZ: 9, look: 'street', photos: ['p_liuli_dinner'], tags: ['restaurant', 'fine dining', 'liyue cuisine', 'tea'],
+      sub: 'Fine Dining · Liyue Cuisine', desc: 'The harbor’s most exclusive restaurant, with private rooms over the water. Reservations essential. The river room is “always booked” on Fridays.' }),
+    P('heyu', 'Heyu Tea House', LH, 228.6, 132.4, 'tea', { addr: '4 Lantern Street, Liyue Harbor', phone: '(0761) 555 0156', contact: 'yunjin', hours: '10:00-23:00', rating: 4.8, reviews: 2890, price: 'ℳℳ', minZ: 9, look: 'street', photos: ['p_heyu_stage'], tags: ['tea', 'opera', 'yun jin', 'theater'],
+      sub: 'Tea House · Opera', desc: 'Tea house and opera stage, home of the Yun-Han Opera Troupe. Saturday matinee: Yun Jin in “The Divine Damsel” (sold out).' }),
+    P('yujing', 'Yujing Terrace', LH, 212.6, 138.6, 'landmark', { addr: 'Yujing Terrace, Liyue Harbor', hours: '24h', rating: 4.9, reviews: 9100, minZ: 3, look: 'temple', photos: ['p_yujing_lanterns', 'p_cranes_yujing'], tags: ['terrace', 'rite', 'funeral', 'lanterns', 'cranes', 'rex lapis'],
+      sub: 'Historic Terrace · Rite of Parting', desc: 'Stone terraces above the harbor where the Rite of Descension is held each year. This Sunday at 10:00: the Rite of Parting for Rex Lapis. Expect crowds and a thousand white lanterns.' }),
+    P('jade', 'The Jade Chamber', LH, 214.4, 143.0, 'landmark', { addr: 'Above Yujing Terrace, Liyue Harbor', phone: '(0761) 555 0100', contact: 'ning', hours: 'by appointment', rating: 4.8, reviews: 2210, minZ: 4, look: 'temple', photos: ['p_jade_chamber'], tags: ['jade chamber', 'ningguang', 'qixing', 'tianquan'],
+      sub: 'Residence · Office of the Tianquan', desc: 'The Tianquan’s jade palace, suspended above the harbor. Visits by appointment only. It is unclear how the stairs work.' }),
+    P('golden-house', 'The Golden House', LH, 217.8, 144.6, 'landmark', { addr: 'Golden House Steps, Liyue Harbor', hours: 'Closed to the public', rating: 4.5, reviews: 1480, minZ: 6, look: 'temple', photos: ['p_golden_house'], tags: ['mint', 'vault', 'golden house', 'gnosis'],
+      sub: 'Historic Mint & Vault', desc: 'Liyue’s old mint, where the first Mora was struck. Closed to the public; this Sunday at 16:00 it is “reserved for a private handover”.' }),
+    P('wanmin-rest', 'Wanmin Restaurant', LH, 235.4, 147.6, 'food', { addr: '8 Chihu Rock Lane, Liyue Harbor', phone: '(0761) 555 0161', contact: 'xl', hours: '10:00-02:00', rating: 4.9, reviews: 6820, price: 'ℳℳ', web: 'https://wanmingo.ly/wanmin', minZ: 9, look: 'market', photos: ['p_wanmin_kitchen', 'food_hotpot', 'p_hotpot_crew'], tags: ['restaurant', 'hotpot', 'xiangling', 'chili', 'wanmin'],
+      sub: 'Restaurant · Liyue Cuisine', desc: 'Chef Xiangling’s legendary kitchen, with the hottest hotpot in Liyue. Guoba the red panda is not a health code violation (he is a “sous chef”).' }),
+    P('xinyue', 'Xinyue Kiosk', LH, 231.2, 138.2, 'food', { addr: '12 Wanmin Street, Liyue Harbor', phone: '(0761) 555 0170', hours: '11:00-22:00', rating: 4.6, reviews: 1200, price: 'ℳℳℳ', minZ: 11, look: 'street', tags: ['restaurant', 'liyue cuisine'], sub: 'Restaurant', desc: 'Elegant kiosk-style restaurant famous for its “one of everything” tasting menu.' }),
+    P('third-round', 'Third-Round Knockout', LH, 236.6, 141.4, 'food', { addr: '2 Crux Pier Road, Liyue Harbor', phone: '(0761) 555 0172', hours: '17:00-03:00', rating: 4.4, reviews: 980, price: 'ℳ', minZ: 11, look: 'market', tags: ['diner', 'teahouse', 'late night', 'sailors'], sub: 'Teahouse & Diner', desc: 'Dockside teahouse-diner where Crux sailors settle bets. The punch card gives a free tea every ten visits.' }),
+    P('alcor', 'The Alcor, Crux Pier', LH, 242.6, 141.2, 'landmark', { short: 'The Alcor', addr: 'Crux Pier, Liyue Harbor', phone: '(0761) 555 0190', contact: 'beidou', hours: 'when in port', rating: 4.9, reviews: 1530, minZ: 7, look: 'lake', photos: ['p_alcor_deck'], tags: ['ship', 'crux', 'beidou', 'fleet', 'rematch'],
+      sub: 'Flagship · Crux Fleet', desc: 'Flagship of the Crux Fleet, moored at Crux Pier. Captain Beidou hosts “friendly” sparring nights on deck. Spectators welcome; bets discouraged; bets happen.' }),
+    P('mingyun', 'Mingyun Toys & Games', LH, 226.2, 140.4, 'shopping', { addr: '30 Lane of Stone Lions, Liyue Harbor', phone: '(0761) 555 0177 2', hours: '09:00-21:00', rating: 4.8, reviews: 640, minZ: 11, look: 'street', tags: ['toys', 'glacier guardians', 'games', 'kids'], sub: 'Toy Store', desc: 'The harbor’s best toy shop. The Glacier Guardians Frost Fortress is back in stock. Staff will wrap anything, including elves.' }),
+    P('wanwen', 'Wanwen Bookhouse', LH, 223.4, 121.4, 'shopping', { addr: '6 Feiyun Slope, Liyue Harbor', phone: '(0761) 555 0181 2', hours: '09:00-22:00', rating: 4.7, reviews: 520, minZ: 12, look: 'street', tags: ['books', 'bookshop', 'rocks'], sub: 'Bookshop', desc: 'Light novels downstairs, geology upstairs. Sold a 900-page book about rocks to a man in a gold-trimmed coat, who then gave it to someone else.' }),
+    P('bubu', 'Bubu Pharmacy', LH, 217.2, 127.6, 'health', { addr: '21 Jade Avenue, Liyue Harbor', phone: '(0761) 555 0120', hours: '08:00-22:00', rating: 4.7, reviews: 860, minZ: 12, look: 'street', tags: ['pharmacy', 'medicine', 'doctor'], sub: 'Pharmacy', desc: 'Dr. Baizhu’s pharmacy. Ask about the herbal remedies; do not ask about the snake.' }),
+    P('mingxing', 'Mingxing Jewelry', LH, 225.4, 133.6, 'shopping', { addr: '9 Lantern Street, Liyue Harbor', phone: '(0761) 555 0188', hours: '10:00-20:00', rating: 4.6, reviews: 310, minZ: 12, look: 'street', tags: ['jewelry', 'jade', 'gifts'], sub: 'Jeweler', desc: 'Fine jade and gold since the second century of the Exchange.' }),
+    P('feiyun-guild', 'Feiyun Commerce Guild', LH, 222.0, 125.2, 'business', { addr: '1 Feiyun Slope, Liyue Harbor', phone: '(0761) 555 0763', hours: 'Mon-Sat 09:00-18:00', rating: 4.3, reviews: 450, minZ: 11, look: 'street', tags: ['feiyun', 'market', 'guild', 'auction'], sub: 'Trading House', desc: 'The trading house behind Feiyun Market. The auction floor closes at midnight; online lots run later.' }),
+    P('millelith', 'Millelith Station, Harbor', LH, 224.6, 120.6, 'police', { addr: '3 Lane of Stone Lions, Liyue Harbor', phone: '110', hours: '24h', rating: 4.0, reviews: 140, minZ: 12, look: 'street', tags: ['police', 'millelith', 'lost property'], sub: 'Police Station', desc: 'Harbor station of the Millelith. Lost property is accepted at the front desk at any hour.' }),
+    P('apartment', 'Pier View Residences', LH, 236.6, 121.6, 'home', { addr: '22 Harbor Road, Unit 2207, Liyue Harbor', minZ: 10, look: 'street', sub: 'Residential Tower', tags: ['home', 'apartment', 'childe'], desc: 'Glass residential tower on Harbor Road with views over Liyue Bay. Unit 2207. A black car has been parked opposite since Saturday.' }),
+    P('player-home', 'Chihu Rock, Lane 3', LH, 234.4, 152.4, 'pin', { addr: 'Lane 3, Chihu Rock, Liyue Harbor', minZ: 14, look: 'street', sub: 'Residential Building', tags: ['address', 'home', 'chihu rock'], desc: 'A narrow walk-up by Chihu Rock Park. Your flat. The stairs smell of chili from Wanmin.' }),
+    P('liyue-grand', 'Liyue Harbor Grand', LH, 232.6, 128.2, 'hotel', { addr: '40 Harbor Road, Liyue Harbor', phone: '(0761) 555 0450', hours: '24h', rating: 4.5, reviews: 2140, price: 'ℳℳℳℳ', minZ: 9, look: 'hotel', tags: ['hotel', 'northland', 'snezhnaya', 'suite'], sub: 'Hotel · ★★★★★ · Northland partner', desc: 'Grand harbor-front hotel owned by a Snezhnayan holding company. Excellent security. Some guests report that the security will not let them leave.' }),
+    P('liyue-station', 'Liyue Harbor Station', LH, 212.6, 112, 'transit', { short: 'Harbor Station', addr: 'Station Square, Liyue Harbor', hours: '05:00-24:00', rating: 4.1, reviews: 8200, minZ: 5, look: 'station', tags: ['train', 'railway', 'station', 'snezhnaya'], sub: 'Railway Station', desc: 'Terminus of the Northern Railway to Snezhnaya (three days, two nights, excellent borscht).' }),
+    P('airport', 'Liyue Harbor International (LHI)', 'Airport Spit', 252.2, 85.4, 'transit', { short: 'Liyue Harbor Intl', addr: 'Airport Spit, Liyue', phone: '95536', hours: '24h', rating: 4.2, reviews: 15800, minZ: 3, look: 'station', tags: ['airport', 'flights', 'liyue air', 'arrivals', 'la 711'], sub: 'International Airport', desc: 'Liyue’s international airport on the northern spit. Arrivals: Gate B. Unaccompanied minors are met by Liyue Air staff.' }),
+    P('wangshu', 'Wangshu Inn', 'Wangshu', 122.2, 141.4, 'hotel', { addr: 'Dihua Marsh Road, Guili Plains', phone: '(0761) 555 0811', hours: '24h', rating: 4.8, reviews: 2600, price: 'ℳℳ', minZ: 3, look: 'mountain', tags: ['inn', 'hotel', 'almond tofu', 'quiet', 'safe'], sub: 'Inn · Countryside', desc: 'A tall inn over Dihua Marsh, an hour from the harbor. Famous for almond tofu and a quiet, watchful young man on the roof.' }),
+    P('guyun', 'Guyun Stone Forest', 'Guyun Stone Forest', 282.0, 160.0, 'landmark', { addr: 'Guyun Stone Forest, Liyue Bay', hours: '—', rating: 4.7, reviews: 3300, minZ: 2, look: 'lake', photos: ['p_storm_guyun', 'p_bluefin', 'p_unit3'], tags: ['stone forest', 'pillars', 'sea', 'osial', 'fishing', 'bluefin'], sub: 'Natural Landmark', desc: 'Towering stone spears in the sea, said to have been thrown down by Rex Lapis to imprison a sea god. Excellent bluefin in autumn. Boats are advised to stay away from pillar G-17.' }),
+    P('chasm', 'The Chasm', 'The Chasm', 112.0, 205.0, 'landmark', { addr: 'Chasm Road, Lingju Pass', hours: 'Closed — unsafe', rating: 3.9, reviews: 610, minZ: 2, look: 'mountain', tags: ['mine', 'chasm', 'abyss', 'closed', 'danger'], sub: 'Abandoned Mine · Closed', desc: 'A vast abandoned mine. Closed since “the incident”. Locals report lights below the third level at 3 AM. Do not go down.' }),
+    P('qingce', 'Qingce Village', 'Qingce Village', 131.2, 61.4, 'farm', { addr: 'Qingce Village, Liyue', hours: '24h', rating: 4.9, reviews: 1900, minZ: 3, look: 'farm', photos: ['p_glaze_lily'], tags: ['village', 'glaze lily', 'terraces', 'flowers'], sub: 'Village · Glaze Lily Terraces', desc: 'Terraced fields of glaze lilies in the hills north-west of the harbor. Best at dawn.' }),
+    P('stonegate', 'Stone Gate', 'Stone Gate', 151.4, 20.6, 'landmark', { addr: 'Stone Gate, Liyue', hours: '24h', rating: 4.3, reviews: 700, minZ: 3, look: 'mountain', tags: ['border', 'gate', 'snezhnaya road'], sub: 'Border Gate', desc: 'Liyue’s old northern gate, on the road and railway to Snezhnaya.' }),
+    P('morepesok', 'Morepesok, Snezhnaya', 'Snezhnaya', 149.0, 1.0, 'home', { short: 'Morepesok', addr: '4 Pristan Lane, Morepesok, Snezhnaya', minZ: 1, look: 'mountain', tags: ['home', 'snezhnaya', 'family', 'village'], sub: 'Fishing Village · 2,400 km north', desc: 'A fishing village on the frozen northern sea, two days north by rail. Home.' }),
+    P('zapolyarny', 'Zapolyarny Palace, Snezhnaya', 'Snezhnaya', 156.0, 0.6, 'landmark', { short: 'Zapolyarny Palace', addr: 'Zapolyarny Palace, Snezhnaya', minZ: 1, look: 'mountain', tags: ['snezhnaya', 'palace', 'northland bank', 'tsaritsa'], sub: 'Palace · Northland Bank Group HQ', desc: 'Seat of the Tsaritsa and headquarters of the Northland Bank Group. 2,600 km north.' }),
   ];
   PLACES.forEach((p) => { if (p.minZ == null) p.minZ = 12; });
   JC.store.seed('places', PLACES);
 
-  const HOME = [185.6, 94.1]; // Jinxing Road 27 — where the taxi dropped the player
+  const HOME = [234.4, 152.4]; // Chihu Rock, Lane 3 — the player's flat
   const CATS = {
     landmark: { color: '#a07b52', glyph: 'building.columns.fill', label: 'Landmark' },
     hotel: { color: '#a95ce0', glyph: 'bed.double.fill', label: 'Hotel' },
@@ -429,7 +358,7 @@
     pin: { color: '#ff3b30', glyph: 'mappin', label: 'Address' },
     transit: { color: '#147efb', glyph: 'tram.fill', label: 'Station' },
     pet: { color: '#ff9f0a', glyph: 'pawprint.fill', label: 'Pet Store' },
-    farm: { color: '#34a853', glyph: 'leaf.fill', label: 'Farm' },
+    farm: { color: '#34a853', glyph: 'leaf.fill', label: 'Village' },
     business: { color: '#7d7d84', glyph: 'building.2', label: 'Business' },
     shopping: { color: '#f2a600', glyph: 'bag.fill', label: 'Shopping' },
     health: { color: '#ff375f', glyph: 'cross.case.fill', label: 'Health' },
@@ -747,7 +676,7 @@
     for (const u of URBAN) if (u.rank <= 3 && x >= u.bb.x0 && x <= u.bb.x1 && y >= u.bb.y0 && y <= u.bb.y1 && pip(x, y, u.pts)) return u.name;
     let best = null;
     URBAN.forEach((u) => { if (u.rank > 3) return; const d = Math.hypot(u.label[0] - x, u.label[1] - y); if (!best || d < best.d) best = { d, n: u.name }; });
-    return best ? best.n : 'Lanling';
+    return best ? best.n : METRO_CITY;
   }
   function railStation(city) { return RAIL_ST.find((s) => s.city === city) || null; }
   function nextDeparture(t, open, close, every) {
@@ -800,7 +729,7 @@
         t = dep + ride + (k < lines.length - 1 ? 3 : 0);
       });
     };
-    if (cA === cB && cA === 'Lanling') {
+    if (cA === cB && cA === METRO_CITY) {
       const sa = nearestStation(A.x, A.y), sb = nearestStation(B.x, B.y);
       if (sa.name === sb.name || Math.hypot(A.x - B.x, A.y - B.y) < 1.2) walkLeg('Walk to ' + (B.short || B.name), Math.hypot(A.x - B.x, A.y - B.y), [B.x, B.y]);
       else { walkLeg('Walk to ' + sa.name + ' Station', sa.d, [sa.x, sa.y]); metroRide(sa, sb); walkLeg('Walk to ' + (B.short || B.name), sb.d, [B.x, B.y]); }
@@ -820,7 +749,7 @@
     } else {
       const ra = railStation(cA), rb = railStation(cB);
       if (!ra || !rb) return null;
-      if (cA === 'Lanling') {
+      if (cA === METRO_CITY) {
         const sa = nearestStation(A.x, A.y), sb = nearestStation(ra.at[0], ra.at[1]);
         if (sa.name !== sb.name) { walkLeg('Walk to ' + sa.name + ' Station', sa.d, [sa.x, sa.y]); metroRide(sa, sb); } else walkLeg('Walk to ' + ra.name, Math.hypot(A.x - ra.at[0], A.y - ra.at[1]), ra.at.slice());
       } else {
@@ -1078,7 +1007,7 @@
     const streetZ = 30, bldZ = 42;
     if (z >= streetZ * 0.8) URBAN.forEach((u) => { if (vis(u.bb)) drawCity(ctx, u, vb, z, S, z >= bldZ, z >= streetZ); });
     // pier
-    if (z > 40) { ctx.strokeStyle = S.pier; ctx.lineWidth = 0.035; line([[258.7, 147.3], [258.9, 148.9]]); ctx.stroke(); line([[258.3, 148.5], [259.4, 148.5]]); ctx.stroke(); }
+    if (z > 40) { ctx.strokeStyle = S.pier; ctx.lineWidth = 0.05; line([[240.4, 134.2], [243.4, 134.2]]); ctx.stroke(); line([[243, 133.4], [243, 135]]); ctx.stroke(); line([[241.6, 141.2], [244.2, 141.2]]); ctx.stroke(); }
     // rail
     if (z > 1.3) {
       RAIL.forEach((r) => {
@@ -1144,10 +1073,10 @@
         ctx.strokeStyle = o.dark ? '#5b6670' : '#a9b4bf'; ctx.lineWidth = wpx * px; line(part); ctx.stroke();
       }
     });
-    // mist over Gusu
+    // mist over Jueyun Karst
     if (o.style !== 'satellite' && z < 40) {
       const mistA = clamp(1 - z / 40, 0, 1);
-      [[30, 30, 14], [50, 50, 10], [22, 52, 9], [60, 36, 11], [44, 22, 9], [52, 62, 4]].forEach(([x, y, r], i) => {
+      [[60, 80, 14], [80, 96, 10], [46, 98, 9], [88, 70, 11], [66, 64, 9], [74, 88, 4]].forEach(([x, y, r], i) => {
         const g = ctx.createRadialGradient(x, y, 0, x, y, r);
         g.addColorStop(0, S.mist.replace(/[\d.]+\)$/, (m) => (parseFloat(m) * mistA * (i === 5 ? 0.9 : 1)) + ')'));
         g.addColorStop(1, 'rgba(255,255,255,0)');
@@ -1352,11 +1281,12 @@
 
   // procedural streets / buildings inside urban areas (drawn in grid space)
   const STREET_NAMES = {
-    lanling: ['Golden Lane', 'Peony Lane', 'Lantern Lane', 'Plum Street', 'Silk Street', 'Crane Lane', 'Jade Street', 'Koi Lane', 'Willow Street', 'Phoenix Lane', 'Pearl Street', 'Orchid Lane', 'Bell Street', 'Brocade Lane', 'Gate Street', 'Tower Lane', 'Amber Street', 'Banner Lane'],
-    yunmeng: ['Lotus Lane', 'Lake Street', 'Reed Lane', 'Boat Street', 'Pier Lane', 'Lotus Seed Lane', 'Heron Street', 'Willow Lane', 'Kite Lane', 'Oar Street', 'Pavilion Lane', 'Lantern Street'],
-    gusu: ['Canal Lane', 'Gentian Lane', 'Cloud Lane', 'Bridge Street', 'Mist Lane', 'Pine Street', 'Rabbit Lane', 'Silk Lane', 'Tea Lane', 'Stone Street'],
-    qinghe: ['Saber Lane', 'Fan Street', 'North Lane', 'Iron Street', 'Hill Lane', 'Gate Lane', 'Banner Street', 'Market Lane'],
-    yiling: ['Radish Lane', 'Hill Street', 'Clinic Lane', 'Camphor Lane', 'Field Street', 'Flute Lane'],
+    liyue: ['Jade Lane', 'Lantern Lane', 'Feiyun Lane', 'Chihu Lane', 'Salt Street', 'Silk Lane', 'Crane Lane', 'Teahouse Lane', 'Glaze Lane', 'Mora Street', 'Porcelain Street', 'Opera Lane', 'Harbor Steps', 'Tide Lane', 'Ferry Street', 'Incense Lane', 'Abacus Street', 'Kite Lane'],
+    qingce: ['Terrace Lane', 'Lily Path', 'Mill Lane', 'Field Street'],
+    wangshu: ['Inn Road', 'Marsh Lane'],
+    stonegate: ['Gate Street', 'Caravan Lane', 'North Lane'],
+    mingyun: ['Ore Lane', 'Forge Street', 'Hill Lane'],
+    airport: ['Terminal Road', 'Cargo Lane'],
   };
   function streetName(u, ax, i) {
     const list = STREET_NAMES[u.id] || ['Lane', 'Street'];
@@ -2100,28 +2030,25 @@
   }
 
   const CALL_LINES = {
-    'golden-peony': ['Golden Peony Hotel, good evening. This is the front desk.', '…Mr. Jiang? Is that you? Your room has been made up — and the white peony tea you asked for is in the room.', 'Shall I send someone up with anything else? …Hello?'],
-    'koi-tower': ['Koi Tower security, night desk.', 'The gala has ended, sir. Guests have left the Grand Hall.', 'If this is about the forecourt — we are aware. We are… very aware. Good night.'],
-    'laoma-hotpot': ['LAOMA HOTPOT!! WHAT? SPEAK UP!', 'TABLE FOR HOW MANY? …HELLO? WE’RE OPEN TILL TWO!', '(the line fills with the sound of a hundred people eating)'],
-    'cloud-recesses': ['You have reached Gusu Lan Academy.', 'Quiet hours are in effect from 21:00 to 05:00. Please call again during office hours.', 'Rule 4 of the Wall of Discipline: no loud voices. Thank you for your understanding.'],
-    'unclean-realm': ['Nie Corp. Our offices are closed.', 'For enquiries about Huaisang Fans, please visit our website. The Chairman does not know anything about anything.', '(beep)'],
-    'lanling-intl': ['Thank you for calling Lanling International School. The office is closed.', 'If you are calling about the chemistry laboratory incident, the matter has been resolved. Eyebrows grow back.'],
-    'pet-kingdom': ['Thank you for calling Pet Kingdom! Our store is now closed. Our hours are 9 AM to 10 PM.', 'For giant-breed food deliveries, please use the Lotus Eats app. Woof!'],
-    'guanyin-temple': ['The temple is closed for the night. Morning prayers begin at six.', '(a recorded bell rings, very softly)'],
-    'jinxing-police': ['Jinxing Road Police Station, Officer Liang speaking.', 'Lost property? If you’ve found something — a phone, a wallet — you can bring it to the front desk any time, day or night. We’ll contact the owner for you.', 'Do you want to give me your name and what you found? …Hello?'],
-    'lanling-vet': ['Lanling Pet Hospital, emergency line. Is your pet injured?', 'If it’s the big black dog again — Dr. Fang says she’s fine and to stop feeding her socks.'],
-    'auntie-lu': ['Auntie Lu’s! We’re closed now, come tomorrow, the soup starts at six in the morning.', 'You want lotus root and pork rib? Large? Same as last time, to the mountain? Hah. I remember you.'],
-    'grandma-qin': ['Grandma Qin’s Kitchen, we’re closed! Eat your vegetables!'],
-    'night-owl': ['Night Owl Congee, still open! What can I get you?', 'Salted duck egg congee? Youtiao? We deliver through Lotus Eats too.'],
-    'night-owl-ll': ['Night Owl Jinxing! Open all night. Order through Lotus Eats, it’s faster!'],
-    'golden-dumpling': ['Golden Dumpling, we close at two. Pickup or Lotus Eats only after midnight.'],
-    'lanling-mall': ['Lanling Mall is now closed. Our opening hours are 10 AM to 10 PM. Goodbye.'],
-    'lanling-motors': ['Lanling Motors. Our showroom is closed. If you are calling about a refund, refunds are processed within 24 hours. We have learned this.'],
-    'silver-lotus': ['Silver Lotus Jewelers. We are closed. If you are collecting the silver bell — it is ready, polished, in its velvet box.'],
-    'yiling-ems': ['Yiling Emergency Medical Station. Is this an emergency?', '…If not, please hang up and call back in the morning. Thank you. — sorry. Thank you.'],
-    'cr-tea-shop': ['Cloud Recesses Tea Shop. We are closed for quiet hours.', 'Orders of white peony can be placed online and delivered to residences on campus.'],
-    'koi-residences': ['Koi Tower Residences, concierge. Good evening.', 'Young Master Jin is not in his apartment at present, sir. Nor is the dog. Good night.'],
-    'peony-bakery': ['Peony Bakery is closed. For celebration cakes please order 48 hours in advance. Lotus seed paste is our speciality!'],
+    'liuli': ['Liuli Pavilion, good evening.', 'Oh — Mr. Tartaglia? The river room is yours next Friday, as always. Shall we chill the osmanthus wine?', 'And… shall we bill you for the gentleman again? Of course. Of course we shall.'],
+    'heyu': ['Heyu Tea House box office.', 'Saturday’s matinee is sold out. Box Two is reserved under Tartaglia, two seats.', 'Miss Yun Jin asks whether “the gentleman who quotes her lyrics” will be attending. She hopes so.'],
+    'wanmin-rest': ['WANMIN!! Xiangling speaking!! Hotpot? Pickup? Is this about the pelmeni??', '…Oh, it’s the machine voice. Ugh. Use Wanmin Go! It’s faster! Guoba says hi!'],
+    'liyue-grand': ['Liyue Harbor Grand, front desk.', 'Suite 1101 is prepared for the children, sir, as the Fifth Harbinger’s office requested. Our staff will escort them at all times.', 'At all times.'],
+    'xinyue': ['Xinyue Kiosk. We are closed. The tasting menu returns tomorrow at eleven.'],
+    'third-round': ['Third-Round Knockout! Open till three. If you’re calling about a bet, the captain says you lost.'],
+    'mingyun': ['Mingyun Toys and Games! We’re closed, but the Frost Fortress is back in stock. Nine to nine!'],
+    'wanwen': ['Wanwen Bookhouse. We are closed. If you are calling about the 900-page book about rocks — no, we don’t do returns.'],
+    'bubu': ['Bubu Pharmacy. Qiqi… is… answering.', '…Qiqi forgot what Qiqi was saying. Come back tomorrow.'],
+    'mingxing': ['Mingxing Jewelry. We are closed. Our jade is not.'],
+    'feiyun-guild': ['Feiyun Commerce Guild. The auction floor is closed. Online lots continue in the Feiyun Market app.'],
+    'millelith': ['Millelith, Harbor station, Guard Jiayi speaking.', 'Lost property? You can bring it to the front desk any time, day or night. Phones especially — people go frantic.'],
+    'wangshu': ['Wangshu Inn, Verr Goldet speaking. We have rooms tonight. Quiet ones.', 'The young man on the roof? Don’t mind him. He keeps watch. Nothing gets past him.'],
+    'liyue-station': ['Liyue Harbor Station. The Northern Railway departs daily at 18:40 for Snezhnaya. Tickets at the counter.'],
+    'airport': ['Liyue Harbor International. For flight information, press one.', 'LA 711 from Zapolyarny is expected on time at 07:40, Gate B.'],
+    'alcor': ['Crux Fleet, The Alcor. Captain’s busy. She says if this is the kid, “Saturday, ten, bring the water swords.”'],
+    'jade': ['Office of the Tianquan. The Tianquan is unavailable. State your name, your business, and its value.'],
+    'wangsheng': ['Wangsheng Funeral Parlor, Hu Tao speaking! How may we bury you today?', '…Oh! It’s you. No, there’s nobody in Coffin Four. Why would you ask that. Byeee~'],
+    'northland': ['Northland Bank, Liyue Branch. Our offices are closed.', 'For card emergencies, freeze your card in the Northland app. For the Director of Special Collections… please hold.', '(The hold music is the corporate anthem. It does not end.)'],
   };
 
   /** Call a place: story contacts ring through the story engine; businesses answer in-world. */
@@ -2210,7 +2137,7 @@
     /** a moving point along a route polyline */
     along(pts, s) { const cum = pts._cum || (pts._cum = cumul(pts)); return along(pts, cum, s); },
     length: plen,
-    /** Swift-style fare estimate (¥) */
+    /** Harbor Ride fare estimate (ℳ) */
     fare(r, tier, t) {
       const hr = new Date(t || JC.time.now()).getHours();
       const night = hr >= 22 || hr < 7;
