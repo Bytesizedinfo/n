@@ -12,61 +12,50 @@
     { id: 'work', title: 'Work', color: '#0a84ff', group: 'iCloud' },
     { id: 'home', title: 'Home', color: '#bf5af2', group: 'iCloud' },
     { id: 'family', title: 'Family', color: '#ff375f', group: 'iCloud' },
-    { id: 'health', title: 'Medication', color: '#30b0c7', group: 'iCloud' },
+    { id: 'health', title: 'Training', color: '#30b0c7', group: 'iCloud' },
     { id: 'birthdays', title: 'Birthdays', color: '#ff9f0a', group: 'Other', ro: true },
-    { id: 'holidays', title: 'Holidays in China', color: '#30d158', group: 'Subscribed', ro: true },
+    { id: 'holidays', title: 'Holidays in Liyue', color: '#30d158', group: 'Subscribed', ro: true },
   ];
 
   // ── Seed events ────────────────────────────────────────────────────────────
   const E = (id, cal, title, start, end, o) => Object.assign({ id, cal, title, start, end, allDay: false, location: '', notes: '', tentative: false }, o || {});
   JC.store.seed('events', [
     // tonight & this weekend
-    E('ev_gala', 'work', 'Jin Group Gala', '+0 19:00', '+0 23:30', { location: 'Koi Tower, Lanling', notes: 'Autumn Charity Gala. Black tie. Table 1.\nSeating chart “changed” — Nie Huaisang emailed (“hehe”).\nLeave by 11.', alert: 60, invitees: ['nhs', 'lxc', 'jl'], organizer: 'Jin Group Events', url: 'jingroup.lanling/gala' }),
-    E('ev_tea_q', 'home', 'Tea? — Hanshi', '+1 15:00', '+1 17:00', { location: 'The Hanshi, Cloud Recesses', notes: 'He said “Saturday, perhaps three?”\nI said I’d see.', tentative: true }),
-    E('ev_aling18', 'family', 'A-Ling turns 18 🎂', '+2 00:00', '+2 23:59', { allDay: true, notes: 'The bell. The cake (lotus seed paste). Do not make a speech.', alert: 'd0' }),
-    E('ev_dinner', 'family', 'Dinner — Lotus Pier (?)', '+2 18:30', '+2 21:00', { location: 'Lotus Pier Residence, Yunmeng', notes: 'Cake: pick up 17:00 (Sizhui’s bakery).\nChairs: four? five?\nSoup — he said he’d bring it. If.', alert: 120 }),
-    E('ev_board', 'work', 'Board — Q4', '+3 09:00', '+3 11:00', { location: 'Lotus Pier HQ, Boardroom 1', notes: 'Deck: Tang Mei. Talking points in Notes.\nDo not engage on Dog Friday.', alert: 30, organizer: 'Tang Mei' }),
+    E('ev_liuli', 'home', 'Dinner — Liuli Pavilion', '+0 20:00', '+0 22:30', { location: 'Liuli Pavilion, Liyue Harbor', notes: 'River room. Osmanthus wine.\nHe will “forget” his wallet. Let him.', invitees: ['zl'] }),
+    E('ev_fishing', 'home', 'Pier 7 — slack tide', '+0 23:00', '+0 23:59', { location: 'Pier 7, Liyue Harbor', notes: 'New rod. Xiansheng says he’ll “watch the sea”. He means sit and talk. Good.' }),
+    E('ev_la711', 'family', 'LA 711 lands 07:40 🐟', '+1 07:40', '+1 08:20', { location: 'Liyue Harbor International, Gate B', notes: 'Tonia + Teucer. Unaccompanied minor service.\n“Mr. Pulcinella arranged everything.” (WHY did Mama let him)\nBooking released to: Office of Pulcinella.', alert: 60 }),
+    E('ev_opera', 'home', 'Yun Jin matinee (2 seats)', '+1 15:00', '+1 17:30', { location: 'Heyu Tea House, Liyue Harbor', notes: 'Box 2. For xiansheng. Don’t tell him till Saturday morning.\nTickets in Wallet.', alert: 60 }),
+    E('ev_rematch', 'home', 'Rematch? — Alcor', '+1 22:00', '+1 23:30', { location: 'The Alcor, Crux Pier', notes: 'Beidou drops her left shoulder. Stay inside her reach. DON’T LAUGH.', tentative: true }),
+    E('ev_rite', 'home', 'Rite of Parting', '+2 10:00', '+2 13:00', { location: 'Yujing Terrace, Liyue Harbor', notes: 'All of Liyue. Wear white.\nXiansheng is running it. He’s weirdly calm about it.' }),
+    E('ev_golden', 'work', 'Golden House — S.', '+2 16:00', '+2 17:00', { location: 'The Golden House, Liyue Harbor', notes: '' }),
+    E('ev_dottore', 'work', 'Dottore: blood work (bring T.)', '+3 09:00', '+3 10:00', { location: 'Northland Medical Wing, Liyue Branch', notes: 'Mandatory “Delusion check-up”.\n“Bring the family baseline.” — I am NOT bringing Teucer.', alert: 60, organizer: 'Northland HR (Liyue)' }),
+    E('ev_kidshome', 'family', 'Kids fly home — LA 712', '+3 13:10', '+3 14:00', { location: 'Liyue Harbor International', notes: 'Check-in 11:30. Sir Fang in the carry-on.' }),
+    E('ev_q4', 'work', 'Q4 numbers to Pantalone', '+3 17:00', '+3 17:30', { location: 'Northland Bank, Liyue Branch' }),
     // this week (past)
-    E('ev_sync', 'work', 'Exec Team Sync', '2026-09-07 10:00', '2026-09-07 11:00', { location: 'Lotus Pier HQ, Boardroom 2', repeat: 'weekly', exdates: ['2026-10-05'], notes: 'Weekly. Tang Mei sends the agenda Sunday night.' }),
-    E('ev_ops', 'work', 'Ops review — Q4 targets', '-3 14:00', '-3 15:30', { location: 'Lotus Pier HQ', notes: 'Liu Qian. Whiteboard. (Someone will draw a dog.)' }),
-    E('ev_port', 'work', 'Yunmeng Port — cold chain walkthrough', '-2 10:30', '-2 12:00', { location: 'Yunmeng Port, Warehouse 3' }),
-    E('ev_drive', 'home', 'Drive to Lanling', '-1 12:30', '-1 15:00', { location: 'Golden Peony Hotel, Lanling', notes: 'Sandu. Room 1808 from Thursday.' }),
-    E('ev_ptc', 'family', 'Parent–teacher conference', '-1 16:00', '-1 17:00', { location: 'Lanling International School', notes: 'Ms. Su. Room 3B. (The chemistry thing.)' }),
-    E('ev_run', 'home', 'Run', '+0 06:00', '+0 06:45', { location: 'Lanling Riverside', notes: '6.2 km.' }),
-    E('ev_jinlog', 'work', 'Jin Group — logistics partnership', '+0 10:00', '+0 11:30', { location: 'Koi Tower, 38F', notes: 'Bring the cold-chain numbers. Not the lotus root numbers.' }),
+    E('ev_branch', 'work', 'Branch briefing', '2026-09-07 09:30', '2026-09-07 10:00', { location: 'Northland Bank, Liyue Branch', repeat: 'weekly', exdates: ['2026-10-05'], notes: 'Ekaterina sends the agenda. I don’t read it. She knows.' }),
+    E('ev_jade', 'work', 'Jade Chamber — loan review', '-3 14:00', '-3 15:30', { location: 'The Jade Chamber', notes: 'Ningguang. Bring everything in writing. She will read every word.' }),
+    E('ev_crux', 'work', 'Crux Shipping — "payment schedule"', '-2 10:30', '-2 11:00', { location: 'Crux Pier', notes: 'Beidou laughed at me. Respect.' }),
+    E('ev_run', 'home', 'Run', '+0 06:00', '+0 07:10', { location: 'Harbor Promenade', notes: '14.2 km. Felt great. (Felt watched.)' }),
+    E('ev_harb', 'work', 'Harbingers — call', '-1 21:00', '-1 22:00', { location: 'Video', notes: 'Signora presenting. Scaramouche heckling. Capitano: camera off.' }),
     // the month ahead
-    E('ev_lotuseats', 'work', 'Lotus Eats — contract renewal', '+4 11:00', '+4 12:00', { location: 'Lotus Pier HQ', notes: '3%, not 5%.' }),
-    E('ev_interview', 'work', 'Interview — Head of Cold Chain', '+5 15:00', '+5 16:00', { location: 'Lotus Pier HQ, Room 6' }),
-    E('ev_chamber', 'work', 'Yunmeng Chamber of Commerce breakfast', '+6 08:00', '+6 09:30', { location: 'Yunmeng Lake Pavilion' }),
-    E('ev_hep', 'health', 'Hepatology follow-up', '+11 09:30', '+11 10:30', { location: 'Yunmeng People’s Hospital', notes: 'Fasting from midnight. Bring the old results.\n(Liver panel, tacrolimus level.)', alert: 'd1' }),
-    E('ev_wh3', 'work', 'Site visit — Warehouse 3', '+12 13:00', '+12 15:00', { location: 'Yunmeng Port, Warehouse 3' }),
-    E('ev_archery', 'family', 'A-Ling — archery regionals', '+13 18:00', '+13 20:00', { location: 'Lanling Sports Center', notes: 'Bring the good bow. (Not the gold one.)' }),
-    E('ev_investor', 'work', 'Investor call — H2 outlook', '+19 10:00', '+19 11:00', { notes: 'Dial-in from Tang Mei.' }),
-    E('ev_test', 'family', 'A-Ling — driving test', '+28 09:00', '+28 10:00', { location: 'Vehicle Administration Office, Lanling', notes: 'God help Lanling.' }),
+    E('ev_rite_lumine', 'home', 'Spar with Lumine (14–13)', '+5 18:00', '+5 19:30', { location: 'Guili Plains', notes: 'She says 14–14. She is wrong.' }),
+    E('ev_hotpot', 'home', 'Hotpot crew 🔥', '+1 19:00', '+1 21:00', { location: 'Wanmin Restaurant, Chihu Rock', notes: 'I’m paying. Obviously. Paimon is “bringing her appetite”.', tentative: true }),
+    E('ev_mama', 'family', 'Call Mama', '2026-09-06 20:00', '2026-09-06 20:30', { repeat: 'weekly', notes: 'Sundays. Ask about Papa’s back. Ask about Anthon’s exams. Don’t talk about work.' }),
+    E('ev_teucer_bday', 'family', 'Teucer — send the big present', '+25 09:00', '+25 09:30', { notes: 'Turns 8… no, 9?? CHECK. (8. He is 8. Ask Tonia.)' }),
     // the past
-    E('ev_ma_staff', 'work', 'Mid-Autumn — staff mooncakes', '2026-09-25 15:00', '2026-09-25 16:00', { location: 'Lotus Pier HQ, Canteen' }),
-    E('ev_ma_dinner', 'family', 'Mid-Autumn dinner — A-Ling home', '2026-09-25 18:30', '2026-09-25 20:30', { location: 'Lotus Pier Residence, Yunmeng' }),
-    E('ev_qingming', 'family', 'Qingming — Yiling', '2026-04-05 00:00', '2026-04-05 23:59', { allDay: true, location: 'Yiling, hill cemetery', notes: 'Wen Qing. Under the camphor tree. Flowers.' }),
-    // yearly & medication
-    E('ev_ajie_bday', 'family', 'A-Jie’s birthday', '2010-02-12 00:00', '2010-02-12 23:59', { allDay: true, repeat: 'yearly', notes: 'Text her. (It won’t deliver. Text her anyway.)' }),
-    E('ev_ajie', 'family', 'A-Jie', '2010-11-02 00:00', '2010-11-02 23:59', { allDay: true, repeat: 'yearly', notes: 'Tang Mei keeps the day clear.' }),
-    E('ev_parents', 'family', 'Mother & Father', '2009-08-23 00:00', '2009-08-23 23:59', { allDay: true, repeat: 'yearly' }),
-    E('ev_tac_am', 'health', 'Tacrolimus 2 mg', '2026-01-01 08:00', '2026-01-01 08:10', { repeat: 'daily', notes: 'With water. Not with grapefruit.' }),
-    E('ev_tac_pm', 'health', 'Tacrolimus 2 mg', '2026-01-01 20:00', '2026-01-01 20:10', { repeat: 'daily' }),
+    E('ev_bday_rod', 'home', 'Birthday — Liuli Pavilion', '2026-07-20 19:00', '2026-07-20 23:00', { location: 'Liuli Pavilion, Liyue Harbor', notes: 'He gave me a rod. He PAID for it.', invitees: ['zl'] }),
+    E('ev_arrive', 'work', 'Arrive Liyue — start at branch', '2026-03-12 09:00', '2026-03-12 18:00', { location: 'Northland Bank, Liyue Branch' }),
+    E('ev_newyear', 'family', 'Morepesok — New Year', '2025-12-30 00:00', '2026-01-02 23:59', { allDay: true, location: 'Morepesok, Snezhnaya' }),
+    E('ev_bluefin', 'home', 'Guyun — bluefin run', '2026-01-03 04:30', '2026-01-03 09:00', { location: 'Guyun Stone Forest', notes: 'Caught one. Named him after Scaramouche.' }),
   ]);
   JC.store.seed('calinvites', [
-    { id: 'inv_wwx', from: 'wwx', organizer: 'Wei Wuxian', cal: 'family', title: 'radish harvest party!!! 🥕 (u have to come)', start: '+15 14:00', end: '+15 18:00', location: 'Yiling Radish Co.', notes: 'its my birthday. bring nothing. bring yourself.\n(bring jin ling) (bring fairy) (DONT bring fairy)', status: null, sent: '-1 23:58' },
-    { id: 'inv_qr', from: 'qr', organizer: 'Lan Qiren', cal: 'work', title: 'Gusu Lan Academy — Board Dinner', start: '+8 18:00', end: '+8 20:30', location: 'Cloud Recesses', notes: 'Formal attire. No alcohol will be served.\n— Lan Qiren', status: null, sent: '-5 09:00' },
-    { id: 'inv_nhs', from: 'nhs', organizer: 'Nie Huaisang', cal: 'home', title: '🪭 Fans & Folly — Autumn Exhibition', start: '+14 19:00', end: '+14 22:00', location: 'The Unclean Realm, Qinghe', notes: 'Brother Jiang you HAVE to come hehe~ there will be snacks 🙈', status: null, sent: '-2 13:30' },
-    { id: 'inv_school', from: null, organizer: 'Lanling International School', cal: 'family', title: 'Senior Parents’ Committee', start: '+22 10:00', end: '+22 11:30', location: 'Lanling International School', notes: 'Graduation planning. Coffee provided.', status: null, sent: '-6 08:00' },
-    { id: 'inv_gala', from: null, organizer: 'Jin Group Events', cal: 'work', title: 'Jin Group Gala', start: '+0 19:00', end: '+0 23:30', location: 'Koi Tower, Lanling', notes: '', status: 'accepted', sent: '-30 10:00', eventId: 'ev_gala' },
+    { id: 'inv_ht', from: 'ht', organizer: 'Hu Tao', cal: 'home', title: '👻 Wangsheng Open House — free coffin fittings!!', start: '+9 18:00', end: '+9 21:00', location: 'Wangsheng Funeral Parlor', notes: 'Mr. Harbinger!! you HAVE to come. bring xiansheng (he works here, he has to come anyway)', status: null, sent: '-2 14:00' },
+    { id: 'inv_yunjin', from: 'yunjin', organizer: 'Yun Jin', cal: 'home', title: 'The Divine Damsel — closing night', start: '+14 19:30', end: '+14 22:00', location: 'Heyu Tea House', notes: 'For you and your companion. Box 2 is yours. — Yun Jin', status: null, sent: '-3 11:00' },
+    { id: 'inv_signora', from: 'signora', organizer: 'La Signora', cal: 'work', title: 'Osial — final authorization', start: '+2 22:30', end: '+2 23:00', location: 'Northland Bank, Liyue Branch', notes: 'Bring your code.', status: null, sent: '-1 23:58' },
+    { id: 'inv_lumine', from: 'lumine', organizer: 'Lumine', cal: 'home', title: 'rematch (sparring, not beidou)', start: '+5 18:00', end: '+5 19:30', location: 'Guili Plains', notes: 'loser buys paimon dinner', status: 'accepted', sent: '-6 20:00', eventId: 'ev_rite_lumine' },
   ]);
 
-  // the story adds an accepted "Tea — Hanshi" (ev_tea); the tentative one disappears (no question mark)
-  function dedupeTea() {
-    if (JC.store.get('events', 'ev_tea') && JC.store.get('events', 'ev_tea_q')) JC.store.remove('events', 'ev_tea_q');
-  }
-  JC.store.on('events', dedupeTea);
+
 
   // ── Chinese calendar (2026–2027) ──────────────────────────────────────────
   const LUNAR = [['2026-01-19', 12], ['2026-02-17', 1], ['2026-03-19', 2], ['2026-04-17', 3], ['2026-05-17', 4], ['2026-06-15', 5], ['2026-07-14', 6], ['2026-08-13', 7], ['2026-09-11', 8], ['2026-10-10', 9], ['2026-11-09', 10], ['2026-12-09', 11], ['2027-01-08', 12], ['2027-02-06', 1], ['2027-03-08', 2]];
@@ -148,7 +137,7 @@
       const s = new Date(d + 'T00:00:00').getTime();
       if (s >= from - DAY && s <= to) out.push({ id: 'hol_' + d, key: 'hol_' + d, title: t, cal: 'holidays', start: s, end: s + DAY - 60e3, allDay: true, ro: true });
     });
-    if (visible('birthdays')) JC.contacts.all().filter((c) => c.bday && !['ajie', 'mom', 'dad'].includes(c.id) && !c.service).forEach((c) => {
+    if (visible('birthdays')) JC.contacts.all().filter((c) => c.bday && !['skirk', 'unknown', 'wangsheng'].includes(c.id) && !c.service).forEach((c) => {
       const [y, m, d] = c.bday.split('-').map(Number);
       for (let yy = new Date(from).getFullYear(); yy <= new Date(to).getFullYear(); yy++) {
         const s = new Date(yy, m - 1, d).getTime();
@@ -200,7 +189,7 @@
     dedupeTea();
   });
 
-  const PLACE_IDS = [[/koi tower/i, 'koi-tower'], [/golden peony/i, 'golden-peony'], [/hanshi/i, 'hanshi'], [/jingshi/i, 'jingshi'], [/cloud recesses/i, 'cloud-recesses'], [/lotus pier residence/i, 'lp-residence'], [/lotus pier/i, 'lotus-pier'], [/lanling international/i, 'lanling-intl'], [/unclean realm/i, 'unclean-realm'], [/radish/i, 'radish-farm'], [/laoma/i, 'laoma-hotpot'], [/guanyin/i, 'guanyin-temple'], [/yunmeng lake/i, 'yunmeng-lake'], [/pet kingdom/i, 'pet-kingdom']];
+  const PLACE_IDS = [[/pier 7/i, 'pier7'], [/liuli/i, 'liuli'], [/heyu/i, 'heyu'], [/yujing/i, 'yujing'], [/golden house/i, 'golden-house'], [/jade chamber/i, 'jade'], [/wangsheng/i, 'wangsheng'], [/northland/i, 'northland'], [/airport|liyue harbor international/i, 'airport'], [/alcor|crux pier/i, 'alcor'], [/wanmin/i, 'wanmin-rest'], [/guyun/i, 'guyun'], [/wangshu/i, 'wangshu'], [/guili|qingce/i, 'qingce'], [/harbor promenade/i, 'pier7']];
   function placeId(loc) { const m = PLACE_IDS.find(([re]) => re.test(loc || '')); return m ? m[1] : null; }
 
   JC.icon.add({
@@ -595,11 +584,11 @@
         if (ev.repeat) {
           ui.actionSheet({ title: 'This is a repeating event.', actions: [
             { text: 'Delete This Event Only', style: 'destructive', onTap: () => { JC.store.update('events', ev.id, { exdates: (ev.exdates || []).concat(dk(o.start)) }); done(); } },
-            { text: 'Delete All Future Events', style: 'destructive', onTap: () => { if (o.start <= ev.start) JC.store.remove('events', ev.id); else JC.store.update('events', ev.id, { until: o.start - 1 }); done(); } },
+            { text: 'Delete All Future Events', style: 'destructive', onTap: () => { if (o.start <= ev.start) { JC.store.remove('events', ev.id); JC.story.act('event_delete', { id: ev.id, title: ev.title }); } else JC.store.update('events', ev.id, { until: o.start - 1 }); done(); } },
           ] });
           return;
         }
-        ui.actionSheet({ title: 'Are you sure you want to delete this event?', actions: [{ text: 'Delete Event', style: 'destructive', onTap: () => { JC.store.remove('events', ev.id); done(); } }] });
+        ui.actionSheet({ title: 'Are you sure you want to delete this event?', actions: [{ text: 'Delete Event', style: 'destructive', onTap: () => { JC.store.remove('events', ev.id); JC.story.act('event_delete', { id: ev.id, title: ev.title }); done(); } }] });
       }
 
       // ═══ NEW / EDIT EVENT ════════════════════════════════════════════════
@@ -694,7 +683,7 @@
       }
       function pickInvitees(d, cb) {
         const chosen = new Set(d.invitees || []);
-        const people = JC.contacts.people().filter((c) => !['ajie', 'mom', 'dad', 'hq'].includes(c.id));
+        const people = JC.contacts.people().filter((c) => !['skirk', 'unknown', 'wangsheng'].includes(c.id) && !c.service);
         ui.sheet({
           title: 'Add Invitees', detent: 'large', left: { text: 'Cancel' }, right: { text: 'Done', onTap: () => { d.invitees = Array.from(chosen); cb(); } },
           content: (sh) => [ui.list([{ rows: people.map((c) => ({ avatar: c.id, avatarSize: 34, title: c.display, subtitle: (c.emails[0] && c.emails[0].addr) || (c.phones[0] && c.phones[0].num) || '', check: chosen.has(c.id), onTap: () => { if (chosen.has(c.id)) chosen.delete(c.id); else chosen.add(c.id); sh.render(); } })) }])],
@@ -739,7 +728,7 @@
           title: 'Edit Calendar', detent: 'medium', right: { text: 'Done' },
           content: () => [ui.list([
             { rows: [{ title: c.title, detail: c.group || 'iCloud' }] },
-            { header: 'Shared With', rows: [c.id === 'work' ? { avatar: 'ea', avatarSize: 30, title: 'Tang Mei (EA)', detail: 'View & Edit' } : { title: c.ro ? 'Read Only' : 'Not Shared', detail: '' }] },
+            { header: 'Shared With', rows: [c.id === 'work' ? { avatar: 'ekat', avatarSize: 30, title: 'Ekaterina', detail: 'View & Edit' } : { title: c.ro ? 'Read Only' : 'Not Shared', detail: '' }] },
             { rows: [{ title: 'Event Alerts', toggle: { on: true, onChange: (v) => ui.toast(v ? 'Alerts on for ' + c.title : 'Alerts off for ' + c.title) } }] },
             !c.ro && !BASE_CALS.find((b) => b.id === c.id) ? { rows: [{ title: 'Delete Calendar', destructive: true, center: true, onTap: () => { setPrefs({ custom: (prefs().custom || []).filter((x) => x.id !== c.id) }); parent.render(); } }] } : null,
           ].filter(Boolean))],

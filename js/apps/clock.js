@@ -12,15 +12,11 @@
   // rule: 'cn' fixed, 'eu' (last Sun Mar → last Sun Oct, 01:00 UTC), 'us' (2nd Sun Mar → 1st Sun Nov, 02:00 local),
   // 'au' (1st Sun Oct → 1st Sun Apr, southern), 'nz' (last Sun Sep → 1st Sun Apr), null = no DST
   const CITIES = [
-    ['Lanling', 'China', 8, null], ['Yunmeng', 'China', 8, null], ['Gusu', 'China', 8, null], ['Qinghe', 'China', 8, null], ['Yiling', 'China', 8, null],
-    ['Beijing', 'China', 8, null], ['Shanghai', 'China', 8, null], ['Hong Kong', 'China', 8, null], ['Taipei', 'Taiwan', 8, null], ['Singapore', 'Singapore', 8, null],
-    ['Tokyo', 'Japan', 9, null], ['Seoul', 'South Korea', 9, null], ['Bangkok', 'Thailand', 7, null], ['Hanoi', 'Vietnam', 7, null], ['Kathmandu', 'Nepal', 5.75, null],
-    ['Mumbai', 'India', 5.5, null], ['Dubai', 'United Arab Emirates', 4, null], ['Moscow', 'Russia', 3, null], ['Istanbul', 'Türkiye', 3, null], ['Cairo', 'Egypt', 2, null],
-    ['Athens', 'Greece', 2, 'eu'], ['Berlin', 'Germany', 1, 'eu'], ['Paris', 'France', 1, 'eu'], ['Rome', 'Italy', 1, 'eu'], ['Madrid', 'Spain', 1, 'eu'], ['Amsterdam', 'Netherlands', 1, 'eu'],
-    ['London', 'United Kingdom', 0, 'eu'], ['Dublin', 'Ireland', 0, 'eu'], ['Reykjavík', 'Iceland', 0, null], ['São Paulo', 'Brazil', -3, null], ['New York', 'United States', -5, 'us'],
-    ['Toronto', 'Canada', -5, 'us'], ['Chicago', 'United States', -6, 'us'], ['Denver', 'United States', -7, 'us'], ['Los Angeles', 'United States', -8, 'us'], ['San Francisco', 'United States', -8, 'us'],
-    ['Vancouver', 'Canada', -8, 'us'], ['Honolulu', 'United States', -10, null], ['Anchorage', 'United States', -9, 'us'], ['Sydney', 'Australia', 10, 'au'], ['Melbourne', 'Australia', 10, 'au'],
-    ['Auckland', 'New Zealand', 12, 'nz'], ['Jakarta', 'Indonesia', 7, null], ['Manila', 'Philippines', 8, null], ['Kuala Lumpur', 'Malaysia', 8, null], ['Cupertino', 'United States', -8, 'us'],
+    ['Liyue Harbor', 'Liyue', 8, null], ['Qingce Village', 'Liyue', 8, null], ['Guyun', 'Liyue', 8, null], ['Stone Gate', 'Liyue', 8, null],
+    ['Morepesok', 'Snezhnaya', 3, null], ['Zapolyarny', 'Snezhnaya', 3, null], ['Snezhnaya Port', 'Snezhnaya', 3, null],
+    ['Mondstadt', 'Mondstadt', 1, 'eu'], ['Springvale', 'Mondstadt', 1, 'eu'], ['Court of Fontaine', 'Fontaine', 1, 'eu'], ['Poisson', 'Fontaine', 1, 'eu'],
+    ['Inazuma City', 'Inazuma', 9, null], ['Ritou', 'Inazuma', 9, null], ['Sumeru City', 'Sumeru', 5, null], ['Port Ormos', 'Sumeru', 5, null],
+    ['Natlan', 'Natlan', -3, null], ['Chenyu Vale', 'Liyue', 8, null], ['Watatsumi', 'Inazuma', 9, null],
   ];
   const cityInfo = (name) => CITIES.find((c) => c[0] === name) || [name, '', 8, null];
   function nthSunday(y, m, n) { const d = new Date(Date.UTC(y, m, 1)); const first = (7 - d.getUTCDay()) % 7; return Date.UTC(y, m, 1 + first + (n - 1) * 7); }
@@ -35,18 +31,18 @@
     else if (rule === 'nz') { const e = nthSunday(y, 3, 1) + (3 - base - 1) * 3600e3; const s = lastSunday(y, 8) + (2 - base) * 3600e3; dst = utc < e || utc >= s; }
     return base + (dst ? 1 : 0);
   }
-  /** UTC ms of the in-game "now" (the phone's local time is Lanling, UTC+8) */
+  /** UTC ms of the in-game "now" (the phone's local time is Liyue Harbor, UTC+8) */
   function utcNow() { const d = JC.time.date(); return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate(), d.getHours(), d.getMinutes(), d.getSeconds()) - 8 * 3600e3; }
   function cityTime(name) { const u = utcNow(); const off = offsetFor(name, u); return { d: new Date(u + off * 3600e3), off }; }
 
   // ── data ───────────────────────────────────────────────────────────────────
-  JC.store.seed('worldclocks', [{ id: 'wc_lanling', city: 'Lanling' }, { id: 'wc_yunmeng', city: 'Yunmeng' }, { id: 'wc_london', city: 'London' }, { id: 'wc_ny', city: 'New York' }, { id: 'wc_van', city: 'Vancouver' }]);
+  JC.store.seed('worldclocks', [{ id: 'wc_liyue', city: 'Liyue Harbor' }, { id: 'wc_morepesok', city: 'Morepesok' }, { id: 'wc_zap', city: 'Zapolyarny' }, { id: 'wc_fontaine', city: 'Court of Fontaine' }, { id: 'wc_inazuma', city: 'Inazuma City' }]);
   JC.store.seed('alarms', [
-    { id: 'al_run', h: 5, m: 45, label: 'Run', repeat: [0, 1, 2, 3, 4, 5, 6], on: true, sound: 'Radar', snooze: true },
-    { id: 'al_wd', h: 6, m: 30, label: 'Alarm', repeat: [1, 2, 3, 4, 5], on: true, sound: 'Radar', snooze: true },
-    { id: 'al_tac_am', h: 8, m: 0, label: 'Tacrolimus', repeat: [0, 1, 2, 3, 4, 5, 6], on: true, sound: 'Chimes', snooze: true },
-    { id: 'al_tac_pm', h: 20, m: 0, label: 'Tacrolimus', repeat: [0, 1, 2, 3, 4, 5, 6], on: true, sound: 'Chimes', snooze: true },
-    { id: 'al_gala', h: 22, m: 45, label: 'Leave. (Gala.)', repeat: [], on: false, sound: 'Radar', snooze: false },
+    { id: 'al_run', h: 5, m: 30, label: 'Run', repeat: [0, 1, 2, 3, 4, 5, 6], on: true, sound: 'Radar', snooze: true },
+    { id: 'al_kids', h: 7, m: 0, label: 'PICK UP KIDS (don’t be late or Tonia will kill you)', repeat: [], on: true, sound: 'Presto', snooze: true },
+    { id: 'al_tide', h: 22, m: 45, label: 'Slack tide — Pier 7', repeat: [5], on: true, sound: 'Hillside', snooze: false },
+    { id: 'al_mama', h: 20, m: 0, label: 'Call Mama', repeat: [0], on: true, sound: 'Chimes', snooze: true },
+    { id: 'al_dottore', h: 8, m: 30, label: 'Dottore 09:00 (don’t)', repeat: [], on: false, sound: 'Radar', snooze: false },
   ]);
   const SOUNDS = ['Radar', 'Apex', 'Beacon', 'Bulletin', 'Chimes', 'Circuit', 'Constellation', 'Cosmic', 'Crystals', 'Hillside', 'Illuminate', 'Night Owl', 'Opening', 'Playtime', 'Presto', 'Radiate', 'Reflection', 'Ripples', 'Sencha', 'Signal', 'Silk', 'Slow Rise', 'Stargaze', 'Summit', 'Twinkle', 'Uplift', 'Waves'];
   const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
