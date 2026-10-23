@@ -494,7 +494,7 @@
                 { icon: { glyph: 'number', bg: '#8e8e93' }, title: 'Tags', detail: (d.tags || []).join(' ') || '', chevron: true, onTap: () => ui.alert({ title: 'Add Tag', input: { placeholder: 'tag' }, buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Add', style: 'default' }] }).then((x) => { if (x.index === 1 && x.value) { d.tags = (d.tags || []).concat('#' + x.value.replace(/^#/, '').replace(/\s+/g, '')); sh.render(); } }) },
               ] }]),
               ui.list([{ rows: [
-                { icon: { glyph: 'location.fill', bg: '#0a84ff' }, title: 'Location', toggle: { on: !!d.where, onChange: (v) => { if (v) { d.where = 'Arriving: Northland Bank'; ui.toast('Reminds you when arriving at Lotus Pier', { icon: 'location.fill' }); } else d.where = null; sh.render(); } }, subtitle: d.where || null },
+                { icon: { glyph: 'location.fill', bg: '#0a84ff' }, title: 'Location', toggle: { on: !!d.where, onChange: (v) => { if (v) { d.where = 'Arriving: Northland Bank'; ui.toast('Reminds you when arriving at Northland Bank', { icon: 'location.fill' }); } else d.where = null; sh.render(); } }, subtitle: d.where || null },
                 { icon: { glyph: 'message.fill', bg: '#34c759' }, title: 'When Messaging', subtitle: d.msg ? JC.contacts.name(d.msg) : null, toggle: { on: !!d.msg, onChange: (v) => { if (v) pickContact((cid) => { d.msg = cid; sh.render(); }, () => sh.render()); else { d.msg = null; sh.render(); } } } },
               ] }]),
               ui.list([{ rows: [

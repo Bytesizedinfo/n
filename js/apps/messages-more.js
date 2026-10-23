@@ -126,7 +126,7 @@
         out.push(JC.ui.list([{ header: members.length + ' People', rows: members.map((m) => ({
           avatar: m, avatarSize: 34, title: JC.contacts.name(m), subtitle: JC.contacts.full(m) !== JC.contacts.name(m) ? JC.contacts.full(m) : '',
           chevron: true, onTap: () => { s.close(); JC.os.open('contacts', { contact: m }); },
-        })).concat([{ icon: { node: h('div.msg-dt-add', JC.icon('plus', { size: 16, weight: 2.4 })) }, title: 'Add Member', tinted: true, onTap: () => JC.ui.alert({ title: 'Add Member', message: 'Wei Wuxian made this group, and Wei Wuxian decides who’s in it. (He told everyone. Twice.)', buttons: [{ text: 'OK' }] }) }]) }]));
+        })).concat([{ icon: { node: h('div.msg-dt-add', JC.icon('plus', { size: 16, weight: 2.4 })) }, title: 'Add Member', tinted: true, onTap: () => JC.ui.alert({ title: 'Add Member', message: 'Only the person who made this group can add people. (In the family chat that is Anthon, and he has tyrannical opinions about it.)', buttons: [{ text: 'OK' }] }) }]) }]));
         out.push(JC.ui.list([{ rows: [{ title: 'Change Name and Photo', tinted: true, onTap: () => M.groupNamePhoto(tid) }] }]));
       }
 
@@ -148,7 +148,7 @@
       sharedSections(app, tid, sh, () => s.close()).forEach((n) => out.push(n));
 
       const tail = [];
-      if (group) tail.push({ title: 'Leave this Conversation', destructive: true, onTap: () => JC.ui.alert({ title: 'You can’t leave this conversation.', message: 'Jiang Cheng has threatened to leave this chat forty-seven times. He has never once actually left. It would be noticed.', buttons: [{ text: 'Fine', style: 'cancel' }] }) });
+      if (group) tail.push({ title: 'Leave this Conversation', destructive: true, onTap: () => JC.ui.alert({ title: 'You can’t leave this conversation.', message: 'Childe has never left a group chat in his life. He just mutes them and reappears at 3 AM with a fish photo. Leaving would be noticed.', buttons: [{ text: 'Fine', style: 'cancel' }] }) });
       tail.push({ title: 'Delete Conversation', destructive: true, onTap: () => M.confirmDelete(tid, () => { s.close(); setTimeout(() => app.popToList(), 250); }) });
       out.push(JC.ui.list([{ rows: tail }]));
       return out;
@@ -197,23 +197,23 @@
     return s;
   };
 
-  /** Jiang Cheng's own "Name & Photo" sharing sheet (in-world prefs) */
+  /** Childe's own "Name & Photo" sharing sheet (in-world prefs) */
   M.namePhoto = () => {
     const share = M.pref('npShare') !== false;
     JC.ui.sheet({
       title: 'Name & Photo', detent: 'large', cls: 'msg-np', right: { text: 'Done' },
       content: (s) => [
         h('div.msg-np-prev', JC.ui.avatar('me', 112)),
-        h('div.msg-np-me', 'Jiang Cheng'),
-        h('div.msg-np-sub', 'Wanyin · Yunmeng Jiang Group'),
+        h('div.msg-np-me', 'Childe'),
+        h('div.msg-np-sub', 'Tartaglia · Northland Bank, Liyue'),
         JC.ui.list([{ rows: [
           { title: 'Name & Photo Sharing', toggle: { on: share, onChange: (v) => { M.pref('npShare', v); s.render(); } } },
-        ], footer: 'Your name and photo will be shared with people you message. (Your name is Jiang Cheng. Your photo is a lotus. Nobody is allowed to change either.)' }]),
+        ], footer: 'Your name and photo will be shared with people you message. (His name is Childe. His photo is him holding a bluefin bigger than Teucer. Nobody is allowed to change either.)' }]),
         share ? JC.ui.list([{ header: 'Share Automatically', rows: [
           { title: 'Contacts Only', check: M.pref('npWho') !== 'ask', onTap: () => { M.pref('npWho', 'contacts'); s.render(); } },
           { title: 'Always Ask', check: M.pref('npWho') === 'ask', onTap: () => { M.pref('npWho', 'ask'); s.render(); } },
         ] }]) : null,
-        JC.ui.list([{ rows: [{ title: 'Edit Photo', tinted: true, onTap: () => JC.ui.alert({ title: 'Edit Photo', message: 'Tang Mei chose this photo in 2017. Jiang Cheng has never changed it. Neither will you.', buttons: [{ text: 'OK' }] }) }] }]),
+        JC.ui.list([{ rows: [{ title: 'Edit Photo', tinted: true, onTap: () => JC.ui.alert({ title: 'Edit Photo', message: 'Teucer chose this photo. It is the bluefin. It will always be the bluefin.', buttons: [{ text: 'OK' }] }) }] }]),
       ],
     });
   };
@@ -242,7 +242,7 @@
     if (prefill.text) field.value = prefill.text;
     const attBox = h('div.msg-attach');
     const sendBtn = h('div.msg-send', { onTap: () => send() }, JC.icon('arrow.up', { size: 17, weight: 2.8 }));
-    const wrap = h('div.msg-fieldwrap', attBox, h('div.msg-fieldrow', field, h('div.msg-mic', { onTap: () => JC.ui.toast('Dictation is off — that isn’t Jiang Cheng’s voice', { icon: 'mic.slash.fill' }) }, JC.icon('mic', { size: 20 })), sendBtn));
+    const wrap = h('div.msg-fieldwrap', attBox, h('div.msg-fieldrow', field, h('div.msg-mic', { onTap: () => JC.ui.toast('Dictation is off — that isn’t Childe’s voice', { icon: 'mic.slash.fill' }) }, JC.icon('mic', { size: 20 })), sendBtn));
     const comp = h('div.msg-composer.cmp', h('div.msg-plus', { attrs: { role: 'button', 'aria-label': 'Add Photo' }, onTap: () => attachPhoto() }, JC.icon('plus', { size: 22, weight: 2.1 })), wrap);
 
     function drawAttach() {
@@ -316,7 +316,7 @@
           const m = matches();
           if (m.length === 1) { add(m[0].id); }
           else {
-            JC.ui.alert({ title: 'Not Delivered', message: '“' + query.trim() + '” isn’t a contact or a phone number Jiang Cheng has saved.', buttons: [{ text: 'OK' }] });
+            JC.ui.alert({ title: 'Not Delivered', message: '“' + query.trim() + '” isn’t a contact or a phone number Childe has saved.', buttons: [{ text: 'OK' }] });
             return;
           }
         } else {

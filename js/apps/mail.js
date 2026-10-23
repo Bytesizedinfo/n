@@ -85,7 +85,7 @@
     if (!p) return '';
     const cid = contactFor(p.addr);
     if (cid && cid !== 'me') return JC.ckit.name(cid);
-    if (cid === 'me') return 'Jiang Cheng';
+    if (cid === 'me') return 'Childe';
     return p.name || p.addr;
   }
   function stamp(t) {
@@ -586,7 +586,7 @@
                     (m.cc || []).length ? h('div.ml-drow', h('span.ml-dk', 'Cc:'), h('span.ml-dv', fmtAddrs(m.cc))) : null,
                     h('div.ml-drow', h('span.ml-dk', ''), h('span.ml-dv.dim', U.fmtDate(m.t, 'full') + ' at ' + U.fmtTime(m.t))),
                     h('div.ml-hide', { onTap: () => { details = false; page.render(); } }, 'Hide'))
-                  : h('div.ml-hto', { onTap: () => { details = true; page.render(); } }, (outgoing ? 'To: ' + (m.to || []).map(who).join(', ') : 'To: ' + ((m.to || []).some((p) => p.addr === ME.addr) ? 'Jiang Cheng' : (m.to || []).map(who).join(', '))), JC.icon('chevron.right', { size: 11, weight: 2.6 }))));
+                  : h('div.ml-hto', { onTap: () => { details = true; page.render(); } }, (outgoing ? 'To: ' + (m.to || []).map(who).join(', ') : 'To: ' + ((m.to || []).some((p) => p.addr === ME.addr) ? 'Childe' : (m.to || []).map(who).join(', '))), JC.icon('chevron.right', { size: 11, weight: 2.6 }))));
             const subj = h('div.ml-subj', m.flagged ? h('span.ml-flagbig', JC.icon('flag.fill', { size: 16 })) : null, m.subject || '(No Subject)');
             const body = h('div.ml-body', String(m.body || '').split(/\n{2,}/).map((p) => h('p', p.split('\n').map((ln, i) => [i ? h('br') : null, rich(ln)]))));
             const att = (m.attach || []).length ? h('div.ml-atts', m.attach.map((a) => h('div.ml-att', { onTap: () => previewAtt(a, m) },

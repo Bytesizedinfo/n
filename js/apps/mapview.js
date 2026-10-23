@@ -766,7 +766,7 @@
       t = dep + ride;
       const km2 = Math.hypot(B.x - rb.at[0], B.y - rb.at[1]);
       if (km2 < 1.5) walkLeg('Walk to ' + (B.short || B.name), km2, [B.x, B.y]);
-      else { legs.push({ kind: 'taxi', glyph: 'car.fill', color: '#8e8e93', text: 'Taxi or Swift Ride to ' + (B.short || B.name), min: Math.round(km2 * 1.6) + 4, pts: [cur, [B.x, B.y]] }); t += Math.round(km2 * 1.6) + 4; }
+      else { legs.push({ kind: 'taxi', glyph: 'car.fill', color: '#8e8e93', text: 'Taxi or Harbor Ride to ' + (B.short || B.name), min: Math.round(km2 * 1.6) + 4, pts: [cur, [B.x, B.y]] }); t += Math.round(km2 * 1.6) + 4; }
     }
     const first = legs.find((l) => l.dep != null);
     return { legs, min: t - nowMin, depart: first ? first.dep : nowMin, nowMin, tomorrow: first ? first.dep >= 1440 || first.dep - nowMin > 180 : false };
@@ -1002,7 +1002,6 @@
     // lotus fields
     LOTUS.forEach((L) => { ctx.fillStyle = S.lotus; poly(L); ctx.fill(); });
     if (z > 70) drawLotusPads(ctx, vb, S);
-    // canals (Gusu)
     // city blocks: streets & buildings
     const streetZ = 30, bldZ = 42;
     if (z >= streetZ * 0.8) URBAN.forEach((u) => { if (vis(u.bb)) drawCity(ctx, u, vb, z, S, z >= bldZ, z >= streetZ); });
@@ -1963,7 +1962,7 @@
     for (let i = 0; i < 7; i++) { const cx = r() * W, cy = 40 + r() * 120; s += `<ellipse cx="${cx}" cy="${cy}" rx="${70 + r() * 90}" ry="${14 + r() * 12}" fill="#fff" opacity=".7"/>`; }
     const horizon = 360;
     const hills = (col, base, amp, op) => { let d = `M0 ${base}`; for (let x = 0; x <= W; x += 80) d += ` L${x} ${base - amp * (0.5 + 0.5 * Math.sin(x / 210 + r() * 0.6)) - r() * amp * 0.4}`; d += ` L${W} ${H} L0 ${H}Z`; return `<path d="${d}" fill="${col}" opacity="${op || 1}"/>`; };
-    if (kind === 'mountain' || kind === 'gusu') { s += hills('#9fb3a6', 300, 150, 0.8) + hills('#7f9a86', 330, 110) + `<rect y="200" width="${W}" height="200" fill="url(#mist)"/>`; }
+    if (kind === 'mountain' || kind === 'jueyun') { s += hills('#9fb3a6', 300, 150, 0.8) + hills('#7f9a86', 330, 110) + `<rect y="200" width="${W}" height="200" fill="url(#mist)"/>`; }
     else s += hills('#b8c6c9', horizon - 10, 40, 0.7);
     if (kind === 'lake') {
       s += `<rect y="${horizon}" width="${W}" height="${H - horizon}" fill="url(#lake)"/>`;
@@ -1995,7 +1994,7 @@
       for (let x = 60; x < W; x += 300) s += `<rect x="${x}" y="${horizon - 120}" width="6" height="122" fill="#55565b"/><circle cx="${x + 3}" cy="${horizon - 124}" r="9" fill="#f4f1e6"/>`;
       for (let x = 160; x < W; x += 260) s += `<circle cx="${x}" cy="${horizon - 40}" r="${34 + r() * 14}" fill="#5f9a4e"/><rect x="${x - 4}" y="${horizon - 14}" width="8" height="18" fill="#6b4a2f"/>`;
     }
-    if (kind === 'mountain' || kind === 'gusu') {
+    if (kind === 'mountain' || kind === 'jueyun') {
       s += `<rect y="${horizon}" width="${W}" height="${H - horizon}" fill="#8c8a84"/><path d="M800 ${horizon - 20} l250 -80 l250 80z" fill="#3e4a55"/><rect x="860" y="${horizon - 20}" width="380" height="80" fill="#f1efe9"/><rect x="1020" y="${horizon + 10}" width="60" height="50" fill="#3e4a55"/>`;
       for (let i = 0; i < 12; i++) s += `<rect x="${200 + i * 30}" y="${horizon + 20 + i * 12}" width="600" height="10" fill="#a8a59d"/>`;
       s += `<rect y="${horizon - 140}" width="${W}" height="220" fill="url(#mist)" opacity=".6"/>`;

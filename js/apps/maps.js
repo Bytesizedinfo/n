@@ -444,7 +444,7 @@
             h('div.maps-rate-big', h('div.maps-rate-n', (p.rating || 4.5).toFixed(1)), h('div', h('div.maps-rv-stars.big', '★★★★★'), h('div.maps-rate-c', (p.reviews || 0).toLocaleString('en-US') + ' ratings on Wavemaps'))),
             h('div.maps-rate-bars', [5, 4, 3, 2, 1].map((s, i) => h('div.maps-rate-row', h('span', s), h('div.maps-rate-bar', h('div', { style: { width: [72, 18, 6, 2, 2][i] * ((p.rating || 4.5) / 4.6) + '%' } }))))),
             rv.length ? h('div.maps-rv-list', rv.map((r) => reviewCard(r))) : h('div.maps-empty', 'No written reviews yet.'),
-            h('div.maps-rate-you', h('div', 'Rate this place'), h('div.maps-rate-pick', [1, 2, 3, 4, 5].map((n) => h('span.tap', { onTap: (e) => { const sp = e.currentTarget.parentNode.children; for (let k = 0; k < 5; k++) sp[k].classList.toggle('on', k < n); JC.ui.toast('Thanks! Your rating was saved as “Jiang Cheng”.', { icon: 'star.fill' }); } }, '★')))),
+            h('div.maps-rate-you', h('div', 'Rate this place'), h('div.maps-rate-pick', [1, 2, 3, 4, 5].map((n) => h('span.tap', { onTap: (e) => { const sp = e.currentTarget.parentNode.children; for (let k = 0; k < 5; k++) sp[k].classList.toggle('on', k < n); JC.ui.toast('Thanks! Your rating was saved as “Childe”.', { icon: 'star.fill' }); } }, '★')))),
           ],
         });
       }
@@ -478,7 +478,7 @@
           { text: 'Add to Guide', icon: 'plus', onTap: () => pickGuide(p) },
           '-',
           { text: 'Copy Address', icon: 'doc.on.doc', onTap: () => { U.copy(p.addr || ''); JC.ui.toast('Copied', { icon: 'doc.on.doc' }); } },
-          { text: 'Ride with Swift Ride', icon: 'car.fill', onTap: () => JC.os.open('swift', { to: p.id }) },
+          { text: 'Ride with Harbor Ride', icon: 'car.fill', onTap: () => JC.os.open('swift', { to: p.id }) },
           p.cat === 'food' || p.cat === 'cafe' || p.cat === 'tea' ? { text: 'Order on Wanmin Go', icon: 'bag.fill', onTap: () => JC.os.open('lotuseats', { rest: p.id }) } : null,
           { text: 'Report an Issue', icon: 'exclamationmark.bubble', onTap: () => reportIssue(p) },
         ]);
@@ -754,7 +754,7 @@
             t.tomorrow ? h('div.maps-hint.warn', JC.icon('moon.fill', { size: 14 }), ' Service has ended for tonight. Showing the first trips tomorrow morning.') : null,
             h('div.maps-route.on',
               h('div.maps-route-main', h('div.maps-route-t', MV().fmtMin(t.min)), chips, h('div.maps-route-s2', (t.tomorrow ? 'Leave at ' + leaveAt + ' · ' : 'Leave now · ') + 'Arrive ' + arrive)),
-              h('button.maps-go', { onTap: () => JC.ui.alert({ title: t.tomorrow ? 'First Departure: ' + MV().fmtClockMin(t.depart) : 'Transit Guidance', message: t.tomorrow ? 'Trains and buses start again in the morning. Want a ride instead? It’s ' + U.fmtTime(JC.time.now()) + '.' : 'Follow the steps below. Wavemaps will notify you before your stop.', buttons: [{ text: 'Swift Ride', onTap: () => JC.os.open('swift', { to: toRef.id }) }, { text: 'OK', style: 'default' }] }) }, 'GO')),
+              h('button.maps-go', { onTap: () => JC.ui.alert({ title: t.tomorrow ? 'First Departure: ' + MV().fmtClockMin(t.depart) : 'Transit Guidance', message: t.tomorrow ? 'Trains and buses start again in the morning. Want a ride instead? It’s ' + U.fmtTime(JC.time.now()) + '.' : 'Follow the steps below. Wavemaps will notify you before your stop.', buttons: [{ text: 'Harbor Ride', onTap: () => JC.os.open('swift', { to: toRef.id }) }, { text: 'OK', style: 'default' }] }) }, 'GO')),
             h('div.maps-tlegs', t.legs.map((l) => h('div.maps-tleg',
               h('div.maps-tleg-ic', { style: { background: l.kind === 'walk' ? 'var(--fill3)' : l.color, color: l.kind === 'walk' ? 'var(--label)' : '#fff' } }, JC.icon(l.glyph, { size: 16 })),
               h('div.maps-tleg-m', h('div.maps-tleg-t', l.text), h('div.maps-tleg-s', l.kind === 'walk' ? MV().fmtMin(l.min) + ' · ' + MV().fmtDist(l.km) : l.dep != null ? 'Departs ' + MV().fmtClockMin(l.dep) + (l.from ? ' from ' + l.from : '') + (l.stops ? ' · ' + U.plural(l.stops, 'stop') : '') : MV().fmtMin(l.min)))))));
@@ -763,9 +763,9 @@
           const { a, b } = cur();
           const r = MV().route(ref(a), ref(b), 'drive');
           if (!r) return h('div.maps-noresults', h('div.maps-nr-t', 'No Rides Available'));
-          const tiers = [['go', 'Swift Go', 'Affordable rides', 4], ['comfort', 'Swift Comfort', 'Newer cars, extra legroom', 6], ['xl', 'Swift XL', 'Up to 6 seats', 9], ['pet', 'Swift Pet', 'For very large dogs', 11]];
+          const tiers = [['go', 'Harbor Go', 'Affordable rides', 4], ['comfort', 'Comfort', 'Newer cars, extra legroom', 6], ['xl', 'Harbor XL', 'Up to 6 seats', 9], ['sampan', 'Sampan', 'Water taxi · waterfront only', 11]];
           return h('div.maps-routes',
-            h('div.maps-ride-brand', h('div.maps-ride-logo', JC.appIcon('swift')), h('div', h('b', 'Swift Ride'), h('span', 'Booked in the Swift Ride app'))),
+            h('div.maps-ride-brand', h('div.maps-ride-logo', JC.appIcon('swift')), h('div', h('b', 'Harbor Ride'), h('span', 'Booked in the Harbor Ride app'))),
             tiers.map(([k, n, d, wait]) => h('div.maps-route.ride', { onTap: () => JC.os.open('swift', { to: b.id, tier: k, from: a.isUser ? null : a.id }) },
               h('div.maps-route-main', h('div.maps-route-t', n), h('div.maps-route-s', d + ' · ' + wait + ' min away'), h('div.maps-route-s2', 'Drop-off ' + MV().fmtClockMin(new Date(JC.time.now()).getHours() * 60 + new Date(JC.time.now()).getMinutes() + wait + r.min))),
               h('div.maps-ride-price', JC.util.fmtMoney(MV().fare(r, k))))),

@@ -313,7 +313,7 @@
         const out = [acts];
         out.push(JC.ui.list([{ header: 'Notifications', rows: rules.map((r) => ({ title: r.text, swipe: [{ text: 'Delete', color: 'var(--red)', icon: 'trash', onTap: () => { S.rules = S.rules.filter((q) => q.id !== r.id); save(); render(); } }] })).concat([{ title: 'Add…', tinted: true, onTap: () => notifySheet(p), cls: 'fm-tinted' }]) }], { cls: 'fm-list' }));
         const shareRows = [];
-        if (p.started) shareRows.push({ title: 'Wei Wuxian started sharing location with you ' + (U.dayDiff(new Date(p.since), JC.time.date()) === 2 ? '2 days ago' : U.fmtRelative(p.since)) + '.', cls: 'fm-note' });
+        if (p.started) shareRows.push({ title: p.name + ' started sharing location with you ' + (U.dayDiff(new Date(p.since), JC.time.date()) === 2 ? '2 days ago' : U.fmtRelative(p.since)) + '.', cls: 'fm-note' });
         shareRows.push({ title: sharingMine ? 'Stop Sharing My Location' : 'Share My Location', destructive: sharingMine, tinted: !sharingMine, onTap: () => (sharingMine ? stopSharing(p) : shareWith(p)) });
         out.push(JC.ui.list([{ rows: shareRows, footer: sharingMine ? p.name + ' can see your location.' : 'You are not sharing your location with ' + p.name + '.' }], { cls: 'fm-list' }));
         out.push(JC.ui.list([{ rows: [
@@ -432,7 +432,7 @@
           { avatar: 'me', avatarSize: 34, title: 'Childe', subtitle: 'Shared with you · Dec 2024' },
         ] : [
           { avatar: 'me', avatarSize: 34, title: 'Childe', subtitle: 'Owner' },
-          { title: 'Add Person…', tinted: true, onTap: () => JC.ui.alert({ title: 'Share “' + dname(it) + '”?', message: 'Share it with Ekaterina? She already knows where everything is, apparently.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Share', style: 'default', onTap: () => JC.ui.toast('Invitation sent to A-Ling', { icon: 'paperplane.fill' }) }] }) },
+          { title: 'Add Person…', tinted: true, onTap: () => JC.ui.alert({ title: 'Share “' + dname(it) + '”?', message: 'Share it with Ekaterina? She already knows where everything is, apparently.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Share', style: 'default', onTap: () => JC.ui.toast('Invitation sent to Ekaterina', { icon: 'paperplane.fill' }) }] }) },
         ] }, { header: 'Lost Mode', rows: [
           { title: 'Enable', tinted: true, onTap: () => (it.shared ? JC.ui.alert({ title: 'Only the Owner Can Do This', message: 'Mama owns this AirTag. Only she can turn on Lost Mode for Sir Fang. (Sir Fang is not lost. Sir Fang is exactly where Teucer is.)', buttons: [{ text: 'OK' }] }) : needPassword('Lost Mode', 'Enable Lost Mode for “' + dname(it) + '”? Enter the Apple Account password for tartaglia@northland.sn.')) },
         ] }, { rows: [
@@ -467,8 +467,8 @@
           return;
         }
         const msgs = {
-          macbook: ['Playing Sound on ' + dname(x) + '…', 'Sound played in Room 1808 at the Golden Peony. Somewhere a laptop chirped at a sleeping man.'],
-          ipad: ['Playing Sound on ' + dname(x) + '…', 'Sound played at Lotus Pier Residence. Old Huang will want to know why the iPad is singing at midnight.'],
+          macbook: ['Playing Sound on ' + dname(x) + '…', 'Sound played at Pier View Residences. A laptop chirped in an empty flat that smells of sea salt and instant noodles.'],
+          ipad: ['Playing Sound on ' + dname(x) + '…', 'Sound played at Childe’s apartment on Feiyun Slope. The neighbour’s cat has opinions about it.'],
           sirfang: ['Playing Sound on Sir Fang…', 'Sir Fang is chirping inside a backpack. Somewhere, a small boy is delighted.'],
           unit3: ['Playing Sound on U3 — G-17…', 'Somewhere out at Guyun, a tag is chirping on a stone pillar. Nobody is there to hear it. (Probably.)'],
           rod: ['Playing Sound on Rod…', 'The rod chirps from the reel. It sounds lonely.'],
@@ -497,7 +497,7 @@
           const pw = (r.value || '').trim();
           setTimeout(() => {
             if (pw === JC.world.passcode.code) JC.ui.alert({ title: 'Verification Failed', message: 'That’s the iPhone passcode, not the Apple Account password. Childe is not *that* careless. (Only with the passcode.)', buttons: [{ text: 'OK' }] });
-            else if (S.pwTries >= 3) JC.ui.alert({ title: 'Verification Failed', message: 'The Apple Account password you entered is incorrect.\n\nForgot password? A reset code would be sent to Childe’s trusted devices — including his MacBook Pro, which is in Room 1808 with him.', buttons: [{ text: 'OK' }] });
+            else if (S.pwTries >= 3) JC.ui.alert({ title: 'Verification Failed', message: 'The Apple Account password you entered is incorrect.\n\nForgot password? A reset code would be sent to Childe’s trusted devices — including his MacBook Pro, which is sitting in his empty flat on Feiyun Slope.', buttons: [{ text: 'OK' }] });
             else JC.ui.alert({ title: 'Verification Failed', message: 'The Apple Account password you entered is incorrect.', buttons: [{ text: 'OK' }] });
             if (onFail) onFail();
           }, 900);
@@ -510,7 +510,7 @@
           return;
         }
         if (d.self) {
-          JC.ui.alert({ title: 'Mark This iPhone As Lost?', message: 'You’re holding it. Lost Mode would lock this iPhone and show the owner’s phone number on the Lock Screen.\n\nIt is lost, though. His office — Northland Bank, Liyue Branch — has a very attentive receptionist.', stack: true, buttons: [{ text: 'Call Lotus Pier HQ', style: 'default', onTap: () => JC.story.dial('hq') }, { text: 'Continue Anyway', onTap: () => lostFlow(d) }, { text: 'Cancel', style: 'cancel' }] });
+          JC.ui.alert({ title: 'Mark This iPhone As Lost?', message: 'You’re holding it. Lost Mode would lock this iPhone and show the owner’s phone number on the Lock Screen.\n\nIt is lost, though. His office — Northland Bank, Liyue Branch — has a very attentive receptionist.', stack: true, buttons: [{ text: 'Call Northland Bank', style: 'default', onTap: () => JC.story.dial('ekat') }, { text: 'Continue Anyway', onTap: () => lostFlow(d) }, { text: 'Cancel', style: 'cancel' }] });
           return;
         }
         lostFlow(d);

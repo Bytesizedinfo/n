@@ -983,7 +983,7 @@
                 { title: 'iCloud Storage', detail: '46.2 GB of 200 GB', onTap: () => ui.alert({ title: 'iCloud+ 200 GB', message: 'Photos 41.7 GB · Backups 3.1 GB · Messages 1.4 GB\n\nShared with: nobody. (Ekaterina keeps asking.)', buttons: [{ text: 'OK' }] }) },
               ] },
               { header: 'Sharing', rows: [
-                { icon: { glyph: 'person.2.fill', bg: 'var(--orange)' }, title: 'Shared Library', detail: 'Off', chevron: true, onTap: () => ui.alert({ title: 'Shared Library', message: 'Jin Ling declined your Shared Library invitation. Twice. (“jiujiu i am NOT sharing my camera roll with u”)', buttons: [{ text: 'OK' }] }) },
+                { icon: { glyph: 'person.2.fill', bg: 'var(--orange)' }, title: 'Shared Library', detail: 'Off', chevron: true, onTap: () => ui.alert({ title: 'Shared Library', message: 'Tonia declined your Shared Library invitation. Twice. (“brother i am NOT sharing my camera roll with you. you post everything”)', buttons: [{ text: 'OK' }] }) },
                 { icon: { glyph: 'rectangle.stack', bg: 'var(--blue)' }, title: 'Shared Albums', detail: 'On', chevron: true, onTap: () => ui.alert({ title: 'Shared Albums', message: '“Семья 🐟” — 212 photos. Anthon has posted 140 of them. Most are memes.', buttons: [{ text: 'OK' }] }) },
               ] },
               { header: 'Privacy', rows: [

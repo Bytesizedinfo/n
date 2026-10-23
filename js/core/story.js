@@ -1438,7 +1438,7 @@
     story.act('call_start', { contact: cid, dir: 'out' });
   };
 
-  /** turn a texted line into something said aloud: drop sign-offs ("— Wen Ning"), join bubbles, drop emoji */
+  /** turn a texted line into something said aloud: drop sign-offs ("— Zhongli"), join bubbles, drop emoji */
   function spoken(line) {
     return String(line || '')
       .split('\n').map((l) => l.trim()).filter((l) => l && !/^[—–-]\s*\S/.test(l)).join(' ')

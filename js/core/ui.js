@@ -951,7 +951,7 @@
           ['messages', 'Messages', () => { s.close(); JC.os.open('messages', { compose: o.payload || { text: o.title } }); }],
           ['mail', 'Mail', () => { s.close(); JC.os.open('mail', { compose: { subject: o.title || '', body: (o.payload && (o.payload.text || o.payload.url)) || '' } }); }],
           ['notes', 'Notes', () => { s.close(); JC.store.add('notes', { title: o.title || 'Shared', body: (o.title || '') + '\n' + ((o.payload && (o.payload.text || o.payload.url)) || ''), t: JC.time.now(), folder: 'notes' }, { front: true }); ui.toast('Saved to Notes', { icon: 'checkmark' }); }],
-          ['wavelet', 'Wavelet', () => { s.close(); JC.os.open('wavelet', { compose: o.payload || {} }); }],
+          ['wavelet', 'Ripple', () => { s.close(); JC.os.open('wavelet', { compose: o.payload || {} }); }],
         ].map(([id, name, fn]) => h('div.share-app', { onTap: fn }, JC.appIcon(id), h('div.share-name', name)))),
         ui.list([{ rows: [
           { title: 'Copy', icon: { node: JC.icon('doc.on.doc', { size: 21 }) }, onTap: () => { s.close(); U.copy(o.payload && (o.payload.text || o.payload.url) || o.title || ''); ui.toast('Copied', { icon: 'doc.on.doc' }); } },

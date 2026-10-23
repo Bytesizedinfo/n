@@ -7,7 +7,8 @@
   const U = JC.util;
   const M = (JC.msgApp = JC.msgApp || {});
 
-  M.DEAD = ['ajie', 'mom', 'dad'];
+  // threads that never deliver (beyond JC.world.contacts.failSend): none in Childe's world
+  M.DEAD = [];
 
   // ── local, persisted app prefs (JC.store collection owned by Messages) ─────────
   M.pref = (k, v) => {
@@ -58,11 +59,11 @@
 
   // ── places (Maps owns `places`; fall back to the story bible) ────────────────
   const PLACES = {
-    'lotus-pier': ['Lotus Pier', 'Yunmeng'], 'lp-residence': ['Lotus Pier Residence', 'Yunmeng'], 'koi-tower': ['Koi Tower', 'Lanling'],
-    'golden-peony': ['Golden Peony Hotel', 'Lanling'], 'player-home': ['Jinxing Road 27', 'Lanling'], 'cloud-recesses': ['Cloud Recesses', 'Gusu'],
-    hanshi: ['The Hanshi', 'Gusu'], jingshi: ['The Jingshi', 'Gusu'], 'unclean-realm': ['The Unclean Realm', 'Qinghe'],
-    'radish-farm': ['Yiling Radish Co.', 'Yiling'], 'laoma-hotpot': ['Laoma Hotpot', 'Gusu'], 'lanling-intl': ['Lanling International School', 'Lanling'],
-    'guanyin-temple': ['Guanyin Temple', 'Yunmeng'], 'yunmeng-lake': ['Yunmeng Lake Pavilion', 'Yunmeng'], 'pet-kingdom': ['Pet Kingdom', 'Lanling'],
+    pier7: ['Pier 7', 'Liyue Harbor'], northland: ['Northland Bank', 'Liyue Harbor'], wangsheng: ['Wangsheng Funeral Parlor', 'Liyue Harbor'],
+    liuli: ['Liuli Pavilion', 'Liyue Harbor'], heyu: ['Heyu Tea House', 'Liyue Harbor'], yujing: ['Yujing Terrace', 'Liyue Harbor'],
+    'wanmin-rest': ['Wanmin Restaurant', 'Liyue Harbor'], xinyue: ['Xinyue Kiosk', 'Liyue Harbor'], 'third-round': ['Third-Round Knockout', 'Liyue Harbor'],
+    apartment: ['Pier View Residences', 'Liyue Harbor'], 'player-home': ['Chihu Rock Lane 12', 'Liyue Harbor'], airport: ['Liyue International Airport', 'Liyue'],
+    guyun: ['Guyun Stone Forest', 'Liyue'], chasm: ['The Chasm', 'Liyue'], morepesok: ['Morepesok', 'Snezhnaya'],
   };
   M.place = (loc) => {
     const id = loc && typeof loc === 'object' ? loc.place : loc;
@@ -101,7 +102,7 @@
   /** text → nodes with tappable links (opens Safari) */
   M.richText = (text) => {
     const out = [];
-    const re = /\b((?:https?:\/\/|www\.)[^\s]+|[a-z0-9-]+\.(?:gusu|lanling|yunmeng|qinghe|yiling|com|cn|net|org)(?:\/[^\s]*)?)/gi;
+    const re = /\b((?:https?:\/\/|www\.)[^\s]+|[a-z0-9-]+\.(?:ly|sn|com|net|org|io)(?:\/[^\s]*)?)/gi;
     let last = 0, m;
     const s = String(text || '');
     while ((m = re.exec(s))) {
@@ -546,7 +547,7 @@
     try { arr = JC.store.all('photos') || []; } catch (e) { arr = []; }
     arr = arr.filter((p) => p && p.art);
     if (!arr.length) {
-      arr = ['p_moon_street', 'p_taxi_night', 'p_balcony_moon', 'p_gala_hall', 'p_fairy_roof', 'p_jl_selfie_gala', 'p_lotus_pond_day', 'p_puppies', 'p_dog_park', 'p_childhood_dogs', 'p_sunrise_lake', 'p_lotus_macro', 'p_silver_bell', 'p_cake_lotus', 'p_car_keys', 'p_hotel_lobby']
+      arr = ['p_pier7_rod', 'p_bluefin', 'p_zl_pier', 'p_liuli_dinner', 'p_cranes_yujing', 'p_teucer_sirfang', 'p_harbor_day', 'p_siblings_snow', 'p_catch_1', 'p_mama_pelmeni', 'p_yujing_lanterns', 'p_zl_teahouse', 'p_hotpot_crew', 'p_morepesok', 'p_glaze_lily', 'p_catch_2']
         .map((art, i) => ({ id: 'mp_' + art, art, t: JC.time.now() - i * 3600e3 * 7 }));
     }
     return arr.slice().sort((a, b) => (b.t || 0) - (a.t || 0));
@@ -565,18 +566,25 @@
   M.translate = (m) => {
     const who = m.from;
     const lines = {
-      wwx: ['Wei Wuxian-ese → English', '“I miss you. Please answer. I’m being annoying on purpose so you’ll notice me.”'],
-      jl: ['Teenager → English', '“Thank you, jiujiu. I love you.” (Confidence: low. He will deny it.)'],
-      nhs: ['Nie Huaisang → English', '“I already know exactly what happened. Tell me anyway.”'],
-      lxc: ['Lan Xichen → English', '“I meant every word I said.”'],
-      lwj: ['Lan Wangji → English', '“Mn.” → “Mn.” (No translation needed. Or possible.)'],
-      huang: ['Old Huang → English', '“Everything is under control. 👍 (It is not.)”'],
-      ea: ['Tang Mei → English', '“Go to sleep, sir.”'],
-      wn: ['Wen Ning → English', '“Sorry.” (×4)'],
-      me: ['Jiang Cheng → English', '“I care. Obviously. Don’t make it a thing.”'],
-      ajie: ['A-Jie → English', '“Come home early. Bring A-Xian.”'],
+      zl: ['Zhongli → English', '“I enjoyed the evening more than the bill would suggest.” (The bill was yours.)'],
+      teucer: ['Little Brother → English', '“I miss you. Also please bring a toy.”'],
+      tonia: ['Little Sister → English', '“I know you’re lying. I love you anyway. Tell me the truth.”'],
+      anthon: ['Twelve-Year-Old → English', '“Respect.” (Grudging. Will deny it.)'],
+      mama: ['Russian → English', '“Eat something. Wear a scarf. Call your mother.”'],
+      papa: ['Russian → English', '“I am proud of you. I am worried about you. Both. Always.”'],
+      ht: ['Hu Tao → English', '“I know something you don’t know. It’ll cost you. 👻”'],
+      paimon: ['Paimon → English', '“Food. Food? FOOD.”'],
+      lumine: ['Lumine → English', '“I’m not angry. I’m keeping a list.”'],
+      signora: ['Corporate → English', '“Do as you’re told, Eleventh.”'],
+      scara: ['Scaramouche → English', '“I know. I’m deciding what it’s worth.”'],
+      dottore: ['Dottore → English', '(Translation withheld for your own wellbeing.)'],
+      pulci: ['Grandfatherly → English', '“I know where your family is, Ajax.”'],
+      ekat: ['Receptionist → English', '“Please be alive.”'],
+      yelan: ['Spy → English', '“I already know. I want to hear you say it.”'],
+      ops: ['Grunt → English', '“We are scared and we want pelmeni.”'],
+      me: ['Childe → English', '“Everything is fine!” (Everything is not fine.)'],
     };
-    const l = lines[who] || ['Detected: English', 'This message is already in English. Jiang Cheng doesn’t need it translated — he’d just say “Get lost.”'];
+    const l = lines[who] || ['Detected: English', 'This message is already in English. Childe would just reply with a fish emoji. 🐟'];
     return JC.ui.alert({ title: 'Translate', message: l[0] + '\n\n' + l[1], buttons: [{ text: 'Copy Translation', onTap: () => { U.copy(l[1]); JC.ui.toast('Copied', { icon: 'doc.on.doc' }); } }, { text: 'Done', style: 'default' }] });
   };
 })();

@@ -186,7 +186,6 @@
     JC.bus.on('minute', checkAlerts);
     const n = JC.store.all('calinvites').filter((i) => !i.status).length;
     JC.notify.badge('calendar', n);
-    dedupeTea();
   });
 
   const PLACE_IDS = [[/pier 7/i, 'pier7'], [/liuli/i, 'liuli'], [/heyu/i, 'heyu'], [/yujing/i, 'yujing'], [/golden house/i, 'golden-house'], [/jade chamber/i, 'jade'], [/wangsheng/i, 'wangsheng'], [/northland/i, 'northland'], [/airport|liyue harbor international/i, 'airport'], [/alcor|crux pier/i, 'alcor'], [/wanmin/i, 'wanmin-rest'], [/guyun/i, 'guyun'], [/wangshu/i, 'wangshu'], [/guili|qingce/i, 'qingce'], [/harbor promenade/i, 'pier7']];

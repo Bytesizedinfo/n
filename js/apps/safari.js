@@ -8,70 +8,66 @@
   const { h } = JC;
   const U = JC.util;
   const W = () => JC.web;
-  const SRCH = (q) => 'https://wavesearch.net/search?q=' + encodeURIComponent(q).replace(/%20/g, '+');
+  const SRCH = (q) => 'https://irminsul.net/search?q=' + encodeURIComponent(q).replace(/%20/g, '+');
 
   // ── seeds ────────────────────────────────────────────────────────────────
   JC.store.seed('history', [
-    { id: 'hs1', url: SRCH('what does \'I\'ve missed you\' mean after a year apart'), title: 'what does ‘I’ve missed you’ mean after a year apart — Wavesearch', t: '+0 23:24' },
-    { id: 'hs2', url: 'https://asklotus.lanling/q/someone-said-ive-missed-you-after-a-year-apart', title: 'Someone said “I’ve missed you” after a year apart. What does it mean? — AskLotus', t: '+0 23:25' },
-    { id: 'hs3', url: 'https://lanlingdaily.lanling/society/jin-group-autumn-gala', title: 'Jin Group Autumn Charity Gala raises ¥38 million at Koi Tower — Lanling Daily', t: '+0 23:22' },
-    { id: 'hs4', url: 'https://skycast.weather/gusu', title: 'Gusu Weather — Skycast', t: '+0 18:12' },
-    { id: 'hs5', url: SRCH('is it normal to want to strangle your nephew'), title: 'is it normal to want to strangle your nephew — Wavesearch', t: '+0 17:40' },
-    { id: 'hs6', url: 'https://ir.jingroup.lanling/', title: 'Jin Group — Investor Relations', t: '+0 08:05' },
-    { id: 'hs7', url: 'https://lotuspier.yunmeng/tides', title: 'Lotus Pier Tide Tables', t: '+0 06:31' },
-    { id: 'hs8', url: SRCH('18th birthday gift for someone who has everything'), title: '18th birthday gift for someone who has everything — Wavesearch', t: '-1 23:58' },
-    { id: 'hs9', url: 'https://etiquette.today/heirlooms-coming-of-age', title: 'The Heirloom Gift: Why Coming-of-Age Calls for Something Old — Etiquette Today', t: '-1 23:59' },
-    { id: 'hs10', url: 'https://lanling-intl.lanling/', title: 'Lanling International School', t: '-1 14:50' },
-    { id: 'hs11', url: SRCH('white peony tea brewing temperature'), title: 'white peony tea brewing temperature — Wavesearch', t: '-2 22:58' },
-    { id: 'hs12', url: 'https://leafandcup.gusu/white-peony-guide', title: 'White Peony (Bai Mudan): The Gentle Guide — Leaf & Cup', t: '-2 22:59' },
-    { id: 'hs13', url: 'https://cloudrecesses.gusu/visit', title: 'Visit — Gusu Lan Academy', t: '-2 23:04' },
-    { id: 'hs14', url: 'https://lanlingdaily.lanling/opinion/dear-auntie-peony/tea-invitation', title: 'Dear Auntie Peony: Someone invited me to tea and I panicked — Lanling Daily', t: '-1 00:41' },
-    { id: 'hs15', url: SRCH('how to say thank you to your brother without saying thank you'), title: 'how to say thank you to your brother without saying thank you — Wavesearch', t: '-3 01:08' },
-    { id: 'hs16', url: 'https://lanlingdaily.lanling/opinion/dear-auntie-peony/brother-dinner', title: 'Dear Auntie Peony: My brother wants to come home for dinner — Lanling Daily', t: '-3 01:12' },
-    { id: 'hs17', url: 'https://homekitchen.yunmeng/recipes/lotus-root-pork-rib-soup', title: 'Lotus Root & Pork Rib Soup (the Yunmeng way) — Home Kitchen', t: '-3 01:20' },
-    { id: 'hs18', url: SRCH('lotus seed paste cake lanling order'), title: 'lotus seed paste cake lanling order — Wavesearch', t: '-3 21:15' },
-    { id: 'hs19', url: SRCH('silver bell polishing yunmeng'), title: 'silver bell polishing yunmeng — Wavesearch', t: '-9 10:12' },
-    { id: 'hs20', url: 'https://petkingdom.lanling/', title: 'Pet Kingdom — Everything for pets', t: '-6 17:55' },
-    { id: 'hs21', url: SRCH('learner permit lanling rules night driving'), title: 'learner permit lanling rules night driving — Wavesearch', t: '-14 22:30' },
-    { id: 'hs22', url: 'https://cloudrecesses.gusu/rules', title: 'The Wall of Discipline — Gusu Lan Academy', t: '-19 23:11' },
-    { id: 'hs23', url: 'https://lanlingdaily.lanling/culture/zewu-jun-returns', title: 'Zewu-jun returns to Cloud Recesses after a year away — Lanling Daily', t: '2026-09-25 19:46' },
-    { id: 'hs24', url: 'https://tea.cloudrecesses.gusu/white-peony', title: 'Mountain White Peony — Cloud Recesses Tea Shop', t: '2026-09-24 23:40' },
-    { id: 'hs25', url: SRCH('liver donor gift etiquette'), title: 'liver donor gift etiquette — Wavesearch', t: '2024-06-22 02:14' },
-    { id: 'hs26', url: 'https://lanlingdaily.lanling/opinion/dear-auntie-peony/donor-gift', title: 'Dear Auntie Peony: How do I thank someone who saved my life? — Lanling Daily', t: '2024-06-24 23:50' },
-    { id: 'hs27', url: 'https://radish.yiling/', title: 'Yiling Radish Co. — radishes so good you’ll cry', t: '-5 23:30' },
-    { id: 'hs28', url: 'https://buzzlake.lanling/life/10-signs-brother-secretly-loves-you', title: '10 Signs Your Brother Secretly Loves You (#7 Will Surprise You) — Buzzlake', t: '2026-02-17 00:30' },
+    { id: 'hs1', url: SRCH('is it normal to want to pay for every dinner'), title: 'is it normal to want to pay for every dinner — Irminsul', t: '+0 22:36' },
+    { id: 'hs2', url: 'https://askteyvat.com/q/is-it-normal-to-want-to-pay-for-every-dinner', title: 'Is it normal to want to pay for every dinner? — AskTeyvat', t: '+0 22:37' },
+    { id: 'hs3', url: SRCH('guizhong era celadon value'), title: 'guizhong era celadon value — Irminsul', t: '+0 22:44' },
+    { id: 'hs4', url: 'https://feiyun.ly/item/lot_teaset', title: 'Lot 1016 · Guizhong-era celadon tea set — Feiyun Market', t: '+0 22:45' },
+    { id: 'hs5', url: 'https://liyueair.ly/flight/LA711', title: 'LA 711 flight status — Liyue Air', t: '+0 21:04' },
+    { id: 'hs6', url: SRCH('glaze lily meaning'), title: 'glaze lily meaning — Irminsul', t: '+0 17:20' },
+    { id: 'hs7', url: 'https://akasha.wiki/wiki/Glaze_lily', title: 'Glaze lily — Akasha', t: '+0 17:21' },
+    { id: 'hs8', url: 'https://tianheng.ly/guyun', title: 'Guyun Stone Forest (marine) Weather — Tianheng Observatory', t: '+0 16:02' },
+    { id: 'hs9', url: 'https://liyueherald.ly/2026/10/15/guyun-tremors', title: 'Fishermen report “humming” near Guyun Stone Forest — The Liyue Herald', t: '-1 07:12' },
+    { id: 'hs10', url: SRCH('osial myth'), title: 'osial myth — Irminsul', t: '-1 01:40' },
+    { id: 'hs11', url: 'https://akasha.wiki/wiki/Osial', title: 'Osial — Akasha', t: '-1 01:41' },
+    { id: 'hs12', url: 'https://intranet.northland.sn/', title: 'Northland Intranet — Sign in', t: '-1 01:52' },
+    { id: 'hs13', url: SRCH('how long can a person stay in a coffin'), title: 'how long can a person stay in a coffin — Irminsul', t: '-2 13:10' },
+    { id: 'hs14', url: SRCH('how to tell your siblings what you do for work'), title: 'how to tell your siblings what you do for work — Irminsul', t: '-2 23:58' },
+    { id: 'hs15', url: 'https://askteyvat.com/q/how-do-i-tell-my-little-siblings-what-i-really-do-for-work', title: 'How do I tell my little siblings what I really do for work? — AskTeyvat', t: '-2 23:59' },
+    { id: 'hs16', url: 'https://mingyun.ly/frost-fortress', title: 'Glacier Guardians Frost Fortress — Mingyun Toys & Games', t: '-3 12:30' },
+    { id: 'hs17', url: 'https://heyu.ly/troupe', title: 'Yun Jin Troupe at Heyu Tea House', t: '-14 11:02' },
+    { id: 'hs18', url: 'https://liyueherald.ly/2026/10/12/yun-jin-divine-damsel', title: 'Review: Yun Jin’s “Divine Damsel” is the season’s finest — The Liyue Herald', t: '-4 08:40' },
+    { id: 'hs19', url: SRCH('rex lapis real photo'), title: 'rex lapis real photo — Irminsul', t: '2026-10-01 10:20' },
+    { id: 'hs20', url: 'https://liyueherald.ly/2026/10/01/rex-lapis', title: 'Liyue mourns: Qixing announce the death of Rex Lapis — The Liyue Herald', t: '2026-10-01 10:11' },
+    { id: 'hs21', url: 'https://crux.ly/', title: 'The Crux Fleet — Captain Beidou', t: '-6 23:15' },
+    { id: 'hs22', url: 'https://reelrush.games/', title: 'Reel Rush — Cast. Reel. Brag.', t: '-1 22:31' },
+    { id: 'hs23', url: SRCH('bluefin tuna from a pier possible'), title: 'bluefin tuna from a pier possible — Irminsul', t: '-7 05:10' },
+    { id: 'hs24', url: SRCH('how to win an arm wrestle against a pirate'), title: 'how to win an arm wrestle against a pirate — Irminsul', t: '-6 22:58' },
   ]);
   JC.store.seed('safari_bm', [
-    { id: 'bm1', folder: 'fav', title: 'YMJ Intranet', url: 'https://intranet.lotuspier.yunmeng/' },
-    { id: 'bm2', folder: 'fav', title: 'Lotus Pier Tide Tables', url: 'https://lotuspier.yunmeng/tides' },
-    { id: 'bm3', folder: 'fav', title: 'Gusu Lan Academy Rules', url: 'https://cloudrecesses.gusu/rules' },
-    { id: 'bm4', folder: 'fav', title: 'Jin Group IR', url: 'https://ir.jingroup.lanling/' },
-    { id: 'bm5', folder: 'fav', title: 'Lanling Daily', url: 'https://lanlingdaily.lanling/' },
-    { id: 'bm6', folder: 'fav', title: 'Skycast', url: 'https://skycast.weather/lanling' },
-    { id: 'bm7', folder: 'ymj', title: 'YMJ Drive', url: 'https://drive.lotuspier.yunmeng/' },
-    { id: 'bm8', folder: 'ymj', title: 'Yunmeng Jiang Group', url: 'https://lotuspier.yunmeng/' },
-    { id: 'bm9', folder: 'ymj', title: 'Shipment tracking', url: 'https://lotuspier.yunmeng/logistics' },
-    { id: 'bm10', folder: 'aling', title: 'Parent Portal — Lanling International', url: 'https://lanling-intl.lanling/parents' },
-    { id: 'bm11', folder: 'aling', title: 'Archery title — Lanling Daily', url: 'https://lanlingdaily.lanling/sports/lanling-international-archery' },
-    { id: 'bm12', folder: 'aling', title: 'Peony Bakery cakes', url: 'https://wavesearch.net/search?q=peony+bakery+lotus+seed+paste' },
-    { id: 'bm13', folder: 'gusu', title: 'Cloud Recesses Tea Shop', url: 'https://tea.cloudrecesses.gusu/' },
-    { id: 'bm14', folder: 'gusu', title: 'White Peony guide', url: 'https://leafandcup.gusu/white-peony-guide' },
-    { id: 'bm15', folder: 'gusu', title: 'Gusu weather', url: 'https://skycast.weather/gusu' },
-    { id: 'bm16', folder: 'root', title: 'Wavepedia — YMJ', url: 'https://wavepedia.org/wiki/Yunmeng_Jiang_Group' },
+    { id: 'bm1', folder: 'fav', title: 'Northland Intranet', url: 'https://intranet.northland.sn/' },
+    { id: 'bm2', folder: 'fav', title: 'Liyue Archives', url: 'https://archives.ly/' },
+    { id: 'bm3', folder: 'fav', title: 'The Liyue Herald', url: 'https://liyueherald.ly/' },
+    { id: 'bm4', folder: 'fav', title: 'The Steambird', url: 'https://steambird.fon/' },
+    { id: 'bm5', folder: 'fav', title: 'Yun Jin Troupe', url: 'https://heyu.ly/troupe' },
+    { id: 'bm6', folder: 'fav', title: 'Tianheng Weather', url: 'https://tianheng.ly/liyue' },
+    { id: 'bm7', folder: 'work', title: 'Northland Bank · Liyue', url: 'https://northland.sn/liyue' },
+    { id: 'bm8', folder: 'work', title: 'The Executive Board', url: 'https://northland.sn/about/board' },
+    { id: 'bm9', folder: 'work', title: 'Security — never share your code', url: 'https://northland.sn/security' },
+    { id: 'bm10', folder: 'kids', title: 'LA 711 flight status', url: 'https://liyueair.ly/flight/LA711' },
+    { id: 'bm11', folder: 'kids', title: 'Frost Fortress (Teucer!!)', url: 'https://mingyun.ly/frost-fortress' },
+    { id: 'bm12', folder: 'kids', title: 'Unaccompanied minors', url: 'https://liyueair.ly/help/unaccompanied-minors' },
+    { id: 'bm13', folder: 'xs', title: 'Glaze lily', url: 'https://akasha.wiki/wiki/Glaze_lily' },
+    { id: 'bm14', folder: 'xs', title: 'Wangsheng — the Rite', url: 'https://wangsheng.ly/rite' },
+    { id: 'bm15', folder: 'xs', title: 'he forgot his wallet again', url: 'https://wishbuzz.com/life/he-forgot-his-wallet-again' },
+    { id: 'bm16', folder: 'root', title: 'The Crux Fleet', url: 'https://crux.ly/' },
   ]);
   JC.store.seed('safari_rl', [
-    { id: 'rl1', url: 'https://lanlingdaily.lanling/opinion/dear-auntie-peony/brother-dinner', title: 'Dear Auntie Peony: My brother wants to come home for dinner', site: 'Lanling Daily', t: '-3 01:13', read: false },
-    { id: 'rl2', url: 'https://etiquette.today/what-does-i-missed-you-mean', title: 'How to Respond When Someone Says “I Missed You”', site: 'Etiquette Today', t: '+0 23:26', read: false },
-    { id: 'rl3', url: 'https://homekitchen.yunmeng/recipes/lotus-root-pork-rib-soup', title: 'Lotus Root & Pork Rib Soup (the Yunmeng way)', site: 'Home Kitchen', t: '-3 01:21', read: false, art: 'food_soup' },
-    { id: 'rl4', url: 'https://lanlingdaily.lanling/culture/zewu-jun-returns', title: 'Zewu-jun returns to Cloud Recesses after a year away', site: 'Lanling Daily', t: '2026-09-25 19:47', read: true, art: 'p_cloud_recesses' },
-    { id: 'rl5', url: 'https://lanlingdaily.lanling/city/silver-restoration-yunmeng', title: 'The silversmiths of Yunmeng who bring heirlooms back to life', site: 'Lanling Daily', t: '-9 09:40', read: true },
+    { id: 'rl1', url: 'https://liyueherald.ly/2026/10/16/rite-of-parting-sunday', title: 'Rite of Parting: what to know for Sunday', site: 'The Liyue Herald', t: '+0 18:40', read: false, art: 'p_yujing_lanterns' },
+    { id: 'rl2', url: 'https://steambird.fon/world/project-o', title: '“Project O”: what is Northland Bank building in Liyue?', site: 'The Steambird', t: '-2 07:02', read: true },
+    { id: 'rl3', url: 'https://liyueherald.ly/2026/10/10/crux-returns', title: 'The Crux returns to port — and Captain Beidou wants a rematch', site: 'The Liyue Herald', t: '-6 09:15', read: true, art: 'p_alcor_deck' },
+    { id: 'rl4', url: 'https://wishbuzz.com/life/signs-you-are-the-favourite-big-sibling', title: '14 Signs You’re the Favourite Big Sibling', site: 'Wishbuzz', t: '-3 00:20', read: false },
+    { id: 'rl5', url: 'https://wishbuzz.com/life/gifts-for-a-man-who-has-lived-a-long-time', title: '11 Gifts for the Man Who Has Seen Everything', site: 'Wishbuzz', t: '-9 23:40', read: true },
   ]);
-  const FOLDERS = [['fav', 'Favorites', 'star'], ['ymj', 'YMJ', 'folder'], ['aling', 'A-Ling', 'folder'], ['gusu', 'Gusu', 'folder']];
+  const FOLDERS = [['fav', 'Favorites', 'star'], ['work', 'Work', 'folder'], ['kids', 'Kids', 'folder'], ['xs', 'xiansheng', 'folder']];
   const SHARED = [
-    ['https://cloudrecesses.gusu/events/wei-lan-520', 'Wei Ying & Lan Zhan — 20 May 2025', 'wwx'],
-    ['https://buzzlake.lanling/life/10-signs-brother-secretly-loves-you', '10 Signs Your Brother Secretly Loves You (#7 Will Surprise You)', 'wwx'],
-    ['https://lanlingdaily.lanling/culture/zewu-jun-returns', 'Zewu-jun returns to Cloud Recesses after a year away', 'nhs'],
-    ['https://drive.lotuspier.yunmeng/board/q4-final', 'Board — Q4 (FINAL).deck', 'ea'],
+    ['https://wangsheng.ly/coffins', 'Coffins — Wangsheng Funeral Parlor (“2nd half price!!”)', 'ht'],
+    ['https://mingyun.ly/frost-fortress', 'Glacier Guardians Frost Fortress', 'teucer'],
+    ['https://liyueherald.ly/2026/10/01/rex-lapis', 'Liyue mourns: Qixing announce the death of Rex Lapis', 'zl'],
+    ['https://liyueherald.ly/2026/10/10/crux-returns', 'The Crux returns to port — and Captain Beidou wants a rematch', 'beidou'],
   ];
 
   function st() {
@@ -80,12 +76,12 @@
     if (!d.apps.safari) {
       d.apps.safari = {
         tabs: [
-          { id: 't1', url: 'https://lanlingdaily.lanling/society/jin-group-autumn-gala', title: 'Jin Group Autumn Charity Gala raises ¥38 million at Koi Tower — Lanling Daily', hist: ['https://lanlingdaily.lanling/', 'https://lanlingdaily.lanling/society/jin-group-autumn-gala'], pos: 1 },
-          { id: 't2', url: 'https://skycast.weather/gusu', title: 'Gusu Weather — Skycast', hist: ['https://skycast.weather/gusu'], pos: 0 },
-          { id: 't3', url: 'https://ir.jingroup.lanling/', title: 'Jin Group — Investor Relations', hist: ['https://ir.jingroup.lanling/'], pos: 0 },
-          { id: 't4', url: 'https://asklotus.lanling/q/someone-said-ive-missed-you-after-a-year-apart', title: 'Someone said “I’ve missed you” after a year apart. What does it mean? — AskLotus', hist: [SRCH('what does \'I\'ve missed you\' mean after a year apart'), 'https://asklotus.lanling/q/someone-said-ive-missed-you-after-a-year-apart'], pos: 1 },
-          { id: 'p1', priv: true, url: SRCH('how to say i missed you too'), title: 'how to say i missed you too — Wavesearch', hist: [SRCH('how to say i missed you too')], pos: 0 },
-          { id: 'p2', priv: true, url: 'https://tea.cloudrecesses.gusu/white-peony', title: 'Mountain White Peony — Cloud Recesses Tea Shop', hist: ['https://tea.cloudrecesses.gusu/white-peony'], pos: 0 },
+          { id: 't1', url: 'https://liyueair.ly/flight/LA711', title: 'LA 711 flight status — Liyue Air', hist: ['https://liyueair.ly/', 'https://liyueair.ly/flight/LA711'], pos: 1 },
+          { id: 't2', url: 'https://tianheng.ly/guyun', title: 'Guyun Stone Forest (marine) Weather — Tianheng Observatory', hist: ['https://tianheng.ly/guyun'], pos: 0 },
+          { id: 't3', url: 'https://intranet.northland.sn/', title: 'Northland Intranet — Sign in', hist: ['https://intranet.northland.sn/'], pos: 0 },
+          { id: 't4', url: 'https://feiyun.ly/item/lot_teaset', title: 'Lot 1016 · Guizhong-era celadon tea set — Feiyun Market', hist: [SRCH('guizhong era celadon value'), 'https://feiyun.ly/item/lot_teaset'], pos: 1 },
+          { id: 'p1', priv: true, url: SRCH('is it weird to write a voice memo you never send'), title: 'is it weird to write a voice memo you never send — Irminsul', hist: [SRCH('is it weird to write a voice memo you never send')], pos: 0 },
+          { id: 'p2', priv: true, url: 'https://wishbuzz.com/life/he-forgot-his-wallet-again', title: 'He “Forgot His Wallet” Again — Wishbuzz', hist: ['https://wishbuzz.com/life/he-forgot-his-wallet-again'], pos: 0 },
         ],
         cur: 't4', curPriv: 'p1', priv: false, privLocked: true, zoom: 100, desktop: false, closed: [],
         start: { favs: true, freq: true, shared: true, privacy: true, reading: true, closed: true },
@@ -217,7 +213,9 @@
           if (t) { t.title = spec.title || t.title; t.url = spec.url || url; save(); }
           updateChrome();
           if (!spec.start) {
-            JC.story.act('visit', { url: spec.url || url });
+            JC.story.act('visit', { url: spec.url || url, host: spec.host || '' });
+            const sq = /irminsul\.net\/(search|images|news|videos|maps)\?q=([^&]*)/.exec(spec.url || url);
+            if (sq) JC.story.act('search', { q: decodeURIComponent(sq[2].replace(/\+/g, ' ')) });
             if (!S.priv && !o.restore) {
               const last = JC.store.all('history')[0];
               if (!last || last.url !== spec.url) JC.store.add('history', { url: spec.url, title: spec.title, t: JC.time.now() }, { front: true });
@@ -238,8 +236,8 @@
         win.setStatus(bandColor ? (lum(bandColor) > 0.55 ? 'dark' : 'light') : 'auto');
         aaBtn.classList.toggle('reader', !!(current && current.reader));
       }
-      const BANDS = { 'lotuspier.yunmeng': '#2d1f52', 'intranet.lotuspier.yunmeng': '#1d1533', 'drive.lotuspier.yunmeng': '#1d1533', 'koitower.lanling': '#1a1306', 'ir.jingroup.lanling': '#16130b', 'laomahotpot.gusu': '#b00d27', 'goldenpeony.lanling': '#2a1e0c', 'help.swiftride.lanling': '#111214', 'police.lanling': '#1d3f72', 'lanling-intl.lanling': '#0b3d6b', 'niecorp.qinghe': '#1f3a2e', 'skycast.weather': '#3b8de8', 'tea.cloudrecesses.gusu': '#2f6b4f', 'lanlingdaily.lanling': '#ffffff', 'cloudrecesses.gusu': '#f3f7fa', 'radish.yiling': '#ffefe2', 'buzzlake.lanling': '#ffcc00', 'asklotus.lanling': '#ffffff', 'etiquette.today': '#7a1f3d', 'homekitchen.yunmeng': '#ffffff', 'howto.lanling': '#18a058', 'leafandcup.gusu': '#f4efe3', 'huaisangfans.qinghe': '#f6efe2', 'petkingdom.lanling': '#ff9f0a', 'wavepedia.org': '#ffffff' };
-      function bandFor(host) { if (BANDS[host]) return BANDS[host]; if (host === 'wavesearch.net' || host === 'skycast.weather') return host === 'wavesearch.net' ? null : BANDS[host]; return W().sites[host] ? '#ffffff' : '#f4f5f8'; }
+      const BANDS = { 'liyueherald.ly': '#ffffff', 'lhnews.ly': '#ffffff', 'archives.ly': '#2b2418', 'northland.sn': '#0f2740', 'northlandbank.sn': '#0f2740', 'intranet.northland.sn': '#0b1b2c', 'liyueair.ly': '#b3261e', 'wangsheng.ly': '#3b1d18', 'millelith.ly': '#5a3d12', 'heyu.ly': '#6d1f2f', 'crux.ly': '#1f2d4d', 'cruxshipping.ly': '#1f2d4d', 'steambird.fon': '#f4ecd8', 'jadechamber.ly': '#0f3b33', 'tianheng.ly': '#3b8de8', 'askteyvat.com': '#ffffff', 'wishbuzz.com': '#ffcc00', 'akasha.wiki': '#ffffff', 'harborride.ly': '#0d6e6e', 'wanmingo.ly': '#e8590c', 'feiyun.ly': '#c2410c', 'feiyun.market': '#c2410c', 'mingyun.ly': '#2b8a3e', 'reelrush.games': '#0b4f7c' };
+      function bandFor(host) { if (BANDS[host]) return BANDS[host]; if (host === 'irminsul.net') return null; return W().sites[host] ? '#ffffff' : '#f4f5f8'; }
       function lum(hex) { const n = parseInt(hex.slice(1), 16); return (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255; }
 
       // links inside pages
@@ -306,7 +304,7 @@
         const favs = JC.store.all('safari_bm').filter((b) => b.folder === 'fav');
         const hist = JC.store.all('history');
         const freq = {};
-        hist.forEach((x) => { try { const hst = new URL(x.url).hostname; if (hst === 'wavesearch.net') return; freq[hst] = freq[hst] || { n: 0, url: x.url, title: x.title }; freq[hst].n++; } catch (e) { /* ignore */ } });
+        hist.forEach((x) => { try { const hst = new URL(x.url).hostname; if (hst === 'irminsul.net') return; freq[hst] = freq[hst] || { n: 0, url: x.url, title: x.title }; freq[hst].n++; } catch (e) { /* ignore */ } });
         const freqList = Object.keys(freq).sort((a, b) => freq[b].n - freq[a].n).slice(0, 8);
         const rl = JC.store.all('safari_rl').slice(0, 3);
         const wrap = h('div.sf-start', { class: { priv: !!S.priv } });
@@ -325,13 +323,13 @@
       function editStart() {
         const P = S.start;
         const rows = [['favs', 'Favorites'], ['freq', 'Frequently Visited'], ['shared', 'Shared with You'], ['privacy', 'Privacy Report'], ['reading', 'Reading List'], ['closed', 'Recently Closed Tabs']].map(([k, t]) => ({ title: t, toggle: { on: !!P[k], onChange: (v) => { P[k] = v; save(); if (current && current.start) show('about:start', { instant: true }); } } }));
-        JC.ui.sheet({ title: 'Customize Start Page', detent: 'medium', right: { text: 'Done' }, content: () => [JC.ui.list([{ rows }, { rows: [{ title: 'Use Start Page on All Devices', toggle: { on: true, onChange: () => {} } }, { title: 'Background Image', toggle: { on: false, onChange: (v) => JC.ui.toast(v ? 'Background: Lotus at dusk' : 'No background') } }] }])] });
+        JC.ui.sheet({ title: 'Customize Start Page', detent: 'medium', right: { text: 'Done' }, content: () => [JC.ui.list([{ rows }, { rows: [{ title: 'Use Start Page on All Devices', toggle: { on: true, onChange: () => {} } }, { title: 'Background Image', toggle: { on: false, onChange: (v) => JC.ui.toast(v ? 'Background: Harbor at night' : 'No background') } }] }])] });
       }
       function privacyReport() {
         JC.ui.sheet({ title: 'Privacy Report', detent: 'large', left: { text: 'Done' }, content: () => [
           h('div.sf-pr-top', JC.icon('shield.lefthalf.filled', { size: 40 }), h('div', h('div.sf-pr-n', '38'), h('div.sf-pr-s', 'trackers prevented from profiling you'))),
-          JC.ui.list([{ header: 'Websites That Contacted Trackers', rows: [['buzzlake.lanling', 14], ['lanlingdaily.lanling', 9], ['asklotus.lanling', 7], ['ir.jingroup.lanling', 4], ['petkingdom.lanling', 4]].map(([s, n]) => ({ title: s, detail: n + ' trackers' })) },
-            { header: 'Most Contacted Tracker', rows: [{ title: 'ads.buzzlake.lanling', subtitle: 'Seen on 4 websites' }] }]),
+          JC.ui.list([{ header: 'Websites That Contacted Trackers', rows: [['wishbuzz.com', 14], ['liyueherald.ly', 9], ['askteyvat.com', 7], ['steambird.fon', 4], ['mingyun.ly', 4]].map(([s, n]) => ({ title: s, detail: n + ' trackers' })) },
+            { header: 'Most Contacted Tracker', rows: [{ title: 'ads.wishbuzz.com', subtitle: 'Seen on 4 websites' }] }]),
         ] });
       }
 
@@ -340,7 +338,7 @@
         if (edit) return;
         const t = curTab();
         const curUrl = current && !current.start ? (current.url || '') : '';
-        const isSearch = /wavesearch\.net\/search\?q=/.test(curUrl);
+        const isSearch = /irminsul\.net\/search\?q=/.test(curUrl);
         const initial = isSearch ? decodeURIComponent((curUrl.split('q=')[1] || '').split('&')[0].replace(/\+/g, ' ')) : curUrl;
         const list = h('div.sf-sugg.scroll');
         const input = JC.ui.input({ value: initial, placeholder: 'Search or enter website', enterkey: 'go', cap: 'none', cls: 'sf-urlin', onInput: (v) => fill(v), onSubmit: (v) => { if (!v.trim()) return; closeEdit(); navigate(v.trim()); } });
@@ -369,7 +367,7 @@
           const uniq = []; const seen = new Set();
           hits.forEach((x) => { if (!seen.has(x.url)) { seen.add(x.url); uniq.push(x); } });
           if (uniq[0]) rows.push({ header: 'Top Hit', rows: [histRow(uniq[0], () => { closeEdit(); navigate(uniq[0].url); })] });
-          rows.push({ header: 'Wavesearch Search', rows: sugg.map((s) => ({ leading: h('div.sf-sg-ic', JC.icon('magnifyingglass', { size: 15, weight: 2.4 })), title: s, onTap: () => { closeEdit(); navigate(SRCH(s)); }, right: h('span.sf-sg-fill.tap', { onTap: (e) => { e.stopPropagation(); input.value = s + ' '; fill(input.value); input.focus(); } }, JC.icon('arrow.up.left', { size: 15 })) })) });
+          rows.push({ header: 'Irminsul Search', rows: sugg.map((s) => ({ leading: h('div.sf-sg-ic', JC.icon('magnifyingglass', { size: 15, weight: 2.4 })), title: s, onTap: () => { closeEdit(); navigate(SRCH(s)); }, right: h('span.sf-sg-fill.tap', { onTap: (e) => { e.stopPropagation(); input.value = s + ' '; fill(input.value); input.focus(); } }, JC.icon('arrow.up.left', { size: 15 })) })) });
           const tabHits = S.tabs.filter((tb) => !tb.priv === !S.priv && (tb.title + tb.url).toLowerCase().includes(ql) && tb.id !== (t && t.id));
           if (tabHits.length) rows.push({ header: 'Switch to Tab', rows: tabHits.map((tb) => ({ leading: h('div.sf-sg-ic', JC.icon('square.on.square', { size: 15 })), title: tb.title || tb.url, subtitle: tb.url.replace(/^https?:\/\//, ''), onTap: () => { closeEdit(); setCur(tb.id); show(tb.url); } })) });
           if (uniq.length > 1) rows.push({ header: 'Bookmarks and History', rows: uniq.slice(1, 5).map((x) => histRow(x, () => { closeEdit(); navigate(x.url); })) });
@@ -390,11 +388,11 @@
         void keep;
       }
       function completions(q) {
-        const base = ['lanling weather', 'lanling daily', 'koi tower', 'lotus pier tide tables', 'gusu lan academy rules', 'white peony tea', 'jin group share price', 'lotus root soup recipe', 'swift ride lost item', 'what to do if you find a lost phone', 'laoma hotpot gusu', 'yiling radish co', 'pet kingdom lanling', 'how to say thank you', 'how to say i missed you too', 'zewu-jun', 'nie huaisang fans', 'lanling international school'];
+        const base = ['liyue weather', 'liyue herald', 'rite of parting', 'rex lapis photo', 'osial', 'guyun stone forest', 'glaze lily meaning', 'la 711 flight status', 'yun jin divine damsel', 'wangsheng funeral parlor', 'northland intranet', 'harbor ride lost item', 'what to do if you find a lost phone', 'millelith lost and found', 'frost fortress', 'crux rematch', 'bluefin tuna', 'reel rush high score', 'how to tell your siblings what you do for work', 'guizhong era celadon value'];
         const out = [q];
         base.forEach((b) => { if (b.startsWith(q) && b !== q) out.push(b); });
         base.forEach((b) => { if (!b.startsWith(q) && b.includes(q) && out.length < 5) out.push(b); });
-        if (out.length < 4) { out.push(q + ' lanling', q + ' meaning', 'how to ' + q); }
+        if (out.length < 4) { out.push(q + ' liyue', q + ' meaning', 'how to ' + q); }
         return out.slice(0, 5);
       }
       function histRow(x, onTap) {

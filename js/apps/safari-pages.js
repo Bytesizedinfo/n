@@ -1,4 +1,4 @@
-/* Safari's fake web (JC.web): a search engine (Wavesearch) that answers any query, ~25 fictional sites
+/* Safari's fake web (JC.web): a search engine (Irminsul) that answers any query, ~25 fictional Teyvat sites
    and a generator for anything else. Every page is built with JC.h; links are <a data-href> and are
    intercepted by Safari. Facts: docs/STORY.md. */
 (function () {
@@ -13,7 +13,7 @@
   const A = (href, ...kids) => h('a.w-a', { data: { href } }, ...kids);
   const Btn = (text, onTap, cls) => h('button.w-btn', { class: cls, onTap }, text);
   const art = (id, cls) => JC.art.el(id, { cls: 'w-img' + (cls ? ' ' + cls : '') });
-  const SEARCH = (q) => 'https://wavesearch.net/search?q=' + enc(q).replace(/%20/g, '+');
+  const SEARCH = (q) => 'https://irminsul.net/search?q=' + enc(q).replace(/%20/g, '+');
   const slug = (s) => String(s).toLowerCase().replace(/['’"“”?!.,:;()]/g, '').replace(/[^a-z0-9一-鿿]+/g, '-').replace(/^-|-$/g, '').slice(0, 80) || 'page';
   const unslug = (s) => decodeURIComponent(String(s)).replace(/[-_+]+/g, ' ').trim();
   const title = (s) => String(s).replace(/\b\w/g, (c) => c.toUpperCase());
@@ -29,9 +29,13 @@
   web.go = goFrom;
   web.slug = slug;
 
-  // per-session page state (logins, carts, …)
+  // per-session page state (carts, votes, …) and saved web state (sign-ins survive a relaunch)
   const mem = {};
   const state = (k, d) => (mem[k] = mem[k] || Object.assign({}, d || {}));
+  const saved = () => { const d = JC.state.d; d.web = d.web || { login: {} }; d.web.login = d.web.login || {}; return d.web; };
+  web.signedIn = (key) => !!saved().login[key];
+  web.signOut = (key) => { delete saved().login[key]; JC.state.save(); };
+  const flags = () => (JC.state.d && JC.state.d.flags) || {};
 
   // ── sites registry ──
   const SITES = {};
@@ -100,7 +104,7 @@
   }
   function parked(ctx) {
     const host = ctx.host;
-    const words = host.replace(/\.(com|net|org|cn|lanling|yunmeng|gusu|qinghe|yiling|io|app|co|info)$/g, '').split(/[.\-_]/).filter((w) => w && w !== 'www');
+    const words = host.replace(/\.(com|net|org|ly|sn|fon|ina|io|app|co|info|wiki|games|market)$/g, '').split(/[.\-_]/).filter((w) => w && w !== 'www');
     const label = words.join(' ') || host;
     const real = /^(google|baidu|bing|yahoo|youtube|facebook|instagram|twitter|x|tiktok|weibo|wechat|apple|amazon|taobao|wikipedia|reddit|netflix|openai|chatgpt)\./.test(host);
     if (real) {
@@ -110,7 +114,7 @@
       h('div.w-pk-top', h('div.w-pk-dom', host), h('div.w-pk-sale', 'This domain may be for sale')),
       h('div.w-pk-h', 'Related searches'),
       h('div.w-pk-links', [label, label + ' price', label + ' near me', 'best ' + label, label + ' reviews', 'what is ' + label].map((t) => A(SEARCH(t), h('span', t), JC.icon('chevron.right', { size: 14 })))),
-      h('div.w-pk-foot', '© 2026 Lanling Domains Ltd. · ', A(SEARCH('lanling domains'), 'Buy this domain'), ' · ', A('https://wavesearch.net/', 'Privacy')),
+      h('div.w-pk-foot', '© 2026 Jade Registry (Liyue) Ltd. · ', A(SEARCH('jade registry domains'), 'Buy this domain'), ' · ', A('https://irminsul.net/', 'Privacy')),
     ]);
   }
 
@@ -137,14 +141,14 @@
       box.innerHTML = '';
       box.append(h('div.w-cm-h', (list.length + st.mine.length) + ' Comments'));
       list.concat(st.mine).forEach((c) => box.append(h('div.w-cm', h('div.w-cm-av', { style: { background: 'hsl(' + (hash(c[0]) % 360) + ',55%,58%)' } }, c[0][0].toUpperCase()), h('div.w-cm-m', h('div.w-cm-by', c[0], h('span', ' · ' + (c[2] || '2d'))), h('div.w-cm-t', c[1]), h('div.w-cm-acts', h('span.tap', { onTap: (e) => { e.currentTarget.classList.toggle('on'); e.currentTarget.textContent = e.currentTarget.classList.contains('on') ? '♥ Liked' : '♡ Like'; } }, '♡ Like'), h('span.tap', { onTap: () => JC.ui.toast('Replies are for members. Sign in to reply.') }, 'Reply'))))));
-      const input = JC.ui.input({ placeholder: 'Add a comment…', cls: 'w-cm-in', enterkey: 'send', onSubmit: (v) => { v = v.trim(); if (!v) return; JC.ui.alert({ title: 'Post as “jiang.cheng”?', message: 'Your comment will be public, under Jiang Cheng’s account.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Post', style: 'destructive' }] }).then((r) => { if (r.index === 1) { st.mine.push(['jiang.cheng', v, 'now']); draw(); JC.story.act('web_comment', { text: v, page: key }); } }); } });
+      const input = JC.ui.input({ placeholder: 'Add a comment…', cls: 'w-cm-in', enterkey: 'send', onSubmit: (v) => { v = v.trim(); if (!v) return; JC.ui.alert({ title: 'Post as “tartaglia”?', message: 'Your comment will be public, under Childe’s account. Ekaterina reads everything he posts. So does Scaramouche.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Post', style: 'destructive' }] }).then((r) => { if (r.index === 1) { st.mine.push(['tartaglia', v, 'now']); draw(); JC.story.act('comment', { text: v, page: key, web: true }); } }); } });
       box.append(h('div.w-cm-new', input, Btn('Post', () => input.dispatchEvent(new CustomEvent('kbreturn')))));
     };
     draw();
     return box;
   }
   function loginForm(o) {
-    // o: { brand, color, sub, user, key, hint, onFail(tries), lockedText }
+    // o: { brand, color, sub, user, key, hint, onFail(tries), lockedText, check(user, pw) → true on success, onSuccess(box) }
     const st = state('login:' + o.key, { tries: 0 });
     const box = h('div.w-login', { style: { '--brand': o.color } });
     const draw = () => {
@@ -165,6 +169,15 @@
       box.append(
         h('div.w-login-links', h('span.tap', { onTap: () => JC.ui.alert({ title: 'Reset Password', message: o.resetText || 'A reset link has been sent to the email on file.', buttons: [{ text: 'OK' }] }) }, 'Forgot password?'), o.help ? h('span.tap', { onTap: () => JC.ui.alert({ title: 'Help', message: o.help, buttons: [{ text: 'OK' }] }) }, 'Need help?') : null));
       function submit() {
+        if (o.check && o.check(user.value.trim(), pw.value)) {
+          st.tries = 0; st.err = null;
+          saved().login[o.key] = true;
+          JC.state.save();
+          JC.audio.play('success');
+          JC.story.act('login', { site: o.key, user: user.value.trim() });
+          if (o.onSuccess) o.onSuccess(box);
+          return;
+        }
         st.tries++;
         const left = (o.max || 3) - st.tries;
         st.err = left > 0 ? 'Incorrect password. ' + left + ' attempt' + (left === 1 ? '' : 's') + ' remaining.' : null;
@@ -179,68 +192,101 @@
   }
   const foot = (name, links) => h('div.w-foot', h('div.w-foot-links', (links || []).map((l) => A(l[0], l[1]))), h('div.w-foot-c', '© 2026 ' + name));
 
-  // ═══ Wavesearch ══════════════════════════════════════════════════════════
-  const WS_ICON = { letter: 'W', bg: 'linear-gradient(135deg,#2b7bff,#00c2ff)', fg: '#fff' };
+  // ═══ Irminsul (search) ═══════════════════════════════════════════════════
+  const IR_ICON = { letter: '❦', bg: 'linear-gradient(135deg,#2f7d6d,#62c3a6)', fg: '#fff' };
+  const HERALD = 'https://liyueherald.ly';
+  const ARCH = 'https://archives.ly';
+  const WIKI_URL = (k) => 'https://akasha.wiki/wiki/' + k;
+  const ASKQ = (k) => 'https://askteyvat.com/q/' + k;
   const TELLING = [
-    { re: /thank.*brother.*without|say thank you to your brother/i, results: [
-      ['https://etiquette.today/thank-you-without-saying-thank-you', 'How to Say “Thank You” Without Saying It — Etiquette Today', 'Some people would rather walk into the sea than say “thank you” out loud. Here are nine ways to say it anyway: show up, cook, remember, fix the thing…'],
-      ['https://asklotus.lanling/q/my-brother-did-something-huge-for-me-years-ago', 'My brother did something huge for me years ago and I never thanked him. How do I say it now? — AskLotus', '“Just say it. Two words. He’s been waiting longer than you think.” — 214 answers'],
-      ['https://buzzlake.lanling/life/10-signs-brother-secretly-loves-you', '10 Signs Your Brother Secretly Loves You (#7 Will Surprise You) — Buzzlake', 'He insults your cooking but eats all of it. He remembers your birthday and pretends he doesn’t…'],
-      ['https://lanlingdaily.lanling/opinion/dear-auntie-peony/brother-dinner', 'Dear Auntie Peony: My brother wants to come home for dinner — Lanling Daily', '“After thirteen years he asked if he can come home for a birthday dinner. I don’t know what to say.” Auntie Peony answers.'],
-    ], ask: ['Is a voice message a good way to say thank you?', 'What if they already know?', 'How do you thank someone for something you can never repay?'] },
-    { re: /liver.*donor|donor.*(gift|etiquette)|organ donor/i, results: [
-      ['https://etiquette.today/gifts-for-organ-donors', 'What Do You Give Someone Who Gave You Part of Their Liver? — Etiquette Today', 'Short answer: nothing that fits in a box. Long answer: your time, your table, and the words you’ve been avoiding.'],
-      ['https://wavepedia.org/wiki/Living_donor_liver_transplant', 'Living donor liver transplant — Wavepedia', 'A living donor gives part of their liver; both livers regrow within months. Donors often ask to remain anonymous…'],
-      ['https://asklotus.lanling/q/is-it-weird-to-give-a-gift-to-my-liver-donor', 'Is it weird to give a gift to my liver donor? — AskLotus', '“My donor turned out to be someone I know. Very well. It’s been sixteen years. Is it too late?” — 88 answers'],
-      ['https://howto.lanling/thank-a-living-donor', 'How to Thank a Living Donor (Even Years Later) — HowTo.lanling', 'Step 1: It is not too late. Step 2: Be specific. Step 3: Don’t make it a speech…'],
-    ], ask: ['Can a liver donor drink alcohol?', 'Is it too late to thank a donor after 16 years?', 'Do donors want to be thanked?'] },
-    { re: /white peony|bai mudan|peony tea/i, snippet: ['White peony tea: brew at 85 °C (185 °F) for 2–3 minutes', 'Use about 5 g of leaves per 150 ml. Don’t use boiling water — it scalds the buds. Re-steep 3–4 times, adding 30 seconds each time.', 'https://leafandcup.gusu/white-peony-guide'], results: [
-      ['https://leafandcup.gusu/white-peony-guide', 'White Peony (Bai Mudan): The Gentle Guide — Leaf & Cup', '85 °C, three minutes, and patience. Why white peony rewards people who don’t rush.'],
-      ['https://tea.cloudrecesses.gusu/white-peony', 'Mountain White Peony, 250 g — Cloud Recesses Tea Shop', 'Hand-picked on the Academy terraces. Floral, honeyed, quiet. ¥880.'],
-      ['https://wavepedia.org/wiki/White_peony_tea', 'White peony tea — Wavepedia', 'White peony (Bai Mudan) is a white tea made from the bud and two young leaves…'],
-      ['https://tea.cloudrecesses.gusu/brewing', 'How We Brew — Cloud Recesses Tea Shop', 'Water just off the boil, around 85 °C. No sugar. No hurry.'],
-    ], ask: ['Can you put sugar in white peony tea?', 'Is white peony a good gift?', 'White peony vs silver needle?'] },
-    { re: /18th birthday|turning 18|gift.*(has everything|someone who has)/i, results: [
-      ['https://buzzlake.lanling/life/gifts-for-18-year-old-who-has-everything', '27 Gifts for the 18-Year-Old Who Has Everything — Buzzlake', 'When they already own a tower, a dog the size of a pony and every sneaker in Lanling.'],
-      ['https://etiquette.today/heirlooms-coming-of-age', 'The Heirloom Gift: Why Coming-of-Age Calls for Something Old — Etiquette Today', 'A thing that belonged to someone they never got to know may be the most valuable gift of all.'],
-      ['https://asklotus.lanling/q/what-do-i-give-my-nephew-who-is-turning-18', 'What do I give my nephew who is turning 18 and literally owns a tower? — AskLotus', '“Give him something of his mother’s.” — 67 answers'],
-      ['https://lanlingdaily.lanling/city/silver-restoration-yunmeng', 'The silversmiths of Yunmeng who bring heirlooms back to life — Lanling Daily', 'At Silver Lotus Jewelers, a family bell can take three weeks…'],
-    ], ask: ['What is a good coming-of-age gift?', 'Is jewellery a good gift for an 18-year-old boy?', 'How much should an uncle spend on an 18th birthday?'] },
-    { re: /strangle.*nephew|nephew.*strangle|normal to want to/i, results: [
-      ['https://asklotus.lanling/q/is-it-normal-to-want-to-strangle-your-nephew', 'Is it normal to want to strangle your nephew? (affectionately) — AskLotus', '“Yes. Ask any uncle. It means you love him.” — 1.2K answers'],
-      ['https://buzzlake.lanling/life/signs-you-are-the-cool-uncle', '12 Signs You Are the Cool Uncle (Even If You Yell) — Buzzlake', 'You threaten to break their legs. They text you first when something goes wrong.'],
-      ['https://lanlingdaily.lanling/opinion/dear-auntie-peony/teenager-not-mine', 'Dear Auntie Peony: I raised a teenager who isn’t mine — Lanling Daily', '“He is turning eighteen and I don’t know how to stop worrying.”'],
-    ], ask: ['How do you handle a teenager who took your car?', 'Is yelling a love language?', 'Do teenagers know you love them?'] },
-    { re: /missed you|i'?ve missed you|year apart/i, results: [
-      ['https://asklotus.lanling/q/someone-said-ive-missed-you-after-a-year-apart', 'Someone said “I’ve missed you” after a year apart. What does it mean? — AskLotus', '“It means they missed you. You’re allowed to believe it.” — 342 answers'],
-      ['https://etiquette.today/what-does-i-missed-you-mean', 'How to Respond When Someone Says “I Missed You” — Etiquette Today', 'You don’t need a speech. “I missed you too” is a complete sentence. So is “Tea tomorrow?”'],
-      ['https://lanlingdaily.lanling/culture/zewu-jun-returns', 'Zewu-jun returns to Cloud Recesses after a year away — Lanling Daily', 'The Chancellor of Gusu Lan Academy has resumed his duties after a year of seclusion.'],
-    ], ask: ['What should I say back?', 'Is “I missed you” romantic?', 'How do I know if it’s too late?'] },
+    { re: /rex lapis.*(photo|picture|look|face|real|human)|(photo|picture).*rex lapis|what did rex lapis look like|morax.*(photo|human)/i, results: [
+      [ARCH + '/photos/1926-founding', 'PH-1926-0417 · “The Consultant”, Liyue Exchange founding 1926 — Liyue Archives', 'Silver gelatin print. A gentleman in a long coat stands at the centre of the Qixing at the founding of the Liyue Exchange, 1926. Catalogue note: “Identified by the photographer as Rex Lapis.”'],
+      [HERALD + '/2026/10/01/rex-lapis', 'Liyue mourns: Qixing announce the death of Rex Lapis — The Liyue Herald', 'The only known photograph of the Geo Archon in human form will be displayed at the Rite of Parting.'],
+      [WIKI_URL('Rex_Lapis'), 'Rex Lapis — Akasha', 'Rex Lapis (Morax) is the Geo Archon, founder and protector of Liyue Harbor. Said to appear among mortals in human form…'],
+      [ASKQ('has-anyone-actually-seen-rex-lapis-in-human-form'), 'Has anyone actually seen Rex Lapis in human form? — AskTeyvat', '“My grandmother swore he bought tea from her stall and didn’t pay.” — 412 answers'],
+    ], ask: ['Did Rex Lapis really walk among people?', 'Why is there only one photograph of Rex Lapis?', 'Is it true Rex Lapis never carried money?'] },
+    { re: /osial/i, results: [
+      [WIKI_URL('Osial'), 'Osial — Akasha', 'Osial, Overlord of the Vortex, is an ancient sea god of Liyue legend, said to be sealed beneath Guyun Stone Forest by Rex Lapis.'],
+      [HERALD + '/2026/10/15/guyun-tremors', 'Fishermen report “humming” near Guyun Stone Forest — The Liyue Herald', 'Northland survey boats have been seen among the pillars. The Millelith say there is nothing to worry about.'],
+      ['https://steambird.fon/world/project-o', '“Project O”: what is Northland Bank building in Liyue? — The Steambird', 'Northland declines to comment on a project listed in filings only as “O”.'],
+      [ASKQ('is-osial-real'), 'Is Osial real or just something grandmas say? — AskTeyvat', '“My grandpa says the sea goes quiet before it wakes up. The sea has been quiet all week.” — 96 answers'],
+    ], ask: ['Where is Osial sealed?', 'What would happen if Osial woke up?', 'Who sealed Osial?'] },
+    { re: /glaze lil(y|ies)/i, snippet: ['Glaze lily: a flower of remembrance in Liyue', 'Glaze lilies only bloom where they are left alone, and are said to have been the favourite flower of Guizhong, an old friend of Rex Lapis. They are given in memory of someone, or to someone you hope remembers you.', WIKI_URL('Glaze_lily')], results: [
+      [WIKI_URL('Glaze_lily'), 'Glaze lily — Akasha', 'A rare flower of Liyue that blooms in quiet places, associated with the god Guizhong.'],
+      [HERALD + '/2026/10/05/glaze-lily-season', 'Glaze lilies bloom late this year — The Liyue Herald', 'Florists on Feiyun Slope say demand has tripled since the Founder’s death.'],
+      ['https://feiyun.ly/search?q=glaze+lily', 'Glaze lilies — Feiyun Market', 'Same-day delivery across Liyue Harbor. Wangsheng Funeral Parlor accepts flowers for the Rite of Parting.'],
+    ], ask: ['What does it mean to give someone glaze lilies?', 'Are glaze lilies for funerals?', 'Who was Guizhong?'] },
+    { re: /guizhong|celadon|tea ?set/i, results: [
+      ['https://feiyun.ly/item/lot_teaset', 'Lot 1016 · Guizhong-era celadon tea set (7 pieces) — Feiyun Market', 'Auction ends Sat 00:30. Current bid ℳ11,200. Inscription on the base of the pot, partly worn.'],
+      [WIKI_URL('Guizhong'), 'Guizhong — Akasha', 'Guizhong, the Goddess of Dust, was a god of ancient Liyue and a close friend of Rex Lapis.'],
+      [ASKQ('how-much-is-a-guizhong-era-tea-set-worth'), 'How much is a Guizhong-era tea set worth? — AskTeyvat', '“Depends. If it’s real, more than your house. If the seller is in a hurry, ask why.” — 31 answers'],
+    ], ask: ['How do you tell if Guizhong-era celadon is real?', 'What does “for Morax” mean on old ceramics?', 'Who collects ancient Liyue tea ware?'] },
+    { re: /coffin|how long can (a )?person (stay|hide|lie)|hid(e|ing) in a funeral/i, results: [
+      [ASKQ('how-long-can-a-person-stay-in-a-coffin'), 'How long can a person stay in a coffin? (asking for a friend) — AskTeyvat', '“Depends on the coffin. Ours have air holes now. Also a cupholder. Book a viewing!” — wangsheng_hutao'],
+      ['https://wangsheng.ly/coffins', 'Coffins — Wangsheng Funeral Parlor', 'Autumn sale: second coffin half price. Ask inside.'],
+    ], ask: ['Are coffins soundproof?', 'Can you rent a coffin?', 'Does Wangsheng do discounts for the living?'] },
+    { re: /siblings.*(work|job)|what (i|you) do for work|tell.*(family|siblings).*(job|work)|toy (company|factory|sales)/i, results: [
+      [ASKQ('how-do-i-tell-my-little-siblings-what-i-really-do-for-work'), 'How do I tell my little siblings what I really do for work? — AskTeyvat', '“They think I sell toys. It has been five years. I am now very good at describing toys.” — 77 answers'],
+      ['https://wishbuzz.com/life/signs-you-are-the-favourite-big-sibling', '14 Signs You’re the Favourite Big Sibling (Even Though You’re Never Home) — Wishbuzz', 'They save their best drawings for you. They tell everyone at school about your job.'],
+    ], ask: ['Is it okay to lie to kids to protect them?', 'At what age should kids know the truth?', 'What if my sister already knows?'] },
+    { re: /pay(ing)? for every dinner|always (pay|pays)|(he|friend) never (pays|carries)|forgot (his )?wallet/i, results: [
+      [ASKQ('is-it-normal-to-want-to-pay-for-every-dinner'), 'Is it normal to want to pay for every dinner? — AskTeyvat', '“If you want to, and he lets you, that’s not a bill. That’s a ritual.” — 158 answers'],
+      ['https://wishbuzz.com/life/he-forgot-his-wallet-again', 'He “Forgot His Wallet” Again: 9 Things It Might Actually Mean — Wishbuzz', '#4: He likes that you keep coming back.'],
+    ], ask: ['What does it mean when someone never pays?', 'Is paying for someone a love language?', 'How do you ask someone to dinner without it being a date?'] },
+    { re: /lost phone|found (a |an |his |someone'?s )?(phone|iphone)|phone (found|left) (on|at)/i, results: [
+      ['https://millelith.ly/lost-and-found', 'Lost & Found — The Millelith', 'Found property can be handed in at any Millelith post, 24 hours. Phones: bring the device as you found it.'],
+      [HERALD + '/life/found-a-lost-phone', 'Found a Lost Phone? Here’s Exactly What to Do — The Liyue Herald', 'It’s someone’s whole life in your pocket. Here’s how to get it back to them fast.'],
+      ['https://harborride.ly/help/lost-items', 'Lost or found an item? — Harbor Ride Help', 'Report it from the trip in the app. We notify the rider and the driver.'],
+    ], ask: ['Should I answer a lost phone if it rings?', 'Is it illegal to keep a phone you found?', 'Can the owner track the phone?'] },
+    { re: /\bla ?71[12]\b|flight status|liyue air|zapolyarny.*flight/i, results: [
+      ['https://liyueair.ly/flight/LA711', 'LA 711 · Zapolyarny → Liyue Harbor — Flight status — Liyue Air', 'Live status, gate and arrival time.'],
+      ['https://liyueair.ly/flight/LA712', 'LA 712 · Liyue Harbor → Zapolyarny — Flight status — Liyue Air', 'Monday departure, check-in from 11:30.'],
+      ['https://liyueair.ly/help/unaccompanied-minors', 'Unaccompanied minor service — Liyue Air', 'Children are released only to the adult named on the booking.'],
+    ], ask: ['How do I change who collects an unaccompanied minor?', 'Is LA 711 on time?', 'Where do international arrivals come out?'] },
+    { re: /abyss order|\baether\b|blond(e)? (boy|man).*scarf|traveler.*brother/i, results: [
+      [WIKI_URL('Abyss_Order'), 'Abyss Order — Akasha', 'A secretive organisation of uncertain aims, linked to disturbances in the Chasm and elsewhere.'],
+      ['https://millelith.ly/missing/aether', 'MISSING: Aether — The Millelith', 'Last seen: unknown. Reported by his sister. Any information to the Millelith.'],
+      [ASKQ('has-anyone-seen-a-blond-boy-with-a-long-braid'), 'Has anyone seen a blond boy with a long braid and a white scarf? — AskTeyvat', '“My sister has been looking for him for a long time. Please.” — asked by traveler.l'],
+    ], ask: ['Is the Abyss Order real?', 'What happened at the Chasm?', 'Who leads the Abyss Order?'] },
+    { re: /\bskirk\b/i, results: [
+      [SEARCH('skirt'), 'Did you mean: skirt', 'Showing results for skirt. Search instead for skirk.'],
+    ], ask: ['What does “skirk” mean?', 'Is skirk a name?', 'Why does this word return nothing?'] },
+    { re: /yun ?jin|divine damsel|heyu|opera/i, results: [
+      ['https://heyu.ly/troupe', 'Yun Jin Troupe at Heyu Tea House — Tickets & Season', '“The Divine Damsel” — Saturday matinee 15:00 (sold out). Evening performances Fri–Sun.'],
+      [HERALD + '/2026/10/12/yun-jin-divine-damsel', 'Review: Yun Jin’s “Divine Damsel” is the season’s finest — The Liyue Herald', 'A second act that silences the room.'],
+      [WIKI_URL('Yun_Jin'), 'Yun Jin — Akasha', 'Yun Jin is a Liyue opera singer and playwright, leader of the Yun Jin Troupe.'],
+    ], ask: ['What is the Divine Damsel about?', 'How long is a Liyue opera?', 'Can you buy returns for sold-out shows?'] },
   ];
   const KNOWN = [
-    { re: /yunmeng jiang|\bymj\b/i, wiki: 'Yunmeng_Jiang_Group', site: ['https://lotuspier.yunmeng/', 'Yunmeng Jiang Group — Official Site'] },
-    { re: /jiang cheng|jiang wanyin|sandu/i, wiki: 'Jiang_Cheng_(businessman)' },
-    { re: /koi tower/i, wiki: 'Koi_Tower', site: ['https://koitower.lanling/', 'Koi Tower — Official Site'], place: 'koi-tower' },
-    { re: /jin group|jingroup/i, wiki: 'Jin_Group', site: ['https://ir.jingroup.lanling/', 'Jin Group Investor Relations'] },
-    { re: /gusu lan|cloud recesses|lan academy/i, wiki: 'Gusu_Lan_Academy', site: ['https://cloudrecesses.gusu/', 'Gusu Lan Academy — Cloud Recesses'], place: 'cloud-recesses' },
-    { re: /lan xichen|zewu/i, wiki: 'Lan_Xichen' },
-    { re: /nie corp|unclean realm/i, wiki: 'Nie_Corp', site: ['https://niecorp.qinghe/', 'Nie Corp'], place: 'unclean-realm' },
-    { re: /huaisang|fans/i, wiki: 'Nie_Huaisang', site: ['https://huaisangfans.qinghe/', 'Huaisang Fans — Hand-painted fans'] },
-    { re: /lanling\b/i, wiki: 'Lanling' },
-    { re: /yunmeng\b/i, wiki: 'Yunmeng' },
-    { re: /lotus root.*soup|pork rib soup/i, wiki: 'Lotus_root_soup', site: ['https://homekitchen.yunmeng/recipes/lotus-root-pork-rib-soup', 'Lotus Root & Pork Rib Soup — Home Kitchen'] },
-    { re: /laoma|hotpot/i, site: ['https://laomahotpot.gusu/', 'Laoma Hotpot 老妈火锅 — Gusu'], place: 'laoma-hotpot' },
-    { re: /radish|yiling radish/i, site: ['https://radish.yiling/', 'Yiling Radish Co. — radishes so good you’ll cry'], place: 'radish-farm' },
-    { re: /golden peony/i, site: ['https://goldenpeony.lanling/', 'Golden Peony Hotel Lanling'], place: 'golden-peony' },
-    { re: /pet kingdom|dog food/i, site: ['https://petkingdom.lanling/', 'Pet Kingdom — Everything for pets'], place: 'pet-kingdom' },
-    { re: /lanling international|lanling intl/i, site: ['https://lanling-intl.lanling/', 'Lanling International School'], place: 'lanling-intl' },
-    { re: /lost phone|found (a |an )?(phone|iphone)|phone (in|left in) (a )?(taxi|car)/i, site: ['https://howto.lanling/found-a-lost-phone', 'Found a Lost Phone? Here’s Exactly What to Do — HowTo.lanling'] },
-    { re: /swift ride|lost item/i, site: ['https://help.swiftride.lanling/lost-items', 'Lost or found an item? — Swift Ride Help'] },
-    { re: /lost and found|lost property|police/i, site: ['https://police.lanling/lost-and-found', 'Lost & Found — Lanling Public Security'], place: 'jinxing-police' },
-    { re: /tide|water level|lotus pier/i, site: ['https://lotuspier.yunmeng/tides', 'Lotus Pier Tide Tables & Lake Levels'] },
-    { re: /weather|rain|forecast/i, weather: true },
-    { re: /lanling daily|news/i, site: ['https://lanlingdaily.lanling/', 'Lanling Daily — News from Lanling and beyond'] },
-    { re: /intranet/i, site: ['https://intranet.lotuspier.yunmeng/', 'YMJ Intranet — Sign in'] },
+    { re: /rex lapis|morax|geo archon/i, wiki: 'Rex_Lapis' },
+    { re: /rite of parting|funeral.*(sunday|founder)|founder'?s lanterns/i, wiki: 'Rite_of_Parting', site: [HERALD + '/2026/10/16/rite-of-parting-sunday', 'Rite of Parting: what to know for Sunday — The Liyue Herald'], place: 'yujing' },
+    { re: /liyue archives|archives\.ly/i, site: [ARCH + '/', 'Liyue Archives — Heritage collections of the Qixing'] },
+    { re: /northland bank|northland\b/i, wiki: 'Northland_Bank', site: ['https://northland.sn/liyue', 'Northland Bank · Liyue Branch'], place: 'northland' },
+    { re: /intranet|nb-liyue/i, site: ['https://intranet.northland.sn/', 'Northland Intranet — Sign in'] },
+    { re: /fatui/i, wiki: 'Fatui' },
+    { re: /harbinger|tartaglia|childe|signora|pantalone|dottore|scaramouche|pulcinella/i, wiki: 'Harbingers', site: ['https://northland.sn/about/board', 'The Executive Board — Northland Bank Group'] },
+    { re: /guyun|stone forest/i, wiki: 'Guyun_Stone_Forest', place: 'guyun' },
+    { re: /wangsheng|hu tao|funeral parlou?r/i, wiki: 'Wangsheng_Funeral_Parlor', site: ['https://wangsheng.ly/', 'Wangsheng Funeral Parlor — Since the Archon War'], place: 'wangsheng' },
+    { re: /zhongli/i, site: ['https://wangsheng.ly/staff', 'Our people — Wangsheng Funeral Parlor'] },
+    { re: /qixing|jade chamber|ningguang|tianquan/i, wiki: 'Liyue_Qixing', site: ['https://jadechamber.ly/', 'The Jade Chamber — Office of the Tianquan'], place: 'jade' },
+    { re: /millelith|police/i, site: ['https://millelith.ly/', 'The Millelith — Liyue Harbor'], place: 'millelith' },
+    { re: /crux|beidou|alcor/i, wiki: 'The_Crux', site: ['https://crux.ly/', 'The Crux Fleet — Captain Beidou'], place: 'alcor' },
+    { re: /wanmin|xiangling/i, site: ['https://wanmingo.ly/r/wanmin', 'Wanmin Restaurant — order on Wanmin Go'], place: 'wanmin-rest' },
+    { re: /liuli pavilion/i, place: 'liuli' },
+    { re: /pier 7|pier seven/i, place: 'pier7' },
+    { re: /third.?round|knockout/i, place: 'third-round' },
+    { re: /yujing terrace/i, place: 'yujing' },
+    { re: /golden house/i, wiki: 'Golden_House', place: 'golden-house' },
+    { re: /snezhnaya|zapolyarny/i, wiki: 'Snezhnaya' },
+    { re: /morepesok/i, wiki: 'Morepesok' },
+    { re: /liyue harbou?r|\bliyue\b/i, wiki: 'Liyue_Harbor' },
+    { re: /bluefin|tuna/i, wiki: 'Bluefin_tuna' },
+    { re: /steambird|fontaine/i, site: ['https://steambird.fon/', 'The Steambird — Fontaine’s newspaper of record'] },
+    { re: /ripple/i, site: ['https://ripple.ly/', 'Ripple — share the moment'] },
+    { re: /reel rush/i, site: ['https://reelrush.games/', 'Reel Rush — the fishing game'] },
+    { re: /mingyun|glacier guardians|frost fortress/i, site: ['https://mingyun.ly/frost-fortress', 'Glacier Guardians Frost Fortress — Mingyun Toys & Games'], place: 'mingyun' },
+    { re: /weather|rain|storm|forecast|typhoon/i, weather: true },
+    { re: /\bnews\b|herald/i, site: [HERALD + '/', 'The Liyue Herald — News from the harbor'] },
   ];
   function calcAnswer(q) {
     const s = q.replace(/\s+/g, '').replace(/x/gi, '*').replace(/÷/g, '/').replace(/×/g, '*');
@@ -251,25 +297,24 @@
     const sl = slug(q);
     const T = title(q);
     const out = [
-      ['https://asklotus.lanling/q/' + sl, T + '? — AskLotus', (9 + hash(q) % 300) + ' answers · “' + pick(['Honestly? Just ask them.', 'I had the same question last year. Here’s what worked.', 'Short answer: it depends. Long answer below.', 'Everyone overthinks this. Don’t.'], q) + '”'],
-      ['https://wavepedia.org/wiki/' + T.replace(/\s+/g, '_'), T + ' — Wavepedia', T + ' may refer to several topics. This disambiguation page lists articles associated with the title ' + T + '.'],
-      ['https://buzzlake.lanling/life/' + sl, (5 + hash(q) % 15) + ' Things Nobody Tells You About ' + T + ' — Buzzlake', 'Number ' + (3 + hash(q) % 5) + ' changed how we think about ' + q.toLowerCase() + ' forever.'],
-      ['https://howto.lanling/' + sl, 'How to Handle ' + T + ': A Simple Guide — HowTo.lanling', 'Step-by-step advice with pictures. Updated October 2026.'],
-      ['https://lanlingdaily.lanling/search?q=' + enc(q), T + ' — latest coverage from Lanling Daily', 'News, opinion and analysis about ' + q.toLowerCase() + ' from Lanling and the five cities.'],
+      [ASKQ(sl), T + '? — AskTeyvat', (9 + hash(q) % 300) + ' answers · “' + pick(['Honestly? Just ask them.', 'Had the same question last year. Here’s what worked.', 'Short answer: it depends. Long answer below.', 'Everyone in Liyue overthinks this. Don’t.'], q) + '”'],
+      [WIKI_URL(T.replace(/\s+/g, '_')), T + ' — Akasha', T + ' may refer to several topics. This disambiguation page lists articles associated with the title ' + T + '.'],
+      ['https://wishbuzz.com/life/' + sl, (5 + hash(q) % 15) + ' Things Nobody Tells You About ' + T + ' — Wishbuzz', 'Number ' + (3 + hash(q) % 5) + ' changed how we think about ' + q.toLowerCase() + ' forever.'],
+      [HERALD + '/search?q=' + enc(q), T + ' — latest coverage from The Liyue Herald', 'News, opinion and analysis about ' + q.toLowerCase() + ' from the harbor and beyond.'],
     ];
-    if (/^(how|what|why|should|is|can|do)\b/i.test(q)) out.splice(2, 0, ['https://etiquette.today/' + sl, T + ' — Etiquette Today', 'Our columnist answers the question everyone is too embarrassed to ask.']);
+    if (/^(how|what|why|should|is|can|do)\b/i.test(q)) out.splice(2, 0, [HERALD + '/life/' + sl, T + ' — Life & Style, The Liyue Herald', 'Our columnist answers the question everyone in the harbor is too embarrassed to ask.']);
     return out;
   }
   function wsChrome(q, tab, content) {
-    const input = JC.ui.input({ value: q, placeholder: 'Search Wavesearch', enterkey: 'search', cap: 'none', cls: 'w-ws-in', onSubmit: (v) => { if (v.trim()) goFrom(input, SEARCH(v.trim())); } });
-    const node = h('div.w-ws',
-      h('div.w-ws-top', A('https://wavesearch.net/', h('span.w-ws-logo.small', wave(), 'Wavesearch')),
+    const input = JC.ui.input({ value: q, placeholder: 'Search Irminsul', enterkey: 'search', cap: 'none', cls: 'w-ws-in', onSubmit: (v) => { if (v.trim()) goFrom(input, SEARCH(v.trim())); } });
+    return h('div.w-ws',
+      h('div.w-ws-top', A('https://irminsul.net/', h('span.w-ws-logo.small', wave(), 'Irminsul')),
         h('div.w-ws-box', JC.icon('magnifyingglass', { size: 16, weight: 2.2 }), input, h('span.w-ws-x.tap', { onTap: () => { input.value = ''; input.focus(); } }, JC.icon('xmark.circle.fill', { size: 16 })))),
-      h('div.w-ws-tabs', [['All', 'search'], ['Images', 'images'], ['News', 'news'], ['Maps', 'maps'], ['Videos', 'videos']].map(([t, k]) => A('https://wavesearch.net/' + k + '?q=' + enc(q), h('span', { class: { on: tab === k } }, t)))),
+      h('div.w-ws-tabs', [['All', 'search'], ['Images', 'images'], ['News', 'news'], ['Maps', 'maps'], ['Videos', 'videos']].map(([t, k]) => A('https://irminsul.net/' + k + '?q=' + enc(q), h('span', { class: { on: tab === k } }, t)))),
       content);
-    return node;
   }
-  function wave() { const s = document.createElement('span'); s.className = 'w-ws-wave'; s.innerHTML = '<svg viewBox="0 0 40 24" width="30" height="18"><path d="M2 14c4-8 8-8 12 0s8 8 12 0 8-8 12 0" fill="none" stroke="url(#wsg)" stroke-width="4" stroke-linecap="round"/><defs><linearGradient id="wsg" x1="0" x2="1"><stop offset="0" stop-color="#2b7bff"/><stop offset="1" stop-color="#00c2ff"/></linearGradient></defs></svg>'; return s; }
+  /** the Irminsul mark: a small branching tree */
+  function wave() { const s = document.createElement('span'); s.className = 'w-ws-wave'; s.innerHTML = '<svg viewBox="0 0 24 24" width="22" height="22"><defs><linearGradient id="irg" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#62c3a6"/><stop offset="1" stop-color="#2f7d6d"/></linearGradient></defs><path d="M12 22V11M12 15l-5-4M12 13l5-4M7 11 4 7M17 9l3-4M12 11V5" fill="none" stroke="url(#irg)" stroke-width="2.4" stroke-linecap="round"/><circle cx="12" cy="4" r="2" fill="#62c3a6"/><circle cx="4" cy="6.5" r="1.6" fill="#62c3a6"/><circle cx="20" cy="4.5" r="1.6" fill="#62c3a6"/></svg>'; return s; }
   function resultRow(r) {
     let host = '';
     try { host = new URL(r[0]).hostname; } catch (e) { host = r[0]; }
@@ -278,20 +323,20 @@
   }
   function paa(qs, seed) {
     return h('div.w-paa', h('div.w-paa-h', 'People also ask'), qs.map((qq, i) => {
-      const ans = h('div.w-paa-a', pick(['Short answer: yes, if you mean it. Most people only need to hear it once, said plainly.', 'It depends on the person — but almost everyone appreciates being asked.', 'According to the experts we spoke to: be specific, be brief, and don’t wait for the perfect moment.', 'There’s no wrong time. There’s only later, and later keeps getting later.'], seed, i), ' ', A(SEARCH(qq), 'More results'));
+      const ans = h('div.w-paa-a', pick(['Short answer: yes, if you mean it. Most people only need to hear it once, said plainly.', 'It depends on who you ask — and in Liyue, everyone has an opinion.', 'According to the people we asked: be specific, be brief, and don’t wait for the perfect moment.', 'There’s no wrong time. There’s only later, and later keeps getting later.'], seed, i), ' ', A(SEARCH(qq), 'More results'));
       const item = h('div.w-paa-i', h('div.w-paa-q.tap', { onTap: () => item.classList.toggle('open') }, h('span', qq), JC.icon('chevron.down', { size: 14, weight: 2.6 })), ans);
       return item;
     }));
   }
-  site('wavesearch.net', {
-    name: 'Wavesearch', icon: WS_ICON,
+  site('irminsul.net', {
+    name: 'Irminsul', icon: IR_ICON,
     pages: {
-      '/': () => page('w-ws-home', 'Wavesearch', [
-        h('div.w-ws-hero', h('div.w-ws-logo', wave(), 'Wavesearch'),
-          (() => { const inp = JC.ui.input({ placeholder: 'Search the web', enterkey: 'search', cap: 'none', cls: 'w-ws-in', onSubmit: (v) => { if (v.trim()) goFrom(inp, SEARCH(v.trim())); } }); return h('div.w-ws-box.big', JC.icon('magnifyingglass', { size: 18, weight: 2.2 }), inp, h('span.w-ws-go.tap', { onTap: () => { if (inp.value.trim()) goFrom(inp, SEARCH(inp.value.trim())); } }, JC.icon('arrow.right', { size: 16, weight: 2.4 }))); })(),
-          h('div.w-ws-quick', [['Weather Lanling', 'https://skycast.weather/lanling'], ['Lanling Daily', 'https://lanlingdaily.lanling/'], ['Wavepedia', 'https://wavepedia.org/wiki/Lanling'], ['Maps', 'https://wavesearch.net/maps?q=Lanling']].map(([t, u]) => A(u, t)))),
-        h('div.w-ws-trend', h('div.w-ws-th', 'Trending in Lanling'), ['Jin Group gala', 'Zewu-jun', 'Koi Tower', 'Lanling weather Saturday', 'Golden Week deals', 'Lanling International archery'].map((t, i) => A(SEARCH(t), h('span.w-ws-tn', String(i + 1)), h('span', t)))),
-        h('div.w-ws-foot', 'Wavesearch · Privacy · Terms · Lanling')]),
+      '/': () => page('w-ws-home', 'Irminsul', [
+        h('div.w-ws-hero', h('div.w-ws-logo', wave(), 'Irminsul'),
+          (() => { const inp = JC.ui.input({ placeholder: 'Search everything that was ever written down', enterkey: 'search', cap: 'none', cls: 'w-ws-in', onSubmit: (v) => { if (v.trim()) goFrom(inp, SEARCH(v.trim())); } }); return h('div.w-ws-box.big', JC.icon('magnifyingglass', { size: 18, weight: 2.2 }), inp, h('span.w-ws-go.tap', { onTap: () => { if (inp.value.trim()) goFrom(inp, SEARCH(inp.value.trim())); } }, JC.icon('arrow.forward', { size: 16, weight: 2.6 }))); })(),
+          h('div.w-ws-quick', [['Weather Liyue', 'https://tianheng.ly/liyue'], ['The Liyue Herald', HERALD + '/'], ['Akasha', WIKI_URL('Liyue_Harbor')], ['Maps', 'https://irminsul.net/maps?q=Liyue+Harbor']].map(([t, u]) => A(u, t)))),
+        h('div.w-ws-trend', h('div.w-ws-th', 'Trending in Liyue Harbor'), trending().map((t, i) => A(SEARCH(t), h('span.w-ws-tn', String(i + 1)), h('span', t)))),
+        h('div.w-ws-foot', 'Irminsul · Privacy · Terms · Liyue Harbor')]),
       '/search': (ctx) => searchPage(ctx, 'search'),
       '/images': (ctx) => searchPage(ctx, 'images'),
       '/news': (ctx) => searchPage(ctx, 'news'),
@@ -299,10 +344,17 @@
       '/maps': (ctx) => searchPage(ctx, 'maps'),
     },
   });
-  const PUBLIC_ART = ['p_gala_hall', 'p_cloud_recesses', 'p_rules_wall', 'p_lotus_pond_day', 'p_lotus_macro', 'p_sunrise_lake', 'p_hotel_lobby', 'p_radishes', 'p_radish_cake', 'p_tea_hanshi', 'p_gusu_moon', 'p_moon_street', 'food_soup', 'food_hotpot', 'food_baozi', 'food_noodles', 'food_milktea', 'food_dumplings', 'food_lotus_cake', 'food_congee', 'food_skewers', 'food_radish_cake', 'wp_lotus_dusk', 'wp_night_lake', 'wp_cloud', 'wp_peony', 'p_flute'];
+  function trending() {
+    const f = flags();
+    const t = ['Rite of Parting Sunday', 'Rex Lapis photo', 'Yun Jin Divine Damsel', 'Guyun humming', 'glaze lilies', 'Crux rematch'];
+    if (f.osial_sent) t.unshift('harbor blackout', 'Guyun flood');
+    else if (f.leaked_ning || f.leaked_yelan) t.unshift('Northland resonators Guyun');
+    return t.slice(0, 6);
+  }
+  const PUBLIC_ART = ['p_harbor_day', 'p_yujing_lanterns', 'p_jade_chamber', 'p_wangsheng_door', 'p_heyu_stage', 'p_golden_house', 'p_rexlapis_1926', 'p_glaze_lily', 'p_storm_guyun', 'p_morepesok', 'p_northland_lobby', 'p_wanmin_kitchen', 'p_alcor_deck', 'p_cranes_yujing', 'p_bluefin', 'food_hotpot', 'food_almond_tofu', 'food_jade_parcels', 'food_pelmeni', 'food_crystal_shrimp', 'food_milk_tea', 'food_noodles', 'wp_harbor_night', 'wp_glaze_lily', 'wp_guyun_storm', 'wp_morepesok_snow', 'mk_teaset', 'mk_lilies'];
   function searchPage(ctx, tab) {
     const q = (ctx.q.get('q') || '').trim();
-    if (!q) return SITES['wavesearch.net'].pages['/']();
+    if (!q) return SITES['irminsul.net'].pages['/']();
     const lower = q.toLowerCase();
     const parts = [];
     const tell = TELLING.find((t) => t.re.test(q));
@@ -311,31 +363,31 @@
       const words = lower.split(/\s+/);
       let imgs = PUBLIC_ART.filter((id) => { const m = JC.art.meta(id); const t = ((m.title || '') + ' ' + id + ' ' + (m.tags || []).join(' ')).toLowerCase(); return words.some((w) => w.length > 2 && t.includes(w)); });
       if (imgs.length < 6) imgs = imgs.concat(PUBLIC_ART.filter((id) => !imgs.includes(id)).sort((a, b) => hash(q + a) - hash(q + b)).slice(0, 9 - imgs.length));
-      parts.push(h('div.w-ws-imgs', imgs.map((id) => h('div.w-ws-imgc.tap', { onTap: () => JC.ui.toast('Image: ' + (JC.art.meta(id).title || id)) }, art(id, 'w-ws-img'), h('span', (JC.art.meta(id).title || id).slice(0, 34))))));
+      parts.push(h('div.w-ws-imgs', imgs.map((id) => h('div.w-ws-imgc.tap', { onTap: () => (id === 'p_rexlapis_1926' ? goFrom(parts[0], ARCH + '/photos/1926-founding') : JC.ui.toast('Image: ' + (JC.art.meta(id).title || id))) }, art(id, 'w-ws-img'), h('span', (JC.art.meta(id).title || id).slice(0, 34))))));
     } else if (tab === 'news') {
-      const news = NEWS.filter((n) => lower.split(/\s+/).some((w) => w.length > 2 && (n[1] + n[2]).toLowerCase().includes(w)));
-      (news.length ? news : NEWS.slice(0, 5)).forEach((n) => parts.push(h('div.w-res.news', A(n[0], h('div.w-res-t', n[1])), h('div.w-res-s', h('b', 'Lanling Daily · ' + n[3] + ' · '), n[2]))));
+      const all = news();
+      const hits = all.filter((n) => lower.split(/\s+/).some((w) => w.length > 2 && (n[1] + n[2]).toLowerCase().includes(w)));
+      (hits.length ? hits : all.slice(0, 5)).forEach((n) => parts.push(h('div.w-res.news', A(n[0], h('div.w-res-t', n[1])), h('div.w-res-s', h('b', 'The Liyue Herald · ' + n[3] + ' · '), n[2]))));
     } else if (tab === 'videos') {
-      ['Explained in 3 minutes', 'Street interview', 'Documentary (2025)', 'Shorts compilation'].forEach((v, i) => parts.push(h('div.w-res.video', h('div.w-vid', art(PUBLIC_ART[(hash(q) + i) % PUBLIC_ART.length], 'w-vid-img'), h('span.w-vid-d', (2 + i) + ':' + String(10 + (hash(q + i) % 49)).padStart(2, '0')), h('span.w-vid-play', JC.icon('play.fill', { size: 18 }))), h('div', h('div.w-res-t.tap', { onTap: () => JC.ui.toast('Video playback is disabled on cellular — you’re not on Wi-Fi.') }, title(q) + ' — ' + v), h('div.w-res-s', 'Wavetube · ' + (hash(q + v) % 900 + 12) + 'K views')))));
+      ['Explained in 3 minutes', 'Street interview on Feiyun Slope', 'Documentary (2025)', 'Shorts compilation'].forEach((v, i) => parts.push(h('div.w-res.video', h('div.w-vid', art(PUBLIC_ART[(hash(q) + i) % PUBLIC_ART.length], 'w-vid-img'), h('span.w-vid-d', (2 + i) + ':' + String(10 + (hash(q + i) % 49)).padStart(2, '0')), h('span.w-vid-play', JC.icon('play.fill', { size: 18 }))), h('div', h('div.w-res-t.tap', { onTap: () => JC.ui.toast('Video playback is disabled on cellular — you’re not on Wi-Fi.') }, title(q) + ' — ' + v), h('div.w-res-s', pick(['Liyue Today', 'Harbor Talk', 'Snezhnaya Uncut', 'Teyvat Explained'], q, i) + ' · ' + (10 + hash(q + v) % 900) + 'K views')))));
     } else if (tab === 'maps') {
       const res = JC.mapview ? JC.mapview.search(q) : [];
       parts.push(h('div.w-ws-map', res.length ? res.slice(0, 6).map((p) => h('div.w-ws-mapr.tap', { onTap: () => JC.os.open('maps', { place: p.id }) }, h('div', h('b', p.short || p.name), h('span', (p.sub || '') + ' · ' + p.city)), JC.icon('map.fill', { size: 18 }))) : h('div.w-res-s', 'No places found for “' + q + '”.'), h('div.w-ws-mapopen.tap', { onTap: () => JC.os.open('maps', { search: q }) }, 'Open in Maps')));
     } else {
-      // calculator / weather / places / knowledge
       const calc = calcAnswer(q);
       if (calc != null) parts.push(h('div.w-card.w-calc', h('div.w-calc-q', q + ' ='), h('div.w-calc-a', String(calc).replace(/\B(?=(\d{3})+(?!\d))/g, ','))));
-      if (/^(time|what time is it|current time)/i.test(q)) parts.push(h('div.w-card.w-calc', h('div.w-calc-q', 'Local time · Lanling'), h('div.w-calc-a', JC.util.fmtTime(now())), h('div.w-calc-q', JC.util.fmtDate(now(), 'full'))));
-      if (known.some((k) => k.weather)) parts.push(weatherCard(/gusu/i.test(q) ? 'gusu' : /yunmeng/i.test(q) ? 'yunmeng' : /qinghe/i.test(q) ? 'qinghe' : 'lanling'));
+      if (/^(time|what time is it|current time)/i.test(q)) parts.push(h('div.w-card.w-calc', h('div.w-calc-q', 'Local time · Liyue Harbor'), h('div.w-calc-a', JC.util.fmtTime(now())), h('div.w-calc-q', JC.util.fmtDate(now(), 'full'))));
+      if (known.some((k) => k.weather)) parts.push(weatherCard(/morepesok/i.test(q) ? 'morepesok' : /zapolyarny|snezhnaya/i.test(q) ? 'zapolyarny' : /guyun|sea|marine/i.test(q) ? 'guyun' : /fontaine/i.test(q) ? 'fontaine' : 'liyue'));
       if (tell && tell.snippet) parts.push(h('div.w-card.w-snip', h('div.w-snip-t', tell.snippet[0]), h('div.w-snip-s', tell.snippet[1]), A(tell.snippet[2], tell.snippet[2].replace(/^https:\/\//, ''))));
       const placeK = known.find((k) => k.place);
       if (placeK && JC.mapview) {
         const p = JC.mapview.place(placeK.place);
-        if (p) parts.push(h('div.w-card.w-placecard', h('div.w-pc-map.tap', { onTap: () => JC.os.open('maps', { place: p.id }) }, JC.mapview.thumb(p.id, { w: 340, h: 120, zoom: 60 })), h('div.w-pc-b', h('div.w-pc-t', p.short || p.name), h('div.w-pc-s', (p.rating ? '★ ' + p.rating + ' · ' : '') + (p.sub || '') + ' · ' + p.city), h('div.w-pc-s', p.addr || ''), h('div.w-pc-acts', h('span.tap', { onTap: () => JC.os.open('maps', { directions: p.id }) }, 'Directions'), p.web ? A(p.web, 'Website') : null, h('span.tap', { onTap: () => JC.mapview.callPlace(p.id) }, 'Call')))));
+        if (p) parts.push(h('div.w-card.w-placecard', h('div.w-pc-map.tap', { onTap: () => JC.os.open('maps', { place: p.id }) }, JC.mapview.thumb(p.id, { w: 340, h: 120, zoom: 60 })), h('div.w-pc-b', h('div.w-pc-t', p.short || p.name), h('div.w-pc-s', (p.rating ? '★ ' + p.rating + ' · ' : '') + (p.sub || '') + ' · ' + p.city), h('div.w-pc-s', p.addr || ''), h('div.w-pc-acts', h('span.tap', { onTap: () => JC.os.open('maps', { directions: p.id }) }, 'Directions'), p.web ? A(p.web, 'Website') : h('span.tap', { onTap: () => JC.os.open('maps', { place: p.id }) }, 'Open in Maps')))));
       }
       const wikiK = known.find((k) => k.wiki);
-      if (wikiK && WIKI[wikiK.wiki]) { const w = WIKI[wikiK.wiki]; parts.push(h('div.w-card.w-kp', w.img ? art(w.img, 'w-kp-img') : null, h('div.w-kp-t', w.title.replace(/_/g, ' ')), h('div.w-kp-s', w.short || ''), h('div.w-kp-d', w.lead[0].slice(0, 220) + '…'), A('https://wavepedia.org/wiki/' + wikiK.wiki, 'Wavepedia'))); }
+      if (wikiK && WIKI[wikiK.wiki]) { const w = WIKI[wikiK.wiki]; parts.push(h('div.w-card.w-kp', w.img ? art(w.img, 'w-kp-img') : null, h('div.w-kp-t', w.title.replace(/_/g, ' ')), h('div.w-kp-s', w.short || ''), h('div.w-kp-d', w.lead[0].slice(0, 220) + '…'), A(WIKI_URL(wikiK.wiki), 'Akasha'))); }
       let results = [];
-      known.forEach((k) => { if (k.site) results.push([k.site[0], k.site[1], 'Official site · ' + k.site[0].replace(/^https:\/\//, '')]); if (k.wiki) results.push(['https://wavepedia.org/wiki/' + k.wiki, k.wiki.replace(/_/g, ' ') + ' — Wavepedia', (WIKI[k.wiki] && WIKI[k.wiki].lead[0].slice(0, 140) + '…') || '']); });
+      known.forEach((k) => { if (k.site) results.push([k.site[0], k.site[1], 'Official site · ' + k.site[0].replace(/^https:\/\//, '')]); if (k.wiki) results.push([WIKI_URL(k.wiki), k.wiki.replace(/_/g, ' ') + ' — Akasha', (WIKI[k.wiki] && WIKI[k.wiki].lead[0].slice(0, 140) + '…') || '']); });
       if (tell) results = tell.results.concat(results);
       const page2 = ctx.q.get('p') === '2';
       results = results.concat(genericResults(q));
@@ -343,359 +395,430 @@
       results = results.filter((r) => (seen.has(r[0]) ? false : seen.add(r[0])));
       if (page2) results = genericResults(q + ' guide').concat(genericResults(q + ' reviews')).slice(0, 7);
       results.slice(0, 3).forEach((r) => parts.push(resultRow(r)));
-      if (!page2) parts.push(paa(tell ? tell.ask : ['What is ' + q.toLowerCase() + '?', 'Is ' + q.toLowerCase() + ' worth it?', 'How do I start with ' + q.toLowerCase() + '?'], q));
+      if (!page2) parts.push(paa(tell ? tell.ask : ['What is ' + lower + '?', 'Is ' + lower + ' worth it?', 'How do I start with ' + lower + '?'], q));
       results.slice(3).forEach((r) => parts.push(resultRow(r)));
-      parts.push(h('div.w-ws-related', h('div.w-ws-th', 'Related searches'), h('div.w-ws-chips', [q + ' meaning', q + ' lanling', 'how to ' + q.toLowerCase(), q + ' reddit', 'best ' + q.toLowerCase()].map((t) => A(SEARCH(t), t)))));
+      parts.push(h('div.w-ws-related', h('div.w-ws-th', 'Related searches'), h('div.w-ws-chips', [q + ' meaning', q + ' liyue', 'how to ' + lower, q + ' askteyvat', 'best ' + lower].map((t) => A(SEARCH(t), t)))));
       parts.push(h('div.w-ws-pager', page2 ? A(SEARCH(q), '‹ Previous') : null, h('span', page2 ? '2' : '1'), page2 ? null : A(SEARCH(q) + '&p=2', 'Next ›')));
     }
     const node = wsChrome(q, tab, h('div.w-ws-results', parts));
-    return { title: q + ' — Wavesearch', node: h('div.w-page.w-wsp', node), reader: null };
-  }
-  function weatherCard(city) {
-    const W = WEATHER[city] || WEATHER.lanling;
-    return h('div.w-card.w-wx', A('https://skycast.weather/' + city, h('div.w-wx-top', h('div', h('div.w-wx-c', W.name), h('div.w-wx-d', W.now[1])), h('div.w-wx-t', W.now[0] + '°'))),
-      h('div.w-wx-days', W.days.map((d) => h('div.w-wx-day', h('span', d[0]), h('span.w-wx-e', d[1]), h('span', d[2] + '° / ' + d[3] + '°')))));
+    return { title: q + ' — Irminsul', node: h('div.w-page.w-wsp', node), reader: null };
   }
 
-  // ═══ Weather (Skycast) ═══════════════════════════════════════════════════
+  // ═══ Weather (Tianheng Observatory) ═════════════════════════════════════
+  function weatherCard(city) {
+    const W = wx(city);
+    return h('div.w-card.w-wx', A('https://tianheng.ly/' + city, h('div.w-wx-top', h('div', h('div.w-wx-c', W.name), h('div.w-wx-d', W.now[1])), h('div.w-wx-t', W.now[0] + '°'))),
+      h('div.w-wx-days', W.days.map((d) => h('div.w-wx-day', h('span', d[0]), h('span.w-wx-e', d[1]), h('span', d[2] + '° / ' + d[3] + '°')))));
+  }
   const WEATHER = {
-    lanling: { name: 'Lanling', now: [14, 'Light rain'], hl: [17, 11], days: [['Tonight', '🌧', 14, 11], ['Sat', '🌦', 19, 12], ['Sun', '☀️', 21, 12], ['Mon', '⛅️', 20, 13], ['Tue', '☁️', 18, 12]], note: 'Rain tapering off before dawn. Saturday clears by noon — good tea weather in Gusu.' },
-    gusu: { name: 'Gusu', now: [11, 'Mist'], hl: [16, 9], days: [['Tonight', '🌫', 11, 9], ['Sat', '🌤', 17, 9], ['Sun', '☀️', 19, 10], ['Mon', '🌤', 18, 11], ['Tue', '🌧', 15, 10]], note: 'Mountain mist until mid-morning. Saturday afternoon: mild, still, perfect at 3 PM.' },
-    yunmeng: { name: 'Yunmeng', now: [16, 'Clear'], hl: [22, 14], days: [['Tonight', '🌙', 16, 14], ['Sat', '☀️', 23, 15], ['Sun', '☀️', 24, 15], ['Mon', '⛅️', 22, 16], ['Tue', '🌦', 20, 15]], note: 'Calm on the lake. Sunday evening: clear skies, light breeze off the water — dinner outside is an option.' },
-    qinghe: { name: 'Qinghe', now: [9, 'Windy'], hl: [14, 6], days: [['Tonight', '💨', 9, 6], ['Sat', '⛅️', 14, 7], ['Sun', '☀️', 16, 8], ['Mon', '☀️', 15, 7], ['Tue', '☁️', 12, 6]], note: 'Gusty north winds overnight. Hold on to your fans.' },
-    yiling: { name: 'Yiling', now: [13, 'Cloudy'], hl: [18, 10], days: [['Tonight', '☁️', 13, 10], ['Sat', '🌤', 18, 11], ['Sun', '☀️', 20, 11], ['Mon', '☀️', 21, 12], ['Tue', '🌧', 17, 12]], note: 'Good radish weather, according to nobody but one farmer.' },
+    liyue: { name: 'Liyue Harbor', now: [19, 'Clear, light sea breeze'], hl: [24, 17], days: [['Tonight', '🌙', 19, 17], ['Sat', '☀️', 24, 18], ['Sun', '⛅️', 23, 18], ['Mon', '🌦', 21, 17], ['Tue', '☀️', 24, 18]], note: 'Calm and clear through Saturday. Sunday evening: cloud building offshore. Lantern-lighting weather is good.' },
+    guyun: { name: 'Guyun Stone Forest (marine)', now: [18, 'Unusually still'], hl: [22, 17], days: [['Tonight', '🌫', 18, 17], ['Sat', '🌤', 22, 17], ['Sun', '🌫', 21, 17], ['Mon', '🌧', 19, 16], ['Tue', '⛅️', 21, 17]], note: 'Sea state: glassy. Swell 0.2 m. Mariners report a low hum around the outer pillars; cause unknown.' },
+    morepesok: { name: 'Morepesok', now: [-4, 'Light snow'], hl: [-1, -7], days: [['Tonight', '🌨', -4, -7], ['Sat', '❄️', -2, -8], ['Sun', '☁️', -1, -6], ['Mon', '🌨', -3, -9], ['Tue', '❄️', -5, -11]], note: 'Ice on the bay by Tuesday. Good weather for ice fishing, according to every father in Morepesok.' },
+    zapolyarny: { name: 'Zapolyarny Palace', now: [-11, 'Snow'], hl: [-8, -15], days: [['Tonight', '❄️', -11, -15], ['Sat', '❄️', -9, -16], ['Sun', '🌨', -8, -14], ['Mon', '❄️', -10, -17], ['Tue', '☁️', -9, -14]], note: 'Heavy snow overnight. Airport operating normally. Snezhnaya does not cancel flights for snow.' },
+    mondstadt: { name: 'Mondstadt', now: [13, 'Windy'], hl: [17, 10], days: [['Tonight', '💨', 13, 10], ['Sat', '⛅️', 17, 11], ['Sun', '☀️', 18, 11], ['Mon', '🌤', 17, 12], ['Tue', '🌧', 14, 10]], note: 'Gusts on Starfell Lake. Dandelion seeds expected.' },
+    fontaine: { name: 'Court of Fontaine', now: [15, 'Drizzle'], hl: [18, 12], days: [['Tonight', '🌧', 15, 12], ['Sat', '🌦', 18, 13], ['Sun', '🌧', 17, 13], ['Mon', '☁️', 17, 12], ['Tue', '🌦', 18, 13]], note: 'It is raining in Fontaine. It is always raining in Fontaine.' },
   };
-  site('skycast.weather', {
-    name: 'Skycast', icon: { letter: '☁', bg: 'linear-gradient(180deg,#4aa3ff,#1c6fe0)', fg: '#fff' },
-    pages: { '/': (ctx) => weatherPage('lanling', ctx) },
+  /** live weather: Osial changes the sea */
+  function wx(city) {
+    const W = Object.assign({}, WEATHER[city] || WEATHER.liyue);
+    const f = flags();
+    if (f.osial_sent && (city === 'liyue' || city === 'guyun')) {
+      W.now = [16, city === 'guyun' ? 'Violent storm' : 'Storm warning'];
+      W.note = '⚠️ RED WARNING · Abnormal sea surge from the direction of Guyun Stone Forest. Stay away from the waterfront. The Millelith are evacuating the piers.';
+      W.days = W.days.map((d, i) => (i < 2 ? [d[0], '⛈', d[2] - 4, d[3] - 3] : d));
+    }
+    return W;
+  }
+  site('tianheng.ly', {
+    name: 'Tianheng Observatory', icon: { letter: '☁', bg: 'linear-gradient(180deg,#4aa3ff,#1c6fe0)', fg: '#fff' },
+    pages: { '/': (ctx) => weatherPage('liyue', ctx) },
     patterns: [[/^\/(\w+)$/, (ctx, m) => weatherPage(m[1], ctx)]],
   });
   function weatherPage(city) {
-    const W = WEATHER[city] || WEATHER.lanling;
+    const W = wx(city);
+    const storm = /storm/i.test(W.now[1]);
     const hrs = [];
-    for (let i = 0; i < 12; i++) { const t = new Date(now() + i * 3600e3); hrs.push(h('div.w-sky-hr', h('span', i ? (t.getHours() % 12 || 12) + (t.getHours() < 12 ? 'a' : 'p') : 'Now'), h('span.w-sky-e', i < 6 && city === 'lanling' ? '🌧' : i < 8 ? '☁️' : '🌤'), h('b', Math.round(W.now[0] - Math.sin(i / 3) * 2) + '°'))); }
-    return page('w-sky', W.name + ' Weather — Skycast', [
-      h('div.w-sky-hdr', h('span.w-sky-logo', '☁ Skycast'), h('div.w-sky-cities', Object.keys(WEATHER).map((k) => A('https://skycast.weather/' + k, h('span', { class: { on: k === city } }, WEATHER[k].name))))),
+    for (let i = 0; i < 12; i++) { const t = new Date(now() + i * 3600e3); hrs.push(h('div.w-sky-hr', h('span', i ? (t.getHours() % 12 || 12) + (t.getHours() < 12 ? 'a' : 'p') : 'Now'), h('span.w-sky-e', storm ? '⛈' : W.days[0][1]), h('b', Math.round(W.now[0] - Math.sin(i / 3) * 2) + '°'))); }
+    return page('w-sky' + (storm ? ' storm' : ''), W.name + ' Weather — Tianheng Observatory', [
+      h('div.w-sky-hdr', h('span.w-sky-logo', '☁ Tianheng Observatory'), h('div.w-sky-cities', Object.keys(WEATHER).map((k) => A('https://tianheng.ly/' + k, h('span', { class: { on: k === city } }, WEATHER[k].name.replace(/ \(marine\)/, '')))))),
       h('div.w-sky-now', h('div.w-sky-c', W.name), h('div.w-sky-t', W.now[0] + '°'), h('div.w-sky-d', W.now[1]), h('div.w-sky-hl', 'H:' + W.hl[0] + '°  L:' + W.hl[1] + '°')),
       h('div.w-sky-card', h('div.w-sky-note', W.note), h('div.w-sky-hrs', hrs)),
-      h('div.w-sky-card', h('div.w-sky-h', '5-DAY FORECAST'), W.days.map((d) => h('div.w-sky-row', h('span', d[0]), h('span.w-sky-e', d[1]), h('span.w-sky-lo', d[3] + '°'), h('div.w-sky-bar', h('div', { style: { left: (d[3] - 5) * 4 + '%', right: 100 - (d[2] - 5) * 4 + '%' } })), h('span', d[2] + '°')))),
-      h('div.w-sky-card', h('div.w-sky-h', 'DETAILS'), h('div.w-sky-grid', [['Humidity', '82%'], ['Wind', '12 km/h NE'], ['UV', '0 Low'], ['Sunrise', '6:18 AM'], ['Sunset', '5:41 PM'], ['AQI', '41 Good']].map(([k, v]) => h('div', h('small', k), h('b', v))))),
-      h('div.w-foot', 'Skycast · Data from the Lanling Meteorological Bureau · ', A('https://wavesearch.net/', 'Wavesearch')),
+      h('div.w-sky-card', h('div.w-sky-h', '5-DAY FORECAST'), W.days.map((d) => h('div.w-sky-row', h('span', d[0]), h('span.w-sky-e', d[1]), h('span.w-sky-lo', d[3] + '°'), h('div.w-sky-bar', h('div', { style: { left: Math.max(0, (d[3] + 20) * 2) + '%', right: Math.max(0, 100 - (d[2] + 20) * 2) + '%' } })), h('span', d[2] + '°')))),
+      h('div.w-sky-card', h('div.w-sky-h', 'DETAILS'), h('div.w-sky-grid', [['Humidity', city === 'liyue' ? '71%' : '82%'], ['Wind', storm ? '74 km/h E' : '9 km/h SE'], ['UV', '0 Low'], ['Sunrise', '6:24 AM'], ['Sunset', '5:52 PM'], ['Tide', storm ? 'SURGE' : 'High 02:14']].map(([k, v]) => h('div', h('small', k), h('b', v))))),
+      h('div.w-foot', 'Tianheng Observatory · Liyue Meteorological Service · ', A('https://irminsul.net/', 'Irminsul')),
     ]);
   }
 
-  // ═══ Lanling Daily ═══════════════════════════════════════════════════════
-  const LD = 'https://lanlingdaily.lanling';
-  const NEWS = [
-    [LD + '/society/jin-group-autumn-gala', 'Jin Group Autumn Charity Gala raises ¥38 million at Koi Tower', 'Lanling’s brightest night of the year drew the heads of the five great houses — and one notably early exit.', 'Tonight', 'p_gala_hall'],
-    [LD + '/culture/zewu-jun-returns', 'Zewu-jun returns to Cloud Recesses after a year away', 'The Chancellor of Gusu Lan Academy has resumed his duties after a year of seclusion.', 'Sep 25', 'p_cloud_recesses'],
-    [LD + '/sports/lanling-international-archery', 'Lanling International wins regional archery title', 'Captain Jin Ling, 17, finished with 58 out of 60 — and a scowl for the cameras.', 'Oct 12', null],
-    [LD + '/business/ymj-q3-results', 'YMJ posts record quarter as cold-chain volumes climb', 'Yunmeng Jiang Group’s lake-to-coast logistics network grew 12% in Q3.', 'Oct 9', 'p_sunrise_lake'],
-    [LD + '/city/koi-pond-turns-40', 'Koi Tower’s famous pond turns 40 — and Old Gold is still in charge', 'Eighty-eight koi, three bridges and one very old fish.', 'Oct 3', null],
-    [LD + '/city/silver-restoration-yunmeng', 'The silversmiths of Yunmeng who bring heirlooms back to life', 'At Silver Lotus Jewelers, a family bell can take three weeks.', 'Oct 5', null],
-    [LD + '/opinion/dear-auntie-peony/brother-dinner', 'Dear Auntie Peony: My brother wants to come home for dinner', 'Our advice columnist on long silences and short invitations.', 'Oct 13', null],
-    [LD + '/opinion/dear-auntie-peony/teenager-not-mine', 'Dear Auntie Peony: I raised a teenager who isn’t mine', 'On worrying, birthdays and the word “jiujiu”.', 'Sep 29', null],
+  // ═══ The Liyue Herald (news; also lhnews.ly) ════════════════════════════
+  const T = (s) => JC.time.parse(s);
+  const BASE_NEWS = [
+    [HERALD + '/2026/10/16/rite-of-parting-sunday', 'Rite of Parting: what to know for Sunday', 'Yujing Terrace from 10:00. The founder’s lanterns go out at 23:00 — and the whole harbor goes dark for one minute.', 'Fri', 'p_yujing_lanterns'],
+    [HERALD + '/2026/10/15/guyun-tremors', 'Fishermen report “humming” near Guyun Stone Forest', 'Northland survey boats have been seen among the pillars. The Millelith say there is nothing to worry about.', 'Thu', 'p_storm_guyun'],
+    [HERALD + '/2026/10/14/northland-liyue-debt', 'Northland Bank in talks over Liyue’s debt; Jade Chamber silent', 'Sources describe a “historic” settlement to be signed after the Rite.', 'Wed', 'p_northland_lobby'],
+    [HERALD + '/2026/10/12/yun-jin-divine-damsel', 'Review: Yun Jin’s “Divine Damsel” is the season’s finest', 'A second act that silences the room. Saturday’s matinee is sold out.', 'Oct 12', 'p_heyu_stage'],
+    [HERALD + '/2026/10/10/crux-returns', 'The Crux returns to port — and Captain Beidou wants a rematch', 'The Alcor is moored off Pier 2. The Third-Round Knockout is taking bets.', 'Oct 10', 'p_alcor_deck'],
+    [HERALD + '/2026/10/08/wangsheng-autumn-sale', 'Wangsheng’s “second coffin half price” sale draws complaints', 'Director Hu Tao: “Death waits for no one. Neither do our prices.”', 'Oct 8', 'p_wangsheng_door'],
+    [HERALD + '/2026/10/05/glaze-lily-season', 'Glaze lilies bloom late this year', 'Florists on Feiyun Slope say demand has tripled since the Founder’s death.', 'Oct 5', 'p_glaze_lily'],
+    [HERALD + '/2026/10/01/rex-lapis', 'Liyue mourns: Qixing announce the death of Rex Lapis', 'The Founder of Liyue Harbor has died, the Qixing said this morning. The Rite of Parting will be held on 18 October.', 'Oct 1', 'p_rexlapis_1926'],
   ];
-  function ldChrome(body, active) {
-    return h('div.w-ld',
-      h('div.w-ld-top', h('span.w-ld-date', JC.util.fmtDate(now(), 'full')), h('span.w-ld-sub.tap', { onTap: () => JC.ui.alert({ title: 'Subscribe to Lanling Daily', message: '¥18 a month. Jiang Cheng is already a subscriber (he reads the business section and, apparently, the advice column).', buttons: [{ text: 'OK' }] }) }, 'Subscribe')),
-      A(LD + '/', h('div.w-ld-mast', 'Lanling Daily')),
-      h('div.w-ld-nav', [['News', '/'], ['City', '/city/koi-pond-turns-40'], ['Business', '/business/ymj-q3-results'], ['Culture', '/culture/zewu-jun-returns'], ['Sports', '/sports/lanling-international-archery'], ['Opinion', '/opinion/dear-auntie-peony'], ['Weather', 'https://skycast.weather/lanling']].map(([t, u]) => A(/^https/.test(u) ? u : LD + u, h('span', { class: { on: active === t } }, t)))),
-      body,
-      h('div.w-ld-foot', h('div.w-ld-mast.small', 'Lanling Daily'), h('div', 'Since 1951 · Jinlin District, Lanling'), h('div.w-foot-links', A(LD + '/', 'Home'), A(LD + '/opinion/dear-auntie-peony', 'Write to Auntie Peony'), A('https://wavesearch.net/', 'Privacy'))));
+  /** news reacts to the weekend: time and flags */
+  function news() {
+    const f = flags();
+    const out = [];
+    const t = now();
+    if (f.osial_sent && t >= T('+2 23:00')) out.push([HERALD + '/live/harbor-blackout', 'LIVE: Harbor goes dark as sea surges at Guyun', 'The founder’s lanterns went out at 23:00. Minutes later the sea rose. Northland Bank’s Liyue director is named in a leaked document.', 'Live', 'p_storm_guyun']);
+    if ((f.leaked_ning || f.leaked_yelan) && !f.osial_sent) out.push([HERALD + '/2026/10/18/resonators-found', 'Jade Chamber halts foreign “resonators” at Guyun', 'Millelith divers recover devices fixed to the stone pillars. The Tianquan thanks “a source who did the right thing.”', 'Sun', 'p_unit3']);
+    if (t >= T('+2 13:00')) out.push([HERALD + '/2026/10/18/liyue-says-goodbye', 'Liyue says goodbye to its Founder', 'Thousands on Yujing Terrace. The Wangsheng consultant who led the Rite “spoke as if he had known him personally.”', 'Sun', 'p_yujing_lanterns']);
+    if (f.bought_teaset) out.push([HERALD + '/2026/10/17/teaset-record', 'Guizhong-era tea set sells for a record on Feiyun Market', 'The buyer, a Northland account holder, outbid “jade_connoisseur_88” in the final minute.', 'Sat', 'p_teaset']);
+    return out.concat(BASE_NEWS);
   }
-  const ldArticle = (o, active) => article(Object.assign({ brand: 'Lanling Daily', cls: 'w-news' }, o), (b) => ldChrome(b, active));
-  site('lanlingdaily.lanling', {
-    name: 'Lanling Daily', icon: { letter: 'L', bg: '#121212', fg: '#fff' },
+  function hdChrome(body, active) {
+    return h('div.w-ld.w-hd',
+      h('div.w-ld-top', h('span.w-ld-date', JC.util.fmtDate(now(), 'full')), h('span.w-ld-sub.tap', { onTap: () => JC.ui.alert({ title: 'Subscribe to The Liyue Herald', message: 'ℳ88 a month. Childe is already a subscriber. He reads the sports pages and the obituaries, which this month are mostly about one person.', buttons: [{ text: 'OK' }] }) }, 'Subscribe')),
+      A(HERALD + '/', h('div.w-ld-mast', h('span.w-hd-seal', '璃'), 'The Liyue Herald')),
+      h('div.w-ld-nav', [['News', '/'], ['Rite of Parting', '/2026/10/16/rite-of-parting-sunday'], ['Harbor', '/2026/10/15/guyun-tremors'], ['Business', '/2026/10/14/northland-liyue-debt'], ['Culture', '/2026/10/12/yun-jin-divine-damsel'], ['Life', '/life/found-a-lost-phone'], ['Weather', 'https://tianheng.ly/liyue']].map(([t, u]) => A(/^https/.test(u) ? u : HERALD + u, h('span', { class: { on: active === t } }, t)))),
+      body,
+      h('div.w-ld-foot', h('div.w-ld-mast.small', 'The Liyue Herald'), h('div', 'Since the year the harbor got its first printing press · Feiyun Slope, Liyue Harbor'), h('div.w-foot-links', A(HERALD + '/', 'Home'), A('https://millelith.ly/', 'Millelith notices'), A('https://irminsul.net/', 'Privacy'))));
+  }
+  const hdArticle = (o, active) => article(Object.assign({ brand: 'The Liyue Herald', cls: 'w-news' }, o), (b) => hdChrome(b, active));
+  const N = (id) => news().find((n) => n[0].endsWith(id)) || BASE_NEWS[0];
+  const HERALD_SITE = {
+    name: 'The Liyue Herald', icon: { letter: '璃', bg: '#7a1f1f', fg: '#f5d9a8' },
     pages: {
       '/': () => {
-        const lead = NEWS[0];
-        return { title: 'Lanling Daily — News from Lanling and beyond', node: h('div.w-page.w-news', ldChrome(h('div.w-ld-home',
-          A(lead[0], h('div.w-ld-lead', art(lead[4], 'w-ld-leadimg'), h('div.w-ld-kick', 'BREAKING · ' + lead[3]), h('div.w-ld-lt', lead[1]), h('div.w-ld-ls', lead[2]))),
-          h('div.w-ld-grid', NEWS.slice(1).map((n) => A(n[0], h('div.w-ld-item', n[4] ? art(n[4], 'w-ld-thumb') : null, h('div', h('div.w-ld-it', n[1]), h('div.w-ld-is', n[3] + ' · ' + n[2])))))),
-          h('div.w-ld-box', h('div.w-ld-boxh', 'Most read'), NEWS.slice(0, 5).map((n, i) => A(n[0], h('div.w-ld-mr', h('b', String(i + 1)), h('span', n[1]))))),
-          weatherCard('lanling')), 'News')), reader: null };
+        const all = news();
+        const lead = all[0];
+        return { title: 'The Liyue Herald — News from the harbor', node: h('div.w-page.w-news', hdChrome(h('div.w-ld-home',
+          A(lead[0], h('div.w-ld-lead', art(lead[4], 'w-ld-leadimg'), h('div.w-ld-kick', (lead[3] === 'Live' ? '● LIVE' : 'TOP STORY') + ' · ' + lead[3]), h('div.w-ld-lt', lead[1]), h('div.w-ld-ls', lead[2]))),
+          h('div.w-ld-grid', all.slice(1).map((n) => A(n[0], h('div.w-ld-item', n[4] ? art(n[4], 'w-ld-thumb') : null, h('div', h('div.w-ld-it', n[1]), h('div.w-ld-is', n[3] + ' · ' + n[2])))))),
+          h('div.w-ld-box', h('div.w-ld-boxh', 'Most read'), all.slice(0, 5).map((n, i) => A(n[0], h('div.w-ld-mr', h('b', String(i + 1)), h('span', n[1]))))),
+          weatherCard('liyue')), 'News')), reader: null };
       },
-      '/society/jin-group-autumn-gala': () => ldArticle({ kicker: 'SOCIETY', title: NEWS[0][1], dek: NEWS[0][2], by: 'Feng Yaoyao', date: 'Fri ' + 'Oct 16, 2026 · 11:02 PM', read: '4 min read', hero: 'p_gala_hall', caption: 'The Grand Hall at Koi Tower before dinner. Photo: Lanling Daily',
+      '/2026/10/01/rex-lapis': () => hdArticle({ kicker: 'LIYUE · BREAKING', title: N('rex-lapis')[1], dek: N('rex-lapis')[2], by: 'Herald Staff', date: 'Thu Oct 1, 2026', read: '6 min read', hero: 'p_rexlapis_1926', caption: 'The only known photograph of Rex Lapis in human form, 1926. Liyue Archives, PH-1926-0417.',
         paras: [
-          'Koi Tower glittered on Friday night as the Jin Group welcomed more than four hundred guests to its Autumn Charity Gala, raising a record ¥38 million for children’s hospitals across the five cities.',
-          'The evening, held in the tower’s Grand Hall beneath its famous gold chandeliers, was the first since the group’s governance reforms of 2024 and doubled as an early celebration for heir Jin Ling, who turns eighteen on Sunday. “He spent most of dinner pretending not to enjoy it,” one guest said. “Which means he enjoyed it.”',
-          'At the head table: Jiang Cheng, chief executive of the Yunmeng Jiang Group and Mr. Jin’s uncle; Nie Huaisang, chairman of Nie Corp, in a fan of his own design; Professor Lan Wangji and his husband Wei Wuxian, founder of the much-discussed Yiling Radish Co.; and, in his first major public appearance in over a year, Lan Xichen, Chancellor of Gusu Lan Academy.',
-          'Seating, guests noted, was “inspired.” Mr. Jiang and Chancellor Lan were seated side by side and were later seen in conversation on the 52nd-floor balcony, where the moon was, by every account, very bright.',
-          'Mr. Jiang left shortly after a quarter past eleven. A YMJ spokesperson declined to comment on his early departure, adding only that “Mr. Jiang does not attend parties so much as survive them.”',
-          'The auction’s top lot — a lotus-root dinner for twelve cooked at Lotus Pier — went for ¥1.2 million to an anonymous bidder from Qinghe.',
+          'Rex Lapis, the Geo Archon and Founder of Liyue Harbor, has died, the Liyue Qixing announced from the Jade Chamber this morning. The Tianquan, Ningguang, read the statement herself.',
+          '“For six thousand years he kept his contract with this city,” the statement said. “Now the city must keep its contract with him: to go on.”',
+          'Details of the Founder’s passing were not released. Asked how a god dies, a Qixing spokesperson said: “Quietly, it seems.”',
+          'The Rite of Parting will be held on Sunday 18 October at Yujing Terrace. In keeping with tradition, the ceremony has been entrusted to Wangsheng Funeral Parlor, whose director, Hu Tao, called it “the honour of seventy-seven lifetimes”. The Rite itself will be conducted by the parlour’s consultant, a man described by colleagues as “extraordinarily knowledgeable about ancient customs, and about tea”.',
+          'For the first time, the Liyue Archives will display the only known photograph of the Founder in human form — taken at the founding of the Liyue Exchange in 1926 — beside the Rite. The print can be viewed online in the Archives’ collection.',
+          'Flags across the harbor are at half mast. The founder’s lanterns will be lit on Saturday night.',
         ],
-        related: [[NEWS[1][0], NEWS[1][1], 'p_cloud_recesses'], [NEWS[4][0], NEWS[4][1]], [NEWS[2][0], NEWS[2][1]]] }, 'News'),
-      '/culture/zewu-jun-returns': () => ldArticle({ kicker: 'CULTURE', title: NEWS[1][1], dek: 'After a year of quiet, Lan Xichen is back at work — and says he read every letter.', by: 'Mo Xuanyu', date: 'Fri Sep 25, 2026', read: '5 min read', hero: 'p_cloud_recesses', caption: 'The gates of Cloud Recesses in morning mist.',
+        after: h('div.w-hd-box', h('b', 'See the photograph'), A(ARCH + '/photos/1926-founding', 'Liyue Archives · PH-1926-0417 · “The Consultant” ›')),
+        related: [[N('rite-of-parting-sunday')[0], N('rite-of-parting-sunday')[1], 'p_yujing_lanterns'], [ARCH + '/photos/1926-founding', 'Liyue Archives: the 1926 photograph', 'p_rexlapis_1926'], [N('glaze-lily-season')[0], N('glaze-lily-season')[1]]] }, 'News'),
+      '/2026/10/16/rite-of-parting-sunday': () => hdArticle({ kicker: 'RITE OF PARTING', title: N('rite-of-parting-sunday')[1], dek: N('rite-of-parting-sunday')[2], by: 'Chen Yuhua', date: 'Fri Oct 16, 2026', read: '4 min read', hero: 'p_yujing_lanterns', caption: 'Lanterns being hung along Yujing Terrace on Friday.',
         paras: [
-          'Lan Xichen, the soft-spoken Chancellor of Gusu Lan Academy known affectionately as Zewu-jun, has returned to Cloud Recesses after a year-long period of seclusion.',
-          'The Chancellor withdrew from public life in August 2025, weeks after the death of Jin Guangyao, his sworn brother, whose conviction rocked Lanling’s business world. The Academy’s board, chaired by his uncle Lan Qiren, oversaw the school in his absence.',
-          '“A year is a long time to be silent,” Chancellor Lan said in a brief statement released this morning, on the eve of the Mid-Autumn Festival. “I am grateful to everyone who was patient with me, and to the few who wrote to me anyway, about ordinary things — the weather, the lotus season, the lake. I read all of it. It helped more than I can say.”',
-          'Staff describe a Chancellor who looks rested, if thinner, and who has resumed his morning walks along the Cold Spring. His first act on returning, according to one teacher, was to brew tea for the entire faculty — white peony, “the good kind.”',
-          'He is expected to attend the Jin Group’s Autumn Charity Gala in Lanling next month.',
-          'Asked whether anything had changed, a student at the Academy put it simply: “He smiles more. Is that allowed? There might be a rule.”',
+          'When: Sunday 18 October. Gates on Yujing Terrace open at 09:00; the Rite begins at 10:00 and ends at about 13:00.',
+          'Who: Everyone. Wear white. Wangsheng Funeral Parlor asks mourners not to bring incense, “because we have plenty, and some of it is very expensive”.',
+          'The lanterns: The founder’s lanterns will be lit along the terrace and the waterfront on Saturday night. They burn until 23:00 on Sunday, when every lantern in the harbor — and, by agreement with the Qixing, every streetlight — goes out at once for one minute of silence.',
+          'Traffic: Harbor Road and Yujing Terrace Road close from 07:00 Sunday. The ferries run a Sunday timetable. Harbor Ride will not pick up on the terrace.',
+          'After the Rite: The Qixing will meet foreign delegations at the Golden House in the afternoon. A Northland Bank spokesperson confirmed that the Bank “will be represented”.',
+          'Glaze lilies may be left at Wangsheng Funeral Parlor or ordered for delivery on Feiyun Market.',
         ],
-        related: [[NEWS[0][0], NEWS[0][1], 'p_gala_hall'], ['https://cloudrecesses.gusu/chancellor', 'A letter from the Chancellor'], ['https://tea.cloudrecesses.gusu/white-peony', 'Cloud Recesses Tea Shop: White Peony']] }, 'Culture'),
-      '/sports/lanling-international-archery': () => ldArticle({ kicker: 'SPORTS', title: NEWS[2][1], dek: NEWS[2][2], by: 'Ouyang Zizhen', date: 'Mon Oct 12, 2026', paras: ['Lanling International School has won the regional youth archery championship for the third year running, led by captain Jin Ling, who shot 58 out of a possible 60 in the final round.', 'Mr. Jin, who turns eighteen this week, credited “years of practice” and his coach. Asked who taught him to shoot, he said only, “My uncle. He’s terrifying. Write that down.”', 'The team will compete at the national championships in Gusu in spring.', 'His uncle, reached by phone, said: “Fine. Adequate. He dropped his shoulder on the ninth arrow.” He then hung up.'], related: [[NEWS[0][0], NEWS[0][1]]] }, 'Sports'),
-      '/business/ymj-q3-results': () => ldArticle({ kicker: 'BUSINESS', title: NEWS[3][1], dek: NEWS[3][2], by: 'Jin Zixun', date: 'Fri Oct 9, 2026', hero: 'p_sunrise_lake', paras: ['The Yunmeng Jiang Group reported record third-quarter volumes on Friday, as demand for cold-chain shipping from the lake region to the coast continued to grow.', 'The privately held group, rebuilt from near-ruin after the 2008 Lotus Pier fire by chief executive Jiang Cheng, now moves more than a third of the province’s fresh produce, including — fittingly — most of its lotus root.', '“We do not comment on quarterly results,” a spokesperson said, before commenting on them at length. Mr. Jiang himself was unavailable; his assistant noted he was “in a meeting, as always.”', 'Analysts expect the board to approve a new warehouse in Lanling at Monday’s Q4 meeting.'], related: [['https://lotuspier.yunmeng/', 'Yunmeng Jiang Group'], ['https://wavepedia.org/wiki/Yunmeng_Jiang_Group', 'Yunmeng Jiang Group on Wavepedia']] }, 'Business'),
-      '/city/koi-pond-turns-40': () => ldArticle({ kicker: 'CITY', title: NEWS[4][1], dek: NEWS[4][2], by: 'Su She', date: 'Sat Oct 3, 2026', paras: ['When the koi pond in front of Koi Tower was dug in 1986, the tower above it was only half built. Forty years later, both are Lanling landmarks — and the pond, arguably, is the better loved.', 'Its eighty-eight koi are tended by a single keeper, Mr. Qin, who knows each by name. The eldest, a gold-and-white giant called Old Gold, is 41 and “has opinions.”', 'The pond has survived typhoons, two renovations and, in 2019, a dog of remarkable size who “only wanted to say hello.” Visitors are reminded that feeding the fish, wading and vehicles beyond the bollards are not permitted.', '“The koi have seen everything,” Mr. Qin said. “Nothing surprises them anymore.”'], related: [['https://koitower.lanling/koi-pond', 'Visit the Koi Pond']] }, 'City'),
-      '/city/silver-restoration-yunmeng': () => ldArticle({ kicker: 'CITY', title: NEWS[5][1], dek: NEWS[5][2], by: 'Wen Chao', date: 'Mon Oct 5, 2026', paras: ['In a narrow shop on Lotus Pier Road, three generations of silversmiths repair the things families cannot replace: hairpins, lockets, bells.', '“People bring us things that belonged to someone who is gone,” says Mrs. Ruan, who has run Silver Lotus Jewelers since 1994. “They don’t want it new. They want it to look the way it did when she wore it.”', 'A bell with a lotus engraving, she says, came in last month from “an old Yunmeng family” to be cleaned for a birthday. “The customer said it had to ring. Not shine — ring. So we made it ring.”'], related: [['https://wavesearch.net/search?q=silver+lotus+jewelers', 'Silver Lotus Jewelers']] }, 'City'),
-      '/opinion/dear-auntie-peony': () => ({ title: 'Dear Auntie Peony — Lanling Daily', node: h('div.w-page.w-news', ldChrome(h('div.w-article', h('div.w-kicker', 'OPINION · ADVICE'), h('h1.w-h1', 'Dear Auntie Peony'), h('div.w-dek', 'Lanling’s favourite advice column, since 1988. Letters are edited for length; nobody is ever named.'),
-        h('div.w-related', [NEWS[6], NEWS[7]].map((n) => A(n[0], h('div.w-rel-i', h('span', n[1])))), A(LD + '/opinion/dear-auntie-peony/donor-gift', h('div.w-rel-i', h('span', 'Dear Auntie Peony: How do I thank someone who saved my life?'))), A(LD + '/opinion/dear-auntie-peony/tea-invitation', h('div.w-rel-i', h('span', 'Dear Auntie Peony: Someone invited me to tea and I panicked')))),
-        h('div.w-ld-write', h('b', 'Write to Auntie Peony'), (() => { const inp = JC.ui.input({ multiline: true, rows: 3, placeholder: 'Dear Auntie Peony…', cls: 'w-input' }); return [inp, Btn('Send letter', () => { if (!inp.value.trim()) return; JC.ui.alert({ title: 'Letter Sent', message: 'Auntie Peony receives four hundred letters a week. She reads all of them.', buttons: [{ text: 'OK' }] }); inp.value = ''; }, 'w-btn-dark')]; })())), 'Opinion')), reader: null }),
-      '/opinion/dear-auntie-peony/brother-dinner': () => ldArticle({ kicker: 'OPINION · DEAR AUNTIE PEONY', title: NEWS[6][1], by: 'Auntie Peony', date: 'Tue Oct 13, 2026',
-        paras: ['Dear Auntie Peony,', 'My brother — adopted, but that has never mattered except when it did — left thirteen years ago. A lot happened. Some of it was his fault. Most of it, I have learned, was not. He came back a few years ago and we have been… civil. He texts too much. I answer too little.', 'Now my nephew is turning eighteen and my brother has asked whether he can come home for the birthday dinner and bring our late sister’s soup. He hasn’t set foot in the house since. I have not answered. Every answer I write sounds wrong. — Stubborn on the Lake', 'Dear Stubborn,', 'You have written me four paragraphs and not one of them says “no.”', 'Here is what I know about long silences: they are never broken by the perfect sentence. They are broken by a short one. “Come.” “Bring the soup.” “Six thirty.” He will understand what you mean, because he has been reading your short answers for longer than you think.', 'You do not have to forgive everything at the dinner table. You only have to set one more bowl. Your sister, I suspect, would have set it years ago.', 'And — tell him the fire was too high. It always is, the first few times.'],
-        related: [[NEWS[7][0], NEWS[7][1]], ['https://homekitchen.yunmeng/recipes/lotus-root-pork-rib-soup', 'Recipe: Lotus root & pork rib soup']] }, 'Opinion'),
-      '/opinion/dear-auntie-peony/teenager-not-mine': () => ldArticle({ kicker: 'OPINION · DEAR AUNTIE PEONY', title: NEWS[7][1], by: 'Auntie Peony', date: 'Tue Sep 29, 2026', paras: ['Dear Auntie Peony, I raised my nephew from when he was a baby. He is turning eighteen. He has a learner’s permit and a dog the size of a small horse. I am told I am “overprotective.” How do I stop worrying? — Uncle in Lanling', 'Dear Uncle,', 'You don’t. You learn to worry quietly enough that he can still hear himself think.', 'Eighteen is not an ending. He will call you the first time something goes wrong — probably at midnight, probably about a car. When he does, check that he is unhurt before you shout. Then shout, if you must. He will be relieved. It means you are still you.'], related: [[NEWS[6][0], NEWS[6][1]]] }, 'Opinion'),
-      '/opinion/dear-auntie-peony/donor-gift': () => ldArticle({ kicker: 'OPINION · DEAR AUNTIE PEONY', title: 'Dear Auntie Peony: How do I thank someone who saved my life?', by: 'Auntie Peony', date: 'Mon Jun 24, 2024', paras: ['Dear Auntie Peony, I found out recently that someone close to me saved my life years ago and never told me. I have no idea what to say. Every gift seems absurd. — Owing', 'Dear Owing,', 'There is no gift. That is the point of what they did: it wasn’t a transaction, so it can’t be repaid like one.', 'Say thank you. Out loud, or in writing, or in a voice message you record at midnight and almost delete. Say it badly if you have to. Then let them see you living the life they kept for you. That is the only thank-you that matches the size of it.'], related: [['https://etiquette.today/gifts-for-organ-donors', 'Etiquette Today: Gifts for donors']] }, 'Opinion'),
-      '/opinion/dear-auntie-peony/tea-invitation': () => ldArticle({ kicker: 'OPINION · DEAR AUNTIE PEONY', title: 'Dear Auntie Peony: Someone invited me to tea and I panicked', by: 'Auntie Peony', date: 'Thu Oct 15, 2026', paras: ['Dear Auntie Peony, a dear friend I have not seen in a year invited me to tea on Saturday. I said “I’ll see.” I don’t know why I said that. I want to go. — Unhelpful in Yunmeng', 'Dear Unhelpful,', '“I’ll see” is what people say when they want to go and are afraid of how much.', 'Text back: “Three o’clock is fine.” Then go. Bring nothing; they will already have the tea you like. They always do.'], related: [['https://leafandcup.gusu/white-peony-guide', 'How to brew white peony']] }, 'Opinion'),
-      '/search': (ctx) => { const q = ctx.q.get('q') || ''; const res = NEWS.filter((n) => q.toLowerCase().split(/\s+/).some((w) => w.length > 2 && (n[1] + n[2]).toLowerCase().includes(w))); return { title: 'Search: ' + q + ' — Lanling Daily', node: h('div.w-page.w-news', ldChrome(h('div.w-article', h('h1.w-h1', 'Results for “' + q + '”'), res.length ? res.map((n) => A(n[0], h('div.w-ld-item', h('div', h('div.w-ld-it', n[1]), h('div.w-ld-is', n[3] + ' · ' + n[2]))))) : [h('p', 'No articles matched. Here’s what everyone is reading:'), NEWS.slice(0, 4).map((n) => A(n[0], h('div.w-ld-item', h('div', h('div.w-ld-it', n[1])))))]), 'News')), reader: null }; },
-    },
-  });
-
-  // ═══ Gusu Lan Academy ════════════════════════════════════════════════════
-  const CR = 'https://cloudrecesses.gusu';
-  const RULES = ['No running within Cloud Recesses.', 'No loud voices.', 'No alcohol within Cloud Recesses.', 'No fighting without permission.', 'No laughing without reason.', 'Do not go out at night.', 'Rise at five. Sleep at nine.', 'Do not speak ill of others behind their backs.', 'Do not be arrogant.', 'Be humble in success.', 'Do not dwell on the past.', 'Be honest in word and deed.', 'Do not deceive.', 'Respect your elders.', 'Do not eat after the evening bell.', 'Do not waste food.', 'No dogs on the mountain. (See also: Appendix F, “Fairy”.)', 'No radishes may be placed upon the Wall of Discipline.', 'The kitchens may not be used to test the smoke alarms. (Added 2026.)', 'No rabbits in the lecture halls. (Amended: no more than two rabbits.)', 'Do not play the flute after quiet hours, however beautifully.', 'Gentleness is not weakness.', 'Speak once, mean it.', 'Do not keep others waiting without reason.', 'A letter unanswered is still a letter received.', 'Do not climb the walls.', 'Do not swim in the Cold Spring without supervision.', 'No gambling.', 'No haircuts in the library.', 'Do not argue with the Chair of the Board. (He will win.)', 'Return borrowed books.', 'Guests must be announced at the gate.', 'Do not leave lanterns unattended. (Amended after the Lantern Incident, 2023.)', 'Silence is not the same as peace.', 'Tea shall be brewed below boiling.', 'No sugar in the white peony.', 'Do not run toward trouble. Walk.', 'When someone asks you to stay, consider staying.', 'No fireworks.', 'Do not feed the koi of other clans.'];
-  function crChrome(body, active) {
-    return h('div.w-cr',
-      h('div.w-cr-hdr', A(CR + '/', h('div.w-cr-logo', h('span.w-cr-seal', '藍'), h('span', 'Gusu Lan Academy'))), h('div.w-cr-nav', [['Home', '/'], ['About', '/about'], ['Rules', '/rules'], ['Chancellor', '/chancellor'], ['Admissions', '/admissions'], ['Visit', '/visit'], ['Tea Shop', 'https://tea.cloudrecesses.gusu/']].map(([t, u]) => A(/^https/.test(u) ? u : CR + u, h('span', { class: { on: active === t } }, t))))),
-      body,
-      h('div.w-cr-foot', h('div', 'Gusu Lan Academy · Cloud Recesses · Mount Gusu'), h('div', 'Quiet hours 21:00–05:00. Please do not call the Academy during quiet hours.'), h('div.w-foot-links', A(CR + '/rules', 'Wall of Discipline'), A(CR + '/events/wei-lan-520', 'Events'), A('https://tea.cloudrecesses.gusu/', 'Tea Shop'))));
-  }
-  site('cloudrecesses.gusu', {
-    name: 'Gusu Lan Academy', icon: { letter: '藍', bg: '#e9f1f6', fg: '#2e5f7f' },
-    pages: {
-      '/': () => page('w-cr-page', 'Gusu Lan Academy — Cloud Recesses', crChrome(h('div',
-        h('div.w-cr-hero', art('p_cloud_recesses', 'w-cr-heroimg'), h('div.w-cr-herot', h('div', 'Cloud Recesses'), h('small', 'Founded in quiet. Rooted in discipline.'))),
-        h('div.w-cr-sec', h('h2', 'News'),
-          A(CR + '/chancellor', h('div.w-cr-news', h('b', 'A letter from the Chancellor'), h('span', 'Zewu-jun returns to Cloud Recesses — Sep 25'))),
-          A(CR + '/events/autumn-recital', h('div.w-cr-news', h('b', 'Autumn Recital: Professor Lan Wangji, guqin'), h('span', 'Sat Oct 24 · Hall of Elegant Music'))),
-          A(CR + '/events/flute-masterclass', h('div.w-cr-news', h('b', 'Flute masterclass with Mr. Wei Ying'), h('span', 'Every Thursday · Bring earplugs (optional)'))),
-          A(CR + '/rules', h('div.w-cr-news', h('b', 'Reminder: the Wall of Discipline has been updated'), h('span', 'Rule 3,401 concerns the kitchens')))),
-        h('div.w-cr-sec', h('h2', 'Visit'), h('p', 'Cloud Recesses welcomes visitors daily from 9:00 to 17:00. The Hanshi and the Jingshi are private residences and are not open to visitors.'), A(CR + '/visit', 'Plan your visit ›'))), 'Home')),
-      '/about': () => page('w-cr-page', 'About — Gusu Lan Academy', crChrome(h('div.w-cr-sec', h('h2', 'About the Academy'), para(['Gusu Lan Academy has taught music, literature and discipline on Mount Gusu for over a century. Its campus, Cloud Recesses, is famous for its mist, its silence and its Wall of Discipline.', 'The Academy is led by Chancellor Lan Xichen. The board is chaired by Lan Qiren. Professor Lan Wangji leads the School of Music.', 'Each summer the Academy hosts a residential programme for students from the great families of the five cities. Alumni of the Summer 2007 programme include leaders in logistics, industry and radish farming.'])), 'About')),
-      '/rules': (ctx) => {
-        const q = (ctx.q.get('q') || '').toLowerCase();
-        const list = h('ol.w-cr-rules');
-        const fill = (f) => { list.innerHTML = ''; RULES.forEach((r, i) => { if (f && !r.toLowerCase().includes(f)) return; list.appendChild(h('li', { value: [4, 2, 1, 6, 17, 22, 31, 40, 52, 58, 77, 81, 90, 104, 133, 140, 1138, 2117, 3401, 2876, 3011, 1104, 999, 1880, 2010, 12, 245, 61, 1515, 300, 88, 120, 2988, 3376, 412, 413, 777, 3102, 66, 1021][i] || i + 1 }, r)); }); if (!list.children.length) list.appendChild(h('li.w-cr-none', 'No rule found. That doesn’t mean it’s allowed.')); };
-        fill(q);
-        const inp = JC.ui.input({ placeholder: 'Search 3,412 rules…', value: q, cap: 'none', cls: 'w-input', onInput: (v) => fill(v.toLowerCase()) });
-        return page('w-cr-page', 'The Wall of Discipline — Gusu Lan Academy', crChrome(h('div.w-cr-sec', h('h2', 'The Wall of Discipline'), art('p_rules_wall', 'w-cr-wall'), h('p', 'Three thousand four hundred and twelve rules, carved in stone. A selection is shown below. Students are expected to know all of them. Visitors are expected to try.'), inp, list, h('p.w-cr-small', 'Full text available in the Library of Stone (bring a lantern; do not leave it unattended).')), 'Rules'), { reader: { title: 'The Wall of Discipline', byline: 'Gusu Lan Academy', paras: RULES } });
-      },
-      '/chancellor': () => page('w-cr-page', 'A Letter from the Chancellor — Gusu Lan Academy', crChrome(h('div.w-cr-sec.w-cr-letter', h('h2', 'A Letter from the Chancellor'), h('div.w-cr-date', 'Mid-Autumn, 2026'), para(['To the students, teachers and friends of Cloud Recesses,', 'I have been away for a year. I will not pretend the reasons were simple; most of you know them, and I am grateful you were kind enough not to ask.', 'I learned some things in the quiet. That silence is not the same as peace. That a person can be surrounded by rules and still lose their way. And that ordinary things — a message about the weather, a photograph of lotus leaves in the rain, a note that says only “the lake froze early this year” — can hold a person to the world more firmly than any discipline.', 'To the friend who wrote to me every week, about nothing and everything, and never once asked me to answer: I read every word. Thank you.', 'I am glad to be home. The tea is on.', '— Lan Xichen, Chancellor']), h('div.w-cr-sign', '曦臣')), 'Chancellor'), { reader: { title: 'A Letter from the Chancellor', byline: 'Lan Xichen · Mid-Autumn 2026', paras: ['To the students, teachers and friends of Cloud Recesses,', 'I have been away for a year…', 'To the friend who wrote to me every week, about nothing and everything, and never once asked me to answer: I read every word. Thank you.', 'I am glad to be home. The tea is on.'] } }),
-      '/admissions': () => page('w-cr-page', 'Admissions — Gusu Lan Academy', crChrome(h('div.w-cr-sec', h('h2', 'Admissions'), para(['Applications for the 2027 intake open on 1 November. Candidates sit a written examination and an interview, and are asked to recite twenty rules of their choosing.', 'Scholarships are available. The Academy does not accept donations in exchange for admission, however large, and however Jin.']), Btn('Request a prospectus', () => JC.ui.alert({ title: 'Prospectus Requested', message: 'A printed prospectus will be posted to Jiang Cheng, Lotus Pier. He will be confused.', buttons: [{ text: 'OK' }] }), 'w-btn-cr')), 'Admissions')),
-      '/visit': () => page('w-cr-page', 'Visit — Gusu Lan Academy', crChrome(h('div.w-cr-sec', h('h2', 'Visiting Cloud Recesses'), para(['Open daily 9:00–17:00. Quiet hours 21:00–05:00.', 'From Gusu North Station take the Academy shuttle (last departure 20:30) or drive up Cloud Recesses Road (parking at the Main Gate).', 'Please announce yourself at the gate. The Hanshi and the Jingshi are private residences. Tea at the Hanshi is by invitation of the Chancellor only.']), h('div.w-cr-btns', Btn('Directions', () => JC.os.open('maps', { directions: 'cloud-recesses' }), 'w-btn-cr'), Btn('Open in Maps', () => JC.os.open('maps', { place: 'cloud-recesses' }), 'w-btn-ghost'))), 'Visit')),
-      '/summer-school': () => page('w-cr-page', 'Summer Programme — Gusu Lan Academy', crChrome(h('div.w-cr-sec', h('h2', 'Summer Programme'), para(['Every summer since 1962, students from the great families have lived and studied at Cloud Recesses for six weeks.', 'The Summer 2007 cohort is remembered fondly by staff, mostly. It is the only cohort for which the Wall of Discipline required an appendix.'])), 'About')),
-      '/events/wei-lan-520': () => page('w-cr-page', 'Wei Ying & Lan Zhan — 20 May 2025', crChrome(h('div.w-cr-sec', h('h2', 'Wei Ying & Lan Zhan'), h('div.w-cr-date', 'Tuesday 20 May 2025 · The Orchid Pavilion, Cloud Recesses'), art('p_flute', 'w-cr-wedimg'), para(['Professor Lan Wangji and Mr. Wei Ying were married at Cloud Recesses on the twentieth of May, in a ceremony attended by family and friends from all five cities.', 'The ceremony was quiet, as all things here are. The reception was not, as nothing involving Mr. Wei is.', 'Music was performed by the couple themselves: guqin and dizi. Guests were asked to observe Rule 2: no loud voices. They did not.']), h('p.w-cr-small', 'Photographs © Gusu Lan Academy. Please do not repost pictures of the radish cake.')), 'Home')),
-      '/events/autumn-recital': () => page('w-cr-page', 'Autumn Recital', crChrome(h('div.w-cr-sec', h('h2', 'Autumn Recital'), h('p', 'Professor Lan Wangji performs works for guqin. Saturday 24 October, 19:00. Free; quiet audiences only.'), Btn('Reserve a seat', () => JC.ui.toast('Seat reserved for “Jiang Cheng”', { icon: 'checkmark' }), 'w-btn-cr')), 'Home')),
-      '/events/flute-masterclass': () => page('w-cr-page', 'Flute Masterclass', crChrome(h('div.w-cr-sec', h('h2', 'Flute Masterclass with Mr. Wei Ying'), h('p', 'Thursdays at 16:00. Mr. Wei teaches dizi and xiao to students of all levels. He also teaches, without being asked, how to cook radishes.'), Btn('Sign up', () => JC.ui.alert({ title: 'Sign Up as Jiang Cheng?', message: 'Mr. Wei would see the name on the list. You know what would happen.', buttons: [{ text: 'Cancel', style: 'cancel' }] }), 'w-btn-cr')), 'Home')),
-    },
-  });
-
-  // ═══ Cloud Recesses Tea Shop & Leaf and Cup ══════════════════════════════
-  const TEA = 'https://tea.cloudrecesses.gusu';
-  const TEAS = [['white-peony', 'Mountain White Peony', '250 g tin · Spring 2026', 880, 'p_tea_hanshi', 'Bud and two leaves from the Academy terraces. Floral, honeyed, quiet. Brew at 85 °C.'], ['silver-needle', 'Silver Needle', '100 g · Spring 2026', 1280, 'p_lotus_macro', 'Only the downy buds. Expensive, unhurried, worth it.'], ['cloud-mist', 'Cloud Mist Green', '150 g · Spring 2026', 420, 'p_cloud_recesses', 'The everyday tea of Cloud Recesses. Grown in the mist, as the name suggests.'], ['gentian', 'Gentian Blossom Tisane', '80 g', 160, 'p_gusu_moon', 'Caffeine-free. For quiet hours.']];
-  function teaChrome(body) {
-    const st = state('teabag', { n: 0, items: [] });
-    return h('div.w-tea', h('div.w-tea-hdr', A(TEA + '/', h('span.w-tea-logo', 'Cloud Recesses Tea Shop')), A(TEA + '/bag', h('span.w-tea-bag', JC.icon('bag.fill', { size: 18 }), st.n ? h('b', String(st.n)) : null))), body, h('div.w-tea-foot', 'Grown and packed at Cloud Recesses, Gusu. ', A(TEA + '/brewing', 'Brewing guide'), ' · ', A(CR + '/', 'Gusu Lan Academy')));
-  }
-  site('tea.cloudrecesses.gusu', {
-    name: 'Cloud Recesses Tea Shop', icon: { letter: '茶', bg: '#2f6b4f', fg: '#fff' },
-    pages: {
-      '/': () => page('w-tea-page', 'Cloud Recesses Tea Shop', teaChrome(h('div', h('div.w-tea-hero', h('div', 'Tea from the mist.'), h('small', 'Hand-picked on Mount Gusu. Delivered across the five cities.')), h('div.w-tea-grid', TEAS.map((t) => A(TEA + '/' + t[0], h('div.w-tea-card', art(t[4], 'w-tea-img'), h('b', t[1]), h('span', t[2]), h('div.w-tea-price', '¥' + t[3])))))))),
-      '/brewing': () => page('w-tea-page', 'How We Brew — Cloud Recesses Tea Shop', teaChrome(h('div.w-tea-sec', h('h2', 'How We Brew'), h('table.w-tea-tbl', h('tr', h('th', 'Tea'), h('th', 'Water'), h('th', 'Time')), [['White peony', '85 °C', '2–3 min'], ['Silver needle', '80 °C', '3–4 min'], ['Cloud mist green', '80 °C', '1–2 min'], ['Gentian', '95 °C', '5 min']].map((r) => h('tr', r.map((c) => h('td', c))))), para(['Use about 5 g of leaves for 150 ml of water. Warm the cup first. Never use boiling water on white tea — it bruises the buds.', 'No sugar. (Rule 413.)', 'Re-steep three or four times, adding half a minute each time. Good tea, like good conversation, improves on the second pour.'])))),
-      '/bag': () => { const st = state('teabag', { n: 0, items: [] }); return page('w-tea-page', 'Your Bag — Cloud Recesses Tea Shop', teaChrome(h('div.w-tea-sec', h('h2', 'Your Bag'), st.items.length ? [st.items.map((i) => h('div.w-tea-line', h('span', i[0]), h('b', '¥' + i[1]))), h('div.w-tea-line.total', h('span', 'Total'), h('b', '¥' + st.items.reduce((a, b) => a + b[1], 0))), Btn('Checkout', () => JC.ui.alert({ title: 'Sign In to Check Out', message: 'Checkout needs a Cloud Recesses account. The saved account is Tang Mei’s — she ordered the last tin. She would notice.', buttons: [{ text: 'OK' }] }), 'w-btn-tea')] : h('p', 'Your bag is empty. The mountain is patient.')))); },
-    },
-    patterns: [[/^\/([\w-]+)$/, (ctx, m) => {
-      const t = TEAS.find((x) => x[0] === m[1]);
-      if (!t) return notFound(SITES['tea.cloudrecesses.gusu'], ctx);
-      return page('w-tea-page', t[1] + ' — Cloud Recesses Tea Shop', teaChrome(h('div.w-tea-prod', art(t[4], 'w-tea-pimg'), h('h1', t[1]), h('div.w-tea-sub', t[2]), h('div.w-tea-price.big', '¥' + t[3]), h('p', t[5]), t[0] === 'white-peony' ? h('div.w-tea-note', '★ Last ordered by this device: 25 Sep 2026, delivered to the Hanshi (gift, no card).') : null,
-        Btn('Add to Bag', () => { const st = state('teabag', { n: 0, items: [] }); st.n++; st.items.push([t[1], t[3]]); JC.ui.toast('Added to bag', { icon: 'bag.fill' }); }, 'w-btn-tea'), A(TEA + '/brewing', 'Brewing guide ›'))));
-    }]],
-  });
-  site('leafandcup.gusu', {
-    name: 'Leaf & Cup', icon: { letter: '🍃', bg: '#f4efe3', fg: '#3c6b46' },
-    pages: {
-      '/': () => page('w-leaf', 'Leaf & Cup — a tea blog', [h('div.w-leaf-hdr', 'Leaf & Cup'), A('https://leafandcup.gusu/white-peony-guide', h('div.w-leaf-post', h('b', 'White Peony: The Gentle Guide'), h('span', 'Oct 2, 2026')))]),
-      '/white-peony-guide': () => article({ brand: 'Leaf & Cup', cls: 'w-leaf', kicker: 'BREWING', title: 'White Peony (Bai Mudan): The Gentle Guide', dek: '85 °C, three minutes, and patience.', by: 'Ning Mei', date: 'Oct 2, 2026', hero: 'p_tea_hanshi', paras: ['White peony is the tea for people who have learned not to rush. It is made from the bud and the first two leaves, withered slowly and dried without fuss, and it tastes — if you let it — of honey, hay and something like the air after rain.', 'Water: 85 °C. Not boiling. If you have no thermometer, boil the water and wait about two minutes with the lid off.', 'Leaf: about 5 g for a 150 ml cup or gaiwan.', 'Time: two to three minutes for the first steep. Add thirty seconds each time after. Good white peony gives four or five steeps.', 'No sugar. I know. Try it once without.', 'A note on giving white peony: it is a quiet gift. It says “I remembered how you take it,” which is often what people mean when they cannot say what they mean.'], related: [['https://tea.cloudrecesses.gusu/white-peony', 'Buy: Mountain White Peony (Cloud Recesses Tea Shop)'], ['https://wavepedia.org/wiki/White_peony_tea', 'White peony tea on Wavepedia']] }, (b) => h('div', h('div.w-leaf-hdr', A('https://leafandcup.gusu/', 'Leaf & Cup')), b)),
-    },
-  });
-
-  // ═══ Yunmeng Jiang Group (public), tides, intranet, drive ═════════════════
-  const YMJ = 'https://lotuspier.yunmeng';
-  function ymjChrome(body, active) {
-    return h('div.w-ymj', h('div.w-ymj-hdr', A(YMJ + '/', h('span.w-ymj-logo', h('span.w-ymj-lotus', '✿'), 'YUNMENG JIANG GROUP')), h('div.w-ymj-nav', [['About', '/about'], ['Logistics', '/logistics'], ['Lotus Foods', '/foods'], ['Tide Tables', '/tides'], ['Careers', '/careers']].map(([t, u]) => A(YMJ + u, h('span', { class: { on: active === t } }, t))))), body,
-      h('div.w-ymj-foot', h('div', '✿ Yunmeng Jiang Group · Lotus Pier, Yunmeng'), h('div', 'Switchboard +86 555 0716 0000 · ', A('https://intranet.lotuspier.yunmeng/', 'Employee login')), h('div.w-foot-c', '© 2026 YMJ. All rights reserved.')));
-  }
-  site('lotuspier.yunmeng', {
-    name: 'Yunmeng Jiang Group', icon: { letter: '✿', bg: '#5b3fa6', fg: '#fff' },
-    pages: {
-      '/': () => page('w-ymj-page', 'Yunmeng Jiang Group — Lake to Coast', ymjChrome(h('div', h('div.w-ymj-hero', art('p_sunrise_lake', 'w-ymj-heroimg'), h('div.w-ymj-herot', h('div', 'Lake to coast.'), h('small', 'Logistics, lake freight and Lotus Pier foods — since 1952.'))),
-        h('div.w-ymj-stats', [['21,400', 'employees'], ['1/3', 'of the province’s fresh produce'], ['74', 'years on the lake']].map((s) => h('div', h('b', s[0]), h('span', s[1])))),
-        h('div.w-ymj-sec', h('h2', 'Latest'), A(LD + '/business/ymj-q3-results', h('div.w-ymj-news', 'Record third quarter as cold-chain volumes climb · Oct 9')), A(YMJ + '/foods', h('div.w-ymj-news', 'Lotus Pier lotus root: now in 40 kg crates (please order carefully) · Oct 1')), A(YMJ + '/careers', h('div.w-ymj-news', 'We’re hiring: logistics coordinators who can count to forty · Sep 18')))), 'Home')),
-      '/about': () => page('w-ymj-page', 'About YMJ', ymjChrome(h('div.w-ymj-sec', h('h2', 'About'), para(['The Yunmeng Jiang Group was founded on the shore of Yunmeng Lake in 1952 as a family fleet of lotus boats. Today it moves fresh produce, cold-chain freight and lake cargo from the lake country to the coast.', 'Our headquarters remain at Lotus Pier, the Jiang family estate, rebuilt after the fire of 2008. The nine-petal lotus over the gate has been there through all of it.', 'Chief Executive Officer: Jiang Cheng (since 2009).']), A('https://wavepedia.org/wiki/Yunmeng_Jiang_Group', 'YMJ on Wavepedia ›')), 'About')),
-      '/logistics': () => page('w-ymj-page', 'Logistics — YMJ', ymjChrome(h('div.w-ymj-sec', h('h2', 'Logistics'), para(['Cold-chain trucking on the G42 corridor. Lake freight from Lotus Pier and Lotus Bay. Next-morning delivery to Lanling, Gusu and Qinghe.', 'Track a shipment: enter a waybill number below.']), (() => { const i = JC.ui.input({ placeholder: 'Waybill number', cap: 'none', cls: 'w-input' }); return [i, Btn('Track', () => JC.ui.alert({ title: 'Waybill ' + (i.value || '—'), message: i.value ? 'In transit · Yunmeng → Lanling · ETA tomorrow 06:40.\n(Unless it is 400 kg of lotus root. That one has arrived. All of it.)' : 'Enter a waybill number.', buttons: [{ text: 'OK' }] }), 'w-btn-ymj')]; })()), 'Logistics')),
-      '/foods': () => page('w-ymj-page', 'Lotus Pier Foods — YMJ', ymjChrome(h('div.w-ymj-sec', h('h2', 'Lotus Pier Foods'), art('p_lotus_pond_day', 'w-ymj-img'), para(['Lotus root, lotus seeds and lake fish from the Yunmeng lake country.', 'Lotus root (fresh): 10 kg, 20 kg and 40 kg crates. Wholesale orders by the tonne.', 'Ordering tip from our operations team: please check the decimal point before you press send.'])), 'Lotus Foods')),
-      '/careers': () => page('w-ymj-page', 'Careers — YMJ', ymjChrome(h('div.w-ymj-sec', h('h2', 'Careers'), ['Logistics Coordinator (Yunmeng)', 'Cold-Chain Driver (Lanling)', 'Canteen Chef (experience with lotus root essential)', 'Executive Assistant to the CEO — position filled. Permanently. — T.M.'].map((j) => h('div.w-ymj-job', h('b', j), h('span.tap', { onTap: () => JC.ui.toast('Applications open on Monday') }, 'Apply ›')))), 'Careers')),
-      '/tides': () => tidesPage(),
-    },
-  });
-  function tidesPage() {
-    const d0 = new Date(now());
-    const days = [0, 1, 2].map((k) => { const d = new Date(d0); d.setDate(d.getDate() + k); return d; });
-    const svg = (k) => {
-      const pts = [];
-      for (let i = 0; i <= 48; i++) { const x = i * 6.5; const y = 52 - (Math.sin((i / 48) * Math.PI * 4 + k * 0.8) * 18 + Math.sin(i / 7) * 4); pts.push(x.toFixed(1) + ',' + y.toFixed(1)); }
-      const nowX = k === 0 ? ((d0.getHours() * 60 + d0.getMinutes()) / 1440) * 312 : -10;
-      const s = document.createElement('div');
-      s.className = 'w-tide-svg';
-      s.innerHTML = `<svg viewBox="0 0 312 90" preserveAspectRatio="none"><polyline points="${pts.join(' ')} 312,90 0,90" fill="rgba(80,140,200,.25)" stroke="none"/><polyline points="${pts.join(' ')}" fill="none" stroke="#3a7bbf" stroke-width="2"/><line x1="${nowX}" x2="${nowX}" y1="0" y2="90" stroke="#e5383b" stroke-width="1.5" stroke-dasharray="3 3"/></svg>`;
-      return s;
-    };
-    const row = (d, k) => h('div.w-tide-day', h('div.w-tide-h', JC.util.fmtDate(d.getTime(), 'full')), svg(k), h('table.w-tide-tbl', h('tr', h('th', 'High'), h('th', 'Low'), h('th', 'High'), h('th', 'Low')), h('tr', [[3, 12], [9, 34], [15, 20], [21, 41]].map(([hh, mm], i) => h('td', String((hh + k) % 24).padStart(2, '0') + ':' + String((mm + k * 23) % 60).padStart(2, '0'), h('br'), h('small', (i % 2 ? (0.4 + k * 0.05).toFixed(2) : (1.8 - k * 0.07).toFixed(2)) + ' m'))))));
-    return page('w-ymj-page', 'Lotus Pier Tide Tables', ymjChrome(h('div.w-ymj-sec', h('h2', 'Lotus Pier Tide Tables & Lake Levels'), h('p', 'Yunmeng Lake gauge at Lotus Pier. Where the lake meets the Great River the water rises and falls twice a day; boats at the pier should allow 1.2 m of clearance.'), h('div.w-tide-now', h('div', h('small', 'Now'), h('b', '1.42 m'), h('span', 'Rising')), h('div', h('small', 'Water temp.'), h('b', '17 °C')), h('div', h('small', 'Sunrise'), h('b', '6:21 AM'))), days.map(row), h('p.w-cr-small', 'Gauge maintained by YMJ Lake Freight. Not for navigation. Ask Old Huang.')), 'Tide Tables'));
-  }
-  site('intranet.lotuspier.yunmeng', {
-    name: 'YMJ Intranet', icon: { letter: '✿', bg: '#2d1f52', fg: '#d9c9ff' },
-    pages: {
-      '/': () => page('w-login-page', 'YMJ Intranet — Sign in', [h('div.w-intra', loginForm({ key: 'ymj', brand: 'YMJ Intranet', logo: h('span', h('span.w-ymj-lotus', '✿'), ' YMJ Intranet'), color: '#5b3fa6', sub: 'Yunmeng Jiang Group · Employees only', user: 'jiangcheng', userLabel: 'Employee ID', max: 3, resetText: 'A password reset request has been sent to Tang Mei (EA), who manages the CEO’s accounts. She will call. She always calls.', help: 'IT helpdesk: ext. 4040 (Mon–Fri 9:00–18:00).', lockedText: 'This account is locked after 3 failed attempts. Contact IT (ext. 4040) — they will ask the CEO why he forgot his password.', onFail: (n) => { if (n === 3) JC.story.act('ymj_locked', {}); } }), h('div.w-intra-foot', 'Unauthorized access is prohibited. All activity is logged.'))]),
-    },
-    notFound: () => SITES['intranet.lotuspier.yunmeng'].pages['/'](),
-  });
-  site('drive.lotuspier.yunmeng', {
-    name: 'YMJ Drive', icon: { letter: 'D', bg: '#5b3fa6', fg: '#fff' },
-    pages: { '/': () => page('w-login-page', 'YMJ Drive — Sign in', [h('div.w-intra', loginForm({ key: 'drive', brand: 'YMJ Drive', logo: h('span', '✿ YMJ Drive'), color: '#5b3fa6', sub: 'Sign in to open “Board — Q4 (FINAL).deck”', user: 'jiang.cheng@lotuspier.yunmeng', userLabel: 'Email', max: 3, resetText: 'Reset link sent to Tang Mei (EA).', lockedText: 'Too many attempts. Try again in 24 hours.' }))]) },
-    notFound: () => SITES['drive.lotuspier.yunmeng'].pages['/'](),
-  });
-
-  // ═══ Jin Group IR & Koi Tower ═════════════════════════════════════════════
-  const IR = 'https://ir.jingroup.lanling';
-  function irChrome(body, active) {
-    return h('div.w-ir', h('div.w-ir-hdr', A(IR + '/', h('span.w-ir-logo', h('span.w-ir-mark', '金'), 'JIN GROUP')), h('span.w-ir-tag', 'Investor Relations')), h('div.w-ir-nav', [['Overview', '/'], ['Press', '/press'], ['Governance', '/governance'], ['Reports', '/reports']].map(([t, u]) => A(IR + u, h('span', { class: { on: active === t } }, t)))), body, h('div.w-ir-foot', 'Jin Group Holdings · Koi Tower, 88 Jinlin Avenue, Lanling · ', A('https://koitower.lanling/', 'Koi Tower')));
-  }
-  site('ir.jingroup.lanling', {
-    name: 'Jin Group IR', icon: { letter: '金', bg: '#c9a227', fg: '#1a1408' },
-    pages: {
-      '/': () => {
-        const pts = []; let v = 41.2;
-        for (let i = 0; i < 60; i++) { v += Math.sin(i * 1.7) * 0.5 + (i > 50 ? 0.15 : 0.02); pts.push((i * 5.2).toFixed(1) + ',' + (80 - (v - 36) * 6).toFixed(1)); }
-        const chart = document.createElement('div'); chart.className = 'w-ir-chart';
-        chart.innerHTML = `<svg viewBox="0 0 312 90" preserveAspectRatio="none"><polyline points="${pts.join(' ')}" fill="none" stroke="#c9a227" stroke-width="2"/></svg>`;
-        return page('w-ir-page', 'Jin Group — Investor Relations', irChrome(h('div', h('div.w-ir-quote', h('div', h('small', 'JNG · Lanling Exchange'), h('b', '¥47.86'), h('span.up', '+1.12 (+2.40%)')), h('div.w-ir-qs', 'As of close, Fri Oct 16 · Gala week')), chart,
-          h('div.w-ir-sec', h('h2', 'Latest news'), [['Jin Group Autumn Charity Gala raises ¥38 million', '/press/gala-2026', 'Oct 16'], ['Q3 2026 results: revenue up 6%', '/reports', 'Oct 8'], ['Statement on governance reforms', '/governance', 'Mar 2025'], ['Koi Tower forecourt renovation complete', '/press/forecourt', 'Aug 2026']].map(([t, u, d]) => A(IR + u, h('div.w-ir-news', h('b', t), h('span', d))))),
-          h('div.w-ir-sec', h('h2', 'Leadership'), h('p', 'Chair (interim): Board of Directors. Heir: Jin Ling (Advisory Board observer from age 18). Guardian and family adviser: Jiang Cheng, CEO of the Yunmeng Jiang Group.'))), 'Overview'));
-      },
-      '/press': () => page('w-ir-page', 'Press — Jin Group', irChrome(h('div.w-ir-sec', h('h2', 'Press releases'), [['Jin Group Autumn Charity Gala raises ¥38 million', '/press/gala-2026'], ['Koi Tower forecourt renovation complete', '/press/forecourt']].map(([t, u]) => A(IR + u, h('div.w-ir-news', h('b', t))))), 'Press')),
-      '/press/gala-2026': () => article({ brand: 'Jin Group', cls: 'w-ir-page', kicker: 'PRESS RELEASE · LANLING, OCT 16, 2026', title: 'Jin Group Autumn Charity Gala raises ¥38 million for children’s hospitals', by: 'Jin Group Communications', hero: 'p_gala_hall', paras: ['The Jin Group today hosted its annual Autumn Charity Gala at Koi Tower, raising a record ¥38 million for children’s hospitals across Lanling, Yunmeng, Gusu, Qinghe and Yiling.', '“This evening belongs to the children we serve,” the Board said in a statement. “And, a little, to our heir Jin Ling, who turns eighteen this weekend and who asked us not to mention it.”', 'The Group thanks its guests, including the Yunmeng Jiang Group, Nie Corp and Gusu Lan Academy, for their generosity.'] }, (b) => irChrome(b, 'Press')),
-      '/press/forecourt': () => article({ brand: 'Jin Group', cls: 'w-ir-page', kicker: 'PRESS RELEASE · AUG 2026', title: 'Koi Tower forecourt renovation complete', by: 'Jin Group Communications', paras: ['The renovated forecourt reopened today with new lighting, three restored stone bridges and reinforced bollards around the koi pond.', 'The koi were not consulted but appear satisfied.'] }, (b) => irChrome(b, 'Press')),
-      '/governance': () => page('w-ir-page', 'Governance — Jin Group', irChrome(h('div.w-ir-sec', h('h2', 'Governance'), para(['Following the events of 2024, the Jin Group adopted a new governance framework: an independent board, published audits and an Advisory Board on which the heir will sit as an observer from the age of eighteen.', 'The Group acknowledges the harm done during the tenure of its former chief executive and remains committed to transparency.'])), 'Governance')),
-      '/reports': () => page('w-ir-page', 'Reports — Jin Group', irChrome(h('div.w-ir-sec', h('h2', 'Reports'), ['Q3 2026 Results (PDF, 2.1 MB)', 'Annual Report 2025 (PDF, 14 MB)', 'Sustainability Report 2025 (PDF, 6 MB)'].map((t) => h('div.w-ir-news.tap', { onTap: () => JC.ui.alert({ title: 'Download “' + t.split(' (')[0] + '”?', message: 'This PDF will open in Files. Files is managed by Yunmeng Jiang Group IT.', buttons: [{ text: 'Cancel', style: 'cancel' }, { text: 'Download', style: 'default', onTap: () => JC.ui.toast('Download failed: storage full') }] }) }, h('b', t), JC.icon('square.and.arrow.down', { size: 18 })))), 'Reports')),
-    },
-  });
-  const KT = 'https://koitower.lanling';
-  function ktChrome(body) { return h('div.w-kt', h('div.w-kt-hdr', A(KT + '/', h('span.w-kt-logo', 'KOI TOWER')), h('div.w-kt-nav', A(KT + '/visit', 'Visit'), A(KT + '/koi-pond', 'Koi Pond'), A(KT + '/gala', 'Gala'), A(IR + '/', 'Jin Group'))), body, h('div.w-kt-foot', 'Koi Tower · 88 Jinlin Avenue, Lanling · Lobby 7:00–24:00')); }
-  site('koitower.lanling', {
-    name: 'Koi Tower', icon: { letter: 'K', bg: 'linear-gradient(135deg,#f6d77a,#b8862b)', fg: '#2a1d05' },
-    pages: {
-      '/': () => page('w-kt-page', 'Koi Tower — Lanling', ktChrome(h('div', h('div.w-kt-hero', h('div.w-kt-ht', 'Koi Tower'), h('div.w-kt-hs', 'Lanling’s golden landmark · 52 floors · 1987')), h('div.w-kt-cards', [['The Koi Pond', 'Eighty-eight koi and one very old fish.', '/koi-pond'], ['Autumn Charity Gala', 'Friday 16 October · Grand Hall', '/gala'], ['Visit', 'Lobby, café and the 52nd-floor balcony', '/visit']].map(([t, s, u]) => A(KT + u, h('div.w-kt-card', h('b', t), h('span', s)))))))),
-      '/koi-pond': () => page('w-kt-page', 'The Koi Pond — Koi Tower', ktChrome(h('div.w-kt-sec', h('h2', 'The Koi Pond'), para(['Dug in 1986, the year the tower’s foundations were laid, the koi pond is home to eighty-eight koi tended by our keeper, Mr. Qin. The eldest, Old Gold, is 41.', 'Please enjoy the pond from the bridges and the path.']), h('div.w-kt-rules', h('b', 'Visitor rules'), h('ol', ['Do not feed the koi.', 'No wading or swimming.', 'No vehicles beyond the bollards.', 'Dogs must be on a lead. (All dogs. Yes, that one too.)', 'Coins thrown in the pond are donated to children’s hospitals.'].map((r) => h('li', r)))), A(LD + '/city/koi-pond-turns-40', 'Read: the pond turns 40 ›')))),
-      '/gala': () => page('w-kt-page', 'Autumn Charity Gala 2026 — Koi Tower', ktChrome(h('div.w-kt-sec', h('h2', 'Autumn Charity Gala 2026'), art('p_gala_hall', 'w-kt-img'), para(['Friday 16 October 2026 · Grand Hall · Black tie', 'Doors 19:00 · Dinner 20:00 · Auction 21:30 · Balcony open until midnight.', 'Thank you to all our guests. ¥38 million raised.'])))),
-      '/visit': () => page('w-kt-page', 'Visit — Koi Tower', ktChrome(h('div.w-kt-sec', h('h2', 'Visit'), para(['Lobby open 7:00–24:00. Koi Tower Café in the lobby. The 52nd-floor balcony is open to event guests only.', 'Parking: Koi Tower Garage (B1–B4). Valet available during events.']), Btn('Directions', () => JC.os.open('maps', { directions: 'koi-tower' }), 'w-btn-gold')))),
-    },
-  });
-
-  // ═══ Home Kitchen (recipes) ═══════════════════════════════════════════════
-  const HK = 'https://homekitchen.yunmeng';
-  const RECIPES = {
-    'lotus-root-pork-rib-soup': { title: 'Lotus Root & Pork Rib Soup (the Yunmeng way)', img: 'food_soup', time: '2 h 20 min', serves: '4–5', by: 'Home Kitchen Yunmeng', ing: ['800 g pork ribs, cut into pieces', '2 sections of lotus root (about 600 g), the starchy kind with seven holes', '4 slices of ginger', '2 spring onions, knotted', '10 dried red dates (optional)', '1 tbsp Shaoxing wine', 'Salt to taste', 'About 2.5 litres of water'],
-      steps: ['Blanch the ribs: cover with cold water, bring to the boil, skim, then rinse the ribs clean.', 'Peel the lotus root and cut into thick chunks. Don’t slice it thin — it should hold its shape for two hours.', 'Put ribs, ginger, spring onion and wine into a clay pot with the water. Bring to the boil.', 'Add the lotus root. Turn the heat down to the lowest flame you have.', 'Simmer for two hours. Low fire. Don’t rush it. Don’t lift the lid every five minutes.', 'Season with salt only at the end. Serve in big bowls. Make more than you think — people always come back for seconds.'],
-      note: 'The secret is the fire. Every grandmother in Yunmeng will tell you the same thing: two hours, low fire, don’t rush it. If your soup tastes burnt, the fire was too high. If it tastes thin, you didn’t wait.',
-      comments: [['lake_grandma', 'This is how my mother made it. The pink lotus root is best. Two hours!! Low fire!!', '3d'], ['yiling_radish_king', 'tried this 5 times this week. burned 4 of them (sorry lan zhan, sorry smoke alarm). the 5th was edible. still not as good as hers. what am i doing wrong', '2d'], ['lake_grandma', '@yiling_radish_king the fire is too high, child. lowest flame. then go do something else for two hours.', '2d'], ['yiling_radish_king', '@lake_grandma i don’t know how to do something else for two hours', '2d'], ['soupfan88', 'Made this for my brother when he was sick. He pretended it was from a restaurant.', '1w']] },
-    'radish-cake': { title: 'Pan-fried Radish Cake', img: 'food_radish_cake', time: '1 h 30 min', serves: '6', by: 'Home Kitchen Yunmeng', ing: ['1 large white radish (about 1 kg)', '250 g rice flour', '4 dried shiitake', '2 Chinese sausages', 'Dried shrimp', 'Salt, white pepper'], steps: ['Grate the radish and cook it in its own juice for 10 minutes.', 'Fold in rice flour, chopped sausage, shiitake and shrimp.', 'Steam in a greased tin for 45 minutes. Cool completely.', 'Slice and pan-fry until golden.'], note: 'Best with radishes from Burial Mounds hill, according to one very insistent farmer.', comments: [['yiling_radish_king', 'MY RADISHES. 10/10 recipe. buy my radishes', '5d']] },
-    'lotus-seed-paste-cake': { title: 'Lotus Seed Paste Birthday Cake', img: 'food_lotus_cake', time: '3 h', serves: '10', by: 'Home Kitchen Yunmeng', ing: ['Sponge: 6 eggs, 150 g sugar, 150 g flour', 'Filling: 500 g lotus seed paste', 'Cream: 400 ml whipping cream', 'Decoration: candied lotus seeds'], steps: ['Bake a sponge and split it into three layers.', 'Loosen the lotus seed paste with a little cream.', 'Layer sponge, paste and cream.', 'Decorate with candied lotus seeds. Write the name in gold if they’re turning eighteen.'], note: 'Or order from Peony Bakery, 48 hours ahead. No one will judge you.', comments: [['jingyi_lan', 'IS THIS THE ONE FOR THE THING. asking for a friend', '1d']] },
-  };
-  site('homekitchen.yunmeng', {
-    name: 'Home Kitchen', icon: { letter: 'H', bg: '#e86a33', fg: '#fff' },
-    pages: {
-      '/': () => page('w-hk', 'Home Kitchen — Recipes from the lake country', [h('div.w-hk-hdr', A(HK + '/', 'Home Kitchen')), h('div.w-hk-grid', Object.keys(RECIPES).map((k) => A(HK + '/recipes/' + k, h('div.w-hk-card', art(RECIPES[k].img, 'w-hk-img'), h('b', RECIPES[k].title), h('span', RECIPES[k].time)))))]),
-      '/recipes': () => SITES['homekitchen.yunmeng'].pages['/'](),
-    },
-    patterns: [[/^\/recipes\/([\w-]+)$/, (ctx, m) => {
-      const R = RECIPES[m[1]];
-      if (!R) return notFound(SITES['homekitchen.yunmeng'], ctx);
-      const st = state('rec:' + m[1], { saved: false, done: {} });
-      const body = h('div.w-hk-rec',
-        h('div.w-hk-hdr', A(HK + '/', 'Home Kitchen')),
-        art(R.img, 'w-hk-hero'),
-        h('h1.w-h1', R.title),
-        h('div.w-hk-meta', h('span', '⏱ ' + R.time), h('span', '🍲 Serves ' + R.serves), h('span', '★ 4.9 (1,204)')),
-        h('div.w-hk-acts', Btn(st.saved ? '♥ Saved' : '♡ Save', (e) => { st.saved = !st.saved; e.currentTarget.textContent = st.saved ? '♥ Saved' : '♡ Save'; JC.ui.toast(st.saved ? 'Saved to your recipe box' : 'Removed'); }, 'w-btn-ghost'), Btn('Print', () => JC.ui.alert({ title: 'No AirPrint Printers Found', message: 'Make sure you’re on the same Wi-Fi network as a printer.', buttons: [{ text: 'OK' }] }), 'w-btn-ghost'), Btn('Jump to Recipe', (e) => { const t = e.currentTarget.closest('.w-hk-rec').querySelector('.w-hk-ing'); if (t) t.scrollIntoView({ behavior: 'smooth' }); }, 'w-btn-ghost')),
-        h('div.w-hk-note', R.note),
-        h('h2', 'Ingredients'),
-        h('ul.w-hk-ing', R.ing.map((i, k) => { const li = h('li.tap', { class: { done: !!st.done[k] }, onTap: () => { st.done[k] = !st.done[k]; li.classList.toggle('done', !!st.done[k]); } }, i); return li; })),
-        h('h2', 'Method'),
-        h('ol.w-hk-steps', R.steps.map((s) => h('li', s))),
-        comments(R.comments, 'recipe:' + m[1]));
-      return { title: R.title + ' — Home Kitchen', node: h('div.w-page.w-hk', body), reader: { title: R.title, byline: R.by + ' · ' + R.time, paras: [R.note, 'Ingredients: ' + R.ing.join('; ') + '.'].concat(R.steps) } };
-    }]],
-  });
-
-  // ═══ HowTo, Etiquette Today, AskLotus, Buzzlake ═══════════════════════════
-  site('howto.lanling', {
-    name: 'HowTo.lanling', icon: { letter: '?', bg: '#18a058', fg: '#fff' },
-    pages: {
-      '/': () => page('w-howto', 'HowTo.lanling', [h('div.w-howto-hdr', 'HowTo.lanling'), A('https://howto.lanling/found-a-lost-phone', h('div.w-howto-item', 'Found a Lost Phone? Here’s Exactly What to Do')), A('https://howto.lanling/thank-a-living-donor', h('div.w-howto-item', 'How to Thank a Living Donor'))]),
-      '/found-a-lost-phone': () => article({ brand: 'HowTo.lanling', cls: 'w-howto', kicker: 'EVERYDAY ETHICS', title: 'Found a Lost Phone? Here’s Exactly What to Do', dek: 'It’s someone’s whole life in your pocket. Here’s how to get it back to them fast.', by: 'HowTo Staff', date: 'Updated Oct 2026', read: '3 min read',
+        related: [[N('rex-lapis')[0], N('rex-lapis')[1], 'p_rexlapis_1926'], ['https://wangsheng.ly/rite', 'Wangsheng: the Rite of Parting'], [N('northland-liyue-debt')[0], N('northland-liyue-debt')[1]]] }, 'Rite of Parting'),
+      '/2026/10/15/guyun-tremors': () => hdArticle({ kicker: 'HARBOR', title: N('guyun-tremors')[1], dek: N('guyun-tremors')[2], by: 'Lan Yan', date: 'Thu Oct 15, 2026', hero: 'p_storm_guyun',
         paras: [
-          '1. Don’t try to unlock it — and don’t read the messages. A phone is someone’s photos, conversations and passwords. The longer you look, the harder it gets to give back.',
-          '2. Check the Lock Screen. If the owner has marked it as lost, a message and a phone number will appear there. Many phones also show a Medical ID with emergency contacts — a quick way to reach family.',
+          'For a week now, fishermen working the waters around Guyun Stone Forest say the sea has been humming.',
+          '“It comes up through the hull,” said one, who has fished the outer pillars for thirty years. “Low. Like a man singing in the next room. The fish don’t like it. I don’t like it.”',
+          'Several boats have reported Northland Bank survey vessels moored among the pillars at night. Asked what a bank was surveying, a Northland spokesperson said the Bank “regularly assesses assets in which it has an interest”.',
+          'Older residents of the harbor were quick to mention Osial, the sea god said to be sealed beneath the forest by Rex Lapis himself. “He’s been asleep a long time,” said a tea seller on Chihu Rock. “You don’t hum at a sleeping thing unless you want it awake.”',
+          'The Millelith said there was “nothing to worry about” and asked fishermen to keep clear of pillar G-17 “for routine reasons”.',
+        ],
+        related: [[WIKI_URL('Osial'), 'Osial — Akasha'], [N('rite-of-parting-sunday')[0], N('rite-of-parting-sunday')[1], 'p_yujing_lanterns'], ['https://tianheng.ly/guyun', 'Marine forecast: Guyun']] }, 'Harbor'),
+      '/2026/10/14/northland-liyue-debt': () => hdArticle({ kicker: 'BUSINESS', title: N('northland-liyue-debt')[1], dek: N('northland-liyue-debt')[2], by: 'Herald Business Desk', date: 'Wed Oct 14, 2026', hero: 'p_northland_lobby',
+        paras: [
+          'Northland Bank Group, the Snezhnayan lender whose Liyue branch opened on Harbor Road in March, is close to an agreement that would write off a large part of the city’s debt, according to two people familiar with the talks.',
+          'In return, the Bank would receive “an item of cultural significance” after the Rite of Parting. Neither side would say what the item is.',
+          'The Bank’s Liyue operations are led by a director known publicly as Tartaglia, 22, the youngest member of the Bank’s executive board. Colleagues describe him as “enthusiastic”. Competitors describe him less kindly.',
+          'A senior executive from Fontaine, identified in filings as “the Eighth”, has been in the city since September.',
+          'The Jade Chamber declined to comment.',
+        ],
+        related: [['https://northland.sn/liyue', 'Northland Bank · Liyue Branch'], [WIKI_URL('Northland_Bank'), 'Northland Bank — Akasha']] }, 'Business'),
+      '/2026/10/12/yun-jin-divine-damsel': () => hdArticle({ kicker: 'CULTURE · REVIEW', title: N('yun-jin-divine-damsel')[1], dek: N('yun-jin-divine-damsel')[2], by: 'Xinyan (guest critic)', date: 'Mon Oct 12, 2026', hero: 'p_heyu_stage',
+        paras: [
+          'Yun Jin has done it again. “The Divine Damsel of Devastation”, her retelling of the war that founded Liyue, opened at Heyu Tea House on Saturday to a standing room that refused to sit down.',
+          'The second act — in which a nameless god makes a contract with a city and keeps it for six thousand years — is the finest thing on any stage in the harbor. On the night I attended, a gentleman in Box 2 was seen mouthing the lyrics.',
+          'Saturday matinees are sold out until November. Evening returns are released at the box office at 18:00.',
+        ],
+        related: [['https://heyu.ly/troupe', 'Yun Jin Troupe: tickets and season']] }, 'Culture'),
+      '/2026/10/10/crux-returns': () => hdArticle({ kicker: 'HARBOR', title: N('crux-returns')[1], dek: N('crux-returns')[2], by: 'Herald Staff', date: 'Sat Oct 10, 2026', hero: 'p_alcor_deck',
+        paras: ['The Crux Fleet’s flagship, the Alcor, returned to Liyue Harbor on Saturday after six weeks at sea.', 'Captain Beidou, asked about the rumour that she lost an arm-wrestle at the Third-Round Knockout to “a ginger banker”, said: “I didn’t lose. I paused. The rematch is Saturday night. Tell him to bring Mora for the drinks.”', 'The Crux ferries passengers north on request. Bookings through the fleet’s office on Pier 2.'],
+        related: [['https://crux.ly/', 'The Crux Fleet']] }, 'Harbor'),
+      '/2026/10/08/wangsheng-autumn-sale': () => hdArticle({ kicker: 'CITY', title: N('wangsheng-autumn-sale')[1], dek: N('wangsheng-autumn-sale')[2], by: 'Herald Staff', date: 'Thu Oct 8, 2026', hero: 'p_wangsheng_door',
+        paras: ['Wangsheng Funeral Parlor’s “Autumn Sale”, advertised on posters across the harbor with the slogan “Second coffin half price — bring a friend!”, has drawn complaints from residents.', '“We are a funeral parlour, not a market stall,” said one. Director Hu Tao responded on Ripple: “Death waits for no one. Neither do our prices. Also, we are both.”', 'The sale ends Sunday. The parlour is handling the Rite of Parting and asks that customers “keep it to one coffin each this week”.'],
+        related: [['https://wangsheng.ly/', 'Wangsheng Funeral Parlor']] }, 'News'),
+      '/2026/10/05/glaze-lily-season': () => hdArticle({ kicker: 'CITY', title: N('glaze-lily-season')[1], dek: N('glaze-lily-season')[2], by: 'Herald Staff', date: 'Mon Oct 5, 2026', hero: 'p_glaze_lily',
+        paras: ['Glaze lilies, which bloom only where they are left alone, came late this year. Florists on Feiyun Slope have been sold out since the Founder’s death.', '“People want to give something,” said one. “A lily is what you give when you don’t have the words.”', 'Legend has it that the flower was the favourite of Guizhong, an ancient goddess and the Founder’s dearest friend.'],
+        related: [[WIKI_URL('Glaze_lily'), 'Glaze lily — Akasha'], [WIKI_URL('Guizhong'), 'Guizhong — Akasha']] }, 'News'),
+      '/2026/10/17/teaset-record': () => hdArticle({ kicker: 'CULTURE', title: 'Guizhong-era tea set sells for a record on Feiyun Market', by: 'Herald Staff', date: 'Sat Oct 17, 2026', hero: 'p_teaset', paras: ['A seven-piece celadon tea set dated to the Guizhong era sold just after midnight on Feiyun Market.', 'The base of the pot bears a worn inscription. Experts consulted by the Herald read it as “for Morax — G.”, which, if genuine, would make the set a gift to Rex Lapis from the goddess Guizhong herself.', '“Whoever bought it,” one said, “should give it back to whoever it belongs to.”'] }, 'Culture'),
+      '/2026/10/18/liyue-says-goodbye': () => hdArticle({ kicker: 'RITE OF PARTING', title: 'Liyue says goodbye to its Founder', dek: 'Thousands on Yujing Terrace. The consultant who led the Rite “spoke as if he had known him personally.”', by: 'Chen Yuhua', date: 'Sun Oct 18, 2026', hero: 'p_yujing_lanterns', paras: ['They came in white, carrying lilies, and stood in silence for three hours.', 'The Rite of Parting was conducted by Wangsheng Funeral Parlor’s consultant, a tall man in a long coat who read the eulogy without notes. “He was not always wise,” he said of the Founder. “But he kept his word. In the end, that is the only thing anyone can keep.”', 'One mourner said afterwards: “It was strange. He talked about him like a friend. Like he’d been there.”', 'The founder’s lanterns burn until 23:00 tonight.'] }, 'Rite of Parting'),
+      '/2026/10/18/resonators-found': () => hdArticle({ kicker: 'BREAKING', title: 'Jade Chamber halts foreign “resonators” at Guyun', dek: 'Millelith divers recover devices fixed to the stone pillars.', by: 'Herald Staff', date: 'Sun Oct 18, 2026', hero: 'p_unit3', paras: ['Millelith divers recovered three devices from pillars G-4, G-9 and G-17 in Guyun Stone Forest on Sunday, after the Jade Chamber received what the Tianquan called “a document no one was meant to read”.', 'The devices, described as “resonators”, carried Northland Bank markings.', '“Someone did the right thing,” Ningguang said. “Liyue remembers people who do the right thing. It also remembers the other kind.”', 'Northland Bank declined to comment.'] }, 'News'),
+      '/live/harbor-blackout': () => hdArticle({ kicker: '● LIVE', title: 'Harbor goes dark as sea surges at Guyun', dek: 'The founder’s lanterns went out at 23:00. Minutes later the sea rose.', by: 'Herald Live Desk', date: 'Sun Oct 18, 2026 · updating', hero: 'p_storm_guyun', paras: ['23:01 — The lanterns go out on schedule. The harbor is silent.', '23:04 — Reports of a roar from the direction of Guyun Stone Forest. The water at Pier 7 is draining away from the quay.', '23:09 — A wall of water is visible beyond the outer pillars. The Millelith are evacuating the waterfront.', '23:15 — Witnesses on Yujing Terrace describe “a light in the shape of a man” standing on the sea.', '23:40 — A document circulating on Ripple names Northland Bank’s Liyue director, Tartaglia, as the sole signatory of the operation.'] }, 'News'),
+      '/life/found-a-lost-phone': () => hdArticle({ kicker: 'LIFE', title: 'Found a Lost Phone? Here’s Exactly What to Do', dek: 'It’s someone’s whole life in your pocket. Here’s how to get it back to them fast.', by: 'Herald Life Desk', date: 'Updated Oct 2026',
+        paras: [
+          '1. Don’t try to unlock it — and don’t read the messages. The longer you look, the harder it gets to give back.',
+          '2. Check the Lock Screen. If the owner has marked it as lost, a message and a phone number will appear there. The Emergency screen may show a Medical ID with emergency contacts.',
           '3. If it rings, answer. Say you found the phone and where you are. Most people are calling their own number in a panic.',
-          '4. Found it in a taxi or a ride-hailing car? Report it through the ride app. Swift Ride and others have a “Report a lost item” page for every trip: the company notifies the rider and the driver, and arranges a hand-over.',
-          '5. Hand it in. Any police station will take found property and contact the owner. In Lanling, the Jinxing Road Police Station’s Lost & Found desk is open 24 hours.',
-          '6. Don’t keep it overnight if you can help it. The owner is probably lying awake, wondering who has it.',
-          'And if you’ve already read a few messages? Don’t panic. Tell the truth. People are more forgiving than you think — especially when you bring their phone back.',
+          '4. Found it after a ride? Report it through the ride app. Harbor Ride has a “Report a lost item” page for every trip.',
+          '5. Hand it in. Any Millelith post will take found property and contact the owner. The Harbor Road post is open 24 hours.',
+          'And if you’ve already read a few messages? Tell the truth. People are more forgiving than you think — especially when you bring their phone back.',
         ],
-        after: h('div.w-howto-box', h('b', 'Quick links'), A('https://help.swiftride.lanling/lost-items', 'Swift Ride: report a lost or found item ›'), A('https://police.lanling/lost-and-found', 'Lanling police: Lost & Found ›')),
-        related: [['https://police.lanling/lost-and-found', 'Lanling Public Security: Lost & Found'], ['https://help.swiftride.lanling/lost-items', 'Swift Ride Help: lost items']] }),
-      '/thank-a-living-donor': () => article({ brand: 'HowTo.lanling', cls: 'w-howto', kicker: 'RELATIONSHIPS', title: 'How to Thank a Living Donor (Even Years Later)', by: 'HowTo Staff', date: 'Jun 2024', paras: ['Step 1: It is not too late. Donors rarely expect thanks, which is exactly why it matters.', 'Step 2: Be specific. Not “thanks for everything” — “thank you for my life.”', 'Step 3: Keep it short. A long speech is for you. A short one is for them.', 'Step 4: If you can’t say it in person, record it. A voice message you meant to send is worth nothing; one you sent is worth everything.'] }),
+        after: h('div.w-hd-box', h('b', 'Quick links'), A('https://harborride.ly/help/lost-items', 'Harbor Ride: report a lost or found item ›'), A('https://millelith.ly/lost-and-found', 'The Millelith: Lost & Found ›')) }, 'Life'),
+      '/search': (ctx) => { const q = ctx.q.get('q') || ''; const all = news(); const res = all.filter((n) => q.toLowerCase().split(/\s+/).some((w) => w.length > 2 && (n[1] + n[2]).toLowerCase().includes(w))); return { title: 'Search: ' + q + ' — The Liyue Herald', node: h('div.w-page.w-news', hdChrome(h('div.w-article', h('h1.w-h1', 'Results for “' + q + '”'), res.length ? res.map((n) => A(n[0], h('div.w-ld-item', h('div', h('div.w-ld-it', n[1]), h('div.w-ld-is', n[3] + ' · ' + n[2]))))) : [h('p', 'No articles matched. Here’s what everyone is reading:'), all.slice(0, 4).map((n) => A(n[0], h('div.w-ld-item', h('div', h('div.w-ld-it', n[1])))))]), 'News')), reader: null }; },
     },
-    patterns: [[/^\/([\w-]+)$/, (ctx, m) => {
-      const q = unslug(m[1]);
-      const steps = ['Take a breath. ' + title(q) + ' is more common than you think.', 'Write down what you actually want to happen.', 'Talk to the person involved — directly, briefly and honestly.', 'Give it a day. Most things look smaller in the morning.', 'If in doubt, ask someone you trust. (Not the internet.)'];
-      return article({ brand: 'HowTo.lanling', cls: 'w-howto', kicker: 'GUIDES', title: 'How to Handle ' + title(q) + ': A Simple Guide', by: 'HowTo Staff', date: 'Updated Oct 2026', paras: steps.map((s, i) => (i + 1) + '. ' + s), related: [['https://howto.lanling/found-a-lost-phone', 'Found a Lost Phone? Here’s Exactly What to Do']] });
-    }]],
-  });
-  const ETQ = {
-    'thank-you-without-saying-thank-you': ['How to Say “Thank You” Without Saying It', ['Some people would rather walk into the sea than say “thank you” out loud. If you are one of them, you are in good company — and you still owe the words.', 'Nine ways people say it anyway: they show up. They cook. They remember the anniversary nobody else does. They fix the gate. They send soup when you’re sick and deny it afterwards. They keep a seat at the table.', 'But here is the uncomfortable truth: if the thing they did was enormous, the actions are not enough on their own. At some point, the words have to be said. Two of them. You can mutter them. You can say them to the floor. You can record them at midnight and send them before you lose your nerve.', 'They will know what it cost you. That is part of the gift.']],
-    'gifts-for-organ-donors': ['What Do You Give Someone Who Gave You Part of Their Liver?', ['Short answer: nothing that fits in a box.', 'Donors almost never want repayment. Many chose to stay anonymous precisely so there would be nothing to repay. What they do want — when they’re asked — is surprisingly simple: to know that you are well, that the life they protected is being lived.', 'So: your time. Your table. A dinner invitation that is about nothing in particular. And, at some point, the sentence you have been avoiding.']],
-    'heirlooms-coming-of-age': ['The Heirloom Gift: Why Coming-of-Age Calls for Something Old', ['When someone turns eighteen and already has everything money can buy, give them something it can’t.', 'A watch, a ring, a silver bell — anything that belonged to a parent or grandparent they never got to know — tells them where they come from. Have it cleaned, not changed. Tell them the story. Then let them decide what it means.']],
-    'what-does-i-missed-you-mean': ['How to Respond When Someone Says “I Missed You”', ['Panicking is normal. Leaving the room is less advisable, but also common.', '“I missed you” after a long absence is rarely a trap. It usually means exactly what it says. The person has been carrying it for a while and has finally put it down in front of you.', 'You do not need a speech in return. “I missed you too” is a complete sentence. So is “Tea tomorrow?” So is showing up at three o’clock.']],
+    patterns: [[/^\/life\/([\w-]+)$/, (ctx, m) => hdArticle({ kicker: 'LIFE · ADVICE', title: title(unslug(m[1])), by: 'Madam Ping, Herald Life Desk', date: 'Oct 2026', paras: ['Dear reader, you asked: “' + unslug(m[1]) + '?”', 'Our answer, as always: be kind, be brief, and say the thing you are afraid to say. Most problems in this harbor are solved by one honest sentence and a pot of tea.', 'If that fails, bring food. Wanmin Restaurant is open until two.'] }, 'Life')]],
   };
-  site('etiquette.today', {
-    name: 'Etiquette Today', icon: { letter: 'E', bg: '#7a1f3d', fg: '#fff' },
-    pages: { '/': () => page('w-etq', 'Etiquette Today', [h('div.w-etq-hdr', 'Etiquette Today'), h('div.w-etq-tag', 'Manners for modern people'), Object.keys(ETQ).map((k) => A('https://etiquette.today/' + k, h('div.w-etq-item', ETQ[k][0])))]) },
-    patterns: [[/^\/([\w-]+)$/, (ctx, m) => {
-      const e = ETQ[m[1]];
-      const q = unslug(m[1]);
-      const o = e ? { title: e[0], paras: e[1] } : { title: title(q), paras: ['Dear reader, you asked: “' + q + '?”', 'Our answer, as always: be kind, be brief, and say the thing you are afraid to say. Most social problems are solved by one honest sentence delivered at a reasonable volume.', 'If that fails, bring food.'] };
-      return article({ brand: 'Etiquette Today', cls: 'w-etq', kicker: 'ADVICE', title: o.title, by: 'Madam Qin, Etiquette Today', date: 'Oct 2026', paras: o.paras, related: Object.keys(ETQ).filter((k) => k !== m[1]).slice(0, 3).map((k) => ['https://etiquette.today/' + k, ETQ[k][0]]) }, (b) => h('div', h('div.w-etq-hdr', A('https://etiquette.today/', 'Etiquette Today')), b));
+  site('liyueherald.ly', HERALD_SITE);
+  site('lhnews.ly', Object.assign({}, HERALD_SITE, { name: 'Liyue Harbor News' }));
+
+  // ═══ Liyue Archives ══════════════════════════════════════════════════════
+  const ARCH_ITEMS = [
+    ['1926-founding', 'PH-1926-0417', '“The Consultant”, Liyue Exchange founding, 1926', 'p_rexlapis_1926', 'Silver gelatin print, 1926'],
+    ['harbor-1951', 'PH-1951-0032', 'Liyue Harbor from Yujing Terrace', 'p_harbor_day', 'Hand-tinted print, 1951'],
+    ['jade-chamber-1988', 'PH-1988-1104', 'The Jade Chamber rises over the harbor', 'p_jade_chamber', 'Colour slide, 1988'],
+    ['golden-house', 'PH-1902-0007', 'The Golden House, mint of Liyue', 'p_golden_house', 'Albumen print, 1902'],
+    ['glaze-lily', 'BOT-0441', 'Glaze lily, pressed specimen', 'p_glaze_lily', 'Herbarium sheet, undated'],
+    ['wangsheng-door', 'PH-2019-0915', 'Wangsheng Funeral Parlor, the 77th director’s door', 'p_wangsheng_door', 'Digital, 2019'],
+  ];
+  function archChrome(body) {
+    return h('div.w-arch', h('div.w-arch-hdr', A(ARCH + '/', h('span.w-arch-logo', h('span.w-arch-seal', '岩'), h('span', 'LIYUE ARCHIVES', h('small', 'Heritage collections of the Qixing')))), h('div.w-arch-nav', A(ARCH + '/photos', 'Photographs'), A(ARCH + '/exhibitions/rite-of-parting', 'Exhibitions'), A(ARCH + '/visit', 'Visit'))), body,
+      h('div.w-arch-foot', 'Liyue Archives · Jade Chamber Annexe, Yujing Terrace · Reading room Tue–Sun 9:00–17:00 · Images may not be reproduced without permission of the Qixing.'));
+  }
+  site('archives.ly', {
+    name: 'Liyue Archives', icon: { letter: '岩', bg: '#2b2418', fg: '#e3c37b' },
+    pages: {
+      '/': () => page('w-arch-page', 'Liyue Archives — Heritage collections of the Qixing', archChrome(h('div',
+        h('div.w-arch-hero', art('p_rexlapis_1926', 'w-arch-heroimg'), h('div.w-arch-herot', h('small', 'NEW TO THE COLLECTION ONLINE'), h('b', 'The only photograph of the Founder'), A(ARCH + '/photos/1926-founding', 'View PH-1926-0417 ›'))),
+        h('div.w-arch-sec', h('h2', 'Exhibitions'), A(ARCH + '/exhibitions/rite-of-parting', h('div.w-arch-row', h('b', 'Six Thousand Years: the Founder and his City'), h('span', 'Yujing Terrace, from Sunday · free')))),
+        h('div.w-arch-sec', h('h2', 'Search the collection'), (() => { const inp = JC.ui.input({ placeholder: 'Catalogue no., subject, year…', cap: 'none', enterkey: 'search', cls: 'w-input', onSubmit: (v) => goFrom(inp, ARCH + '/photos?q=' + enc(v.trim())) }); return inp; })())))),
+      '/photos': (ctx) => {
+        const q = ((ctx.q && ctx.q.get('q')) || '').toLowerCase().trim();
+        const list = ARCH_ITEMS.filter((it) => !q || (it.join(' ') + (it[0] === '1926-founding' ? ' rex lapis morax founder lantern consultant' : '')).toLowerCase().includes(q));
+        return page('w-arch-page', 'Photographs — Liyue Archives', archChrome(h('div.w-arch-sec', h('h2', q ? 'Results for “' + q + '”' : 'Photographs'), list.length ? h('div.w-arch-grid', list.map((it) => A(ARCH + '/photos/' + it[0], h('div.w-arch-card', art(it[3], 'w-arch-thumb'), h('b', it[2]), h('span', it[1] + ' · ' + it[4]))))) : h('p', 'No records match. The reading room staff can search the uncatalogued boxes on request.'))));
+      },
+      '/photos/1926-founding': () => {
+        const f = flags();
+        const rec = [['Catalogue no.', 'PH-1926-0417'], ['Title', '“The Consultant”'], ['Date', 'Founding of the Liyue Exchange, 1926'], ['Place', 'Liyue Exchange, Feiyun Slope'], ['Medium', 'Silver gelatin print, 18 × 24 cm'], ['Photographer', 'Unknown (studio stamp: Feiyun Portraits)'], ['Subject', 'Rex Lapis (identified by the photographer); the Qixing of 1926'], ['Provenance', 'Gift of Wangsheng Funeral Parlor, 1951']];
+        return { title: 'PH-1926-0417 · “The Consultant” — Liyue Archives', node: h('div.w-page.w-arch-page', archChrome(h('div.w-arch-item',
+          h('div.w-arch-crumb', A(ARCH + '/photos', 'Photographs'), ' › PH-1926-0417'),
+          h('figure.w-arch-fig', art('p_rexlapis_1926', 'w-arch-photo'), h('figcaption', 'The founding of the Liyue Exchange, 1926. The gentleman in the long coat stands at the centre, among the Qixing of the day.')),
+          h('h1.w-arch-t', '“The Consultant”'),
+          h('table.w-arch-rec', rec.map(([k, v]) => h('tr', h('th', k), h('td', v)))),
+          h('div.w-arch-note', h('b', 'Curator’s note'), para([
+            'This print is the only photograph in any collection believed to show Rex Lapis in human form. On the back, in the photographer’s hand: “The gentleman would not give his name. Said he was ‘a consultant’. The Tianquan bowed to him. — Do not sell.”',
+            'Visitors often remark on the subject’s calm, his long dark hair tied back with a single tassel, and the amber of his eyes, which the hand-tinting has preserved. He appears to be about thirty years old. In 1926.',
+            'The print will be displayed at the Rite of Parting on Sunday 18 October.',
+          ])),
+          f.clue_invoice || f.clue_inscription ? h('div.w-arch-flag', JC.icon('exclamationmark.circle.fill', { size: 18 }), h('span', 'You have seen this face before. Tonight, at dinner. Across the table.')) : null,
+          h('div.w-arch-btns', Btn('Request a print', () => JC.ui.alert({ title: 'Request a Print', message: 'Reproductions of PH-1926-0417 are not permitted without the written consent of the Qixing. (The request form asks for your name. You do not have a name you can give.)', buttons: [{ text: 'OK' }] }), 'w-btn-arch'), Btn('Share', () => JC.ui.share({ title: '“The Consultant”, 1926 — Liyue Archives', art: 'p_rexlapis_1926', payload: { kind: 'link', text: 'PH-1926-0417 · “The Consultant”', url: ARCH + '/photos/1926-founding' } }), 'w-btn-ghost')),
+          h('div.w-arch-sec', h('h2', 'Related'), A(HERALD + '/2026/10/01/rex-lapis', h('div.w-arch-row', h('b', 'Liyue mourns: Qixing announce the death of Rex Lapis'), h('span', 'The Liyue Herald'))), A(WIKI_URL('Rex_Lapis'), h('div.w-arch-row', h('b', 'Rex Lapis'), h('span', 'Akasha'))))))),
+          reader: { title: '“The Consultant”, 1926', byline: 'Liyue Archives · PH-1926-0417', paras: ['The only photograph in any collection believed to show Rex Lapis in human form.', 'On the back: “The gentleman would not give his name. Said he was ‘a consultant’. The Tianquan bowed to him. — Do not sell.”'] } };
+      },
+      '/exhibitions/rite-of-parting': () => page('w-arch-page', 'Six Thousand Years — Liyue Archives', archChrome(h('div.w-arch-sec', h('h2', 'Six Thousand Years: the Founder and his City'), art('p_yujing_lanterns', 'w-arch-img'), para(['A small exhibition on Yujing Terrace to accompany the Rite of Parting: contracts, coins from the Golden House, a pressed glaze lily, and the 1926 photograph shown publicly for the first time.', 'Free entry from Sunday 18 October, 09:00.']), A(ARCH + '/photos/1926-founding', h('div.w-arch-row', h('b', 'PH-1926-0417 · “The Consultant”'), h('span', 'View online ›')))))),
+      '/visit': () => page('w-arch-page', 'Visit — Liyue Archives', archChrome(h('div.w-arch-sec', h('h2', 'Visit'), para(['Jade Chamber Annexe, Yujing Terrace. Reading room Tuesday to Sunday, 9:00–17:00. Closed for the Rite of Parting on Sunday morning.', 'Bags must be left at the desk. Pencils only. Please do not bring tea into the reading room. (One regular visitor does. He is very careful. He is the exception.)'])))),
+    },
+    patterns: [[/^\/photos\/([\w-]+)$/, (ctx, m) => {
+      const it = ARCH_ITEMS.find((x) => x[0] === m[1]);
+      if (!it) return notFound(SITES['archives.ly'], ctx);
+      return page('w-arch-page', it[2] + ' — Liyue Archives', archChrome(h('div.w-arch-item', h('div.w-arch-crumb', A(ARCH + '/photos', 'Photographs'), ' › ' + it[1]), h('figure.w-arch-fig', art(it[3], 'w-arch-photo')), h('h1.w-arch-t', it[2]), h('table.w-arch-rec', [['Catalogue no.', it[1]], ['Medium', it[4]]].map(([k, v]) => h('tr', h('th', k), h('td', v)))))));
     }]],
   });
+
+  // ═══ Northland Bank (public) ═════════════════════════════════════════════
+  const NB = 'https://northland.sn';
+  function nbChrome(body, active) {
+    return h('div.w-nb', h('div.w-nb-hdr', A(NB + '/', h('span.w-nb-logo', h('span.w-nb-mark', '❄'), 'NORTHLAND BANK')), h('div.w-nb-nav', [['Personal', '/'], ['Liyue', '/liyue'], ['Board', '/about/board'], ['Security', '/security'], ['Careers', '/careers']].map(([t, u]) => A(NB + u, h('span', { class: { on: active === t } }, t))))), body,
+      h('div.w-nb-foot', h('div', '❄ Northland Bank Group · Zapolyarny Palace, Snezhnaya'), h('div', 'Liyue Branch: 1 Harbor Road · (0761) 555 0110 · ', A('https://intranet.northland.sn/', 'Staff sign-in')), h('div.w-foot-c', '© 2026 Northland Bank Group. Banking the cold since before the cold.')));
+  }
+  const NB_SITE = {
+    name: 'Northland Bank', icon: { letter: '❄', bg: '#0f2740', fg: '#cfe6ff' },
+    pages: {
+      '/': () => page('w-nb-page', 'Northland Bank — Personal banking', nbChrome(h('div', h('div.w-nb-hero', art('p_northland_lobby', 'w-nb-heroimg'), h('div.w-nb-herot', h('b', 'Your money. Our winter.'), h('span', 'Personal and private banking in Snezhnaya, Liyue and beyond.'), Btn('Open the Northland app', () => JC.os.open('northland'), 'w-btn-nb'))),
+        h('div.w-nb-cards', [['Northland Black', 'The card for people who do not ask the price.'], ['Savings', 'Up to 4.1% AER. Withdrawals reviewed by a Harbinger.'], ['Liyue debt restructuring', 'A historic partnership. Details after the Rite.']].map(([t, s]) => h('div.w-nb-card', h('b', t), h('span', s))))), 'Personal')),
+      '/liyue': () => page('w-nb-page', 'Northland Bank · Liyue Branch', nbChrome(h('div.w-nb-sec', h('h2', 'Liyue Branch'), art('p_northland_lobby', 'w-nb-img'), para(['1 Harbor Road, Liyue Harbor. Monday to Saturday, 9:00–18:00. Closed Sunday for the Rite of Parting.', 'Branch Director: Tartaglia, Eleventh of the Executive Board.', 'Reception: Ekaterina. If you have an appointment, she already knows. If you do not, she also knows.']), Btn('Call the Branch', () => JC.callui && JC.callui.dialNumber('(0761) 555 0110'), 'w-btn-nb'), Btn('Directions', () => JC.os.open('maps', { directions: 'northland' }), 'w-btn-ghost')), 'Liyue')),
+      '/about/board': () => page('w-nb-page', 'The Executive Board — Northland Bank Group', nbChrome(h('div.w-nb-sec', h('h2', 'The Executive Board'), h('p.w-nb-small', 'Known informally, and not by us, as “the Harbingers”.'),
+        [['The First', 'Chairman of the Board'], ['The Second', 'Chief Scientific Officer, Northland Medical'], ['The Third', 'Director, Fontaine'], ['The Fourth', 'Director, Orphanages & Education'], ['The Fifth', 'Director, Family Services & Executive Travel'], ['The Sixth', 'Director, Operations'], ['The Eighth', 'Special Projects (on secondment to Liyue)'], ['The Ninth', 'Treasurer'], ['The Tenth', 'Director, Investigations (on leave)'], ['The Eleventh', 'Director, Special Collections (Liyue) — Tartaglia']].map(([n, r]) => h('div.w-nb-row', h('b', n), h('span', r)))), 'Board')),
+      '/security': () => page('w-nb-page', 'Security — Northland Bank', nbChrome(h('div.w-nb-sec', h('h2', 'Keeping your account safe'), para(['Northland Bank will never ask for your password by text message.', 'Authorization codes (format OSL-…, NB-…) are personal. Never send an authorization code to anyone, including a colleague, including a senior colleague, including a senior colleague who says “Don’t make me come to you.”', 'Lost your card? Freeze it instantly in the Northland app: Card → Freeze.']), Btn('Freeze a card in the app', () => JC.os.open('northland', { tab: 'card' }), 'w-btn-nb')), 'Security')),
+      '/careers': () => page('w-nb-page', 'Careers — Northland Bank', nbChrome(h('div.w-nb-sec', h('h2', 'Careers'), ['Teller, Liyue Branch', 'Debt Collection Agent (must enjoy travel, must not ask questions)', 'Aquarium Technician (Liyue Branch, urgent)', 'Receptionist — position filled. Permanently. — E.'].map((j) => h('div.w-nb-row', h('b', j), h('span.tap', { onTap: () => JC.ui.toast('Applications reopen after the Rite') }, 'Apply ›')))), 'Careers')),
+    },
+  };
+  site('northland.sn', NB_SITE);
+  site('northlandbank.sn', Object.assign({}, NB_SITE));
+
+  // ═══ Northland intranet (the Osial file) ═════════════════════════════════
+  const NI = 'https://intranet.northland.sn';
+  const niCheck = (u, p) => /^nb-liyue$/i.test(u) && String(p).replace(/[’‘]/g, '\'') === 'Tsaritsa\'sOwn11';
+  function niChrome(body, active) {
+    return h('div.w-ni', h('div.w-ni-hdr', A(NI + '/home', h('span.w-ni-logo', '❄ NORTHLAND', h('small', 'INTRANET · LIYUE'))), h('span.w-ni-user', 'nb-liyue'), h('span.w-ni-out.tap', { onTap: (e) => { web.signOut('intranet'); goFrom(e.currentTarget, NI + '/'); } }, 'Sign out')),
+      h('div.w-ni-nav', [['Home', '/home'], ['Projects', '/projects'], ['Directory', '/directory'], ['Medical', '/medical']].map(([t, u]) => A(NI + u, h('span', { class: { on: active === t } }, t)))), body,
+      h('div.w-ni-foot', 'CONFIDENTIAL · Property of Northland Bank Group · Activity on this system is logged and reviewed by the Office of the Ninth.'));
+  }
+  const niLogin = () => page('w-login-page w-ni-login', 'Northland Intranet — Sign in', [h('div.w-intra', loginForm({ key: 'intranet', brand: 'Northland Intranet', logo: h('span', '❄ Northland Intranet'), color: '#0f2740', sub: 'Liyue Branch · staff only', user: '', userLabel: 'Staff ID', max: 4, check: niCheck, onSuccess: (box) => goFrom(box, NI + '/home'), faceId: false, resetText: 'Password resets are handled by reception. Ekaterina will ask you three security questions. One of them is about fish.', help: 'Branch IT: ext. 11. If the vending machine shows E-11, that is not an IT problem.', lockedText: 'This account is locked. The Office of the Ninth has been notified.' }), h('div.w-intra-foot', 'Shared terminal account for the Liyue Branch. Do not write the password down. (Somebody did.)'))]);
+  const NI_PAGES = {
+    '/home': () => page('w-ni-page', 'Home — Northland Intranet', niChrome(h('div.w-ni-sec',
+      h('h2', 'Good evening, Liyue Branch'),
+      [['URGENT · Office of the Eighth', 'All Liyue staff: Sunday is a skeleton shift. The harbor will be dark from 23:00. Stay indoors. Do not ask why.'], ['HR · Office of the Second', 'Mandatory “Delusion check-up” for the Branch Director, Monday 09:00, Medical Wing. Family baseline sample requested.'], ['Facilities', 'The 3F FROSTFIZZ vending machine shows error E-11 again. Do not kick it. Lyuba.'], ['Facilities', 'The aquarium is frozen. Again. The Director’s fish are inside. Again. Nobody tell the Director.'], ['Reception', 'If anyone finds the Director, tell him I am not angry. — E.']].map(([h1, t]) => h('div.w-ni-ann', h('b', h1), h('span', t))),
+      A(NI + '/projects', h('div.w-ni-cta', 'Projects ›'))), 'Home')),
+    '/projects': () => page('w-ni-page', 'Projects — Northland Intranet', niChrome(h('div.w-ni-sec', h('h2', 'Projects'),
+      [['osial', 'Project OSIAL', '◆ RESTRICTED · rev. 4 · Sole signatory: Tartaglia', 'red'], ['debt', 'Liyue Debt Restructuring', 'Office of the Ninth · signing after the Rite', ''], ['golden-house', 'Golden House handover', 'Office of the Eighth · Sun 15:00 · item: “G.”', ''], ['aquarium', 'Branch aquarium (thaw)', 'Facilities · overdue', '']].map(([id, t, s, c]) => A(NI + '/projects/' + id, h('div.w-ni-proj', { class: c ? { red: true } : {} }, h('b', t), h('span', s))))), 'Projects')),
+    '/projects/osial': () => {
+      const f = flags();
+      return { title: 'Project OSIAL — Northland Intranet', node: h('div.w-page.w-ni-page', niChrome(h('div.w-ni-doc',
+        h('div.w-ni-stamp', 'APPROVED · OFFICE OF THE EIGHTH'),
+        h('div.w-ni-class', '◆ RESTRICTED — READ ONCE'),
+        h('h1', 'Project OSIAL — Operating protocol (rev. 4)'),
+        h('table.w-ni-tbl', [['Objective', 'Wake the entity sealed beneath Guyun Stone Forest, so that Liyue’s hidden god must reveal himself to defend the harbor. Recover the Gnosis in the confusion.'], ['Method', 'Three Northland resonators tuned to the seal: pillars G-4, G-9 and G-17 (“Unit 3”).'], ['Status', 'G-4 LIVE · G-9 LIVE · G-17 (Unit 3) AWAITING AUTHORIZATION'], ['Timing', 'Activation at 23:00 Sunday, when the founder’s lanterns go out and the harbor is dark.'], ['Funding', 'OSIAL/PH3 · ℳ3,000,000 → Sea Lantern Logistics · releases Sun 23:00'], ['Authorization', 'Format OSL-####-ΛΣ. Branch Director only.'], ['Sole signatory', 'Tartaglia, Eleventh of the Executive Board']].map(([k, v]) => h('tr', h('th', k), h('td', v)))),
+        art('p_osial_diagram', 'w-ni-diagram'),
+        h('h2', 'Revision history'),
+        h('table.w-ni-tbl.hist', [['rev. 1', '2 Aug', 'Proposal. Author: Tartaglia (“it would be a good fight”).'], ['rev. 2', '19 Aug', 'Project transferred to the Office of the Eighth. Co-signed: Signora, Tartaglia.'], ['rev. 3', '9 Oct', 'Tartaglia requests withdrawal: “There are kids in that harbor.” Request noted.'], ['rev. 4', '15 Oct', 'Countersignature removed (“redundant”). Sole signatory: Tartaglia.']].map((r) => h('tr', r.map((c) => h('td', c))))),
+        h('div.w-ni-warn', JC.icon('exclamationmark.triangle.fill', { size: 18 }), h('span', 'Expected harbor impact: severe flooding of the waterfront and Pier 1–9 within 15 minutes of activation. Civil casualties: “acceptable”.')),
+        h('div.w-ni-btns',
+          Btn('Email this page…', () => JC.os.open('mail', { compose: { subject: 'Project Osial — protocol (rev. 4)', body: 'Project OSIAL — Northland Bank Group, rev. 4\n\nResonators on Guyun pillars G-4 and G-9 are live. Unit 3 on G-17 awaits authorization. Activation: Sunday 23:00, when the founder’s lanterns go out. Funding: ℳ3,000,000 to Sea Lantern Logistics.\n\nThe countersignature was removed in rev. 4 to make Tartaglia the sole signatory. He asked to withdraw on 9 Oct: “There are kids in that harbor.”\n\nExpected impact: flooding of the waterfront within 15 minutes.\n\nhttps://intranet.northland.sn/projects/osial' } }), 'w-btn-nb'),
+          Btn('Screenshot', () => { if (JC.msgApp && JC.msgApp.savePhoto) JC.msgApp.savePhoto('p_osial_diagram', { albums: ['screenshots'] }); else JC.ui.toast('Saved to Photos', { icon: 'square.and.arrow.down' }); JC.story.act('photo_taken', { art: 'p_osial_diagram', from: 'safari' }); }, 'w-btn-ghost')),
+        f.osial_sent ? h('div.w-ni-warn.sent', JC.icon('bolt.fill', { size: 18 }), h('span', 'AUTHORIZATION RECEIVED · Unit 3 armed.')) : f.card_frozen ? h('div.w-ni-note', 'Funding hold: the Director’s card controls are blocking the OSIAL/PH3 release.') : null), 'Projects')),
+        reader: { title: 'Project OSIAL — Operating protocol (rev. 4)', byline: 'Northland Bank Group · RESTRICTED', paras: ['Resonators on pillars G-4, G-9 and G-17 (Unit 3). Activation Sunday 23:00. Funding ℳ3,000,000 to Sea Lantern Logistics. Sole signatory: Tartaglia (countersignature removed in rev. 4).'] } };
+    },
+    '/projects/debt': () => page('w-ni-page', 'Liyue Debt Restructuring — Northland Intranet', niChrome(h('div.w-ni-doc', h('h1', 'Liyue Debt Restructuring'), para(['Northland Bank will write off ℳ1.8 billion of Liyue’s sovereign debt.', 'Consideration: one (1) item, delivered at the Golden House after the Rite of Parting by “the counterparty’s representative”. Contract witnessed by the Office of the Eighth.', 'Note from the Ninth: “Whoever he is, he read every clause. Twice. And asked for tea.”'])), 'Projects')),
+    '/projects/golden-house': () => page('w-ni-page', 'Golden House handover — Northland Intranet', niChrome(h('div.w-ni-doc', h('h1', 'Golden House handover'), para(['Sunday, 15:00. The Golden House vault.', 'Item: “G.” (a gnosis). Counterparty’s representative: a consultant from Wangsheng Funeral Parlor.', 'Liyue Branch Director: not to be informed. — Office of the Eighth'])), 'Projects')),
+    '/projects/aquarium': () => page('w-ni-page', 'Branch aquarium — Northland Intranet', niChrome(h('div.w-ni-doc', h('h1', 'Branch aquarium (thaw)'), art('p_aquarium_frozen', 'w-ni-diagram'), para(['Status: frozen solid (third time this month).', 'Cause: a junior agent with a Cryo Delusion “wanted the fish to be cool”.', 'The fish are alive. Somehow. Do not tell the Director.'])), 'Projects')),
+    '/directory': () => page('w-ni-page', 'Directory — Northland Intranet', niChrome(h('div.w-ni-sec', h('h2', 'Liyue Branch directory'), [['Tartaglia', 'Branch Director · ext. 11 · out of office'], ['Ekaterina', 'Reception · ext. 1'], ['Signora', 'Office of the Eighth (visiting) · do not call'], ['Pyotr', 'Agent · night shift'], ['Lyuba', 'Agent · facilities (aquarium)'], ['Boris', 'Agent · vending machine liaison'], ['Anya', 'Agent · night shift'], ['Kolya', 'Agent · on medical leave (Chasm)'], ['Valentina', 'Agent · logistics']].map(([n, r]) => h('div.w-nb-row', h('b', n), h('span', r)))), 'Directory')),
+    '/medical': () => {
+      const box = h('div.w-ni-sec', h('h2', 'Northland Medical Wing · appointments'));
+      const draw = () => {
+        box.querySelectorAll('.w-ni-appt, .w-ni-note').forEach((n) => n.remove());
+        const cur = JC.store.get('events', 'ev_dottore');
+        if (cur) box.append(h('div.w-ni-appt', h('b', 'Mon 09:00 · “Delusion check-up”'), h('span', 'Patient: Branch Director. Family baseline sample requested: T. (age 8).'), h('span', 'Physician: the Second.'), Btn('Cancel appointment', () => JC.ui.alert({ title: 'Cancel Appointment?', message: 'The Office of the Second will be notified. He does not like cancellations.', buttons: [{ text: 'Keep', style: 'cancel' }, { text: 'Cancel It', style: 'destructive', onTap: () => { JC.store.remove('events', 'ev_dottore'); JC.story.act('event_delete', { id: 'ev_dottore', title: cur.title, from: 'intranet' }); JC.ui.toast('Appointment cancelled', { icon: 'calendar.badge.minus' }); draw(); } }] }), 'w-btn-nb')));
+        else box.append(h('div.w-ni-note', 'No upcoming appointments. (A note in the margin: “He will reschedule. He always does. Keep the boy away from the Medical Wing.” — E.)'));
+      };
+      draw();
+      return page('w-ni-page', 'Medical — Northland Intranet', niChrome(box, 'Medical'));
+    },
+  };
+  site('intranet.northland.sn', {
+    name: 'Northland Intranet', icon: { letter: '❄', bg: '#0b1b2c', fg: '#9fd0ff' },
+    pages: Object.assign({ '/': () => (web.signedIn('intranet') ? NI_PAGES['/home']() : niLogin()) }, Object.fromEntries(Object.entries(NI_PAGES).map(([k, fn]) => [k, () => (web.signedIn('intranet') ? fn() : niLogin())]))),
+    notFound: () => (web.signedIn('intranet') ? NI_PAGES['/home']() : niLogin()),
+  });
+
+  // ═══ Liyue Air ═══════════════════════════════════════════════════════════
+  const LA = 'https://liyueair.ly';
+  const FLIGHTS = {
+    LA711: { no: 'LA 711', from: ['ZPL', 'Zapolyarny'], to: ['LYH', 'Liyue Harbor Intl'], dep: '+0 23:50', arr: '+1 07:40', actDep: '+0 23:58', estArr: '+1 07:36', gate: 'B4', arrGate: 'B', belt: '3', plane: 'Liyue Air 787-9 “Cloud Retainer”', pax: 'TONIA, TEUCER (unaccompanied minor service)' },
+    LA712: { no: 'LA 712', from: ['LYH', 'Liyue Harbor Intl'], to: ['ZPL', 'Zapolyarny'], dep: '+3 13:10', arr: '+3 21:05', actDep: '+3 13:10', estArr: '+3 21:05', gate: 'D2', arrGate: 'A', belt: '1', plane: 'Liyue Air 787-9 “Mountain Shaper”', pax: 'TONIA, TEUCER' },
+  };
+  function laChrome(body) {
+    return h('div.w-la', h('div.w-la-hdr', A(LA + '/', h('span.w-la-logo', h('span.w-la-mark', '✈'), 'LIYUE AIR')), h('div.w-la-nav', A(LA + '/flight/LA711', 'Flight status'), A(LA + '/help/unaccompanied-minors', 'Help'))), body, h('div.w-la-foot', 'Liyue Air · Customer service 95536 (24 h) · Liyue Harbor International Airport'));
+  }
+  function flightPage(id) {
+    const F = FLIGHTS[id];
+    if (!F) return null;
+    const t = now(), dep = T(F.dep), aDep = T(F.actDep), arr = T(F.estArr);
+    let status, cls, pct;
+    if (t < dep - 40 * 60e3) { status = 'Scheduled'; cls = 'ok'; pct = 0; }
+    else if (t < aDep) { status = t < dep ? 'Boarding' : 'Delayed · departing 23:58'; cls = t < dep ? 'ok' : 'late'; pct = 0; }
+    else if (t < arr) { status = 'In flight'; cls = 'air'; pct = Math.round(((t - aDep) / (arr - aDep)) * 100); }
+    else { status = 'Landed ' + JC.util.fmtTime(arr); cls = 'ok'; pct = 100; }
+    const left = arr - t;
+    const plane = h('div.w-la-track', h('div.w-la-line', h('div', { style: { width: pct + '%' } })), h('div.w-la-plane', { style: { left: pct + '%' } }, '✈'));
+    const isKids = id === 'LA711';
+    return page('w-la-page', F.no + ' flight status — Liyue Air', laChrome(h('div.w-la-flight',
+      h('div.w-la-no', F.no, h('span.w-la-status', { class: { [cls]: true } }, status)),
+      h('div.w-la-route', h('div', h('b', F.from[0]), h('span', F.from[1]), h('small', 'Dep ' + JC.util.fmtTime(dep) + (aDep !== dep ? ' (actual ' + JC.util.fmtTime(aDep) + ')' : ''))), h('div.w-la-mid', plane, pct > 0 && pct < 100 ? h('small', Math.floor(left / 3600e3) + ' h ' + Math.round((left % 3600e3) / 60e3) + ' min remaining · 11,280 m') : null), h('div', h('b', F.to[0]), h('span', F.to[1]), h('small', 'Arr ' + JC.util.fmtTime(arr)))),
+      h('table.w-la-tbl', [['Date', JC.util.fmtDate(dep, 'full')], ['Departure gate', F.gate], ['Arrival', 'Gate ' + F.arrGate + ' · Belt ' + F.belt], ['Aircraft', F.plane]].map(([k, v]) => h('tr', h('th', k), h('td', v)))),
+      isKids ? h('div.w-la-umnr', h('b', 'Unaccompanied minors on this flight'), h('span', 'Passengers: ' + F.pax + '. Staff will escort them to Gate B and release them only to the adult named on the booking: '), h('b', 'Office of Pulcinella (Northland Executive Travel) — “a Northland driver”.'), h('span', 'To change the collecting adult, call 95536 before landing.'), Btn('Call Liyue Air (95536)', () => JC.callui && JC.callui.dialNumber('95536'), 'w-btn-la')) : h('div.w-la-umnr', h('b', 'Check-in'), h('span', 'Check-in opens 11:30 at Counter D. Unaccompanied minors must be checked in by a parent or guardian.')),
+      A(LA + '/help/unaccompanied-minors', h('div.w-la-help', 'Unaccompanied minor service ›')))));
+  }
+  site('liyueair.ly', {
+    name: 'Liyue Air', icon: { letter: '✈', bg: '#b3261e', fg: '#ffe6a8' },
+    pages: {
+      '/': () => page('w-la-page', 'Liyue Air — Fly with the clouds', laChrome(h('div.w-la-home', h('h1', 'Flight status'), (() => { const inp = JC.ui.input({ placeholder: 'Flight number, e.g. LA 711', cap: 'characters', enterkey: 'search', cls: 'w-input', onSubmit: (v) => goFrom(inp, LA + '/flight/' + v.replace(/\s+/g, '').toUpperCase()) }); return inp; })(), A(LA + '/flight/LA711', h('div.w-la-help', 'LA 711 · Zapolyarny → Liyue Harbor ›')), A(LA + '/flight/LA712', h('div.w-la-help', 'LA 712 · Liyue Harbor → Zapolyarny ›'))))),
+      '/help/unaccompanied-minors': () => page('w-la-page', 'Unaccompanied minors — Liyue Air', laChrome(h('div.w-la-home', h('h1', 'Unaccompanied minor service'), para(['Children aged 5–11 travelling alone are escorted by Liyue Air staff from check-in to arrival.', 'On arrival, children are released only to the adult named on the booking, on presentation of identity documents.', 'To change the collecting adult, the person who made the booking — or a parent — must call Customer Service on 95536 before the flight lands. Changes cannot be made at the gate.', 'Older siblings (12+) may travel with younger siblings, but the service still applies to the younger child.']), Btn('Call 95536', () => JC.callui && JC.callui.dialNumber('95536'), 'w-btn-la')))),
+    },
+    patterns: [[/^\/flight\/([\w-]+)$/, (ctx, m) => flightPage(m[1].replace(/[^A-Z0-9]/gi, '').toUpperCase()) || page('w-la-page', 'Flight not found — Liyue Air', laChrome(h('div.w-la-home', h('h1', 'Flight not found'), h('p', 'We couldn’t find ' + m[1] + '. Try LA 711.'))))]],
+  });
+
+  // ═══ Wangsheng Funeral Parlor ═════════════════════════════════════════════
+  const WS = 'https://wangsheng.ly';
+  function wsgChrome(body) {
+    return h('div.w-wsg', h('div.w-wsg-hdr', A(WS + '/', h('span.w-wsg-logo', '往生堂', h('small', 'WANGSHENG FUNERAL PARLOR'))), h('div.w-wsg-nav', A(WS + '/rite', 'The Rite'), A(WS + '/coffins', 'Coffins'), A(WS + '/staff', 'Our people'))), body,
+      h('div.w-wsg-foot', 'Wangsheng Funeral Parlor · 77th Director Hu Tao · Lantern Street, Liyue Harbor · Open all hours (we have to be).'));
+  }
+  site('wangsheng.ly', {
+    name: 'Wangsheng Funeral Parlor', icon: { letter: '往', bg: '#3b1d18', fg: '#f0b46a' },
+    pages: {
+      '/': () => page('w-wsg-page', 'Wangsheng Funeral Parlor — Since the Archon War', wsgChrome(h('div', h('div.w-wsg-hero', art('p_wangsheng_door', 'w-wsg-heroimg'), h('div.w-wsg-banner', '👻 AUTUMN SALE · SECOND COFFIN HALF PRICE · ASK INSIDE 👻')),
+        h('div.w-wsg-sec', h('h2', 'Honoured to conduct the Rite of Parting'), h('p', 'Sunday, Yujing Terrace, 10:00. Conducted by our consultant. Glaze lilies may be delivered to the parlour.'), A(WS + '/rite', h('div.w-wsg-cta', 'Read about the Rite ›'))),
+        h('div.w-wsg-sec', h('h2', 'A word from the Director'), h('p', '“Life and death are a balance. We keep the books. Book now and the 77th Director will personally see you off — though not too soon, I hope! Unless you’re having a really bad week. Then call me.” — Hu Tao'))))),
+      '/rite': () => page('w-wsg-page', 'The Rite of Parting — Wangsheng', wsgChrome(h('div.w-wsg-sec', h('h2', 'The Rite of Parting'), art('p_yujing_lanterns', 'w-wsg-img'), para(['Wangsheng Funeral Parlor has the honour of laying the Founder to rest. The Rite will be conducted by our consultant, Mr. Zhongli, who has spent the last two weeks researching six thousand years of funeral custom and has, in his words, “some notes”.', 'The coffin is of Cloud Retainer’s cypress, sealed in the old way. Mourners may approach from 12:30.', 'No incense, please. No fireworks, please. (Mr. Zhongli was very firm about the fireworks.)'])))),
+      '/coffins': () => page('w-wsg-page', 'Coffins — Wangsheng', wsgChrome(h('div.w-wsg-sec', h('h2', 'Coffins'), art('p_coffin4', 'w-wsg-img'), [['No. 1 · The Classic', 'Cypress, lacquered · ℳ8,800'], ['No. 2 · The Scholar', 'With a little shelf for books · ℳ12,000'], ['No. 3 · The Adventurer', 'Reinforced. Waterproof. You never know. · ℳ15,500'], ['No. 4 · Showroom model', 'Currently unavailable (occupied?) · ℳ —']].map(([t, s]) => h('div.w-wsg-row', h('b', t), h('span', s))), h('p.w-wsg-small', 'Air holes available on request. We don’t ask why.')))),
+      '/staff': () => page('w-wsg-page', 'Our people — Wangsheng', wsgChrome(h('div.w-wsg-sec', h('h2', 'Our people'), [['Hu Tao', '77th Director. Poet. Ghost enthusiast. Has a coupon for you.'], ['Zhongli', 'Consultant. Expert in ritual, history, tea, antiques and contracts. Does not handle cash.'], ['Qiqi', 'Herbalist (Bubu Pharmacy, on loan). Please introduce yourself every time.']].map(([t, s]) => h('div.w-wsg-row', h('b', t), h('span', s)))))),
+    },
+  });
+
+  // ═══ The Millelith (Lost & Found, missing persons) ═══════════════════════
+  const ML = 'https://millelith.ly';
+  function mlChrome(body) { return h('div.w-ml', h('div.w-ml-hdr', A(ML + '/', h('span.w-ml-logo', '⛨ THE MILLELITH', h('small', 'Liyue Harbor')))), body, h('div.w-ml-foot', 'Emergency: 110 · Harbor Road post open 24 hours')); }
+  site('millelith.ly', {
+    name: 'The Millelith', icon: { letter: '⛨', bg: '#5a3d12', fg: '#ffe2a0' },
+    pages: {
+      '/': () => page('w-ml-page', 'The Millelith — Liyue Harbor', mlChrome(h('div.w-ml-sec', h('h2', 'Notices'), [['Rite of Parting', 'Harbor Road and Yujing Terrace Road closed Sunday from 07:00.'], ['Guyun Stone Forest', 'Vessels are asked to keep clear of pillar G-17 until further notice. Routine.'], ['Lost & Found', 'Found property can be handed in at any post.']].map(([t, s]) => h('div.w-ml-row', h('b', t), h('span', s))), A(ML + '/lost-and-found', h('div.w-ml-cta', 'Lost & Found ›')), A(ML + '/missing/aether', h('div.w-ml-cta', 'Missing persons ›'))))),
+      '/lost-and-found': () => page('w-ml-page', 'Lost & Found — The Millelith', mlChrome(h('div.w-ml-sec', h('h2', 'Lost & Found'), para(['Found property can be handed in at any Millelith post in Liyue Harbor at any time. The officer on duty will record the item and contact the owner — usually the same day.', 'Nearest 24-hour desk to the waterfront: Harbor Road Post, beside Pier 4.', 'Phones: please bring the device as you found it. If it is locked, we can still reach the owner through the network.']),
+        h('div.w-ml-btns', Btn('Directions to Harbor Road Post', () => JC.os.open('maps', { directions: 'millelith' }), 'w-btn-ml'), Btn('Call 110', () => JC.callui && JC.callui.dialNumber('110'), 'w-btn-ghost'))))),
+      '/missing/aether': () => page('w-ml-page', 'MISSING: Aether — The Millelith', mlChrome(h('div.w-ml-sec.w-ml-missing', h('div.w-ml-mh', 'MISSING'), h('h2', 'Aether'), h('table.w-arch-rec', [['Age', 'Appears about 16'], ['Hair', 'Blond, long braid'], ['Last seen', 'Unknown. Possibly the Chasm.'], ['Reported by', 'His sister']].map(([k, v]) => h('tr', h('th', k), h('td', v)))), h('p', 'Any information to the Millelith or to the reporting party. “I’ll know him when I see him. Please.”')))),
+    },
+  });
+
+  // ═══ Heyu Tea House · Yun Jin Troupe ═════════════════════════════════════
+  site('heyu.ly', {
+    name: 'Heyu Tea House', icon: { letter: '和', bg: '#6d1f2f', fg: '#ffd9a0' },
+    pages: {
+      '/': () => SITES['heyu.ly'].pages['/troupe'](),
+      '/troupe': () => page('w-heyu-page', 'Yun Jin Troupe at Heyu Tea House', [h('div.w-heyu', h('div.w-heyu-hdr', h('div.w-heyu-logo', '雲堇 · YUN JIN TROUPE'), h('div.w-heyu-sub', 'Heyu Tea House · Lantern Street')),
+        art('p_heyu_stage', 'w-heyu-hero'),
+        h('div.w-heyu-sec', h('h2', '“The Divine Damsel of Devastation”'), h('p', 'A god makes a contract with a city and keeps it for six thousand years. A retelling of the founding of Liyue in two acts.'),
+          [['Sat 17 Oct · 15:00 matinee', 'SOLD OUT · returns at the box office'], ['Sat 17 Oct · 19:30', 'Few seats'], ['Sun 18 Oct', 'No performance — Rite of Parting']].map(([d, s]) => h('div.w-heyu-row', h('b', d), h('span', s))),
+          Btn('Call the box office', () => JC.callui && JC.callui.dialNumber('(0761) 555 0156'), 'w-btn-heyu'), Btn('Your tickets (Wallet)', () => JC.os.open('wallet', { card: 'yunjin' }), 'w-btn-ghost')),
+        h('div.w-foot', 'Heyu Tea House · Tea service during the interval · Box seats include osmanthus tea and almond tofu'))]),
+    },
+  });
+
+  // ═══ The Crux · Steambird · Jade Chamber ═════════════════════════════════
+  const CRUX_SITE = {
+    name: 'The Crux Fleet', icon: { letter: '⚓', bg: '#1f2d4d', fg: '#ffd166' },
+    pages: { '/': () => page('w-crux-page', 'The Crux Fleet — Captain Beidou', [h('div.w-crux', h('div.w-crux-hdr', '⚓ THE CRUX FLEET'), art('p_alcor_deck', 'w-crux-hero'), h('div.w-crux-sec', h('h2', 'Sail with the Crux'), para(['Cargo, escort and passage north. Ask for the Alcor at Pier 2.', 'Monday sailings: a passage north for anyone Captain Beidou says yes to. She says yes to people who keep their word.', 'Arm-wrestling challenges accepted at the Third-Round Knockout. Losers buy the round.'])), h('div.w-foot', 'The Crux Fleet · Pier 2 · No contracts. A handshake is enough.'))]) },
+  };
+  site('crux.ly', CRUX_SITE);
+  site('cruxshipping.ly', Object.assign({}, CRUX_SITE));
+  site('steambird.fon', {
+    name: 'The Steambird', icon: { letter: 'S', bg: '#1c2a3a', fg: '#e9d8a6' },
+    pages: {
+      '/': () => page('w-steam', 'The Steambird — Fontaine', [h('div.w-steam-mast', 'The Steambird'), h('div.w-steam-sub', 'Fontaine’s newspaper of record · Court of Fontaine'), [['Liyue prepares to bury a god', 'https://steambird.fon/world/liyue-rite'], ['“Project O”: what is Northland Bank building in Liyue?', 'https://steambird.fon/world/project-o'], ['Opera Epiclese announces a season of trials', 'https://steambird.fon/']].map(([t, u]) => A(u, h('div.w-steam-item', t)))]),
+      '/world/project-o': () => article({ brand: 'The Steambird', cls: 'w-steam', kicker: 'WORLD · INVESTIGATION', title: '“Project O”: what is Northland Bank building in Liyue?', by: 'Charlotte, Chief Reporter', date: 'Oct 14, 2026', paras: ['Filings seen by The Steambird list a Northland Bank project in Liyue only as “O”, with funding routed through a shipping company, Sea Lantern Logistics, registered three weeks ago.', 'Sea Lantern Logistics owns no ships.', 'A Northland employee, speaking on condition of anonymity, said: “It was the young one’s idea. He tried to stop it. Nobody stops the Eighth.”'] }, (b) => h('div', h('div.w-steam-mast.small', 'The Steambird'), b)),
+      '/world/liyue-rite': () => article({ brand: 'The Steambird', cls: 'w-steam', kicker: 'WORLD', title: 'Liyue prepares to bury a god', by: 'Charlotte, Chief Reporter', date: 'Oct 15, 2026', paras: ['Liyue will hold “the largest funeral in six thousand years” on Sunday. Our correspondent asks: whose six thousand years?', 'The ceremony is being run by a funeral parlour whose director hands out coupons.'] }, (b) => h('div', h('div.w-steam-mast.small', 'The Steambird'), b)),
+    },
+  });
+  site('jadechamber.ly', {
+    name: 'The Jade Chamber', icon: { letter: '玉', bg: '#0f3b33', fg: '#f5e6b8' },
+    pages: { '/': () => page('w-jade', 'The Jade Chamber — Office of the Tianquan', [h('div.w-jade-hdr', '玉京 · THE JADE CHAMBER'), art('p_jade_chamber', 'w-jade-hero'), h('div.w-jade-sec', h('h2', 'Office of the Tianquan'), para(['The Tianquan, Ningguang, holds office in the Jade Chamber above the harbor.', 'To report a matter of public safety to the Tianquan’s office, write to tianquan@jadechamber.ly. Sources are protected. The Tianquan reads everything herself.']), Btn('Write to the Tianquan', () => JC.os.open('mail', { compose: { to: 'tianquan@jadechamber.ly', subject: '' } }), 'w-btn-jade')), h('div.w-foot', 'The Jade Chamber · Liyue Qixing')]) },
+  });
+
+  // ═══ AskTeyvat (Q&A) · Wishbuzz (lists) ══════════════════════════════════
   const ASK = {
-    'my-brother-did-something-huge-for-me-years-ago': ['My brother did something huge for me years ago and I never thanked him. How do I say it now?', 'I found out by accident. He doesn’t know I know. It’s been two years since I found out and much longer since it happened. We are not good at talking.', [['moonlit_reader', 'Just say it. Two words. He’s been waiting longer than you think.', 1204], ['lakeside_aunt', 'Invite him over and feed him. Then say it. Food first makes everything easier.', 640], ['anon_uncle', 'I recorded mine as a voice memo and never sent it. Don’t be me. Send it.', 512], ['practical_pan', 'Write it down. You can read it off your phone. Nobody will mind.', 88]]],
-    'is-it-weird-to-give-a-gift-to-my-liver-donor': ['Is it weird to give a gift to my liver donor?', 'My donor turned out to be someone I know. Very well. It’s been sixteen years. Is it too late?', [['transplant_nurse', 'Not weird, not too late. Most donors say what they want is to see you doing well.', 980], ['lakeside_aunt', 'Sixteen years? Then say thank you sixteen times.', 330]]],
-    'what-do-i-give-my-nephew-who-is-turning-18': ['What do I give my nephew who is turning 18 and literally owns a tower?', 'He has everything. He has a dog the size of a sofa. Help.', [['gift_guru', 'Give him something of his mother’s.', 870], ['cool_uncle_99', 'A day with you. No phones. (He will complain. He will remember it forever.)', 420], ['jingyi_lan', 'NOT A BOW HE HAS 9 BOWS', 66]]],
-    'is-it-normal-to-want-to-strangle-your-nephew': ['Is it normal to want to strangle your nephew? (affectionately)', 'He’s 17. He’s fine. Everything is fine. I just want to know if this is normal.', [['every_uncle', 'Yes. Ask any uncle. It means you love him.', 1530], ['therapist_lin', 'This is a very normal feeling expressed in a very alarming way.', 410], ['rulan_jin', 'ok whoever posted this i know it’s you', 9]]],
-    'someone-said-ive-missed-you-after-a-year-apart': ['Someone said “I’ve missed you” after a year apart. What does it mean?', 'We wrote to each other — well, I wrote. They were away. Now they’re back and they said it on a balcony and I left. What do I do?', [['moonlit_reader', 'It means they missed you. You’re allowed to believe it.', 1880], ['tea_at_three', 'Go to tea.', 990], ['huaisang_fans', 'hehe~ 👀', 402]]],
+    'has-anyone-actually-seen-rex-lapis-in-human-form': ['Has anyone actually seen Rex Lapis in human form?', 'Asked by a user in Liyue Harbor · 9 days ago', [['teahouse_granny', 'My grandmother swore he bought tea from her stall in 1926 and didn’t pay. She said he apologised very beautifully.', 412], ['archives_nerd', 'There is ONE photo. Liyue Archives, PH-1926-0417. Look at it and tell me that isn’t a real man.', 288], ['wangsheng_hutao', 'Seen? No. Met? Maybe. Will I say more? For a coupon. 👻', 97]]],
+    'is-osial-real': ['Is Osial real or just something grandmas say?', 'Asked by a fisherman’s son · 2 days ago', [['old_salt_47', 'My grandpa says the sea goes quiet before it wakes up. The sea has been quiet all week.', 96], ['millelith_off_duty', 'Please stay away from G-17. That is all I am allowed to say.', 54], ['skeptic_qingce', 'It’s a myth. Like Rex Lapis being a real guy who walked around buying tea.', 3]]],
+    'how-much-is-a-guizhong-era-tea-set-worth': ['How much is a Guizhong-era tea set worth?', 'Asked by jade_connoisseur_88 · 1 day ago', [['antique_dealer_li', 'Depends. If it’s real, more than your house. If the seller is in a hurry, ask why.', 31], ['jade_connoisseur_88', 'I will not be outbid. That’s all.', 2]]],
+    'how-long-can-a-person-stay-in-a-coffin': ['How long can a person stay in a coffin? (asking for a friend)', 'Asked by an anonymous user · 1 hour ago', [['wangsheng_hutao', 'Depends on the coffin! Ours have air holes now. Also a cupholder. Book a viewing! 👻', 233], ['concerned_citizen', 'Why is the director of Wangsheng answering this at 1 AM', 120], ['wangsheng_hutao', 'No reason!!', 118]]],
+    'how-do-i-tell-my-little-siblings-what-i-really-do-for-work': ['How do I tell my little siblings what I really do for work?', 'Asked by a user in Liyue Harbor · 3 weeks ago', [['big_sis_mond', 'You don’t have to tell them everything. Just don’t tell them anything that will hurt more later.', 77], ['former_debt_collector', 'They think I sell toys. It has been five years. I am now very good at describing toys.', 64], ['tonia_m', 'Your sister probably already knows. She’s waiting for you to say it first.', 51]]],
+    'is-it-normal-to-want-to-pay-for-every-dinner': ['Is it normal to want to pay for every dinner?', 'Asked by a user in Liyue Harbor · 2 months ago', [['heyu_regular', 'If you want to, and he lets you, that’s not a bill. That’s a ritual.', 158], ['accountant_ning', 'Keep receipts. For emotional reasons.', 44], ['paimon_official', 'Paimon thinks you should pay for Paimon’s dinners too!!', 12]]],
+    'has-anyone-seen-a-blond-boy-with-a-long-braid': ['Has anyone seen a blond boy with a long braid and a white scarf?', 'Asked by traveler.l · 4 months ago', [['traveler.l', 'My brother. We were separated a long time ago. If you’ve seen him, please message me.', 40], ['chasm_miner', 'Someone like that was seen near the Chasm with… people in masks. I’m sorry.', 22]]],
   };
-  site('asklotus.lanling', {
-    name: 'AskLotus', icon: { letter: 'A', bg: '#ff5a5f', fg: '#fff' },
-    pages: { '/': () => page('w-ask', 'AskLotus — questions & answers', [h('div.w-ask-hdr', 'AskLotus'), Object.keys(ASK).map((k) => A('https://asklotus.lanling/q/' + k, h('div.w-ask-item', ASK[k][0])))]) },
+  site('askteyvat.com', {
+    name: 'AskTeyvat', icon: { letter: 'A', bg: '#ff5a5f', fg: '#fff' },
+    pages: { '/': () => page('w-ask', 'AskTeyvat — questions & answers', [h('div.w-ask-hdr', 'AskTeyvat'), Object.keys(ASK).map((k) => A(ASKQ(k), h('div.w-ask-item', ASK[k][0])))]) },
     patterns: [[/^\/q\/([\w-]+)$/, (ctx, m) => {
       let a = ASK[m[1]];
       if (!a) {
         const q = unslug(m[1]);
-        a = [title(q) + '?', 'Asked by a user in Lanling · ' + (2 + hash(q) % 20) + ' days ago', [['helpful_hu', pick(['Honestly? Just ask them directly. It saves everyone time.', 'Been there. What worked for me was being completely honest.', 'Sleep on it, then do the kind thing.'], q, 1), 80 + hash(q) % 300], ['lakeside_aunt', pick(['Have you tried feeding them first?', 'Say it simply. People respect simple.', 'Whatever you do, don’t do it by text at 2 AM.'], q, 2), 30 + hash(q) % 90], ['anon_' + (hash(q) % 99), 'Following. Same question.', 4]]];
+        a = [title(q) + '?', 'Asked by a user in Liyue Harbor · ' + (2 + hash(q) % 20) + ' days ago', [['chihu_rock_tea', pick(['Honestly? Just ask them directly. It saves everyone time.', 'Been there. What worked for me was being completely honest.', 'Sleep on it, then do the kind thing.'], q, 1), 80 + hash(q) % 300], ['feiyun_auntie', pick(['Have you tried feeding them first?', 'Say it simply. People respect simple.', 'Whatever you do, don’t do it by text at 2 AM.'], q, 2), 30 + hash(q) % 90], ['anon_' + (hash(q) % 99), 'Following. Same question.', 4]]];
       }
       const st = state('ask:' + m[1], { votes: {}, mine: [] });
       const ansEl = h('div.w-ask-answers');
@@ -705,193 +828,98 @@
       };
       draw();
       const inp = JC.ui.input({ multiline: true, rows: 2, placeholder: 'Write an answer…', cls: 'w-input' });
-      return { title: a[0] + ' — AskLotus', node: h('div.w-page.w-ask', h('div.w-ask-hdr', A('https://asklotus.lanling/', 'AskLotus')), h('h1.w-ask-q', a[0]), h('div.w-ask-d', a[1]), h('div.w-ask-n', (a[2].length + st.mine.length) + ' answers'), ansEl, h('div.w-ask-new', inp, Btn('Post answer', () => { if (!inp.value.trim()) return; st.mine.push(['jiang.cheng', inp.value.trim(), 1]); inp.value = ''; draw(); JC.story.act('web_comment', { text: 'answer', page: m[1] }); }, 'w-btn-ask'))), reader: { title: a[0], byline: 'AskLotus', paras: [a[1]].concat(a[2].map((x) => x[0] + ': ' + x[1])) } };
+      return { title: a[0] + ' — AskTeyvat', node: h('div.w-page.w-ask', h('div.w-ask-hdr', A('https://askteyvat.com/', 'AskTeyvat')), h('h1.w-ask-q', a[0]), h('div.w-ask-d', a[1]), h('div.w-ask-n', (a[2].length + st.mine.length) + ' answers'), ansEl, h('div.w-ask-new', inp, Btn('Post answer', () => { if (!inp.value.trim()) return; st.mine.push(['tartaglia', inp.value.trim(), 1]); inp.value = ''; draw(); JC.story.act('comment', { text: 'answer', page: m[1], web: true }); }, 'w-btn-ask'))), reader: { title: a[0], byline: 'AskTeyvat', paras: [a[1]].concat(a[2].map((x) => x[0] + ': ' + x[1])) } };
     }]],
   });
   const BUZZ = {
-    '10-signs-brother-secretly-loves-you': ['10 Signs Your Brother Secretly Loves You (#7 Will Surprise You)', ['He insults your cooking but eats all of it.', 'He remembers your birthday and pretends he doesn’t. (He bought the gift in July.)', 'He calls you by your full name when he’s angry. And when he’s not.', 'He threatens bodily harm in a tone usually reserved for weather reports.', 'He shows up. Late, scowling, complaining — but he shows up.', 'He knows exactly how you take your tea and acts like it’s common knowledge.', 'He sends soup when you’re sick — anonymously — and denies it for years. (Yes, really. Ask our readers.)', 'He let you keep the bed by the window. You’re thirty-four and you still have it.', 'He told the guard at the gate, “Next time, let him in,” and then never mentioned it again.', 'He reads every message you send. He just doesn’t answer the important ones yet.']],
-    'gifts-for-18-year-old-who-has-everything': ['27 Gifts for the 18-Year-Old Who Has Everything', ['A family heirloom, restored.', 'A day with you, phones off.', 'Driving lessons (from a professional, for everyone’s sake).', 'A framed photo of someone they never got to meet.', 'Dog-friendly concert tickets (they exist).', 'A letter, handwritten, to open when they’re thirty.', 'An archery bow (check first: they may already have nine).']],
-    'signs-you-are-the-cool-uncle': ['12 Signs You Are the Cool Uncle (Even If You Yell)', ['They text you first when something goes wrong.', 'They text you second when something goes right.', 'You have threatened to break their legs and they find it comforting.', 'Their friends are scared of you. Their friends also want your approval.', 'You bought the dog.']],
+    'signs-you-are-the-favourite-big-sibling': ['14 Signs You’re the Favourite Big Sibling (Even Though You’re Never Home)', ['They save their best drawings for you.', 'They tell everyone at school what your job is. Loudly. With details you never gave them.', 'Your little brother has named a plush after a character you invented.', 'They call at the worst possible moment and you always pick up.', 'You send money home and call it “commission”.', 'Your sister knows. She hasn’t said. She’s waiting.']],
+    'he-forgot-his-wallet-again': ['He “Forgot His Wallet” Again: 9 Things It Might Actually Mean', ['He genuinely does not understand money.', 'He likes that you insist.', 'He is very, very old-fashioned.', 'He likes that you keep coming back.', 'He’s keeping a tab in his head. Not of the money. Of the evenings.']],
+    'gifts-for-a-man-who-has-lived-a-long-time': ['11 Gifts for the Man Who Has Seen Everything', ['Tea he hasn’t tried (good luck).', 'A song he hasn’t heard (better luck).', 'Something old that used to belong to someone he loved.', 'Your time. Your honest time.']],
   };
-  site('buzzlake.lanling', {
-    name: 'Buzzlake', icon: { letter: 'B', bg: '#ffcc00', fg: '#e5383b' },
-    pages: { '/': () => page('w-buzz', 'Buzzlake', [h('div.w-buzz-hdr', 'Buzzlake'), Object.keys(BUZZ).map((k) => A('https://buzzlake.lanling/life/' + k, h('div.w-buzz-item', BUZZ[k][0])))]) },
+  site('wishbuzz.com', {
+    name: 'Wishbuzz', icon: { letter: 'W', bg: '#ffcc00', fg: '#7c3aed' },
+    pages: { '/': () => page('w-buzz', 'Wishbuzz', [h('div.w-buzz-hdr', 'Wishbuzz ✨'), Object.keys(BUZZ).map((k) => A('https://wishbuzz.com/life/' + k, h('div.w-buzz-item', BUZZ[k][0])))]) },
     patterns: [[/^\/life\/([\w-]+)$/, (ctx, m) => {
       let b = BUZZ[m[1]];
-      if (!b) { const q = unslug(m[1]); b = [(5 + hash(q) % 15) + ' Things Nobody Tells You About ' + title(q), ['It’s more complicated than it looks.', 'Everyone pretends to be an expert.', 'The best advice is usually from someone who’s been through it.', 'Number four will surprise you (it’s that you should just ask).', 'It gets easier.']]; }
+      if (!b) { const q = unslug(m[1]); b = [(5 + hash(q) % 15) + ' Things Nobody Tells You About ' + title(q), ['It’s more complicated than it looks.', 'Everyone in Liyue pretends to be an expert.', 'The best advice is usually from someone who’s been through it.', 'Number four will surprise you (it’s that you should just ask).', 'It gets easier.']]; }
       const items = b[1].map((t, i) => h('div.w-buzz-li', h('div.w-buzz-n', String(i + 1)), h('div', h('b', t))));
       const st = state('buzz:' + m[1], { r: null });
       const reacts = h('div.w-buzz-reacts', ['😂 LOL', '😭 Cry', '😍 Love', '🙄 Eh'].map((r) => h('span.tap', { class: { on: st.r === r }, onTap: (e) => { st.r = r; reacts.querySelectorAll('span').forEach((s) => s.classList.toggle('on', s === e.currentTarget)); } }, r)));
-      return { title: b[0] + ' — Buzzlake', node: h('div.w-page.w-buzz', h('div.w-buzz-hdr', A('https://buzzlake.lanling/', 'Buzzlake')), h('h1.w-buzz-t', b[0]), h('div.w-buzz-by', 'by Buzzlake Staff · ' + (12 + hash(b[0]) % 400) + 'K views'), items, h('div.w-buzz-q', 'What’s your reaction?'), reacts, h('div.w-buzz-ad', 'Advertisement · Lotus Eats: 20% off hotpot this weekend')), reader: { title: b[0], byline: 'Buzzlake', paras: b[1].map((t, i) => (i + 1) + '. ' + t) } };
+      return { title: b[0] + ' — Wishbuzz', node: h('div.w-page.w-buzz', h('div.w-buzz-hdr', A('https://wishbuzz.com/', 'Wishbuzz ✨')), h('h1.w-buzz-t', b[0]), h('div.w-buzz-by', 'by Wishbuzz Staff · ' + (12 + hash(b[0]) % 400) + 'K views'), items, h('div.w-buzz-q', 'What’s your reaction?'), reacts, h('div.w-buzz-ad', 'Advertisement · Wanmin Go: free delivery on hotpot sets this weekend')), reader: { title: b[0], byline: 'Wishbuzz', paras: b[1].map((t, i) => (i + 1) + '. ' + t) } };
     }]],
   });
 
-  // ═══ Wavepedia ═══════════════════════════════════════════════════════════
+  // ═══ Akasha (encyclopedia) ═══════════════════════════════════════════════
   const WIKI = {
-    Yunmeng_Jiang_Group: { title: 'Yunmeng_Jiang_Group', short: 'Logistics & agriculture conglomerate', img: 'p_lotus_pond_day', info: [['Type', 'Private'], ['Industry', 'Logistics, lake freight, agriculture'], ['Founded', '1952, Yunmeng'], ['Headquarters', 'Lotus Pier, Yunmeng'], ['Key people', 'Jiang Cheng (CEO)'], ['Revenue', '¥48.2 billion (2025)'], ['Employees', '21,400'], ['Emblem', 'Nine-petal lotus']],
-      lead: ['The Yunmeng Jiang Group (YMJ) is a privately held logistics, lake-freight and food company headquartered at Lotus Pier on the northern shore of Yunmeng Lake. It is owned by the Jiang family.'],
-      secs: [['History', ['Founded in 1952 as a fleet of lotus boats, the company grew into the largest freight operator in the lake country by the 1990s under Jiang Fengmian.', 'In August 2008, during a hostile takeover attempt by the Wen Corporation, a fire at Lotus Pier killed Jiang Fengmian and his wife Yu Ziyuan. The company nearly collapsed.', 'In 2009 their son, Jiang Cheng, then seventeen, took control. Over the following decade he rebuilt YMJ into one of the province’s leading cold-chain logistics groups.']], ['Operations', ['YMJ operates trucking on the G42 Lanling–Yunmeng corridor, lake freight from Lotus Pier and Lotus Bay, and Lotus Pier Foods, which sells lotus root, lotus seeds and lake fish.']], ['Lotus Pier', ['The Jiang family estate and company headquarters. Rebuilt after 2008; the public lotus gardens open on summer weekends.']]] },
-    'Jiang_Cheng_(businessman)': { title: 'Jiang_Cheng_(businessman)', short: 'CEO of the Yunmeng Jiang Group', info: [['Born', '15 May 1992, Yunmeng'], ['Occupation', 'Chief executive'], ['Known for', 'Rebuilding YMJ'], ['Courtesy name', 'Wanyin'], ['Relatives', 'Jiang Yanli (sister, d. 2009); Jin Ling (nephew)']],
-      lead: ['Jiang Cheng (born 15 May 1992), courtesy name Wanyin, is a businessman who has served as chief executive of the Yunmeng Jiang Group since 2009. He is known for rebuilding the company after the 2008 Lotus Pier fire and for his famously short temper and shorter emails.'],
-      secs: [['Personal life', ['Jiang is unmarried. He has been the guardian of his nephew Jin Ling, heir to the Jin Group, since 2009.', 'He is notoriously private. Interviews are rare and usually end early. He is said to own a car named Sandu and to have strong opinions about dogs (positive).']], ['In the press', ['Lanling Daily once described him as a man who “does not attend parties so much as survive them.”']]] },
-    Koi_Tower: { title: 'Koi_Tower', short: 'Skyscraper in Lanling', img: 'p_gala_hall', info: [['Location', '88 Jinlin Avenue, Lanling'], ['Completed', '1987'], ['Floors', '52'], ['Owner', 'Jin Group']], lead: ['Koi Tower is a 52-storey skyscraper in the Jinlin District of Lanling and the headquarters of the Jin Group. Its gold crown and the koi pond in its forecourt make it one of the city’s best-known landmarks.'], secs: [['Koi pond', ['The forecourt pond, dug in 1986, holds 88 koi. The eldest, Old Gold, is 41.']]] },
-    Jin_Group: { title: 'Jin_Group', short: 'Conglomerate in Lanling', info: [['Type', 'Public (JNG)'], ['Founded', '1958'], ['Headquarters', 'Koi Tower, Lanling'], ['Heir', 'Jin Ling']], lead: ['The Jin Group is a Lanling-based conglomerate with interests in property, finance and luxury retail. Its headquarters is Koi Tower.'], secs: [['Governance', ['After the 2024 conviction of its former chief executive Jin Guangyao, the group adopted an independent board. The heir, Jin Ling, will join its Advisory Board as an observer at eighteen.']]] },
-    Gusu_Lan_Academy: { title: 'Gusu_Lan_Academy', short: 'Academy on Mount Gusu', img: 'p_cloud_recesses', info: [['Campus', 'Cloud Recesses'], ['Chancellor', 'Lan Xichen'], ['Chair', 'Lan Qiren'], ['Rules', 'approx. 3,412']], lead: ['Gusu Lan Academy is a private academy of music and letters on Mount Gusu, famous for its misty campus, Cloud Recesses, and its Wall of Discipline.'], secs: [['Summer programme', ['The academy’s residential summer programme has hosted students from the great families since 1962. The 2007 cohort is the subject of an appendix to the rules.']]] },
-    Lan_Xichen: { title: 'Lan_Xichen', short: 'Chancellor of Gusu Lan Academy', info: [['Born', '3 September 1989'], ['Title', 'Chancellor'], ['Known as', 'Zewu-jun'], ['Relatives', 'Lan Wangji (brother)']], lead: ['Lan Xichen (born 1989), known as Zewu-jun, is the Chancellor of Gusu Lan Academy. He withdrew from public life in August 2025 and returned in September 2026.'], secs: [['Personal', ['He lives in the Hanshi, a tea house within Cloud Recesses. He is known for his gentleness and his white peony tea.']]] },
-    Nie_Corp: { title: 'Nie_Corp', short: 'Industrial group in Qinghe', info: [['Headquarters', 'The Unclean Realm, Qinghe'], ['Chairman', 'Nie Huaisang'], ['Founded', '1931']], lead: ['Nie Corp is a steel and security group headquartered in a fortress-like complex in Qinghe known as the Unclean Realm.'], secs: [['Leadership', ['Chairman Nie Huaisang, who succeeded his late brother, is known for his hand-painted fans and for insisting that he knows nothing about anything.']]] },
-    Nie_Huaisang: { title: 'Nie_Huaisang', short: 'Chairman of Nie Corp; fan painter', info: [['Born', '25 February 1993'], ['Occupation', 'Chairman, Nie Corp; artist']], lead: ['Nie Huaisang is the chairman of Nie Corp and the founder of the hand-painted fan brand Huaisang Fans. He is famous for the phrase “I don’t know.”'], secs: [] },
-    Lanling: { title: 'Lanling', short: 'City', info: [['Population', '9.8 million'], ['Landmarks', 'Koi Tower, Peony Park'], ['River', 'Great River']], lead: ['Lanling is the largest city of the region, on the north bank of the Great River. It is home to the Jin Group and Koi Tower.'], secs: [['Districts', ['Jinlin, Peony Hill, Fangfei, Riverside, Jinxing and Lanling South.']]] },
-    Yunmeng: { title: 'Yunmeng', short: 'City on Yunmeng Lake', img: 'p_sunrise_lake', info: [['Lake', 'Yunmeng Lake'], ['Known for', 'Lotus, lake freight']], lead: ['Yunmeng is a lake city on the northern shore of Yunmeng Lake, known for its lotus fields and as the home of the Yunmeng Jiang Group.'], secs: [] },
-    Lotus_root_soup: { title: 'Lotus_root_soup', short: 'Soup', img: 'food_soup', info: [['Region', 'Yunmeng'], ['Main ingredients', 'Lotus root, pork ribs']], lead: ['Lotus root and pork rib soup is a slow-simmered soup from the lake country, traditionally cooked over a low fire for about two hours.'], secs: [['Preparation', ['The ribs are blanched, then simmered with thick chunks of lotus root, ginger and spring onion. Cooks agree that the heat must be low.']]] },
-    White_peony_tea: { title: 'White_peony_tea', short: 'White tea', img: 'p_tea_hanshi', info: [['Type', 'White tea'], ['Brew', '85 °C, 2–3 min']], lead: ['White peony (Bai Mudan) is a white tea made from the bud and two leaves of the tea plant. It is brewed below boiling, usually at about 85 °C.'], secs: [] },
-    Living_donor_liver_transplant: { title: 'Living_donor_liver_transplant', short: 'Surgical procedure', info: [['Regrowth', '6–8 weeks']], lead: ['In a living donor liver transplant, part of a healthy person’s liver is transplanted into a patient. Both the donor’s remaining liver and the transplanted portion regrow to near-normal size within months.'], secs: [['Donors', ['Donors are often family members. Some choose to remain anonymous to the recipient.']]] },
+    Rex_Lapis: { title: 'Rex_Lapis', short: 'Geo Archon; Founder of Liyue Harbor', img: 'p_rexlapis_1926', info: [['Other names', 'Morax; the Lord of Geo; the God of Contracts'], ['Domain', 'Geo, contracts, commerce'], ['Founded', 'Liyue Harbor (c. 6,000 years ago)'], ['Died', '1 October 2026 (announced)'], ['Rite of Parting', '18 October 2026, Yujing Terrace']],
+      lead: ['Rex Lapis, also known as Morax, is the Geo Archon and the founder of Liyue Harbor. He is the god of contracts and commerce, and is said to have walked among mortals in human form, most famously at the founding of the Liyue Exchange in 1926, where the only known photograph of him was taken.'],
+      secs: [['Legend', ['In the Archon War he sealed many gods and monsters beneath the land and sea of Liyue, among them Osial, Overlord of the Vortex, beneath Guyun Stone Forest.', 'He is said to have had a close friend, the goddess Guizhong, whose favourite flower was the glaze lily.']], ['Appearance', ['Accounts agree on a tall man of about thirty, with long dark hair, amber eyes and an unhurried manner. Several accounts from different centuries mention that he did not carry money.']], ['Death', ['On 1 October 2026 the Liyue Qixing announced his death. The Rite of Parting was entrusted to Wangsheng Funeral Parlor.']]] },
+    Osial: { title: 'Osial', short: 'Sea god of Liyue legend', img: 'p_storm_guyun', info: [['Title', 'Overlord of the Vortex'], ['Sealed', 'Beneath Guyun Stone Forest'], ['Sealed by', 'Rex Lapis']], lead: ['Osial, the Overlord of the Vortex, is an ancient sea god who fought Rex Lapis in the Archon War and was sealed beneath the stone spears of Guyun Stone Forest.'], secs: [['In folklore', ['Fishermen say the sea goes quiet before Osial stirs. Children in the harbor are told that if they are bad, “the vortex will take them”.']]] },
+    Guyun_Stone_Forest: { title: 'Guyun_Stone_Forest', short: 'Offshore stone pillars', img: 'p_storm_guyun', info: [['Location', 'East of Liyue Harbor'], ['Pillars', 'Numbered G-1 to G-41 by the Millelith']], lead: ['Guyun Stone Forest is a field of enormous stone spears rising from the sea east of Liyue Harbor. Legend holds that they were thrown by Rex Lapis to seal Osial.'], secs: [] },
+    Guizhong: { title: 'Guizhong', short: 'Goddess of Dust', img: 'p_glaze_lily', info: [['Also known as', 'Goddess of Dust; Havria (disputed)'], ['Associated', 'Glaze lilies, ceramics, invention']], lead: ['Guizhong was a god of ancient Liyue, remembered as an inventor and as the dearest friend of Rex Lapis. She died in the Archon War.'], secs: [['Legacy', ['Ceramics from her era sometimes bear dedications. The most famous reads “for Morax — G.”, which collectors believe to be in her hand.']]] },
+    Glaze_lily: { title: 'Glaze_lily', short: 'Flower', img: 'p_glaze_lily', info: [['Native to', 'Liyue'], ['Blooms', 'Autumn, in quiet places']], lead: ['The glaze lily is a rare Liyue flower that only blooms where it is left alone. It is associated with remembrance and with the goddess Guizhong.'], secs: [] },
+    Rite_of_Parting: { title: 'Rite_of_Parting', short: 'Liyue funeral ceremony', img: 'p_yujing_lanterns', info: [['Date', '18 October 2026'], ['Place', 'Yujing Terrace'], ['Conducted by', 'Wangsheng Funeral Parlor']], lead: ['The Rite of Parting is the funeral ceremony for Rex Lapis, held on Yujing Terrace. The founder’s lanterns are lit on the eve and extinguished at 23:00 on the day.'], secs: [] },
+    Liyue_Harbor: { title: 'Liyue_Harbor', short: 'City and port', img: 'p_harbor_day', info: [['Founded', 'c. 6,000 years ago'], ['Governed by', 'The Liyue Qixing'], ['Landmarks', 'Jade Chamber, Yujing Terrace, Golden House, Wangsheng']], lead: ['Liyue Harbor is the largest port in Teyvat and the commercial capital of Liyue, founded by Rex Lapis.'], secs: [['Districts', ['Feiyun Slope, Chihu Rock, Lantern Street, the waterfront piers, Yujing Terrace.']]] },
+    Liyue_Qixing: { title: 'Liyue_Qixing', short: 'Governing council', img: 'p_jade_chamber', info: [['Seat', 'The Jade Chamber'], ['Tianquan', 'Ningguang']], lead: ['The Liyue Qixing are seven merchants who govern Liyue Harbor on behalf of Rex Lapis. The Tianquan, Ningguang, oversees law and order.'], secs: [] },
+    Northland_Bank: { title: 'Northland_Bank', short: 'Snezhnayan bank', img: 'p_northland_lobby', info: [['Headquarters', 'Zapolyarny Palace, Snezhnaya'], ['Liyue branch', '1 Harbor Road (since March 2026)'], ['Board', 'Eleven directors (“the Harbingers”)']], lead: ['Northland Bank Group is a Snezhnayan bank and the largest creditor of several nations of Teyvat. Its enforcement arm is popularly known as the Fatui.'], secs: [] },
+    Fatui: { title: 'Fatui', short: 'Popular name for Northland’s enforcement arm', info: [['Led by', 'The Harbingers'], ['Allegiance', 'The Tsaritsa']], lead: ['“Fatui” is the popular name for the security, intelligence and debt-collection staff of Northland Bank Group. The Bank does not use the term.'], secs: [] },
+    Harbingers: { title: 'Harbingers', short: 'Northland Bank’s executive board', info: [['Members', '11'], ['Youngest', 'Tartaglia (Eleventh), b. 2004']], lead: ['The Harbingers are the eleven executive directors of Northland Bank Group. Each is known by a number and a title. The Eleventh, Tartaglia, joined the board in 2024 at nineteen and heads the Bank’s Liyue branch.'], secs: [] },
+    Abyss_Order: { title: 'Abyss_Order', short: 'Secretive organisation', img: 'p_abyss_map', info: [['Activity', 'The Chasm; Khaenri’ah ruins'], ['Leader', 'Unknown (“the Prince”)']], lead: ['The Abyss Order is a secretive organisation linked to the ruins of Khaenri’ah and to disturbances in the Chasm.'], secs: [] },
+    Wangsheng_Funeral_Parlor: { title: 'Wangsheng_Funeral_Parlor', short: 'Funeral parlour', img: 'p_wangsheng_door', info: [['Director', 'Hu Tao (77th)'], ['Consultant', 'Zhongli']], lead: ['Wangsheng Funeral Parlor is the oldest funeral parlour in Liyue Harbor, entrusted with the Rite of Parting in 2026.'], secs: [] },
+    The_Crux: { title: 'The_Crux', short: 'Armed merchant fleet', img: 'p_alcor_deck', info: [['Captain', 'Beidou'], ['Flagship', 'The Alcor']], lead: ['The Crux is an armed merchant fleet based in Liyue Harbor, led by Captain Beidou.'], secs: [] },
+    Golden_House: { title: 'Golden_House', short: 'Mint of Liyue', img: 'p_golden_house', info: [['Function', 'Mint; treasury'], ['Location', 'North of the harbor']], lead: ['The Golden House is the mint of Liyue, where Mora is struck. It is said to hold the Founder’s most precious possessions.'], secs: [] },
+    Snezhnaya: { title: 'Snezhnaya', short: 'Nation of the north', img: 'p_morepesok', info: [['Capital', 'Zapolyarny Palace'], ['Ruler', 'The Tsaritsa']], lead: ['Snezhnaya is a cold nation in the north of Teyvat, ruled by the Tsaritsa.'], secs: [] },
+    Morepesok: { title: 'Morepesok', short: 'Fishing town in Snezhnaya', img: 'p_morepesok', info: [['Known for', 'Ice fishing; very large families']], lead: ['Morepesok is a small fishing town on the frozen coast of Snezhnaya.'], secs: [] },
+    Bluefin_tuna: { title: 'Bluefin_tuna', short: 'Fish', img: 'p_bluefin', info: [['Record (Liyue)', '312 kg']], lead: ['Bluefin tuna are large fish found in the waters off Liyue. Landing one from a pier is considered nearly impossible.'], secs: [] },
+    Yun_Jin: { title: 'Yun_Jin', short: 'Opera singer', img: 'p_heyu_stage', info: [['Troupe', 'Yun Jin Troupe'], ['Venue', 'Heyu Tea House']], lead: ['Yun Jin is a Liyue opera singer and playwright, known for “The Divine Damsel of Devastation”.'], secs: [] },
   };
-  site('wavepedia.org', {
-    name: 'Wavepedia', icon: { letter: 'W', bg: '#ffffff', fg: '#202122' },
-    pages: { '/': () => SITES['wavepedia.org'].patterns[0][1](null, [null, 'Lanling']) },
+  site('akasha.wiki', {
+    name: 'Akasha', icon: { letter: 'A', bg: '#ffffff', fg: '#1d6b4f' },
+    pages: { '/': () => SITES['akasha.wiki'].patterns[0][1](null, [null, 'Liyue_Harbor']) },
     patterns: [[/^\/wiki\/(.+)$/, (ctx, m) => {
       const key = decodeURIComponent(m[1]);
       const w = WIKI[key] || WIKI[Object.keys(WIKI).find((k) => k.toLowerCase() === key.toLowerCase()) || ''];
-      const T = (w ? w.title : key).replace(/_/g, ' ');
-      const srch = JC.ui.input({ placeholder: 'Search Wavepedia', cap: 'none', enterkey: 'search', cls: 'w-wiki-in', onSubmit: (v) => { if (v.trim()) goFrom(srch, 'https://wavepedia.org/wiki/' + title(v.trim()).replace(/\s+/g, '_')); } });
-      const hdr = h('div.w-wiki-hdr', A('https://wavepedia.org/wiki/Lanling', h('span.w-wiki-logo', 'Wavepedia')), srch);
+      const Tt = (w ? w.title : key).replace(/_/g, ' ');
+      const srch = JC.ui.input({ placeholder: 'Search Akasha', cap: 'none', enterkey: 'search', cls: 'w-wiki-in', onSubmit: (v) => { if (v.trim()) goFrom(srch, WIKI_URL(title(v.trim()).replace(/\s+/g, '_'))); } });
+      const hdr = h('div.w-wiki-hdr', A(WIKI_URL('Liyue_Harbor'), h('span.w-wiki-logo', 'Akasha')), srch);
       if (!w) {
-        return { title: T + ' — Wavepedia', node: h('div.w-page.w-wiki', hdr, h('h1.w-wiki-t', T), h('div.w-wiki-from', 'From Wavepedia, the free encyclopedia'), h('p', h('b', T), ' may refer to:'), h('ul', h('li', A(SEARCH(T), T + ' — web results')), h('li', T + ' (disambiguation)'), h('li', T + ' in the culture of the five cities')), h('p', 'This article is a stub. You can help Wavepedia by ', h('span.tap.w-wiki-link', { onTap: () => JC.ui.alert({ title: 'Edit Wavepedia', message: 'Editing requires an account. You would be editing as “Jiang Cheng”. Wavepedia editors would have questions.', buttons: [{ text: 'OK' }] }) }, 'expanding it'), '.'), h('div.w-wiki-see', h('b', 'See also: '), ['Lanling', 'Yunmeng', 'Gusu_Lan_Academy'].map((k) => A('https://wavepedia.org/wiki/' + k, k.replace(/_/g, ' '))))), reader: null };
+        return { title: Tt + ' — Akasha', node: h('div.w-page.w-wiki', hdr, h('h1.w-wiki-t', Tt), h('div.w-wiki-from', 'From Akasha, the free encyclopedia'), h('p', h('b', Tt), ' may refer to:'), h('ul', h('li', A(SEARCH(Tt), Tt + ' — web results')), h('li', Tt + ' (disambiguation)'), h('li', Tt + ' in the culture of Teyvat')), h('p', 'This article is a stub. You can help Akasha by expanding it.')), reader: null };
       }
       const toc = h('div.w-wiki-toc', h('b', 'Contents'), w.secs.map((s, i) => h('div', (i + 1) + ' ' + s[0])));
-      const node = h('div.w-page.w-wiki', hdr, h('h1.w-wiki-t', T), h('div.w-wiki-from', 'From Wavepedia, the free encyclopedia'),
-        h('table.w-wiki-info', h('caption', T), w.img ? h('tr', h('td', { attrs: { colspan: 2 } }, art(w.img, 'w-wiki-img'))) : null, w.info.map(([k, v]) => h('tr', h('th', k), h('td', v)))),
+      const node = h('div.w-page.w-wiki', hdr, h('h1.w-wiki-t', Tt), h('div.w-wiki-from', 'From Akasha, the free encyclopedia'),
+        h('table.w-wiki-info', h('caption', Tt), w.img ? h('tr', h('td', { attrs: { colspan: 2 } }, art(w.img, 'w-wiki-img'))) : null, w.info.map(([k, v]) => h('tr', h('th', k), h('td', v)))),
         para(w.lead), w.secs.length ? toc : null,
         w.secs.map((s) => [h('h2.w-wiki-h2', s[0]), para(s[1])]),
-        h('div.w-wiki-ref', h('h2.w-wiki-h2', 'References'), h('ol', [A(LD + '/', 'Lanling Daily archive'), A('https://lotuspier.yunmeng/about', 'YMJ: About'), A(IR + '/governance', 'Jin Group governance')].map((x) => h('li', x)))),
+        h('div.w-wiki-ref', h('h2.w-wiki-h2', 'References'), h('ol', [A(HERALD + '/', 'The Liyue Herald archive'), A(ARCH + '/', 'Liyue Archives'), A('https://jadechamber.ly/', 'The Jade Chamber')].map((x) => h('li', x)))),
         h('div.w-wiki-foot', 'This page was last edited on 14 October 2026. Text is available under a free licence.'));
-      return { title: T + ' — Wavepedia', node, reader: { title: T, byline: 'Wavepedia', paras: w.lead.concat(...w.secs.map((s) => s[1])) } };
+      return { title: Tt + ' — Akasha', node, reader: { title: Tt, byline: 'Akasha', paras: w.lead.concat(...w.secs.map((s) => s[1])) } };
     }]],
   });
 
-  // ═══ Business & personal sites ════════════════════════════════════════════
-  function simpleSite(host, o) {
-    return site(host, Object.assign({ pages: {} }, o));
+  // ═══ The phone's own apps, on the web ════════════════════════════════════
+  function appSite(host, o) {
+    site(host, {
+      name: o.name, icon: o.icon,
+      pages: Object.assign({ '/': () => page('w-svc', o.name + ' — ' + o.tag, [h('div.w-svc-hdr', { style: { background: o.icon.bg, color: o.icon.fg } }, h('span.w-svc-logo', o.name), h('span', o.sub || '')), h('h1.w-svc-t', o.tag), para(o.paras), Btn('Open ' + o.name, () => JC.os.open(o.app, o.intent || {}), 'w-btn-svc'), h('div.w-foot', '© 2026 ' + o.name)]) }, o.pages || {}),
+      patterns: o.patterns,
+    });
   }
-  simpleSite('radish.yiling', {
-    name: 'Yiling Radish Co.', icon: { letter: '🥕', bg: '#ffefe2', fg: '#e5383b' },
-    pages: {
-      '/': () => page('w-rad', 'Yiling Radish Co. — radishes so good you’ll cry', [
-        h('div.w-rad-hdr', h('div.w-rad-logo', 'YILING RADISH CO.'), h('div.w-rad-tag', 'radishes so good you’ll cry!!! 🥕🥕🥕')),
-        art('p_radishes', 'w-rad-hero'),
-        h('div.w-rad-pop', h('b', '📣 POP-UP THIS WEEKEND!!'), h('span', 'Lanling Night Market · Fri–Sun · 6 PM till we sell out (or till lan zhan makes me go home)'), Btn('Order on Lotus Eats', () => JC.os.open('lotuseats', { rest: 'yiling-popup' }), 'w-btn-rad')),
-        h('div.w-rad-grid', [['Big white radish', '¥12/kg', 'p_radishes'], ['Radish cake (4 pcs)', '¥28', 'p_radish_cake'], ['VERY spicy chili oil', '¥36', 'food_skewers'], ['Radish & rib soup*', '¥42', 'food_soup']].map(([t, p, a]) => h('div.w-rad-card', art(a, 'w-rad-img'), h('b', t), h('span', p)))),
-        h('p.w-rad-small', '*not as good as my sister’s. nothing is.'),
-        h('div.w-rad-about', h('h2', 'about us'), h('p', 'Yiling Radish Co. is one guy, one hill, a lot of radishes and a husband who does the accounts. I also teach flute at Gusu Lan Academy (come to my Thursday class!!). We are on the slope of Burial Mounds hill — come visit on weekends! (no dogs please. please. i am begging.)'), A('https://cloudrecesses.gusu/events/flute-masterclass', 'flute class →'), ' ', A('https://wavesearch.net/maps?q=Yiling+Radish', 'find the farm →')),
-        h('div.w-foot', '© Yiling Radish Co. · Chief Radish Officer: Wei Ying · accounts: Lan Zhan (he says hi) (he didn’t) (he thought it)')]),
-    },
-  });
-  simpleSite('laomahotpot.gusu', {
-    name: 'Laoma Hotpot', icon: { letter: '老', bg: '#c8102e', fg: '#ffd84d' },
-    pages: {
-      '/': () => page('w-laoma', 'Laoma Hotpot 老妈火锅 — Gusu', [
-        h('div.w-laoma-hdr', h('div.w-laoma-cn', '老妈火锅'), h('div.w-laoma-en', 'LAOMA HOTPOT · SINCE 1998 · GUSU OLD TOWN')),
-        art('p_hotpot_alumni', 'w-laoma-hero'),
-        h('div.w-laoma-sec', h('h2', 'Broths'), ['Bone broth (gentle)', 'Numbing mala (not gentle)', 'Yin-yang (for people who can’t decide)', 'Tomato (for children and Lan Wangji)'].map((t, i) => h('div.w-laoma-row', h('span', t), h('b', '¥' + [48, 58, 68, 48][i])))),
-        h('div.w-laoma-sec', h('h2', 'Popular'), ['Hand-cut lamb', 'Beef tripe', 'Lotus root slices', 'Shrimp paste', 'Tofu skin'].map((t, i) => h('div.w-laoma-row', h('span', t), h('b', '¥' + [68, 42, 18, 46, 16][i])))),
-        h('div.w-laoma-sec', h('h2', 'Our story'), h('p', 'Opened by Ma Laoshi in 1998 by the canal. Students from Cloud Recesses have been sneaking down the mountain for our mala since the beginning. We see you. We will not tell.')),
-        h('div.w-laoma-btns', Btn('Reserve a table', () => JC.mapview.callPlace('laoma-hotpot'), 'w-btn-laoma'), Btn('Directions', () => JC.os.open('maps', { directions: 'laoma-hotpot' }), 'w-btn-ghost')),
-        h('div.w-foot', '36 Canal Street, Old Town, Gusu · 11:00–02:00 · +86 555 0512 6688')]),
-    },
-  });
-  simpleSite('goldenpeony.lanling', {
-    name: 'Golden Peony Hotel', icon: { letter: '❀', bg: '#3a2a12', fg: '#e8c56b' },
-    pages: {
-      '/': () => page('w-gp', 'Golden Peony Hotel Lanling', [
-        h('div.w-gp-hdr', h('div.w-gp-logo', 'GOLDEN PEONY'), h('div.w-gp-sub', 'LANLING · ON THE GREAT RIVER')),
-        art('p_hotel_lobby', 'w-gp-hero'),
-        h('div.w-gp-sec', h('h2', 'Stay'), ['River Suite', 'Peony Room', 'Moon Terrace Suite'].map((t, i) => h('div.w-gp-room', h('b', t), h('span', ['Panoramic river views · from ¥3,200', 'Garden views · from ¥1,880', 'Private terrace · from ¥6,600'][i]), h('span.tap.w-gp-book', { onTap: () => JC.ui.alert({ title: 'Book ' + t + '?', message: 'You are signed in as Jiang Cheng (Platinum Elite). He already has a room. Room 1808. Until Sunday.', buttons: [{ text: 'OK' }] }) }, 'Book ›')))),
-        h('div.w-gp-sec', h('h2', 'Dine'), h('p', 'Silk Moon rooftop bar · Peony Court (Cantonese) · 24-hour in-room dining.')),
-        h('div.w-gp-btns', Btn('Call the Hotel', () => JC.mapview.callPlace('golden-peony'), 'w-btn-gold'), Btn('My Reservation', () => JC.os.open('wallet', { card: 'hotel' }), 'w-btn-ghost')),
-        h('div.w-foot', '16 Riverside Drive, Lanling · +86 555 0880 1808')]),
-    },
-  });
-  simpleSite('petkingdom.lanling', {
-    name: 'Pet Kingdom', icon: { letter: '🐾', bg: '#ff9f0a', fg: '#fff' },
-    pages: {
-      '/': () => page('w-pet', 'Pet Kingdom — Everything for pets', [
-        h('div.w-pet-hdr', h('div.w-pet-logo', 'Pet Kingdom'), h('div.w-pet-sub', '118 Jinxing Road, Lanling · 9:00–21:00 · +86 555 0601 3300')),
-        h('div.w-pet-banner', 'Platinum Paw members: 10% off giant-breed food this week'),
-        h('div.w-pet-grid', [['Giant Breed Adult, 20 kg', '¥689', 'p_receipt'], ['Orthopedic dog bed XXL', '¥8,800', 'p_dog_park'], ['Chew antler (large)', '¥58', 'p_puppies'], ['Dog shampoo, “no tears”', '¥46', 'p_dog_park']].map(([t, p, a]) => h('div.w-pet-card', art(a, 'w-pet-img'), h('b', t), h('span', p), h('span.tap.w-pet-add', { onTap: () => JC.ui.toast('Added to cart', { icon: 'cart.fill' }) }, 'Add to cart')))),
-        h('div.w-pet-sec', h('b', 'Delivery'), h('span', ' Order through Lotus Eats for same-day delivery. '), A('https://wavesearch.net/search?q=pet+kingdom+lotus+eats', 'How it works')),
-        h('div.w-foot', '© Pet Kingdom · Self-service dog wash · Grooming by appointment')]),
-    },
-  });
-  simpleSite('lanling-intl.lanling', {
-    name: 'Lanling International School', icon: { letter: 'L', bg: '#0b3d6b', fg: '#ffd166' },
-    pages: {
-      '/': () => page('w-lis', 'Lanling International School', [
-        h('div.w-lis-hdr', h('div.w-lis-logo', 'Lanling International School'), h('div.w-lis-nav', A('https://lanling-intl.lanling/parents', 'Parent Portal'), A(LD + '/sports/lanling-international-archery', 'News'))),
-        h('div.w-lis-sec', h('h2', 'Notices'), ['Parent–teacher conferences took place on Thursday 15 October. Thank you to all families who attended.', 'Congratulations to the archery team, regional champions for the third year running!', 'Seniors with learner permits: students may not drive to school, or anywhere near the Koi Tower forecourt, without a licensed adult.', 'Chemistry laboratory: reopened. Eyebrows will grow back.'].map((t) => h('div.w-lis-n', t))),
-        h('div.w-foot', '2 Academy Road, Lanling · Office Mon–Fri 7:30–17:30')]),
-      '/parents': () => page('w-login-page', 'Parent Portal — Lanling International School', [h('div.w-intra', loginForm({ key: 'lis', brand: 'Parent Portal', logo: 'Lanling International · Parent Portal', color: '#0b3d6b', sub: 'Grades, attendance and conference notes', user: 'jiang.cheng@lotuspier.yunmeng', userLabel: 'Email', max: 3, resetText: 'A reset link has been sent to jiang.cheng@lotuspier.yunmeng.', lockedText: 'Account locked. Please contact the school office.' }))]),
-    },
-  });
-  simpleSite('niecorp.qinghe', {
-    name: 'Nie Corp', icon: { letter: '聶', bg: '#1f3a2e', fg: '#d4e9d8' },
-    pages: {
-      '/': () => page('w-nie', 'Nie Corp — Qinghe', [h('div.w-nie-hdr', 'NIE CORP'), h('div.w-nie-sub', 'Steel · Security · Since 1931 · The Unclean Realm, Qinghe'), h('div.w-nie-sec', h('h2', 'A message from our Chairman'), h('p', '“I don’t know very much about steel. Fortunately, our engineers know everything. Please enjoy our website, and maybe also my fans.” — Nie Huaisang'), A('https://huaisangfans.qinghe/', 'Visit Huaisang Fans →')), h('div.w-foot', '© Nie Corp · 1 Nie Road, Qinghe')]),
-    },
-  });
-  simpleSite('huaisangfans.qinghe', {
-    name: 'Huaisang Fans', icon: { letter: '扇', bg: '#f6efe2', fg: '#2f9e44' },
-    pages: {
-      '/': () => page('w-fans', 'Huaisang Fans — hand-painted fans', [h('div.w-fans-hdr', 'Huaisang Fans 🪭'), h('div.w-fans-sub', 'Hand-painted in Qinghe. Every fan is one of a kind (like every secret).'),
-        h('div.w-fans-grid', [['Lotus at Dusk', '¥1,200'], ['Mist over Gusu', '¥1,500'], ['Two Koi', '¥980'], ['NEW: Moonlit Balcony ✨', 'Limited · ¥2,600'], ['A Very Large Dog', '¥880'], ['Radish (commissioned)', 'Sold']].map(([t, p]) => h('div.w-fans-card', h('div.w-fans-art', { style: { background: 'hsl(' + (hash(t) % 360) + ',45%,82%)' } }, '🪭'), h('b', t), h('span', p), h('span.tap.w-fans-buy', { onTap: () => JC.ui.alert({ title: t, message: t.includes('Balcony') ? '“Two figures on a balcony under a full moon. One in white, one in purple. Painted tonight.” — The artist knows nothing about where the inspiration came from.' : 'Commissions open. The artist will reply “soon~”.', buttons: [{ text: 'OK' }] }) }, 'Details')))),
-        h('div.w-foot', '© Huaisang Fans · The artist knows nothing.')]),
-    },
-  });
-  simpleSite('help.swiftride.lanling', {
-    name: 'Swift Ride Help', icon: { letter: 'S', bg: '#111214', fg: '#ffd60a' },
-    pages: {
-      '/': () => SITES['help.swiftride.lanling'].pages['/lost-items'](),
-      '/lost-items': () => page('w-swift', 'Lost or found an item? — Swift Ride Help', [h('div.w-swift-hdr', h('span.w-swift-logo', 'Swift'), h('span', 'Help')), h('h1.w-swift-t', 'Lost or found an item?'),
-        para(['If you left something in a Swift Ride, or found something that isn’t yours, the fastest way to sort it out is in the app.', '1. Open Swift Ride and go to Activity.', '2. Choose the trip.', '3. Tap Help → Report a lost item. You can report something you lost, or something you found — we’ll notify the rider and the driver and arrange a hand-over.', 'Items are usually returned within 24 hours.']),
-        Btn('Open Swift Ride', () => JC.os.open('swift', { report: true }), 'w-btn-swift'),
-        h('div.w-foot', '© Swift Ride · Safety · Terms')]),
-    },
-  });
-  simpleSite('swiftride.app', {
-    name: 'Swift Ride', icon: { letter: 'S', bg: '#111214', fg: '#ffd60a' },
-    pages: {
-      '/': () => page('w-swift', 'Swift Ride — Get there. Swiftly.', [h('div.w-swift-hdr', h('span.w-swift-logo', 'Swift'), h('span', 'Ride · Lanling · Gusu · Yunmeng')), h('h1.w-swift-t', 'Get there. Swiftly.'),
-        para(['Rides in minutes, day and night. Swift Go, Comfort, XL — and Swift Pet, for very large dogs.', 'Left something in a car? Use Report a Lost Item in the app; drivers keep found items for 48 hours.']),
-        Btn('Open Swift Ride', () => JC.os.open('swift'), 'w-btn-swift'), Btn('Lost something?', () => JC.os.open('swift', { report: true }), 'w-btn-ghost'),
-        h('div.w-foot', '© Swift Ride Technology (Lanling) Co., Ltd. · Customer Care +86 555 0101 8888')]),
-      '/lost': () => SITES['help.swiftride.lanling'].pages['/lost-items'](),
-    },
-    patterns: [[/^\/rate\/([\w-]+)$/, (ctx, m) => page('w-swift', 'Rate your trip — Swift Ride', [h('div.w-swift-hdr', h('span.w-swift-logo', 'Swift'), h('span', 'Rate your trip')), h('h1.w-swift-t', 'How was your ride?'),
-      para(['Trip ' + m[1] + ' · Koi Tower → Golden Peony Hotel · Master Wu Lihua.', 'Ratings are anonymous and help keep Swift Ride safe.']),
-      Btn('Rate in the app', () => JC.os.open('swift', { id: 'ride_tonight' }), 'w-btn-swift'), Btn('Report a lost item', () => JC.os.open('swift', { report: true }), 'w-btn-ghost'),
-      h('div.w-foot', '© Swift Ride · Safety · Terms')])]],
-  });
-  simpleSite('lotuseats.app', {
-    name: 'Lotus Eats', icon: { letter: '🪷', bg: '#ff4d5e', fg: '#fff' },
-    pages: {
-      '/': () => page('w-swift', 'Lotus Eats — Food delivery in Lanling, Gusu & Yunmeng', [h('div.w-swift-hdr', { style: { background: '#ff4d5e' } }, h('span.w-swift-logo', { style: { color: '#fff' } }, 'Lotus Eats'), h('span', 'Delivery')), h('h1.w-swift-t', 'Hungry at midnight?'),
-        para(['Congee, skewers, dumplings and soup — delivered across Lanling, Gusu and Yunmeng.', 'This weekend: 20% off all hotpot.']),
-        Btn('Open Lotus Eats', () => JC.os.open('lotuseats'), 'w-btn-swift'), h('div.w-foot', '© Lotus Eats · hello@lotuseats.app')]),
-    },
+  appSite('harborride.ly', { name: 'Harbor Ride', app: 'swift', icon: { letter: 'H', bg: '#0d6e6e', fg: '#fff' }, tag: 'Anywhere in the harbor, in minutes.', sub: 'Rides · Sampans', paras: ['Harbor Go, Comfort, XL — and Sampan water taxis across the harbor.', 'Left something in a car? Use Report a Lost Item in the app; drivers keep found items for 48 hours.'],
+    pages: { '/help/lost-items': () => page('w-svc', 'Lost or found an item? — Harbor Ride Help', [h('div.w-svc-hdr', { style: { background: '#0d6e6e', color: '#fff' } }, h('span.w-svc-logo', 'Harbor Ride'), h('span', 'Help')), h('h1.w-svc-t', 'Lost or found an item?'), para(['If you left something in a Harbor Ride, or found something that isn’t yours, the fastest way to sort it out is in the app.', '1. Open Harbor Ride and go to Activity.', '2. Choose the trip.', '3. Tap Help → Report a lost item. You can report something you lost, or something you found — we notify the rider and the driver and arrange a hand-over.']), Btn('Report in Harbor Ride', () => JC.os.open('swift', { report: true }), 'w-btn-svc'), h('div.w-foot', '© Harbor Ride · Support 10655 0762')]) } });
+  appSite('wanmingo.ly', { name: 'Wanmin Go', app: 'lotuseats', icon: { letter: 'W', bg: '#e8590c', fg: '#fff' }, tag: 'Hungry at midnight?', sub: 'Delivery', paras: ['Hotpot, jade parcels, almond tofu — delivered across Liyue Harbor until 2 AM.', 'This weekend: free delivery on hotpot sets.'],
     patterns: [[/^\/r\/([\w-]+)$/, (ctx, m) => {
-      const r = JC.lotusEatsData && JC.lotusEatsData.RESTS.find((x) => x.id === m[1]);
-      return page('w-swift', (r ? r.name : 'Restaurant') + ' — Lotus Eats', [h('div.w-swift-hdr', { style: { background: '#ff4d5e' } }, h('span.w-swift-logo', { style: { color: '#fff' } }, 'Lotus Eats'), h('span', r ? r.cuisine : 'Restaurant')),
-        r && r.art ? JC.art.el(r.art, { cls: 'w-le-hero' }) : null, h('h1.w-swift-t', r ? r.name : 'Restaurant not found'), para([r ? r.cuisine + ' · ★ ' + r.rating.toFixed(1) + ' (' + r.reviews + ' ratings)' : 'This link may have expired.']),
-        Btn('Order in the app', () => JC.os.open('lotuseats', r ? { rest: r.id } : {}), 'w-btn-swift'), h('div.w-foot', '© Lotus Eats')]);
-    }]],
-  });
-  simpleSite('police.lanling', {
-    name: 'Lanling Public Security', icon: { letter: '警', bg: '#1d3f72', fg: '#fff' },
-    pages: {
-      '/': () => SITES['police.lanling'].pages['/lost-and-found'](),
-      '/lost-and-found': () => page('w-police', 'Lost & Found — Lanling Public Security', [h('div.w-police-hdr', 'Lanling Public Security Bureau'), h('h1.w-police-t', 'Lost & Found'),
-        para(['Found property can be handed in at any police station in Lanling at any time. The officer on duty will record the item and contact the owner — usually the same day.', 'Nearest 24-hour Lost & Found desk to Jinxing District: Jinxing Road Police Station, 140 Jinxing Road.', 'Phones: please bring the device as you found it. If it is locked, we can still reach the owner through the network operator or the emergency contacts on its Lock Screen.']),
-        h('div.w-police-btns', Btn('Directions to Jinxing Road Station', () => JC.os.open('maps', { directions: 'jinxing-police' }), 'w-btn-police'), Btn('Call the Station', () => JC.mapview.callPlace('jinxing-police'), 'w-btn-ghost')),
-        h('div.w-foot', 'Emergency: 110 · Lanling Public Security Bureau')]),
-    },
+      const r = JC.lotusEatsData && JC.lotusEatsData.RESTS && JC.lotusEatsData.RESTS.find((x) => x.id === m[1]);
+      return page('w-svc', (r ? r.name : 'Restaurant') + ' — Wanmin Go', [h('div.w-svc-hdr', { style: { background: '#e8590c', color: '#fff' } }, h('span.w-svc-logo', 'Wanmin Go'), h('span', r ? r.cuisine : 'Restaurant')), r && r.art ? JC.art.el(r.art, { cls: 'w-svc-hero' }) : null, h('h1.w-svc-t', r ? r.name : 'Restaurant not found'), para([r ? r.cuisine + ' · ★ ' + Number(r.rating || 4.8).toFixed(1) : 'This link may have expired.']), Btn('Order in the app', () => JC.os.open('lotuseats', r ? { rest: r.id } : {}), 'w-btn-svc'), h('div.w-foot', '© Wanmin Go')]);
+    }]] });
+  appSite('ripple.ly', { name: 'Ripple', app: 'wavelet', icon: { letter: 'R', bg: 'linear-gradient(135deg,#3a7bd5,#00d2ff)', fg: '#fff' }, tag: 'Share the moment.', sub: 'Photos · Stories', paras: ['Ripple is better in the app. Log in to see photos and stories from the people you follow.'],
+    patterns: [[/^\/(p\/[\w-]+|[\w.]+)$/, (ctx, m) => page('w-svc', 'Ripple', [h('div.w-svc-hdr', { style: { background: 'linear-gradient(135deg,#3a7bd5,#00d2ff)', color: '#fff' } }, h('span.w-svc-logo', 'Ripple'), h('span', m[1])), h('h1.w-svc-t', 'Open this in Ripple'), para(['You’re signed in on this iPhone as @tartaglia.']), Btn('Open Ripple', () => JC.os.open('wavelet', /^p\//.test(m[1]) ? {} : { user: m[1] }), 'w-btn-svc')])]] });
+  const fySite = { name: 'Feiyun Market', app: 'feiyun', icon: { letter: '飛', bg: '#c2410c', fg: '#fff' }, tag: 'Buy anything. Bid on everything.', sub: 'Market · Auctions', paras: ['Antiques, flowers, toys and everything else, delivered across Liyue Harbor.', 'Live auction: Lot 1016 · Guizhong-era celadon tea set · ends Sat 00:30.'],
+    patterns: [[/^\/(item|lot|l|o|t)\/([\w-]+)$/, (ctx, m) => page('w-svc', 'Feiyun Market', [h('div.w-svc-hdr', { style: { background: '#c2410c', color: '#fff' } }, h('span.w-svc-logo', 'Feiyun Market'), h('span', m[2])), h('h1.w-svc-t', 'This listing opens in the app'), Btn('Open in Feiyun Market', () => JC.os.open('feiyun', m[1] === 'o' ? { order: m[2] } : /^\d+$/.test(m[2]) || m[2] === 'lot_teaset' ? { id: 'lot_teaset' } : { search: m[2].replace(/-/g, ' ') }), 'w-btn-svc')])], [/^\/search$/, (ctx) => page('w-svc', 'Search — Feiyun Market', [h('div.w-svc-hdr', { style: { background: '#c2410c', color: '#fff' } }, h('span.w-svc-logo', 'Feiyun Market')), h('h1.w-svc-t', 'Results for “' + (ctx.q.get('q') || '') + '”'), Btn('See results in the app', () => JC.os.open('feiyun', { search: ctx.q.get('q') || '' }), 'w-btn-svc')])]] };
+  appSite('feiyun.ly', fySite);
+  appSite('feiyun.market', fySite);
+  appSite('reelrush.games', { name: 'Reel Rush', app: 'reelrush', icon: { letter: '🎣', bg: '#0b4f7c', fg: '#fff' }, tag: 'Cast. Reel. Brag.', sub: 'The fishing game', paras: ['Weekly leaderboard: 1. teucer_fishking — 2,047 · 2. tartaglia — 1,998.', 'Beat your friends’ best catch. Bluefin are worth 500.'] });
+  site('mingyun.ly', {
+    name: 'Mingyun Toys & Games', icon: { letter: '玩', bg: '#2b8a3e', fg: '#fff' },
+    pages: { '/': () => SITES['mingyun.ly'].pages['/frost-fortress'](), '/frost-fortress': () => page('w-svc', 'Glacier Guardians Frost Fortress — Mingyun Toys & Games', [h('div.w-svc-hdr', { style: { background: '#2b8a3e', color: '#fff' } }, h('span.w-svc-logo', 'Mingyun Toys & Games'), h('span', 'Lantern Street')), JC.art.el('mk_frost_fortress', { cls: 'w-svc-hero' }), h('h1.w-svc-t', 'Glacier Guardians: Frost Fortress'), para(['Lights up! Snow cannon! Three Guardians included. Ages 6+.', 'ℳ2,400 · In stock at Lantern Street · also on Feiyun Market (same-day delivery).']), Btn('Buy on Feiyun Market', () => JC.os.open('feiyun', { search: 'frost fortress' }), 'w-btn-svc'), Btn('Call the store', () => JC.callui && JC.callui.dialNumber('(0761) 555 0177 2'), 'w-btn-ghost'), h('div.w-foot', '© Mingyun Toys & Games · Lantern Street, Liyue Harbor')]) },
   });
 })();

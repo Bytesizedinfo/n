@@ -13,22 +13,8 @@
     'msg.hand.thumbsdown': '<path d="M7 13.5V4.5"/>',
   });
 
-  const HINTS = {
-    nhs: 'He notices everything. Reply like Jiang Cheng would: short, blunt, no emoji. Never guess at shared history.',
-    wwx: 'He expects to be insulted. Kindness all at once is the fastest way to get caught. Threats are love.',
-    jl: 'Threaten his legs. Never call him sweetie. Never use an emoji.',
-    lxc: 'He is perceptive, but too kind to accuse you. Gentle and brief is safe here.',
-    lwj: 'Lan Wangji says little and misses nothing. Say less.',
-    wn: 'Wen Ning is too frightened to accuse anyone — but a phone call would give you away.',
-    sz: 'Polite, warm, a little stern. Jiang Cheng is never unkind to Sizhui.',
-    jy: 'Jingyi expects to be yelled at. Oblige him.',
-    mian: 'An old friend who reads between the lines. Dry is good.',
-    ea: 'Nine years as his assistant. Brief and decisive — he never says please.',
-    huang: 'He has known Jiang Cheng since he was a boy. Short replies. A thumbs-up is not his style.',
-    liu: 'Work voice: brief, decisive, no "please".',
-    bai: 'He is already terrified. Jiang Cheng is curt, not cruel.',
-    qr: 'Formal, curt, correct punctuation.',
-  };
+  const DEFAULT_HINT = 'Reply like Childe would: cheerful, a little reckless, a fish emoji when in doubt.';
+  const hintFor = (cid) => { const c = JC.contacts.get(cid); return (c && c.hint) || DEFAULT_HINT; };
   const LEVELS = [
     [0, 'suspects nothing.'], [2, 'hasn’t noticed anything.'], [4, 'is starting to wonder…'],
     [6, 'is getting suspicious.'], [8, 'is very suspicious.'], [10, 'is onto you.'],
@@ -37,7 +23,7 @@
     const v = JC.story.sus(cid);
     let t = LEVELS[0][1];
     LEVELS.forEach(([n, s]) => { if (v >= n) t = s; });
-    return { v, title: JC.contacts.short(cid) + ' ' + t, hint: HINTS[cid] || 'Reply like Jiang Cheng would: short, blunt, no emoji.' };
+    return { v, title: JC.contacts.short(cid) + ' ' + t, hint: hintFor(cid) };
   };
 
   function parseLabel(label, text) {
@@ -76,7 +62,6 @@
     let trayKey = null;
     let trayCollapsed = false;
     let timerInt = 0;
-    let petalsShown = false;
 
     // ── page ───────────────────────────────────────────────────────────────
     const page = JC.ui.page({
@@ -129,7 +114,7 @@
       onFocus: () => { setTimeout(kbSuggest, 0); if (stick) setTimeout(() => toBottom(false), 60); },
     });
     field.classList.add('msg-field');
-    const micBtn = h('div.msg-mic', { onTap: () => JC.ui.toast('Dictation is off — that isn’t Jiang Cheng’s voice', { icon: 'mic.slash.fill' }) }, JC.icon('mic', { size: 20, weight: 1.9 }));
+    const micBtn = h('div.msg-mic', { onTap: () => JC.ui.toast('Dictation is off — that isn’t Childe’s voice', { icon: 'mic.slash.fill' }) }, JC.icon('mic', { size: 20, weight: 1.9 }));
     const sendBtn = h('div.msg-send', { onTap: () => doSend() }, JC.icon('arrow.up', { size: 17, weight: 2.8 }));
     U.longPress(sendBtn, () => { if (field.value.trim()) openEffects(); });
     const fieldRow = h('div.msg-fieldrow', field, micBtn, sendBtn);
@@ -303,7 +288,7 @@
       // under-labels
       const unders = [];
       if (it.failed && !it.sending) unders.push(h('div.msg-under.fail', 'Not Delivered'));
-      if (m.edited) unders.push(h('div.msg-under.edited', { onTap: () => JC.ui.toast('Edit history is only on Jiang Cheng’s other devices', { icon: 'pencil' }) }, 'Edited'));
+      if (m.edited) unders.push(h('div.msg-under.edited', { onTap: () => JC.ui.toast('Edit history is only on Childe’s other devices', { icon: 'pencil' }) }, 'Edited'));
       if (m.effect && m.effect !== 'invisible') unders.push(h('div.msg-under.fx', { onTap: () => replayFx(el, m) }, JC.icon('arrow.clockwise', { size: 11, weight: 2.4 }), ' Replay'));
       if (it.replies) unders.push(h('div.msg-under.replies', { onTap: () => conv.scrollToMsg(it.replies[it.replies.length - 1]) }, it.replies.length === 1 ? '1 Reply' : it.replies.length + ' Replies'));
       if (it.receipt) unders.push(h('div.msg-under.rcpt', h('b', it.receipt[0]), it.receipt[1] ? ' ' + it.receipt[1] : ''));
@@ -408,7 +393,7 @@
       const toggle = (e) => {
         if (e) e.stopPropagation();
         if (selected) return;
-        const started = M.toggleVoice(m.id, dur, el, { low: m.from === 'huang', silent: false });
+        const started = M.toggleVoice(m.id, dur, el, { low: ['papa', 'zl', 'capitano', 'pierro'].includes(m.from), silent: false });
         if (started) {
           if (dot) dot.remove();
           M.prefSet('played', m.id, 1);
@@ -520,10 +505,6 @@
           rec.el.classList.add('justfailed');
           if (stick) toBottom(true);
         }
-        if (M.members(tid).includes('ajie') && !petalsShown) {
-          petalsShown = true;
-          setTimeout(() => { if (!conv.destroyed) M.screenFx(page.el, 'petals'); }, 900);
-        }
       });
     }
 
@@ -586,7 +567,7 @@
         return;
       }
       const peer = M.peer(tid);
-      const label = dead ? 'Write to ' + M.short(peer) + '…' : 'Reply as Jiang Cheng…';
+      const label = dead ? 'Write to ' + M.short(peer) + '…' : 'Reply as Childe…';
       const timer = h('div.msg-tray-timer', h('i'));
       timer.hidden = true;
       const count = h('span.msg-tray-count', p.options.length + ' replies');
