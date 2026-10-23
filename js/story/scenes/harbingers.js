@@ -77,7 +77,7 @@
         { choice: [
           { t: 'Takes more than two of Signora\'s goons and a little water. 😁', fx: { set: { harb_c1: 'bold' } }, go: 'bold' },
           { t: 'Card works fine, Pantalone. Bill me.', fx: { set: { harb_c1: 'billme', harb_billme: true } }, go: 'billme' },
-          { t: 'Sorry for the trouble, everyone.', fx: { set: { harb_c1: 'sorry' }, sus: { scara: 1, signora: 1 } }, go: 'sorry' },
+          { t: 'Sorry for the trouble, everyone.', fx: { set: { harb_c1: 'sorry' }, sus: { scara: 1 } }, go: 'sorry' },
           { t: '[Leave on read]', silent: true, fx: { set: { harb_c1: 'read' }, sus: { scara: 1 } }, go: 'read' },
         ] },
       ],
@@ -122,7 +122,7 @@
         { choice: [
           { t: 'Stay away from my brother, Doctor.', fx: { set: { harb_warned_dottore: true } }, go: 'warn' },
           { t: '😁⚔️', go: 'teeth' },
-          { t: 'Thank you for arranging the trip, Pulcinella!', fx: { sus: { pulci: 1, scara: 1 } }, go: 'thanks' },
+          { t: 'Thank you for arranging the trip, Pulcinella!', fx: { set: { harb_thanked_pulci: true }, sus: { pulci: 1 } }, go: 'thanks' },
           { t: '[Say nothing]', silent: true, go: 'quiet' },
         ] },
       ],
@@ -173,7 +173,7 @@
         { choice: [
           { t: "It's my project. I'll look at what I want.", fx: { set: { harb_unit3: 'mine' } }, go: 'mine' },
           { t: "Just checking it's still there 😁", fx: { set: { harb_unit3: 'check' } }, go: 'check' },
-          { t: 'What does it actually do?', fx: { set: { harb_unit3: 'ask' }, sus: { sandrone: 1, signora: 1 } }, go: 'ask' },
+          { t: 'What does it actually do?', fx: { set: { harb_unit3: 'ask' }, sus: { sandrone: 1 } }, go: 'ask' },
         ] },
       ],
       mine: [
@@ -468,7 +468,7 @@
           { t: "It's been fun. Mostly. 🐟", if: (s) => !F(s).defected, fx: { set: { harb_last: 'fun' } }, go: 'bye_fun' },
           { t: 'See you at the next meeting. I\'ll bring fish. 🐟', if: (s) => !F(s).defected, fx: { set: { harb_last: 'fish' } }, go: 'bye_fish' },
           { t: '[Leave the conversation]', if: (s) => !!F(s).defected, silent: true, fx: { set: { harb_last: 'left', left_harb: true } }, go: 'leave' },
-          { t: 'Goodbye, everyone. Thank you for everything.', fx: { set: { harb_last: 'thanks' }, sus: { scara: 1, signora: 1 } }, go: 'bye_thanks' },
+          { t: 'Goodbye, everyone. Thank you for everything.', fx: { set: { harb_last: 'thanks' }, sus: { scara: 1 } }, go: 'bye_thanks' },
           { t: '[Say nothing]', silent: true, fx: { set: { harb_last: 'silent' } }, go: 'bye_silent' },
         ] },
       ],

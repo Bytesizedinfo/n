@@ -472,90 +472,8 @@
     },
   });
 
-  // Confessing to Zhongli never ends the game. (The engine starts confess_<id> instead of an ending.)
-  scene({
-    id: 'confess_zl',
-    trigger: { on: 'manual' },
-    nodes: {
-      start: [
-        { if: (s) => !!F(s).zl_admitted, go: 'again' },
-        { if: (s) => aware(s), go: 'knew' },
-        { go: 'early' },
-      ],
-      again: M('Yes. We have established this, and I appreciate your consistency.', { end: true }),
-      knew: [
-        lock('confess_zl'),
-        { wait: 3 },
-        ...M(
-          { m: 'I know.', d: 1.8 },
-          'I have known since a little after one o\'clock this morning. I was waiting to see whether you would tell me yourself.',
-          'Thank you. That cannot have been easy to type.',
-        ),
-        { fx: { set: { zl_admitted: true, told_truth: true }, aff: { zl: 1 } } },
-        free,
-        { if: (s) => s.chapter === 'fri_night', go: 'knew_night' },
-        { start: 'zl_contract', delay: 4 },
-      ],
-      knew_night: M(
-        'It is late, and you have had a frightening night, and I will not ask you anything more until it is light.',
-        'Go to sleep. In the morning I will have a proposal for you.',
-      ),
-      early: [
-        lock('confess_zl'),
-        { wait: 4 },
-        { typing: 5 },
-        { wait: 3 },
-        ...M(
-          { m: '…', d: 1 },
-          { m: 'I see.', d: 1.6 },
-          'Then where is he?',
-        ),
-        { choice: [
-          { t: "I don't know. I found his phone on Pier 7. There was a fishing rod. And a cup of tea, gone cold.", go: 'tea' },
-          { t: "I don't know. I think someone was after him.", go: 'after' },
-          { t: "I'm sorry. I don't know.", go: 'tea' },
-        ] },
-      ],
-      tea: M(
-        'That is my tea. I left it on the bench at twelve minutes past eleven.',
-        'The rod is mine as well, in a sense. I gave it to him in July.',
-        { go: 'look' },
-      ),
-      after: M(
-        'Signora\'s people. Yes. He was afraid of something tonight, and he was trying very hard not to let me see it.',
-        { go: 'look' },
-      ),
-      look: [
-        { fx: { set: { zl_admitted: true, zl_early: true, told_truth: true }, aff: { zl: 1 } } },
-        ...M(
-          'Thank you for telling me. Truly. Most people would have turned it off, or sold it, or thrown it in the harbor.',
-          'Please keep the phone. Do not turn it off. If it rings and the number is unknown, answer it.',
-          'I am going to look for him.',
-        ),
-        free,
-      ],
-    },
-  });
-
-  // If you confessed before 01:00, he writes back once he has found Childe at Wangsheng.
-  scene({
-    id: 'zl_found_him', ch: 'fri_night',
-    trigger: { on: 'time', at: '+1 01:06' },
-    when: (s) => !!F(s).zl_early,
-    nodes: {
-      start: hold('zl_found_him'),
-      go: [
-        lock('zl_found_him'),
-        ...M(
-          'I have found him.',
-          'He is safe. He is cold, and wet, and extremely angry about his rod, and he is safe. I cannot tell you where. He asked me not to.',
-          'He would like to ask you something himself. Keep the phone close.',
-          'And thank you, again. I will not say it a third time tonight. It loses something.',
-        ),
-        free,
-      ],
-    },
-  });
+  // Confessing to Zhongli never ends the game: S4's `confess_zl` (scenes/confess.js) sets zl_admitted and, from
+  // Saturday, starts zl_contract below.
 
   // ════════════════════════════════════════════════════════════════════
   // CHAPTER 2 — Saturday morning, "Cranes"
@@ -1463,7 +1381,7 @@
   // Teucer meets "Mr. Zhongli, the factory manager" (S1b's toy-factory tour at Mingyun).
   scene({
     id: 'zl_factory_tour', ch: 'sat_noon', soft: true,
-    trigger: { on: 'flag', flag: 'factory_zl', delay: 60 },
+    trigger: { on: 'flag', flag: 'factory_zl', delay: 200 },
     nodes: {
       start: hold('zl_factory_tour'),
       go: [

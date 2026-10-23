@@ -444,8 +444,8 @@
       ],
       guarded: [
         { m: 'also' },
-        { m: 'a man in a BIRD MASK tried to give me a lolipop' },
-        { m: 'and PAIMON BIT HIM' },
+        { m: 'a man in a BIRD MASK gave me a lolipop' },
+        { m: 'and then PAIMON BIT HIM' },
         { m: 'lumine said “we\'re leaving” and we LEFT. very fast. like NINJAS' },
         { m: 'he said “see you Monday, little one”. paimon said a WORD' },
         { m: 'Ajax. Lumine says the man in the beaked mask works with you. He knew Teucer\'s name. He said “see you Monday”.', th: 'tonia', from: 'tonia' },

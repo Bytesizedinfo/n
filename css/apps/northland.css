@@ -369,7 +369,7 @@
 .nl-key { height: 50px; border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 500; color: var(--label); font-variant-numeric: tabular-nums; }
 .nl-key:active { background: var(--fill3); }
 .nl-cta { display: flex; align-items: center; justify-content: center; gap: 8px; margin: 14px 16px 6px; height: 52px; border-radius: 26px; background: var(--nl-tint); color: #fff; font-size: 17px; font-weight: 600; transition: transform .12s, opacity .2s; }
-#screen.dark .nl-cta { color: #06182f; }
+#screen.dark .nl-cta:not(.ghost):not(.danger) { color: #06182f; }
 .nl-cta:active { transform: scale(.98); filter: brightness(.95); }
 .nl-cta.disabled { opacity: .35; }
 .nl-cta.ghost { background: var(--nl-tint-soft); color: var(--nl-tint); }

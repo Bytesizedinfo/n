@@ -215,16 +215,6 @@
       ['2026-04-17 22:52', 'ht', "also he says you paid for his dinner AND his taxi AND a 'small' jade bird"],
       ['2026-04-17 22:52', 'me', "it wasn't small"],
 
-      ['2026-04-26 15:20', 'ht', "i saw your COMMENT 👻"],
-      ['2026-04-26 15:20', 'ht', "on my post. about my HAT"],
-      ['2026-04-26 15:21', 'ht', "my plum blossom butterfly hat has been in the family for SEVENTY-SEVEN directors"],
-      ['2026-04-26 15:21', 'ht', "and you called it THAT. in front of my FOLLOWERS"],
-      ['2026-04-26 15:30', 'me', "😁"],
-      ['2026-04-26 15:30', 'ht', "i'm putting a curse on your next fish"],
-      ['2026-04-27 07:02', 'me', "", { img: 'p_catch_1' }],
-      ['2026-04-27 07:02', 'me', "curse failed 😁🐟"],
-      ['2026-04-27 07:10', 'ht', "the curse is SLOW. it's a slow curse. wait for it 👻"],
-
       ['2026-05-16 21:11', 'ht', "poem for my favorite client:"],
       ['2026-05-16 21:11', 'ht', "a man from the north with a fish on his phone, pays for the dinners but never goes home 👻"],
       ['2026-05-16 21:15', 'me', "i go home!! i go home at 4am like a normal person"],
@@ -264,6 +254,16 @@
       ['2026-10-01 18:41', 'ht', "it's like he's planning his own birthday party. a sad birthday party"],
       ['2026-10-01 18:45', 'me', "that's just how he is with ceremonies 🍵"],
 
+      ['-12 15:20', 'ht', "i saw your COMMENTS 👻"],
+      ['-12 15:20', 'ht', "on my post. about my HAT"],
+      ['-12 15:21', 'ht', "my new plum blossom butterfly hat. hand-stitched. the pattern has been in the family for SEVENTY-SEVEN directors"],
+      ['-12 15:21', 'ht', "and you called it THAT. three times. in front of my FOLLOWERS"],
+      ['-12 15:30', 'me', "😁"],
+      ['-12 15:30', 'ht', "i'm putting a curse on your next fish"],
+      ['-11 07:02', 'me', "", { img: 'p_catch_1' }],
+      ['-11 07:02', 'me', "curse failed 😁🐟"],
+      ['-11 07:10', 'ht', "the curse is SLOW. it's a slow curse. wait for it 👻"],
+
       ['-3 23:10', 'ht', "invoice question: is it weird to bill a funeral to the guy organizing it"],
       ['-3 23:12', 'me', "?? bill the qixing"],
       ['-3 23:12', 'ht', "that's what i SAID. he insisted. 'the client is me'. ok mr. consultant 👻"],
@@ -298,7 +298,7 @@
       ['2026-04-21 08:02', 'xl', "Dottore, three ways!! Guoba stole the tail. He likes you now. Officially 🐾"],
 
       ['2026-06-15 15:10', 'xl', "Childe!! The Wanmin Go storefront is LIVE!! You can order from your phone now!! 🔥📱"],
-      ['2026-06-15 15:11', 'xl', "I saved Paimon's address for you as 'Emergency Food Drop'. You're welcome. Paimon's not 😆"],
+      ['2026-06-15 15:11', 'xl', "I added Paimon to your delivery list. She's under 'Emergency Food', same as your phone. You're welcome. Paimon's not 😆"],
       ['2026-06-15 15:20', 'me', "this is the most dangerous thing you've ever done, chef"],
       ['2026-06-15 15:20', 'xl', "I put a rocket on a wok once!!"],
       ['2026-06-15 15:21', 'me', "still this"],

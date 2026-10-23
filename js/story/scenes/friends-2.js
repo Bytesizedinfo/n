@@ -289,7 +289,7 @@
         ] },
       ],
       frozen: say("And your card is STILL FROZEN!!! Paimon checked!!! TWICE!!!", "Paimon is going to faint. Respectfully. At a funeral."),
-      ok: say("PAIMON WILL GRIEVE SO HARD!!! 😭🍲", "(Paimon can't order on YOUR account, Paimon doesn't have your PASSWORD. You have to do it in the APP. Deliver to 'Emergency Food Drop'. Lumine will bring it. Paimon will WAIT.)"),
+      ok: say("PAIMON WILL GRIEVE SO HARD!!! 😭🍲", "(Paimon can't order on YOUR account, Paimon doesn't have your PASSWORD. You have to do it in the APP. Deliver to 'Emergency Food'. That's Paimon. Paimon will WAIT.)"),
       funeral: say("A HUNGRY funeral!!!", "…Fine. Paimon will be RESPECTFUL. Paimon will eat RESPECTFULLY. Later."),
       fast: say("THE GOD WOULD NOT!!! Zhongli said Rex Lapis LOVED a feast!!!", "He said it in a really SPECIFIC way. Like he was THERE. Zhongli is weird!!!"),
     },

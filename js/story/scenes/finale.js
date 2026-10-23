@@ -273,16 +273,41 @@
         { if: (s) => F(s).zl_message, go: 'zl_msg_q' },
         { go: 'morax' },
       ],
+      // Zhongli's message (scenes/zhongli-2.js `zl_message`): the words depend on what he chose to send
       zl_msg_q: [{ choice: [
-        { t: '"He asked me to give you a message: Thursday is still yours, and this time he is paying."', label: '(Deliver Zhongli’s message)', go: 'zl_msg_give' },
+        { t: '"He asked me to tell you: the answer is yes."', label: '(Deliver Zhongli’s message)', go: 'zm_yes', if: (s) => !!F(s).memo_zl_sent },
+        { t: '"He asked me to tell you: dinner on Thursday. And he’s paying."', label: '(Deliver Zhongli’s message)', go: 'zm_pay', if: (s) => !F(s).memo_zl_sent && !!F(s).clause_four },
+        { t: '"He asked me to tell you: same time Thursday. Your turn to choose the restaurant."', label: '(Deliver Zhongli’s message)', go: 'zm_plain', if: (s) => !F(s).memo_zl_sent && !F(s).clause_four },
+        { t: '"He gave me a message for you. I’ll say it to your face, at the pier."', label: '(Save his message for the pier)', go: 'zl_msg_pier' },
         { t: '(Keep it to yourself. Let him say it.)', go: 'zl_msg_keep' },
       ] }],
-      zl_msg_give: [
+      zm_yes: [
+        { fx: { set: { zl_msg_delivered: true }, aff: { zl: 1 } } },
+        { say: '…The answer is—' },
+        { say: '(Nothing. Then a sound like someone sitting down on the floor of a funeral parlor.)', from: 'sys' },
+        { say: 'He doesn’t even know the question. He can’t— you SENT it. You sent it, and he listened, and the answer is—' },
+        { say: '…Okay. I need a minute. I’m taking a minute. Don’t hang up.' },
+        { go: 'morax' },
+      ],
+      zm_pay: [
         { fx: { set: { zl_msg_delivered: true }, aff: { zl: 1 } } },
         { say: '…He said that?' },
-        { say: 'He’s PAYING? He doesn’t even have— he hasn’t carried Mora since I met him—' },
+        { say: 'He’s PAYING? He doesn’t even have— he hasn’t carried Mora since the day I met him—' },
         { say: '(He laughs. It cracks in the middle.)', from: 'sys' },
         { say: 'Okay. Thursday. Okay.' },
+        { go: 'morax' },
+      ],
+      zm_plain: [
+        { fx: { set: { zl_msg_delivered: true }, aff: { zl: 1 } } },
+        { say: 'Same time Thursday.' },
+        { say: '…Heh. That’s the most xiansheng sentence in the world. Six words and you have to read the whole thing between them.' },
+        { say: 'Okay. My turn to choose. I choose Liuli Pavilion. I always choose Liuli Pavilion. He knows that.' },
+        { go: 'morax' },
+      ],
+      zl_msg_pier: [
+        { fx: { set: { zl_msg_pier: true } } },
+        { say: 'A message? From him? And you’re making me WAIT?' },
+        { say: '…Okay. That’s fair. That’s actually very fair. I’ve made him wait for a lot of things.' },
         { go: 'morax' },
       ],
       zl_msg_keep: [
@@ -534,14 +559,28 @@
       c_fry: [{ time: '+1m', card: 'Somebody has set up a grill at the end of the pier. It smells incredible. A very large man in armour waves a spatula at you.' }, { go: 'c4' }],
       c_lumine: [{ time: '+1m', card: 'Lumine is sitting on the railing with her pack already on and her sword across her knees. Paimon is asleep on top of the pack, holding a dumpling.' }, { go: 'c4' }],
       c_crowd: [{ time: '+1m', card: 'Pier 7 is strangely crowded for a Monday. Nobody is fishing. Everybody is pretending to.' }, { go: 'c4' }],
-      c4: [
+      c4: [{ go: 'c4b' }],
+      c4b: [
         { if: (s) => top(s) === 'vigil', go: 'c_cuffs' },
         { if: (s) => F(s).ws_lied, go: 'c_lied' },
         { time: '+1m', card: 'Footsteps on the boards behind you. Fast. The way he does everything.' },
+        { go: 'arrive' },
+      ],
+      c_cuffs: [{ time: '+1m', card: 'Footsteps on the boards behind you: three sets. Two of them belong to the Millelith.' }, { go: 'arrive' }],
+      c_lied: [{ time: '+1m', card: 'Footsteps on the boards behind you, unhurried. He knows you lied to him this morning. He has decided to let you watch him know it.' }, { go: 'arrive' }],
+      arrive: [
+        { if: (s) => F(s).zl_msg_pier && !F(s).zl_msg_delivered, go: 'c_msg' },
         { go: 'last' },
       ],
-      c_cuffs: [{ time: '+1m', card: 'Footsteps on the boards behind you: three sets. Two of them belong to the Millelith.' }, { go: 'last' }],
-      c_lied: [{ time: '+1m', card: 'Footsteps on the boards behind you, unhurried. He knows you lied to him this morning. He has decided to let you watch him know it.' }, { go: 'last' }],
+      c_msg: [
+        { fx: { set: { zl_msg_delivered: true }, aff: { zl: 1 } } },
+        { if: (s) => F(s).memo_zl_sent, go: 'c_msg_yes' },
+        { if: (s) => F(s).clause_four, go: 'c_msg_pay' },
+        { time: '+1m', card: 'You give him Zhongli’s message with his name first, his real one. “Ajax.” He goes very still. “Same time Thursday,” you say. “Your turn to choose the restaurant.” He laughs like something breaking open.' },
+        { go: 'last' },
+      ],
+      c_msg_yes: [{ time: '+1m', card: 'You give him Zhongli’s message with his name first, his real one. “Ajax.” He goes very still. “He says the answer is yes.” For once in his life, Childe has nothing to say at all.' }, { go: 'last' }],
+      c_msg_pay: [{ time: '+1m', card: 'You give him Zhongli’s message with his name first, his real one. “Ajax.” He goes very still. “Dinner on Thursday. He’s paying.” “He doesn’t even HAVE—” he starts, and then he has to look at the sea for a while.' }, { go: 'last' }],
       last: [
         // he types these himself, the moment the phone is his again
         { if: (s) => F(s).zl_broken || F(s).morax_sold, go: 'last_fam' },

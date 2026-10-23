@@ -842,6 +842,7 @@
           { m: 'Tell him: the answer is yes.', d: 2.6 },
           'He will know the question. He asked it on the fourth of October, into his phone, after a bottle and a half of osmanthus wine, and then told himself not to send it.',
           'You sent it anyway. He will be furious with you for about a minute. Then he will not be.',
+          { m: 'And tell him Thursday is still his. This time I am paying.', d: 2.6 },
         ),
         { go: 'end' },
       ],
@@ -865,7 +866,7 @@
       m_plain_end: [
         ...M(
           'Tell him I have a birdcage for a thrush that has no intention of using it, and a tea set I did not pay for, and that it is his turn to choose the restaurant.',
-          { m: 'Tell him: same time Thursday.', d: 2.6 },
+          { m: 'Tell him: Thursday is still his. And this time I am paying.', d: 2.6 },
         ),
         { go: 'end' },
       ],
@@ -1000,6 +1001,12 @@
           'The water at Guyun is perfectly still. Not listening any more. Only still, the way water is when nothing is asking anything of it.',
           { m: 'I have watched this sea for a very long time. I do not think I have ever been so glad to see it do nothing.', d: 3 },
         ),
+        { if: (s) => !!F(s).osial_founder, go: 'stopped_founder' },
+        { if: (s) => !!F(s).zl_amended, go: 'stopped_amended' },
+        { go: 'stopped_more' },
+      ],
+      stopped_founder: M('You told her to ask the founder. She did not understand it. I did. The stone forest and I had a short conversation at eleven o\'clock, and it has agreed to go back to sleep.', { go: 'stopped_amended_q' }),
+      stopped_amended_q: [
         { if: (s) => !!F(s).zl_amended, go: 'stopped_amended' },
         { go: 'stopped_more' },
       ],
@@ -1139,8 +1146,13 @@
       judge_sorry: M('I know. It is not enough. It rarely is. Goodbye.', { go: 'end' }),
       // ── never signed ──
       unsigned: [
+        { if: (s) => !F(s).ws_talked, go: 'unsigned_missed' },
+        { m: 'Good morning. He telephoned you at eight, from the parlor\'s landline. I was in the next room making tea. He will collect his phone from you at Pier 7 this evening.' },
+        { go: 'unsigned2' },
+      ],
+      unsigned_missed: M('Good morning. He tried to telephone you at eight, from the parlor. He is coming to Pier 7 this evening regardless. He has never once waited to be invited.', { go: 'unsigned2' }),
+      unsigned2: [
         ...M(
-          'Good morning. He telephoned the parlor at eight, from the parlor, which Hu Tao found very confusing. He will collect his phone from you at Pier 7 this evening.',
           'We never had a contract, you and I. I find, on reflection, that I am sorry about that. I think it would have been a good one.',
           'Thank you for keeping his phone alive. Whatever else, you did that.',
         ),
@@ -1156,9 +1168,19 @@
       ],
       // ── the contract kept ──
       kept: [
+        { if: (s) => !F(s).ws_talked, go: 'kept_missed' },
         ...M(
-          'Good morning. He telephoned the parlor at eight, from the parlor, which Hu Tao found very confusing. She had to stand on a coffin to hear him over himself.',
+          'Good morning. He telephoned you at eight, from the parlor\'s landline. I was in the next room making tea. I heard every word he said and none of yours, which I imagine is how most people experience him.',
           'He knows you will be at Pier 7 at half past five. He has asked me to tell you that he is "going to hug you, sorry in advance".',
+        ),
+        { go: 'kept_last' },
+      ],
+      kept_missed: M(
+        'Good morning. He tried to telephone you at eight, from the parlor. You did not answer. He is coming to Pier 7 at half past five regardless, and he has asked me to warn you that he intends to hug you.',
+        { go: 'kept_last' },
+      ),
+      kept_last: [
+        ...M(
           'So this is the last day of our contract.',
         ),
         { if: (s) => Number(F(s).clause_struck || 0) === 1 && !kidsSafe(s), go: 'kept_most' },
@@ -1257,7 +1279,7 @@
       ],
       ajax: [
         ...M(
-          'And my message. Give it to him like this, if you would. Start with his name. His real one.',
+          'One more thing, when he sits down beside you, before you give it back. Say his name for me. His real one.',
           { wait: 3 },
           { m: 'Ajax.', d: 3 },
           { wait: 3 },

@@ -10,55 +10,14 @@
   const F = (s) => s.flags;
   const again = (id) => ({ run: (api) => { try { delete api.state.done[id]; } catch (e) { /* ignore */ } } });
 
-  // ── Zhongli: never an ending. Friday: “we will speak in the morning”. Saturday on: the contract (S1). ──
-  S.scene({
-    id: 'confess_zl', thread: 'zl', arc: 'core', trigger: { on: 'manual' },
-    nodes: {
-      start: [
-        { if: (s) => F(s).zl_contract, go: 'contracted' },
-        { if: (s) => F(s).zl_admitted, go: 'again' },
-        { if: (s) => s.chapter === 'fri_night' || !s.chapter, go: 'friday' },
-        { go: 'saturday' },
-      ],
-      friday: [
-        { typing: 4 },
-        { m: 'I suspected.' },
-        { m: 'Thank you for telling me. It cannot have been easy to type, and you typed it without a single exclamation mark, which tells me you meant it.' },
-        { m: 'It is late, and you are holding something that belongs to a person I care for a great deal. Hold it carefully tonight. We will speak in the morning.' },
-        { fx: { set: { zl_admitted: true } } },
-        { choice: [
-          { t: 'Is he okay?', fx: { aff: { zl: 1 } }, go: 'f_okay' },
-          { t: 'Goodnight, Zhongli.', go: 'f_night' },
-          { t: '[Leave on read]', silent: true, go: 'f_read' },
-        ], timeout: 120, onTimeout: 'f_read' },
-      ],
-      f_okay: [
-        { m: 'He is safe. That is all I may say tonight, and it is, I think, the only thing that matters tonight.' },
-        { m: 'You asked about him before you asked about yourself. I will remember that.' },
-        { go: 'end' },
-      ],
-      f_night: [
-        { m: 'Goodnight. You used my name. He never does; he says “xiansheng” as though it were a joke we share. It is.' },
-        { go: 'end' },
-      ],
-      f_read: [{ m: 'Sleep, if you can. The tide turns at a quarter past two. It will turn without either of us.' }, { go: 'end' }],
-      saturday: [
-        { typing: 3 },
-        { m: 'Thank you. I had begun to suspect, and I would far rather hear it from you than prove it.' },
-        { m: 'Then let us be honest with one another, since we are going to spend a weekend together, in a manner of speaking.' },
-        { fx: { set: { zl_admitted: true } } },
-        { if: (s) => !s.done.zl_contract, go: 'contract' },
-        { m: 'I had hoped to offer you a contract on Saturday morning. That morning has passed. The offer stands in spirit: keep his family safe, tell no one what you are, and answer me truthfully when I ask.' },
-        { go: 'end' },
-      ],
-      contract: [{ start: 'zl_contract', delay: 4 }, { go: 'end' }],
-      contracted: [
-        { m: 'I know. We have a contract, you and I. You need not confess to me twice; I have not forgotten the first time.' },
-        { go: 'end' },
-      ],
-      again: [{ m: 'You have told me this already. I have not forgotten it. I am still here.' }, { go: 'end' }],
-      end: [again('confess_zl')],
-    },
+  // ── Zhongli: never an ending. The scene `confess_zl` belongs to the Zhongli arc (scenes/zhongli-1.js, S1).
+  // The engine starts a confess_<id> scene only once; so that a second confession to Zhongli reaches that scene's
+  // “again” branch instead of falling through to the default ending, its done mark is cleared before the engine
+  // looks (onAct rules run before the confession check in JC.story.send).
+  S.onAct({
+    id: 'core_confess_zl_again', act: 'send', arc: 'core',
+    match: (p, s) => p.thread === 'zl' && !!s.fin.confess_zl && !!s.done.confess_zl,
+    fx: () => { try { delete JC.state.d.done.confess_zl; } catch (e) { /* ignore */ } return null; },
   });
 
   // ── Hu Tao: Wangsheng Is Hiring — unless Zhongli's contract vouches for you (then she's in on it) ──

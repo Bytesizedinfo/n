@@ -142,7 +142,7 @@
         ] },
       ],
       promised: [
-        ...say("YAAAAY!!! 🥳🍲", "Send it to 'Emergency Food Drop'!!! It's already saved in your Wanmin Go!!! (Xiangling did it. Paimon supervised.)", "Paimon will wait at the window!!! Like a PUPPY!!! (Paimon is NOT a puppy.)"),
+        ...say("YAAAAY!!! 🥳🍲", "Paimon is already in your Wanmin Go!!! Under 'Emergency Food'!!! (Xiangling did it. Paimon supervised.)", "Paimon will wait at the window!!! Like a PUPPY!!! (Paimon is NOT a puppy.)"),
         { start: 'fr_paimon_nag', delay: 240 },
       ],
       debt: [
@@ -161,7 +161,7 @@
         { fx: { set: { hotpot_tab: true } } },
       ],
       addr: [
-        ...say("??? You've sent food here like FIFTY times!!!", "Lumine's place!!! Above the Adventurers' Guild!!! The window with the TOWEL!!! It's saved as 'Emergency Food Drop'!!!", "Did you hit your head on a fish??? 🐟💫", "…Paimon is taking that as a YES!!! 🍲"),
+        ...say("??? You've sent food here like FIFTY times!!!", "Lumine's place!!! Above the Adventurers' Guild!!! The window with the TOWEL!!! Paimon is IN your Wanmin Go!!! Under 'Emergency Food'!!!", "Did you hit your head on a fish??? 🐟💫", "…Paimon is taking that as a YES!!! 🍲"),
         { fx: { set: { paimon_promised: true } } },
         { start: 'fr_paimon_nag', delay: 240 },
       ],
@@ -762,7 +762,7 @@
           "ok mr. harbinger. pop quiz 👻",
           "i've been thinking about last night. the puddle. the vibes. the way you've been typing like you're wearing oven mitts",
           "so. a question only the REAL you would know",
-          "back in april you saw my hat. my beautiful, ancestral, seventy-seven-directors-old plum blossom butterfly hat",
+          "two weeks ago i posted my new hat. my beautiful, hand-stitched, seventy-seven-directors-of-tradition plum blossom butterfly hat",
           "and you called it something. in public. on ripple. in front of my followers 🦋",
         ),
         { m: "what did you call my hat", d: 2 },

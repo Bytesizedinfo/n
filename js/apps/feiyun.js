@@ -969,7 +969,7 @@
           return [banner,
             h('div.fy-ahead',
               h('div', h('span.fy-lbl', open ? 'Current bid' : 'Winning bid'), priceEl(S.closed ? (S.finalPrice || S.price) : S.price, 'big'), h('span.fy-bids.tap', { onTap: () => push(historyPage(id)) }, bidCount(id) + ' bids')),
-              h('div.fy-ends', h('span.fy-lbl', open ? 'Ends in' : 'Ended'), open ? cd(lotEnd(p), null, 'big') : h('span.fy-cd.big.ended', whenShort(lotEnd(p))), h('span.fy-ends-at', whenShort(lotEnd(p))))),
+              h('div.fy-ends', h('span.fy-lbl', open ? 'Ends in' : 'Ended'), open ? cd(lotEnd(p), null, 'big') : h('span.fy-cd.big.ended', whenShort(lotEnd(p))), open ? h('span.fy-ends-at', whenShort(lotEnd(p))) : null)),
             h('div.fy-ainfo', 'Starting bid ' + money(p.lot.start) + ' · increment ' + money(p.lot.inc) + ' · hard close, no extensions')];
         }
         function buyHead(p) {
@@ -1101,7 +1101,7 @@
                 h('div.fy-bs-btns', JC.ui.btn({ text: 'Confirm bid', kind: 'filled', size: 'l', onTap: () => confirmBid(sh) }), JC.ui.btn({ text: 'Back', kind: 'gray', size: 'l', onTap: () => { V.step = 'pick'; sh.render(); } }))];
             }
             const sugg = Array.from(new Set([min, min + p.lot.inc * 2, Math.max(min, Math.ceil((min + 1) / 1000) * 1000)])).sort((a, b) => a - b);
-            const field = JC.ui.input({ placeholder: money(min) + ' or more', value: V.typed, kbType: 'num', enterkey: 'done', cls: 'fy-bid-in', onInput: (v) => { V.typed = v; const n = Number(String(v).replace(/[^\d]/g, '')); go.disabled = !(n >= min); go.classList.toggle('dis', !(n >= min)); }, onSubmit: () => go.click() });
+            const field = JC.ui.input({ placeholder: Math.round(min).toLocaleString('en-US') + ' or more', value: V.typed, kbType: 'num', enterkey: 'done', cls: 'fy-bid-in', onInput: (v) => { V.typed = v; const n = Number(String(v).replace(/[^\d]/g, '')); go.disabled = !(n >= min); go.classList.toggle('dis', !(n >= min)); }, onSubmit: () => go.click() });
             const go = h('div.fy-bid-go', { class: { dis: !(Number(V.typed) >= min) }, onTap: () => { const n = Number(String(V.typed).replace(/[^\d]/g, '')); if (!(n >= min)) { JC.audio.play('error'); JC.ui.toast('Enter ' + money(min) + ' or more', { icon: 'exclamationmark.circle.fill' }); return; } V.amount = n; V.step = 'confirm'; sh.render(); } }, 'Review');
             return [head,
               S.leader === 'me' ? h('div.fy-bs-note.good', JC.icon('checkmark.circle.fill', { size: 15 }), 'You’re winning. Your max is ' + money(S.myMax) + ' — raise it to stay ahead.') : S.myMax ? h('div.fy-bs-note.bad', JC.icon('exclamationmark.circle.fill', { size: 15 }), 'You’ve been outbid.') : null,
