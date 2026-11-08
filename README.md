@@ -1,6 +1,32 @@
-# Steady Budget
+# Steady Budget & Steady Pots
 
-A phone-first budgeting app in Singapore dollars, built around one question: **how much can I spend today?**
+Two phone-first budgeting apps in Singapore dollars, each a single-file claude.ai Artifact.
+
+## Steady Pots
+
+S$800 monthly pay split into pots: **Savings S$400**, **Shanghai trip S$200** and **Misc S$200**.
+
+Open it here (private to you): https://claude.ai/artifact/MiH71Upwi3PbjQBE1zqvHp
+
+- **Misc is the spending pot.** The big number is what's left in it. Unspent money rolls over to next month.
+- **Log pay** puts S$800 into the pots by your plan. If the amount differs, the remainder goes to Misc.
+- **Other money** (an ang bao, a refund) asks which pot it goes into, or lets you split it.
+- **Savings and Shanghai trip only grow.** Spending from them, or moving money out, shows a warning and needs a
+  second tap. If Misc runs over after payday, it offers to cover the gap from savings.
+- **Tags** (Food & drinks, Transport, Shopping, ...) show where spending went. They're labels, not limits.
+- **Subscriptions** come out of Misc in one tap.
+- **Insights:** money in, spent, saved and Misc left; a savings-growth line chart; spending each month against
+  S$200; spending by tag; and changes from the same point last month.
+- Plan lets you change the pay amount, add or rename pots, set starting balances and optional targets, and edit tags.
+  You can also export CSV and back up or restore JSON.
+
+Data lives in `data/users/<your id>/` (`settings` plus one `m-YYYY-MM` document per month). Entries are
+`in` (with an `alloc` per pot), `out` (from one pot, with a tag) or `move` (between pots).
+A pot's balance is its starting balance plus everything in, minus everything out.
+
+## Steady Budget
+
+The first app, built around one question: **how much can I spend today?**
 
 Open it here (private to you): https://claude.ai/artifact/TsaD8paSASFNottdDWp1aG
 
@@ -38,5 +64,5 @@ Opened anywhere else, for example as a local file, the page runs with example da
 
 ## Files
 
-- `steady-budget.html`: the whole app (HTML, CSS and JS in one file). The Artifact publisher adds the
+- `steady-pots.html` and `steady-budget.html`: each app is one file (HTML, CSS and JS). The Artifact publisher adds the
   `<!doctype html>` skeleton when it publishes, which is why the file starts at `<title>`.
