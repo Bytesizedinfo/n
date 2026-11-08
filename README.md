@@ -19,7 +19,13 @@ Rebuild it after changing the app with `python3 tools/build_site.py`.
 - **Other money** (an ang bao, a refund) asks which pot it goes into, or lets you split it.
 - **Savings and Shanghai trip only grow.** Spending from them, or moving money out, shows a warning and needs a
   second tap. If Misc runs over after payday, it offers to cover the gap from savings.
-- **Tags** (Food & drinks, Transport, Shopping, ...) show where spending went. They're labels, not limits.
+- **Categories you create** (in Plan → Categories, or "+ New category" while adding spending). Each one can
+  have a budget **per day, per week or per month**.
+- **Monitor each category with a Today / Week / Month toggle** on the Pots screen: what you spent, what's left,
+  and a warning at 80% and when you go over. A budget set for one period is spread evenly for the others,
+  so S$5 a day shows as S$35 a week. Weeks run Monday to Sunday.
+- **Tap a category** for its own page: the same toggle, a chart of the last 14 days / 8 weeks / 6 months against
+  its budget, the average, what's left per day, and the spending in that period.
 - **Subscriptions** come out of Misc in one tap.
 - **Insights:** money in, spent, saved and Misc left; a savings-growth line chart; spending each month against
   S$200; spending by tag; and changes from the same point last month.
