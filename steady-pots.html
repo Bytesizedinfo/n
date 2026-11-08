@@ -409,10 +409,22 @@ function stats(p) {
 }
 function payFor(p) { return S.tx.some(t => t.t === 'in' && t.src === 'pay' && t.d >= p.start && t.d <= p.end); }
 
-/* ---------- persistence (per-person private store) ---------- */
+/* ---------- persistence ----------
+   Inside claude.ai: the viewer's private db subtree. As a standalone website (docs/index.html sets
+   data-standalone="1"): this browser's localStorage, saved as one JSON blob. */
+const STANDALONE = document.documentElement.dataset.standalone === '1';
+const LKEY = 'steady-pots:v1';
 const dirty = new Set(), chains = {};
-const canWrite = () => S.mode === 'live' && S.db && S.uid && !S.readOnly;
-function persist(id) { if (!canWrite() || dirty.has(id)) return; dirty.add(id); chains[id] = (chains[id] || Promise.resolve()).then(() => writeDoc(id, 0)); }
+const canWrite = () => S.mode === 'live' && !S.readOnly && (S.local || (S.db && S.uid));
+let localTimer = null;
+function saveLocal() {
+  localTimer = null;
+  try { localStorage.setItem(LKEY, JSON.stringify({ v: 1, saved: new Date().toISOString(), settings: S.settings, months: S.months })); }
+  catch (e) { toast('This browser didn’t save that change. Private browsing can block saving.', 'over', 6000); }
+}
+window.addEventListener('pagehide', () => { if (localTimer) { clearTimeout(localTimer); saveLocal(); } });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden' && localTimer) { clearTimeout(localTimer); saveLocal(); } });
+function persist(id) { if (!canWrite()) return; if (S.local) { clearTimeout(localTimer); localTimer = setTimeout(saveLocal, 150); return; } if (dirty.has(id)) return; dirty.add(id); chains[id] = (chains[id] || Promise.resolve()).then(() => writeDoc(id, 0)); }
 async function writeDoc(id, attempt) {
   dirty.delete(id);
   const body = id === 'settings' ? S.settings : S.months[id];
@@ -438,6 +450,7 @@ function saveSettings(rerender = true) { persist('settings'); if (rerender) refr
 async function boot() {
   $('#top-date').textContent = `${DOW[new Date().getDay()]}, ${fmtD(today())}`;
   route(); renderView();
+  if (STANDALONE) return startLocal();
   const c = window.claude;
   if (!c || typeof c.use !== 'function') return startDemo('outside');
   let db = null, user = null;
@@ -466,6 +479,22 @@ async function boot() {
     if (S.mode === 'live') toast('Live updates stopped. Reload the page to reconnect.', 'warn', 6000);
     else { S.mode = 'error'; S.why = err && err.code; renderView(); }
   });
+}
+function startLocal() {
+  S.local = true; let data = null;
+  try { localStorage.setItem(LKEY + ':test', '1'); localStorage.removeItem(LKEY + ':test'); data = JSON.parse(localStorage.getItem(LKEY) || 'null'); } catch (e) { S.noStore = true; }
+  S.months = (data && data.months) || {};
+  if (data && data.settings && data.settings.onboarded) { S.settings = Object.assign(defaultSettings(), data.settings); S.mode = 'live'; refresh(); }
+  else { S.mode = 'onboard'; S.draft = defaultSettings(); renderView(); }
+  try { navigator.storage && navigator.storage.persist && navigator.storage.persist().catch(() => {}); } catch (e) {}
+}
+const isInstalled = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+function localBanners() {
+  if (!S.local) return '';
+  if (S.noStore) return `<div class="warnbox">${I.warn}<span>This browser is blocking saving, so changes will be lost when you close it. Turn off private browsing and open the page again.</span></div>`;
+  let hide = false; try { hide = localStorage.getItem(LKEY + ':hide-install') === '1'; } catch (e) {}
+  if (isInstalled() || hide) return '';
+  return `<div class="banner"><b>Add Steady Pots to your Home Screen.</b> It opens like an app and keeps your data safe. iPhone: tap Share, then Add to Home Screen. Android: tap the menu, then Install app. <button class="linkbtn" data-act="hide-install">Got it</button></div>`;
 }
 function startDemo(why) { S.mode = 'demo'; S.why = why; const d = demoData(); S.settings = d.settings; S.months = d.months; refresh(); }
 
@@ -515,7 +544,7 @@ function renderView() {
   $('#top-title').textContent = TITLES[S.view];
   $$('.tab[data-view]').forEach(b => { if (b.dataset.view === S.view) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current'); });
   const fn = { home: viewHome, activity: viewActivity, insights: viewInsights, plan: viewPlan }[S.view];
-  main.innerHTML = (S.mode === 'demo' ? `<div class="banner"><b>Example data.</b> ${S.why === 'signedout' ? 'Sign in to claude.ai and reopen this page' : 'Open this page in claude.ai while signed in'} to use your own pots. Changes here aren’t saved.</div>` : '') + fn();
+  main.innerHTML = (S.view === 'home' ? localBanners() : '') + (S.mode === 'demo' ? `<div class="banner"><b>Example data.</b> ${S.why === 'signedout' ? 'Sign in to claude.ai and reopen this page' : 'Open this page in claude.ai while signed in'} to use your own pots. Changes here aren’t saved.</div>` : '') + fn();
   if (S.view === 'activity') renderActList();
 }
 function viewLoading() {
@@ -776,7 +805,7 @@ function planMore() {
     <div class="setting-row"><div class="t"><b>Restore from a backup</b><span>Replaces what’s here now</span></div><label class="btn ghost small" for="restore-file">Choose file</label><input type="file" id="restore-file" accept=".json,application/json" hidden></div></section>
   <section class="card"><div class="card-head"><h2>Settings</h2></div>
     <label class="field"><span>Currency symbol</span><input class="input" id="set-symbol" data-set="symbol" value="${esc(s.symbol)}" maxlength="4" style="max-width:8rem"></label>
-    <p class="muted small">${S.mode === 'demo' ? 'This is example data, so nothing here is saved.' : 'Your pots are saved to your claude.ai account and are private to you, even if you share this page.'}</p>
+    <p class="muted small">${S.mode === 'demo' ? 'This is example data, so nothing here is saved.' : S.local ? 'Your pots are saved in this browser, on this device only. Download a backup now and then, and always before clearing browser data. A backup from here also restores into the claude.ai version, and the other way round.' : 'Your pots are saved to your claude.ai account and are private to you, even if you share this page.'}</p>
     <button class="btn danger" data-act="reset" style="align-self:flex-start">${S.mode === 'demo' ? 'Clear the example data' : 'Delete all my data'}</button></section>`;
 }
 
@@ -1021,6 +1050,12 @@ function paySub(id) {
 
 /* ---------- export / restore ---------- */
 async function offerFile(filename, text) {
+  if (STANDALONE) {
+    try {
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: filename.endsWith('.json') ? 'application/json' : 'text/csv' }));
+      a.download = filename; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1500); toast(`Downloaded ${filename}`); return;
+    } catch (e) {}
+  }
   let dl = null; try { dl = window.claude && window.claude.use ? await window.claude.use('downloads') : null; } catch (e) {}
   if (dl) { try { const r = await dl.save({ filename, data: text }); if (r && r.status === 'saved') toast('File saved'); return; } catch (e) { if (e && e.code === 'declined') return; if (e && e.code === 'rate_limited') { toast('A save is already waiting for your answer.'); return; } } }
   openSheet('Copy your data', `<div class="form"><p class="muted small">Saving files isn’t available here. Copy this text and paste it into a file named <b>${esc(filename)}</b>.</p><textarea class="input" id="copy-box" rows="10" readonly style="font:12px/1.4 ui-monospace,monospace">${esc(text)}</textarea><button class="btn" data-act="copy-box">Copy</button></div>`);
@@ -1053,6 +1088,7 @@ async function restoreFrom(file) {
 }
 function resetAll() {
   const old = Object.keys(S.months);
+  if (S.local) { clearTimeout(localTimer); localTimer = null; try { localStorage.removeItem(LKEY); } catch (e) {} S.months = {}; S.settings = null; S.mode = 'onboard'; S.draft = defaultSettings(); renderView(); toast('All your data was deleted.'); return; }
   if (S.mode === 'demo') { S.settings = Object.assign(defaultSettings(), { onboarded: true }); S.months = {}; refresh(); toast('Example data cleared. Changes still aren’t saved here.'); return; }
   S.months = {}; old.forEach(persist); S.settings = null; dirty.delete('settings');
   S.db.doc(`data/users/${S.uid}/settings`).delete().catch(() => {});
@@ -1107,7 +1143,8 @@ const ACT = {
   'export-json': () => exportJSON(),
   'copy-box': () => { const t = $('#copy-box'); if (navigator.clipboard) navigator.clipboard.writeText(t.value).then(() => toast('Copied'), () => { t.select(); toast('Select all and copy'); }); else { t.select(); toast('Select all and copy'); } },
   reset: el => armDanger(el, S.mode === 'demo' ? 'Tap again to clear' : 'Tap again to delete everything', resetAll),
-  'ob-finish': () => { const d = S.draft; d.onboarded = true; S.settings = d; S.mode = S.db ? 'live' : 'demo'; persist('settings'); refresh(); window.scrollTo(0, 0); toast('You’re set. Log your pay when it comes in.'); },
+  'hide-install': () => { try { localStorage.setItem(LKEY + ':hide-install', '1'); } catch (e) {} renderView(); },
+  'ob-finish': () => { const d = S.draft; d.onboarded = true; S.settings = d; S.mode = (S.db || S.local) ? 'live' : 'demo'; persist('settings'); refresh(); window.scrollTo(0, 0); toast('You’re set. Log your pay when it comes in.'); },
 };
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-act]'); if (!el || (el.closest('.sheet-body') && !['close-sheet', 'copy-box', 'go'].includes(el.dataset.act))) return;

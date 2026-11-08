@@ -8,6 +8,12 @@ S$800 monthly pay split into pots: **Savings S$400**, **Shanghai trip S$200** an
 
 Open it here (private to you): https://claude.ai/artifact/MiH71Upwi3PbjQBE1zqvHp
 
+It's also a website: **https://bytesizedinfo.github.io/n/**, served by GitHub Pages from `/docs` on this branch.
+The website saves in your phone's browser (localStorage) instead of your claude.ai account, so the two versions
+keep separate data. A backup from either one restores into the other. Add the website to your Home Screen so it
+opens like an app, works offline, and Safari doesn't clear its data.
+Rebuild it after changing the app with `python3 tools/build_site.py`.
+
 - **Misc is the spending pot.** The big number is what's left in it. Unspent money rolls over to next month.
 - **Log pay** puts S$800 into the pots by your plan. If the amount differs, the remainder goes to Misc.
 - **Other money** (an ang bao, a refund) asks which pot it goes into, or lets you split it.
