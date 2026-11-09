@@ -460,8 +460,22 @@ function stats(p) {
     if (t.t === 'in') inn += t.amt;
     if (t.t === 'out') { spent += t.amt; byLabel[t.label] = (byLabel[t.label] || 0) + t.amt; if (t.from !== 'spend') fromSave += t.amt; }
   }
-  const saved = r2(sum(S.settings.saveCats.map(c => saveMonth(c.id, p).net)));
-  return { tx, inn: r2(inn), spent: r2(spent), fromSave: r2(fromSave), byLabel, saved, sm: spendMonth(p) };
+  const flows = saveFlows(p);
+  return { tx, inn: r2(inn), spent: r2(spent), fromSave: r2(fromSave), byLabel, flows, saved: flows.income, sm: spendMonth(p) };
+}
+/* Where money in savings came from in one month. Only money coming in from income (pay, or other money
+   logged as money in and sent straight to savings) counts as "saved". Leftover spending moved over at
+   month end and moves from Spending change balances but are not counted as saving more. */
+function saveFlows(p) {
+  let pay = 0, otherIn = 0, fromSpend = 0, takenOut = 0;
+  for (const t of S.tx) {
+    if (t.d < p.start || t.d > p.end) continue;
+    if (t.t === 'in') { const v = sum(Object.values(t.save || {})); if (t.src === 'pay') pay += v; else otherIn += v; }
+    else if (t.t === 'move') { if (t.from === 'spend' && t.to !== 'spend') fromSpend += t.amt; else if (t.to === 'spend' && t.from !== 'spend') takenOut += t.amt; }
+    else if (t.t === 'out' && t.from !== 'spend') takenOut += t.amt;
+  }
+  const leftover = sum(S.sweeps.filter(s => s.d >= p.start && s.d <= p.end).map(s => s.amt));
+  return { pay: r2(pay), otherIn: r2(otherIn), income: r2(pay + otherIn), fromSpend: r2(fromSpend), leftover: r2(leftover), takenOut: r2(takenOut) };
 }
 const payFor = p => S.tx.some(t => t.t === 'in' && t.src === 'pay' && t.d >= p.start && t.d <= p.end);
 function labelSpent(id, r) { let s = 0; for (const t of S.tx) if (t.t === 'out' && t.label === id && t.d >= r.start && t.d <= r.end) s += t.amt; return r2(s); }
@@ -644,9 +658,10 @@ function viewHome() {
 function savingsCard(p) {
   const s = S.settings, v = S.saveView, cur = S.offset === 0, until = cur ? today() : p.end;
   const rows = s.saveCats.map(c => ({ c, bal: saveBal(c.id, until), m: saveMonth(c.id, p) }));
-  const total = r2(sum(rows.map(r => r.bal))), net = r2(sum(rows.map(r => r.m.net))), other = rows.find(r => r.c.id === 'other');
+  const total = r2(sum(rows.map(r => r.bal))), fl = saveFlows(p), other = rows.find(r => r.c.id === 'other'), when = cur ? 'this month' : `in ${monthName(p)}`;
   let h = `<section class="card" aria-label="Savings"><div class="card-head"><h2>Savings</h2><button class="link" data-act="savecat-edit">+ New category</button></div>
-    <div class="sv-total"><b class="num">${mw(total)}</b><span class="d ${net > 0.004 ? 'add' : net < -0.004 ? 'less' : ''}">${net > 0.004 ? '+' : ''}${mw(net)} ${cur ? 'this month' : `in ${monthName(p)}`}</span></div>
+    <div class="sv-total"><b class="num">${mw(total)}</b><span class="d ${fl.income > 0.004 ? 'add' : ''}">${fl.income > 0.004 ? `+${mw(fl.income)} saved from income ${when}` : `Nothing saved from income ${when}`}</span></div>
+    ${fl.takenOut > 0.004 ? `<span class="status over">${I.warn}${mw(fl.takenOut)} taken out of savings ${when}</span>` : ''}
     <div class="seg mini" role="group" aria-label="Show savings as"><button data-act="save-view" data-v="month" aria-pressed="${v === 'month'}">${cur ? 'This month' : monthName(p)}</button><button data-act="save-view" data-v="total" aria-pressed="${v === 'total'}">Total</button></div><div>`;
   for (const r of rows) {
     const tgt = +r.c.target || 0;
@@ -681,7 +696,7 @@ function txRow(t) {
   if (t.t === 'out') { const l = label(t.label); ico = `<span class="tx-ico"><span class="dot c${l.color ?? 8}"></span></span>`; title = t.note || l.name; subt = `${t.note ? l.name + ' · ' : ''}${t.from === 'spend' ? 'Spending' : 'from ' + whereName(t.from)}`; amt = '−' + money(t.amt); if (t.from !== 'spend') cls = 'fromsave'; }
   else if (t.t === 'in') { ico = `<span class="tx-ico inc">${I.up}</span>`; title = t.note || (t.src === 'pay' ? 'Pay' : 'Money in'); subt = [t.spend ? `Spending ${mw(t.spend)}` : '', ...Object.entries(t.save || {}).filter(([, v]) => v > 0).map(([k, v]) => `${saveCat(k).name} ${mw(v)}`)].filter(Boolean).join(' · '); amt = '+' + money(t.amt); cls = 'inc'; }
   else if (t.t === 'move') { ico = `<span class="tx-ico mov">${I.move}</span>`; title = `${whereName(t.from)} → ${whereName(t.to)}`; subt = t.note || 'Moved'; amt = money(t.amt); cls = 'mov'; }
-  else { ico = `<span class="tx-ico mov">${I.move}</span>`; title = t.amt >= 0 ? `${monthName(t.p)} leftover → Savings · Other` : `${monthName(t.p)} overspend ← Savings · Other`; subt = 'Worked out from that month’s spending'; amt = money(Math.abs(t.amt)); cls = t.amt >= 0 ? 'mov' : 'fromsave'; act = 'sweep-info'; }
+  else { ico = `<span class="tx-ico mov">${I.move}</span>`; title = t.amt >= 0 ? `${monthName(t.p)} leftover → Savings · Other` : `${monthName(t.p)} overspend ← Savings · Other`; subt = 'From that month’s spending · not counted as saved'; amt = money(Math.abs(t.amt)); cls = t.amt >= 0 ? 'mov' : 'fromsave'; act = 'sweep-info'; }
   return `<button class="tx" data-act="${act}" data-id="${esc(t.id)}">${ico}<span class="tx-main"><span class="tx-title">${esc(title)}</span><span class="tx-sub">${esc(subt)}</span></span><span class="tx-amt ${cls}">${esc(amt)}</span></button>`;
 }
 const CYCLE = { monthly: 'a month', yearly: 'a year', weekly: 'a week' };
@@ -755,12 +770,17 @@ function viewInsights() {
   h += `<div class="tiles">
     <div class="tile"><span class="eyebrow">Money in</span><span class="v">${mw(st.inn)}</span>${deltaHtml(st.inn, sp.inn, true)}</div>
     <div class="tile"><span class="eyebrow">Spent</span><span class="v">${mw(st.spent)}</span>${deltaHtml(st.spent, prevSpent, false, vs)}</div>
-    <div class="tile"><span class="eyebrow">Savings grew</span><span class="v" style="${st.saved < 0 ? 'color:var(--over)' : ''}">${mw(st.saved, { sign: true })}</span><span class="d">${cur ? 'so far this month' : `in ${monthName(p)}`}</span></div>
+    <div class="tile"><span class="eyebrow">Saved from income</span><span class="v">${mw(st.saved)}</span>${deltaHtml(st.saved, sp.saved, true)}</div>
     <div class="tile"><span class="eyebrow">Total savings</span><span class="v">${mw(totalSaved(until))}</span><span class="d">${cur ? 'now' : `on ${fmtD(p.end)}`}</span></div>
   </div>`;
   const ps = []; for (let i = 5; i >= 0; i--) { const q = periodAt(S.offset - i); ps.push({ p: q, st: stats(q) }); }
   const at = x => x.p.end < today() ? x.p.end : today();
-  h += `<section class="card"><div class="card-head"><h2>Total savings</h2><span class="muted small">end of each month</span></div>${colChart(ps.map((x, i) => ({ v: Math.max(0, totalSaved(at(x))), cur: i === ps.length - 1, label: shortLabel(x.p), tip: `${x.p.label}\nTotal savings ${money(totalSaved(at(x)))}` })), 0, '', 'var(--p0)')}
+  const fl = st.flows, prevName = monthName(pp);
+  h += `<section class="card"><div class="card-head"><h2>Where savings came from</h2><span class="muted small">${cur ? 'this month' : esc(monthName(p))}</span></div>
+    <div class="flow" style="border-top:0;padding-top:0"><span>From pay</span><span>+${money(fl.pay)}</span>${fl.otherIn ? `<span>Other money in</span><span>+${money(fl.otherIn)}</span>` : ''}<span class="tot">Saved from income</span><span class="tot">${money(fl.income)}</span></div>
+    ${fl.leftover || fl.fromSpend || fl.takenOut ? `<div class="flow"><span class="muted">Not counted as saving</span><span></span>${fl.leftover ? `<span>${fl.leftover > 0 ? `${esc(prevName)}’s leftover spending` : `${esc(prevName)}’s overspend`}</span><span>${fl.leftover > 0 ? '+' : ''}${money(fl.leftover)}</span>` : ''}${fl.fromSpend ? `<span>Moved from Spending</span><span>+${money(fl.fromSpend)}</span>` : ''}${fl.takenOut ? `<span>Taken out of savings</span><span>−${money(fl.takenOut)}</span>` : ''}</div>` : ''}
+    <p class="muted small">Only money that comes in from your income counts as saving. Leftovers and moves change your balances but aren’t counted.</p></section>`;
+  h += `<section class="card"><div class="card-head"><h2>Saved from income</h2><span class="muted small">each month</span></div>${colChart(ps.map((x, i) => ({ v: x.st.saved, cur: i === ps.length - 1, label: shortLabel(x.p), tip: `${x.p.label}\nSaved from income ${money(x.st.saved)}\nTotal savings ${money(totalSaved(at(x)))}` })), 0, '', 'var(--p0)')}
     <details class="tbl"><summary>Show each savings category</summary><div class="tbl-wrap"><table class="data"><thead><tr><th>Month</th>${s.saveCats.map(c => `<th>${esc(c.name)}</th>`).join('')}<th>Total</th></tr></thead><tbody>${ps.map(x => `<tr><td>${esc(shortLabel(x.p))}</td>${s.saveCats.map(c => `<td>${mw(saveBal(c.id, at(x)))}</td>`).join('')}<td><b>${mw(totalSaved(at(x)))}</b></td></tr>`).join('')}</tbody></table></div></details></section>`;
   h += `<section class="card"><div class="card-head"><h2>Spending each month</h2></div>${colChart(ps.map((x, i) => ({ v: x.st.spent, cur: i === ps.length - 1, label: shortLabel(x.p), tip: `${x.p.label}\nSpent ${money(x.st.spent)} of ${money(x.st.sm.added)}` })), +s.split.spend || 0, `${mw(+s.split.spend || 0)} a month`)}</section>`;
   const labels = Object.entries(st.byLabel).sort((a, b) => b[1] - a[1]);

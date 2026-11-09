@@ -19,6 +19,9 @@ website copy: **https://bytesizedinfo.github.io/n/spend-save/**
   - with "+ New category" on the Spending and Savings cards
   - while adding spending, adding money or moving money
   - in Plan → Categories, where you can also rename, recolour or delete them
+- **Saved from income** counts only money that comes in from your income (pay, or other money logged as
+  money in and sent straight to savings). Leftover spending, moves from Spending and money taken out change
+  your balances but don't count as saving. Insights → "Where savings came from" shows the breakdown.
 - **Month end:** unspent Spending moves to Savings → Other on the 1st. Overspending is taken from Other.
   This is worked out from your entries, so editing an old expense updates it.
 - Spending from savings, or moving savings into Spending, needs a second tap. Subscriptions are paid from
