@@ -10,17 +10,21 @@ S$800 a month in two groups: **Spending S$200** and **Savings S$600**.
 Open it here (private to you): https://claude.ai/artifact/RzpoUebu3QvdeWomi6G3EL ·
 website copy: **https://bytesizedinfo.github.io/n/spend-save/**
 
-- **Spending** is one amount each month. **Labels** (Food & drinks, Transport, ...) record what it went on and
-  never hold money. View them by **Today / Week / Month**, and tap a label for its history.
-- **Savings** has subcategories that hold money: Other, Shanghai trip, Emergency fund, General savings,
-  Investments. Pay's S$600 and any money you don't sort lands in **Other** until you move it.
-  Each subcategory can be viewed **for the month or in total**.
+- **Spending** is one amount each month. **Spending categories** (Food & drinks, Transport, ...) record what it
+  went on and never hold money. View them by **Today / Week / Month**, and tap one for its history.
+- **Savings categories** hold money: Other, Shanghai trip, Emergency fund, General savings, Investments.
+  Pay's S$600 and any money you don't sort lands in **Other** until you move it. Each one can be viewed
+  **for the month or in total**, and can have a starting balance and a target.
+- **Create your own categories** of either kind:
+  - with "+ New category" on the Spending and Savings cards
+  - while adding spending, adding money or moving money
+  - in Plan → Categories, where you can also rename, recolour or delete them
 - **Month end:** unspent Spending moves to Savings → Other on the 1st. Overspending is taken from Other.
   This is worked out from your entries, so editing an old expense updates it.
 - Spending from savings, or moving savings into Spending, needs a second tap. Subscriptions are paid from
   Spending. Insights show money in, spent, how much savings grew, total savings, and charts.
-- Data: `data/users/<id>/settings` plus `m-YYYY-MM`. Entries are `in` (`spend` + `save` per subcategory),
-  `out` (`label`, `from`) and `move` (`from`/`to`, where `spend` means Spending).
+- Data: `data/users/<id>/settings` plus `m-YYYY-MM`. Entries are `in` (`spend` + `save` per savings category),
+  `out` (`label` = spending category, `from`) and `move` (`from`/`to`, where `spend` means Spending).
 
 ## Steady Pots
 

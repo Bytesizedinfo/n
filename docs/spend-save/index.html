@@ -402,8 +402,8 @@ function defaultSettings() {
     subs: [], onboarded: false,
   };
 }
-const NOLABEL = { id: '_none', name: 'Unlabelled', color: 8 };
-const NOCAT = { id: '_gone', name: 'Removed subcategory', color: 6, start: 0, target: 0 };
+const NOLABEL = { id: '_none', name: 'Uncategorised', color: 8 };
+const NOCAT = { id: '_gone', name: 'Removed category', color: 6, start: 0, target: 0 };
 const label = id => S.settings.labels.find(l => l.id === id) || NOLABEL;
 const saveCat = id => S.settings.saveCats.find(c => c.id === id) || NOCAT;
 const whereName = id => id === 'spend' ? 'Spending' : saveCat(id).name;
@@ -663,7 +663,7 @@ function savingsCard(p) {
   const s = S.settings, v = S.saveView, cur = S.offset === 0, until = cur ? today() : p.end;
   const rows = s.saveCats.map(c => ({ c, bal: saveBal(c.id, until), m: saveMonth(c.id, p) }));
   const total = r2(sum(rows.map(r => r.bal))), net = r2(sum(rows.map(r => r.m.net))), other = rows.find(r => r.c.id === 'other');
-  let h = `<section class="card" aria-label="Savings"><div class="card-head"><h2>Savings</h2><button class="link" data-act="move">Move money</button></div>
+  let h = `<section class="card" aria-label="Savings"><div class="card-head"><h2>Savings</h2><button class="link" data-act="savecat-edit">+ New category</button></div>
     <div class="sv-total"><b class="num">${mw(total)}</b><span class="d ${net > 0.004 ? 'add' : net < -0.004 ? 'less' : ''}">${net > 0.004 ? '+' : ''}${mw(net)} ${cur ? 'this month' : `in ${monthName(p)}`}</span></div>
     <div class="seg mini" role="group" aria-label="Show savings as"><button data-act="save-view" data-v="month" aria-pressed="${v === 'month'}">${cur ? 'This month' : monthName(p)}</button><button data-act="save-view" data-v="total" aria-pressed="${v === 'total'}">Total</button></div><div>`;
   for (const r of rows) {
@@ -676,21 +676,21 @@ function savingsCard(p) {
   }
   h += '</div>';
   if (cur && other && other.bal > 0.004) h += `<div class="banner"><b>${money(other.bal)}</b> in Other isn’t sorted yet. <button class="linkbtn" data-act="sort-other">Sort it now</button></div>`;
-  if (other && other.bal < -0.004) h += `<span class="status over">${I.over}Other is below zero. Move money into it from another subcategory.</span>`;
-  return h + '</section>';
+  if (other && other.bal < -0.004) h += `<span class="status over">${I.over}Other is below zero. Move money into it from another category.</span>`;
+  return h + `<div class="btn-row"><button class="btn ghost small" data-act="move">Move money</button></div></section>`;
 }
 function labelsCard(fixed) {
   const s = S.settings, k = fixed ? 'month' : S.labelPeriod, r = fixed || rangeFor(k);
   const by = {}; for (const t of S.tx) if (t.t === 'out' && t.d >= r.start && t.d <= r.end) { const id = s.labels.some(l => l.id === t.label) ? t.label : NOLABEL.id; by[id] = (by[id] || 0) + t.amt; }
   const rows = Object.entries(by).sort((a, b) => b[1] - a[1]), total = r2(sum(rows.map(x => x[1]))), top = rows.length ? rows[0][1] : 1;
   const quiet = s.labels.filter(l => !by[l.id]).length;
-  let h = `<section class="card" aria-label="Spending by label"><div class="card-head"><h2>Spending by label</h2><button class="link" data-act="label-edit">+ New</button></div>
+  let h = `<section class="card" aria-label="Spending by category"><div class="card-head"><h2>Spending by category</h2><button class="link" data-act="label-edit">+ New category</button></div>
     ${fixed ? '' : `<div class="seg mini" role="group" aria-label="Show spending for">${['day', 'week', 'month'].map(v => `<button data-act="label-period" data-v="${v}" aria-pressed="${k === v}">${PER_NAME[v]}</button>`).join('')}</div>`}
     <div class="result-sum"><span>${esc(rangeLabel(r))}</span><span class="num">${money(total)} spent</span></div>`;
-  if (!rows.length) h += `<div class="empty" style="padding:12px 10px"><b>Nothing spent ${periodWord(r)}</b>Tap + when you buy something and pick a label.</div>`;
+  if (!rows.length) h += `<div class="empty" style="padding:12px 10px"><b>Nothing spent ${periodWord(r)}</b>Tap + when you buy something and pick a category.</div>`;
   else h += `<div class="cats">${rows.map(([id, v]) => { const l = id === NOLABEL.id ? NOLABEL : label(id); const btn = id !== NOLABEL.id;
     return `<${btn ? 'button' : 'div'} class="cat-row" ${btn ? `data-act="label" data-id="${esc(id)}"` : ''}><span class="dot c${l.color ?? 8}"></span><span class="cat-name">${esc(l.name)}</span><span class="cat-amt"><b>${money(v)}</b> · ${Math.round(v / total * 100)}%</span><span class="bar thin"><i style="width:${(v / top * 100).toFixed(1)}%"></i></span></${btn ? 'button' : 'div'}>`; }).join('')}</div>`;
-  if (quiet && rows.length) h += `<p class="muted small">${quiet} other label${quiet === 1 ? ' has' : 's have'} nothing spent ${periodWord(r)}.</p>`;
+  if (quiet && rows.length) h += `<p class="muted small">${quiet} other categor${quiet === 1 ? 'y has' : 'ies have'} nothing spent ${periodWord(r)}.</p>`;
   return h + '</section>';
 }
 
@@ -734,11 +734,11 @@ function filtered() {
 function viewActivity() {
   const f = S.f, s = S.settings, opt = (v, l, c) => `<option value="${esc(v)}" ${c === v ? 'selected' : ''}>${esc(l)}</option>`;
   return `<section class="card filters" aria-label="Search and filter">
-    <div class="search">${I.search}<input class="input" id="f-q" data-f="q" type="search" placeholder="Search notes, labels, amounts" value="${esc(f.q)}" autocomplete="off"></div>
+    <div class="search">${I.search}<input class="input" id="f-q" data-f="q" type="search" placeholder="Search notes, categories, amounts" value="${esc(f.q)}" autocomplete="off"></div>
     <div class="seg" role="group" aria-label="Type">${[['all', 'All'], ['out', 'Spending'], ['in', 'Money in'], ['move', 'Moves']].map(([v, l]) => `<button data-act="f-type" data-v="${v}" aria-pressed="${f.type === v}">${l}</button>`).join('')}</div>
     <div class="filter-row"><select class="input" id="f-range" data-f="range" aria-label="Dates">${opt('month', 'This month', f.range)}${opt('last', 'Last month', f.range)}${opt('3m', 'Last 3 months', f.range)}${opt('all', 'All time', f.range)}${opt('custom', 'Custom dates', f.range)}</select>
       <select class="input" id="f-where" data-f="where" aria-label="Spending or savings">${opt('all', 'Spending & savings', f.where)}${opt('spend', 'Spending', f.where)}${s.saveCats.map(c => opt(c.id, 'Savings · ' + c.name, f.where)).join('')}</select></div>
-    <select class="input slim" id="f-label" data-f="label" aria-label="Label">${opt('all', 'All labels', f.label)}${s.labels.map(l => opt(l.id, l.name, f.label)).join('')}</select>
+    <select class="input slim" id="f-label" data-f="label" aria-label="Spending category">${opt('all', 'All spending categories', f.label)}${s.labels.map(l => opt(l.id, l.name, f.label)).join('')}</select>
     ${f.range === 'custom' ? `<div class="filter-row"><label class="field"><span>From</span><input class="input" type="date" id="f-from" data-f="from" value="${esc(f.from)}"></label><label class="field"><span>To</span><input class="input" type="date" id="f-to" data-f="to" value="${esc(f.to)}"></label></div>` : ''}
     ${(f.q || f.type !== 'all' || f.where !== 'all' || f.label !== 'all' || f.range !== 'month') ? `<button class="linkbtn" data-act="f-clear">Clear filters</button>` : ''}
   </section><section class="card" id="act-list"></section>`;
@@ -779,10 +779,10 @@ function viewInsights() {
   const ps = []; for (let i = 5; i >= 0; i--) { const q = periodAt(S.offset - i); ps.push({ p: q, st: stats(q) }); }
   const at = x => x.p.end < today() ? x.p.end : today();
   h += `<section class="card"><div class="card-head"><h2>Total savings</h2><span class="muted small">end of each month</span></div>${colChart(ps.map((x, i) => ({ v: Math.max(0, totalSaved(at(x))), cur: i === ps.length - 1, label: shortLabel(x.p), tip: `${x.p.label}\nTotal savings ${money(totalSaved(at(x)))}` })), 0, '', 'var(--p0)')}
-    <details class="tbl"><summary>Show each subcategory</summary><div class="tbl-wrap"><table class="data"><thead><tr><th>Month</th>${s.saveCats.map(c => `<th>${esc(c.name)}</th>`).join('')}<th>Total</th></tr></thead><tbody>${ps.map(x => `<tr><td>${esc(shortLabel(x.p))}</td>${s.saveCats.map(c => `<td>${mw(saveBal(c.id, at(x)))}</td>`).join('')}<td><b>${mw(totalSaved(at(x)))}</b></td></tr>`).join('')}</tbody></table></div></details></section>`;
+    <details class="tbl"><summary>Show each savings category</summary><div class="tbl-wrap"><table class="data"><thead><tr><th>Month</th>${s.saveCats.map(c => `<th>${esc(c.name)}</th>`).join('')}<th>Total</th></tr></thead><tbody>${ps.map(x => `<tr><td>${esc(shortLabel(x.p))}</td>${s.saveCats.map(c => `<td>${mw(saveBal(c.id, at(x)))}</td>`).join('')}<td><b>${mw(totalSaved(at(x)))}</b></td></tr>`).join('')}</tbody></table></div></details></section>`;
   h += `<section class="card"><div class="card-head"><h2>Spending each month</h2></div>${colChart(ps.map((x, i) => ({ v: x.st.spent, cur: i === ps.length - 1, label: shortLabel(x.p), tip: `${x.p.label}\nSpent ${money(x.st.spent)} of ${money(x.st.sm.added)}` })), +s.split.spend || 0, `${mw(+s.split.spend || 0)} a month`)}</section>`;
   const labels = Object.entries(st.byLabel).sort((a, b) => b[1] - a[1]);
-  if (labels.length) h += `<section class="card"><div class="card-head"><h2>By label</h2></div><div>${labels.map(([id, v]) => { const l = label(id); return `<div class="ibar-row" ${l !== NOLABEL ? `role="button" tabindex="0" data-act="label" data-id="${esc(id)}" data-k="month" style="cursor:pointer"` : ''}><span class="nm"><i class="dot c${l.color ?? 8}"></i><span>${esc(l.name)}</span></span><span class="val"><b>${money(v)}</b> · ${Math.round(v / st.spent * 100)}%</span><span class="bar"><i style="width:${(v / labels[0][1] * 100).toFixed(1)}%"></i></span></div>`; }).join('')}</div></section>`;
+  if (labels.length) h += `<section class="card"><div class="card-head"><h2>By category</h2></div><div>${labels.map(([id, v]) => { const l = label(id); return `<div class="ibar-row" ${l !== NOLABEL ? `role="button" tabindex="0" data-act="label" data-id="${esc(id)}" data-k="month" style="cursor:pointer"` : ''}><span class="nm"><i class="dot c${l.color ?? 8}"></i><span>${esc(l.name)}</span></span><span class="val"><b>${money(v)}</b> · ${Math.round(v / st.spent * 100)}%</span><span class="bar"><i style="width:${(v / labels[0][1] * 100).toFixed(1)}%"></i></span></div>`; }).join('')}</div></section>`;
   const moves = s.labels.map(l => ({ l, d: (st.byLabel[l.id] || 0) - (prevBy[l.id] || 0) })).filter(m => Math.abs(m.d) >= 1).sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 5);
   if (moves.length && prevSpent > 0) h += `<section class="card"><div class="card-head"><h2>Changes from ${vs}</h2></div><div class="movers">${moves.map(m => `<div><span><i class="dot c${m.l.color ?? 8}" style="margin-right:8px"></i>${esc(m.l.name)}</span><b class="num d ${m.d > 0 ? 'up-bad' : 'down-good'}">${m.d > 0 ? '▲ ' : '▼ '}${money(Math.abs(m.d))}</b></div>`).join('')}</div></section>`;
   const big = st.tx.filter(t => t.t === 'out').sort((a, b) => b.amt - a.amt).slice(0, 5);
@@ -811,7 +811,7 @@ function colChart(items, ref, refLabel, fill = 'var(--p1)') {
 
 /* ---------- Plan ---------- */
 function viewPlan() {
-  return `<div class="seg" role="group" aria-label="Plan sections">${[['spend', 'Pay & spending'], ['save', 'Savings'], ['labels', 'Labels'], ['more', 'More']].map(([v, l]) => `<button data-act="plan-tab" data-tab="${v}" aria-pressed="${S.planTab === v}">${l}</button>`).join('')}</div>` + ({ spend: planSpend, save: planSave, labels: planLabels, more: planMore }[S.planTab] || planSpend)();
+  return `<div class="seg" role="group" aria-label="Plan sections">${[['spend', 'Pay & spending'], ['cats', 'Categories'], ['more', 'More']].map(([v, l]) => `<button data-act="plan-tab" data-tab="${v}" aria-pressed="${S.planTab === v}">${l}</button>`).join('')}</div>` + ({ spend: planSpend, cats: planCats, more: planMore }[S.planTab] || planSpend)();
 }
 function splitHtml(s) {
   const pay = +s.pay || 0, sp = +s.split.spend || 0, sv = r2(pay - sp);
@@ -825,29 +825,22 @@ function planSpend() {
     <div class="grid2"><label class="field"><span>Monthly take-home pay</span><div class="money-in" data-sym="${esc(sym())}"><input class="input" id="set-pay" data-set="pay" inputmode="decimal" value="${s.pay || ''}"></div></label>
     <label class="field"><span>For spending</span><div class="money-in" data-sym="${esc(sym())}"><input class="input" id="set-spend" data-set="spend" inputmode="decimal" value="${s.split.spend || ''}"></div></label></div>
     <div id="split-show">${splitHtml(s)}</div>
-    <p class="muted small">The rest of your pay goes to Savings → Other. Sort it into subcategories whenever you like. Spending you don’t use goes to Savings → Other at month end.</p>
+    <p class="muted small">The rest of your pay goes to Savings → Other. Sort it into savings categories whenever you like. Spending you don’t use goes to Savings → Other at month end.</p>
     <label class="field"><span>Month starts on the</span><select class="input" id="set-start" data-set="monthStart">${Array.from({ length: 28 }, (_, i) => `<option value="${i + 1}" ${s.monthStart === i + 1 ? 'selected' : ''}>${ordinal(i + 1)}</option>`).join('')}</select></label></section>
   <section class="card"><div class="card-head"><h2>Subscriptions</h2>${act.length ? `<span class="muted small num">${money(mo)} a month</span>` : ''}</div>
-    ${act.length ? `<div>${act.map(subRow).join('')}</div>` : `<p class="muted small">Add Spotify, Netflix or your phone plan. Logging a payment takes it out of Spending under the Subscriptions label.</p>`}
+    ${act.length ? `<div>${act.map(subRow).join('')}</div>` : `<p class="muted small">Add Spotify, Netflix or your phone plan. Logging a payment takes it out of Spending under the Subscriptions category.</p>`}
     <button class="btn ghost" data-act="edit-sub">Add a subscription</button></section>`;
 }
-function planSave() {
+function planCats() {
   const s = S.settings;
-  return `<section class="card"><div class="card-head"><h2>Savings subcategories</h2></div>
-    <p class="muted small" style="margin-top:-6px">Each one holds its own money. Pay and leftovers land in Other until you move them.</p>
-    <div class="list-edit">${s.saveCats.map(c => `<div class="sc-edit"><button class="icon-btn" data-act="sc-color" data-id="${esc(c.id)}" aria-label="Change colour of ${esc(c.name)}"><i class="dot pc${c.color ?? 6}"></i></button>
-      <input class="input" id="sc-name-${esc(c.id)}" data-sc="${esc(c.id)}" data-scf="name" value="${esc(c.name)}" aria-label="Name">
-      <div class="more"><label class="field"><span>Starting balance</span><div class="money-in" data-sym="${esc(sym())}"><input class="input" id="sc-start-${esc(c.id)}" data-sc="${esc(c.id)}" data-scf="start" inputmode="decimal" value="${c.start || ''}" placeholder="0"></div></label>
-        <label class="field"><span>Target <span class="hint">optional</span></span><div class="money-in" data-sym="${esc(sym())}"><input class="input" id="sc-target-${esc(c.id)}" data-sc="${esc(c.id)}" data-scf="target" inputmode="decimal" value="${c.target || ''}" placeholder="None"></div></label></div>
-      <div class="acts"><span class="muted small num">Now ${money(saveBal(c.id))}</span>${c.id === 'other' ? '<span class="muted small">· can’t be removed</span>' : `<button class="linkbtn danger" data-act="sc-del" data-id="${esc(c.id)}">Remove</button>`}</div></div>`).join('')}</div>
-    <button class="btn ghost" data-act="sc-add">Add a subcategory</button></section>`;
-}
-function planLabels() {
-  const s = S.settings;
-  return `<section class="card"><div class="card-head"><h2>Spending labels</h2></div>
-    <p class="muted small" style="margin-top:-6px">Labels show what you spend on. They don’t hold money or set limits.</p>
-    <div>${s.labels.map(l => `<button class="cat-link" data-act="label-edit" data-id="${esc(l.id)}"><span class="t"><b><i class="dot c${l.color ?? 8}"></i>${esc(l.name)}</b><span>${money(labelSpent(l.id, rangeFor('month')))} this month</span></span>${I.right}</button>`).join('')}</div>
-    <button class="btn ghost" data-act="label-edit">Add a label</button></section>`;
+  return `<section class="card"><div class="card-head"><h2>Spending categories</h2></div>
+    <p class="muted small" style="margin-top:-6px">Track what you spend on. They don’t hold money or set limits: everything comes out of your monthly Spending.</p>
+    <div>${s.labels.map(l => `<button class="cat-link" data-act="label-edit" data-id="${esc(l.id)}"><span class="t"><b><i class="dot c${l.color ?? 8}"></i>${esc(l.name)}</b><span>${money(labelSpent(l.id, rangeFor('month')))} spent this month</span></span>${I.right}</button>`).join('')}</div>
+    <button class="btn ghost" data-act="label-edit">Add a spending category</button></section>
+  <section class="card"><div class="card-head"><h2>Savings categories</h2></div>
+    <p class="muted small" style="margin-top:-6px">Each one holds its own money. Pay’s savings and leftover spending land in Other until you move them.</p>
+    <div>${s.saveCats.map(c => `<button class="cat-link" data-act="savecat-edit" data-id="${esc(c.id)}"><span class="t"><b><i class="dot pc${c.color ?? 6}"></i>${esc(c.name)}</b><span>${money(saveBal(c.id))} saved${+c.target ? ` of ${mw(+c.target)}` : ''}</span></span>${I.right}</button>`).join('')}</div>
+    <button class="btn ghost" data-act="savecat-edit">Add a savings category</button></section>`;
 }
 function planMore() {
   const s = S.settings;
@@ -862,7 +855,7 @@ function planMore() {
 }
 function viewOnboard() {
   const d = S.draft;
-  return `<section class="ob-hero"><span class="eyebrow">Spend &amp; Save</span><h2>Spending and savings, nothing else</h2><p class="muted">Spending gets a set amount each month. The rest goes to Savings, where you sort it into subcategories. You can change this later in Plan.</p></section>
+  return `<section class="ob-hero"><span class="eyebrow">Spend &amp; Save</span><h2>Spending and savings, nothing else</h2><p class="muted">Spending gets a set amount each month. The rest goes to Savings, where you sort it into categories. You can change this later in Plan.</p></section>
   <section class="card"><div class="grid2"><label class="field"><span>Monthly take-home pay</span><div class="money-in" data-sym="S$"><input class="input" id="ob-pay" data-draft="pay" inputmode="decimal" value="${d.pay || ''}"></div></label>
     <label class="field"><span>For spending</span><div class="money-in" data-sym="S$"><input class="input" id="ob-spend" data-draft="spend" inputmode="decimal" value="${d.split.spend || ''}"></div></label></div><div id="ob-split">${splitHtml(d)}</div></section>
   <button class="btn block" data-act="ob-finish">Start</button>`;
@@ -902,7 +895,7 @@ function openSpend(existing, preset = {}) {
     const a = r2(parseMoney(T.amt));
     return `<div class="form">${existing ? '' : kindSeg('out')}
       <label class="amount-big"><span>${esc(sym())}</span><input id="sp-amt" inputmode="decimal" placeholder="0.00" value="${esc(T.amt)}" aria-label="Amount" autocomplete="off"></label>
-      <div class="field"><span>Label</span><div class="chips" role="group" aria-label="Label">${s.labels.map(l => `<button class="chip" data-act="sp-label" data-v="${esc(l.id)}" aria-pressed="${T.label === l.id}"><i class="dot c${l.color ?? 8}"></i>${esc(l.name)}</button>`).join('')}<button class="chip new" data-act="sp-newlabel">+ New label</button></div></div>
+      <div class="field"><span>Category</span><div class="chips" role="group" aria-label="Category">${s.labels.map(l => `<button class="chip" data-act="sp-label" data-v="${esc(l.id)}" aria-pressed="${T.label === l.id}"><i class="dot c${l.color ?? 8}"></i>${esc(l.name)}</button>`).join('')}<button class="chip new" data-act="sp-newlabel">+ New category</button></div></div>
       <div class="field"><span>Paid from</span><div class="pick">${whereBtn('spend', `${money(spendLeftOn(T.d, existing))} left`)}${showSave ? s.saveCats.map(c => whereBtn(c.id, `${money(saveBal(c.id))} · savings`)).join('') : ''}</div>
         ${!showSave ? `<button class="linkbtn muted" data-act="sp-showsave">Pay from savings instead</button>` : ''}</div>
       <p class="small" id="sp-hint">${hint(a)}</p>
@@ -926,7 +919,7 @@ function openSpend(existing, preset = {}) {
       if (a === 'sp-save') {
         const amt = r2(parseMoney(T.amt)), err = $('#sp-err'), fail = m => { err.textContent = m; err.hidden = false; };
         if (!(amt > 0)) return fail('Enter an amount above zero.');
-        if (!T.label) return fail('Pick a label.');
+        if (!T.label) return fail('Pick a category.');
         const go = () => {
           const tx = { id: existing ? existing.id : newId(), d: T.d, t: 'out', amt, label: T.label, from: T.from, note: (T.note || '').trim() };
           existing ? replaceTx(existing.id, tx) : addTx([tx]); closeSheet();
@@ -951,8 +944,8 @@ function openIn(existing, preset = {}) {
   const body = () => `<div class="form">${existing ? '' : kindSeg('in')}
     <div class="seg" role="group" aria-label="Kind of money"><button data-act="in-src" data-v="pay" aria-pressed="${M.src === 'pay'}">Pay</button><button data-act="in-src" data-v="other" aria-pressed="${M.src === 'other'}">Other money</button></div>
     <label class="amount-big"><span>${esc(sym())}</span><input id="in-amt" inputmode="decimal" placeholder="0.00" value="${esc(M.amt)}" aria-label="Amount" autocomplete="off"></label>
-    ${M.src === 'pay' ? `<label class="field"><span>For spending</span><div class="money-in" data-sym="${esc(sym())}"><input class="input" id="in-spend" inputmode="decimal" value="${esc(M.spend)}"></div></label><div id="in-show">${payShow()}</div><p class="muted small">Savings lands in Other. Sort it into subcategories whenever you like.</p>`
-      : `<div class="field"><span>Where should it go?</span><div class="pick"><button data-act="in-dest" data-v="spend" aria-pressed="${M.dest === 'spend'}"><b><i class="dot pc1"></i>Spending</b><span>this month</span></button>${s.saveCats.map(c => `<button data-act="in-dest" data-v="${esc(c.id)}" aria-pressed="${M.dest === c.id}"><b><i class="dot pc${c.color ?? 6}"></i>${esc(c.name)}</b><span>savings · ${money(saveBal(c.id))}</span></button>`).join('')}</div></div>`}
+    ${M.src === 'pay' ? `<label class="field"><span>For spending</span><div class="money-in" data-sym="${esc(sym())}"><input class="input" id="in-spend" inputmode="decimal" value="${esc(M.spend)}"></div></label><div id="in-show">${payShow()}</div><p class="muted small">Savings lands in Other. Sort it into savings categories whenever you like.</p>`
+      : `<div class="field"><span>Where should it go?</span><div class="pick"><button data-act="in-dest" data-v="spend" aria-pressed="${M.dest === 'spend'}"><b><i class="dot pc1"></i>Spending</b><span>this month</span></button>${s.saveCats.map(c => `<button data-act="in-dest" data-v="${esc(c.id)}" aria-pressed="${M.dest === c.id}"><b><i class="dot pc${c.color ?? 6}"></i>${esc(c.name)}</b><span>savings · ${money(saveBal(c.id))}</span></button>`).join('')}${existing ? '' : '<button data-act="in-newcat"><b>+ New category</b><span>for savings</span></button>'}</div></div>`}
     <div class="grid2"><label class="field"><span>Date</span><input class="input" type="date" id="in-date" value="${esc(M.d)}"></label><label class="field"><span>Note <span class="hint">optional</span></span><input class="input" id="in-note" value="${esc(M.note)}" placeholder="${M.src === 'pay' ? 'Pay' : 'e.g. Ang bao'}" autocomplete="off"></label></div>
     <p class="small" id="in-err" style="color:var(--over)" hidden></p>
     <div class="btn-row"><button class="btn" data-act="in-save">${existing ? 'Save changes' : M.src === 'pay' ? 'Log pay' : 'Add money'}</button>${existing ? '<button class="btn danger" data-act="in-del">Delete</button>' : ''}</div></div>`;
@@ -971,6 +964,7 @@ function openIn(existing, preset = {}) {
       if (a === 'kind' && b.dataset.v !== 'in') switchKind(b.dataset.v, M.amt);
       if (a === 'in-src') { M.src = b.dataset.v; if (M.src === 'pay') { if (!M.amt) M.amt = String(s.pay || ''); if (!spendTouched) M.spend = String(Math.min(r2(parseMoney(M.amt)), +s.split.spend || 0)); } $('.sheet-body').innerHTML = body(); }
       if (a === 'in-dest') { M.dest = b.dataset.v; $$('[data-act="in-dest"]', sheet).forEach(x => x.setAttribute('aria-pressed', x === b)); }
+      if (a === 'in-newcat') { const keep = { src: 'other', amt: M.amt, d: M.d, note: M.note }; openSaveCatEdit(null, { onSaved: nid => openIn(null, { ...keep, dest: nid }), onDone: () => openIn(null, { ...keep, dest: M.dest }) }); }
       if (a === 'in-del') armDanger(b, 'Tap again to delete', () => { removeTx([existing.id]); closeSheet(); toast('Deleted'); });
       if (a === 'in-save') {
         const amt = r2(parseMoney(M.amt)), err = $('#in-err'), fail = m => { err.textContent = m; err.hidden = false; };
@@ -1008,6 +1002,7 @@ function openMove(existing, preset = {}) {
     <label class="amount-big"><span>${esc(sym())}</span><input id="mv-amt" inputmode="decimal" placeholder="0.00" value="${esc(V.amt)}" aria-label="Amount"></label>
     <label class="field"><span>From</span><select class="input" id="mv-from">${opts(V.from)}</select></label>
     <label class="field"><span>To</span><select class="input" id="mv-to">${opts(V.to)}</select></label>
+    ${existing ? '' : '<button class="linkbtn" data-act="mv-newcat" style="align-self:flex-start">+ New savings category</button>'}
     ${risky() ? `<span class="warnbox">${I.warn}<span>This moves savings into Spending. You’ll be asked to confirm.</span></span>` : ''}
     <div class="grid2"><label class="field"><span>Date</span><input class="input" type="date" id="mv-date" value="${esc(V.d)}"></label><label class="field"><span>Note <span class="hint">optional</span></span><input class="input" id="mv-note" value="${esc(V.note)}"></label></div>
     <p class="small" id="mv-err" style="color:var(--over)" hidden></p>
@@ -1018,6 +1013,7 @@ function openMove(existing, preset = {}) {
     sheet.addEventListener('click', e => {
       const b = e.target.closest('[data-act]'); if (!b) return; const a = b.dataset.act;
       if (a === 'kind' && b.dataset.v !== 'move') switchKind(b.dataset.v, V.amt);
+      if (a === 'mv-newcat') { const keep = { from: V.from, amt: V.amt, d: V.d, note: V.note }; openSaveCatEdit(null, { onSaved: nid => openMove(null, { ...keep, to: nid }), onDone: () => openMove(null, { ...keep, to: V.to }) }); }
       if (a === 'mv-del') armDanger(b, 'Tap again to delete', () => { removeTx([existing.id]); closeSheet(); toast('Deleted'); });
       if (a === 'mv-save') {
         const amt = r2(parseMoney(V.amt)), err = $('#mv-err'), fail = m => { err.textContent = m; err.hidden = false; };
@@ -1042,17 +1038,53 @@ function openSaveCat(id) {
     ${id === 'other' ? '<p class="muted small">Pay’s savings and each month’s leftover spending land here until you move them.</p>' : ''}
     <div><div class="card-head" style="margin-bottom:6px"><h2 style="font-size:.9rem">End of each month</h2></div>${colChart(hist, 0, '', `var(--p${c.color ?? 6})`)}</div>
     <div class="btn-row"><button class="btn soft" data-act="sc-in">Move money in</button><button class="btn ghost" data-act="sc-out">Move money out</button></div>
-    <button class="btn ghost" data-act="sc-act">See ${esc(c.name)} activity</button></div>`, sheet => {
+    <div class="btn-row"><button class="btn ghost" data-act="sc-edit">Edit category</button><button class="btn ghost" data-act="sc-act">See activity</button></div></div>`, sheet => {
     sheet.addEventListener('click', e => {
       const b = e.target.closest('[data-act]'); if (!b) return;
       if (b.dataset.act === 'sc-in') openMove(null, { to: id, from: id === 'other' ? 'spend' : 'other' });
       if (b.dataset.act === 'sc-out') openMove(null, { from: id, to: id === 'other' ? firstSorted() : 'other' });
       if (b.dataset.act === 'sc-act') { closeSheet(); Object.assign(S.f, { where: id, type: 'all', label: 'all', q: '', range: 'all', limit: 150 }); location.hash = 'activity'; }
+      if (b.dataset.act === 'sc-edit') openSaveCatEdit(id, { onDone: () => openSaveCat(id) });
     });
   });
 }
 
-/* one label */
+/* create or edit a savings category */
+function openSaveCatEdit(id, opts = {}) {
+  const s = S.settings, c = id ? s.saveCats.find(x => x.id === id) : null, used = new Set(s.saveCats.map(x => x.color));
+  const D = c ? { name: c.name, color: c.color ?? 6, start: c.start ? String(c.start) : '', target: c.target ? String(c.target) : '' }
+    : { name: '', color: [0, 1, 2, 3, 4, 5, 6].find(x => !used.has(x)) ?? 4, start: '', target: '' };
+  openSheet(c ? `Edit ${c.name}` : 'New savings category', `<div class="form">
+    <label class="field"><span>Name</span><input class="input" id="se-name" value="${esc(D.name)}" placeholder="e.g. New phone, Gifts, Course fees" autocomplete="off"></label>
+    <div class="field"><span>Colour</span><div class="swatches" role="group" aria-label="Colour">${[0, 1, 2, 3, 4, 5, 6].map(i => `<button class="swatch pc${i}" data-act="se-color" data-v="${i}" aria-pressed="${D.color === i}" aria-label="Colour ${i + 1}"></button>`).join('')}</div></div>
+    <div class="grid2"><label class="field"><span>Already saved <span class="hint">optional</span></span><div class="money-in" data-sym="${esc(sym())}"><input class="input" id="se-start" inputmode="decimal" value="${esc(D.start)}" placeholder="0"></div><span class="hint">Money you had before using this app</span></label>
+      <label class="field"><span>Target <span class="hint">optional</span></span><div class="money-in" data-sym="${esc(sym())}"><input class="input" id="se-target" inputmode="decimal" value="${esc(D.target)}" placeholder="None"></div></label></div>
+    ${c ? `<p class="muted small">Now ${money(saveBal(c.id))}. To add more, move money in from Other or Spending.</p>` : '<p class="muted small">To fill it, move money in from Other or Spending, or pick it when money comes in.</p>'}
+    <p class="small" id="se-err" style="color:var(--over)" hidden></p>
+    <div class="btn-row"><button class="btn" data-act="se-save">${c ? 'Save' : 'Create category'}</button>${c && c.id !== 'other' ? '<button class="btn danger" data-act="se-del">Delete</button>' : ''}${opts.onDone ? '<button class="btn ghost" data-act="se-back">Back</button>' : ''}</div>
+    ${c && c.id === 'other' ? '<p class="muted small">Other can’t be deleted: it’s where unsorted savings go.</p>' : ''}</div>`, sheet => {
+    if (!c) setTimeout(() => { const i = $('#se-name'); if (i && matchMedia('(pointer:fine)').matches) i.focus(); }, 60);
+    sheet.addEventListener('input', e => { const t = e.target; if (t.id === 'se-name') D.name = t.value; if (t.id === 'se-start') D.start = t.value; if (t.id === 'se-target') D.target = t.value; });
+    sheet.addEventListener('click', e => {
+      const b = e.target.closest('[data-act]'); if (!b) return; const a = b.dataset.act;
+      if (a === 'se-color') { D.color = +b.dataset.v; $$('[data-act="se-color"]', sheet).forEach(x => x.setAttribute('aria-pressed', x === b)); }
+      if (a === 'se-back') opts.onDone();
+      if (a === 'se-del') { const bal = saveBal(c.id); if (Math.abs(bal) > 0.004) { const err = $('#se-err'); err.textContent = `Move the ${money(bal)} in ${c.name} to another category first.`; err.hidden = false; return; } armDanger(b, 'Tap again to delete', () => { s.saveCats = s.saveCats.filter(x => x.id !== c.id); saveSettings(); closeSheet(); toast(`${c.name} deleted`); }); }
+      if (a === 'se-save') {
+        const name = D.name.trim(), err = $('#se-err'), fail = m => { err.textContent = m; err.hidden = false; };
+        if (!name) return fail('Give the category a name.');
+        if (s.saveCats.some(x => x.id !== (c && c.id) && x.name.trim().toLowerCase() === name.toLowerCase())) return fail(`You already have a savings category called ${name}.`);
+        const v = { name, color: D.color, start: r2(parseMoney(D.start)), target: r2(parseMoney(D.target)) };
+        const nid = c ? c.id : newId('v');
+        if (c) Object.assign(c, v); else s.saveCats.push({ id: nid, ...v });
+        saveSettings(); toast(c ? `${name} saved` : `${name} created`);
+        if (opts.onSaved) opts.onSaved(nid); else if (opts.onDone) opts.onDone(); else closeSheet();
+      }
+    });
+  });
+}
+
+/* one spending category (stored as a "label") */
 function openLabel(id, kind) {
   const l = S.settings.labels.find(x => x.id === id); if (!l) return;
   let k = kind || S.labelPeriod;
@@ -1069,7 +1101,7 @@ function openLabel(id, kind) {
       <div><span class="eyebrow">${esc(rangeLabel(r))}</span><div class="big"><span class="cur">${esc(sym())}</span>${nf2.format(spent)}</div><span class="muted small">${allOut ? `${Math.round(spent / allOut * 100)}% of everything you spent ${periodWord(r)}` : `Nothing spent ${periodWord(r)}`}</span></div>
       <div><div class="card-head" style="margin-bottom:6px"><h2 style="font-size:.9rem">Last ${n} ${k === 'day' ? 'days' : k === 'week' ? 'weeks' : 'months'}</h2><span class="muted small">${done.length ? `average ${money(avg)} ${PER_LABEL[k]}` : ''}</span></div>${colChart(hist.map(x => ({ v: x.v, cur: x.r.start === r.start, label: lab(x.r), tip: `${rangeLabel(x.r)}\n${l.name}: ${money(x.v)}` })), 0, '')}</div>
       <div><div class="card-head" style="margin-bottom:4px"><h2 style="font-size:.9rem">${esc(rangeLabel(r))}</h2><span class="muted small">${items.length} item${items.length === 1 ? '' : 's'}</span></div>${items.length ? `<div class="txs">${items.slice(0, 12).map(txRow).join('')}</div>` : `<p class="muted small">Nothing spent ${periodWord(r)}.</p>`}</div>
-      <div class="btn-row"><button class="btn ghost" data-act="lb-edit">Edit label</button><button class="btn ghost" data-act="lb-all">All ${esc(l.name)} spending</button></div></div>`;
+      <div class="btn-row"><button class="btn ghost" data-act="lb-edit">Edit category</button><button class="btn ghost" data-act="lb-all">All ${esc(l.name)} spending</button></div></div>`;
   };
   openSheet(l.name, body(), sheet => {
     sheet.addEventListener('click', e => {
@@ -1084,22 +1116,22 @@ function openLabel(id, kind) {
 function openLabelEdit(id, opts = {}) {
   const s = S.settings, l = id ? s.labels.find(x => x.id === id) : null, used = new Set(s.labels.map(x => x.color));
   const D = l ? { name: l.name, color: l.color ?? 8 } : { name: '', color: [0, 1, 2, 3, 4, 5, 6, 7, 8].find(x => !used.has(x)) ?? 8 };
-  openSheet(l ? `Edit ${l.name}` : 'New label', `<div class="form">
+  openSheet(l ? `Edit ${l.name}` : 'New spending category', `<div class="form">
     <label class="field"><span>Name</span><input class="input" id="le-name" value="${esc(D.name)}" placeholder="e.g. Bubble tea, Gifts, Grab" autocomplete="off"></label>
     <div class="field"><span>Colour</span><div class="swatches" role="group" aria-label="Colour">${[0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => `<button class="swatch c${i}" data-act="le-color" data-v="${i}" aria-pressed="${D.color === i}" aria-label="Colour ${i + 1}"></button>`).join('')}</div></div>
     <p class="small" id="le-err" style="color:var(--over)" hidden></p>
-    <div class="btn-row"><button class="btn" data-act="le-save">${l ? 'Save' : 'Create label'}</button>${l ? '<button class="btn danger" data-act="le-del">Delete</button>' : ''}${opts.onDone ? '<button class="btn ghost" data-act="le-back">Back</button>' : ''}</div></div>`, sheet => {
+    <div class="btn-row"><button class="btn" data-act="le-save">${l ? 'Save' : 'Create category'}</button>${l ? '<button class="btn danger" data-act="le-del">Delete</button>' : ''}${opts.onDone ? '<button class="btn ghost" data-act="le-back">Back</button>' : ''}</div></div>`, sheet => {
     if (!l) setTimeout(() => { const i = $('#le-name'); if (i && matchMedia('(pointer:fine)').matches) i.focus(); }, 60);
     sheet.addEventListener('input', e => { if (e.target.id === 'le-name') D.name = e.target.value; });
     sheet.addEventListener('click', e => {
       const b = e.target.closest('[data-act]'); if (!b) return; const a = b.dataset.act;
       if (a === 'le-color') { D.color = +b.dataset.v; $$('[data-act="le-color"]', sheet).forEach(x => x.setAttribute('aria-pressed', x === b)); }
       if (a === 'le-back') opts.onDone();
-      if (a === 'le-del') { const inUse = S.tx.some(t => t.label === l.id); armDanger(b, inUse ? 'Tap again (past spending becomes Unlabelled)' : 'Tap again to delete', () => { s.labels = s.labels.filter(x => x.id !== l.id); saveSettings(); closeSheet(); toast(`${l.name} deleted`); }); }
+      if (a === 'le-del') { const inUse = S.tx.some(t => t.label === l.id); armDanger(b, inUse ? 'Tap again (past spending becomes Uncategorised)' : 'Tap again to delete', () => { s.labels = s.labels.filter(x => x.id !== l.id); saveSettings(); closeSheet(); toast(`${l.name} deleted`); }); }
       if (a === 'le-save') {
         const name = D.name.trim(), err = $('#le-err'), fail = m => { err.textContent = m; err.hidden = false; };
-        if (!name) return fail('Give the label a name.');
-        if (s.labels.some(x => x.id !== (l && l.id) && x.name.trim().toLowerCase() === name.toLowerCase())) return fail(`You already have a label called ${name}.`);
+        if (!name) return fail('Give the category a name.');
+        if (s.labels.some(x => x.id !== (l && l.id) && x.name.trim().toLowerCase() === name.toLowerCase())) return fail(`You already have a spending category called ${name}.`);
         const nid = l ? l.id : newId('l');
         if (l) Object.assign(l, { name, color: D.color }); else s.labels.push({ id: nid, name, color: D.color });
         saveSettings(); toast(l ? `${name} saved` : `${name} created`);
@@ -1118,7 +1150,7 @@ function openSubEdit(id) {
     <div class="grid2"><label class="field"><span>Amount</span><div class="money-in" data-sym="${esc(sym())}"><input class="input" id="sb-amt" inputmode="decimal" value="${esc(D.amount)}" placeholder="0.00"></div></label>
     <label class="field"><span>Billed</span><select class="input" id="sb-cycle">${Object.entries({ monthly: 'Monthly', yearly: 'Yearly', weekly: 'Weekly' }).map(([k, v]) => `<option value="${k}" ${D.cycle === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label></div>
     <div class="grid2"><label class="field"><span>Next payment</span><input class="input" type="date" id="sb-next" value="${esc(D.next)}"></label>
-    <label class="field"><span>Label</span><select class="input" id="sb-label">${s.labels.map(l => `<option value="${esc(l.id)}" ${D.label === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label></div>
+    <label class="field"><span>Category</span><select class="input" id="sb-label">${s.labels.map(l => `<option value="${esc(l.id)}" ${D.label === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label></div>
     <p class="small" id="sb-err" style="color:var(--over)" hidden></p>
     <div class="btn-row"><button class="btn" data-act="sb-save">${x ? 'Save' : 'Add subscription'}</button>${x ? '<button class="btn danger" data-act="sb-del">Remove</button>' : ''}</div></div>`, sheet => {
     sheet.addEventListener('click', e => {
@@ -1155,7 +1187,7 @@ async function offerFile(filename, text) {
 }
 const csvCell = v => { const s = String(v ?? ''); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
 function exportCSV() {
-  const rows = [['Date', 'Type', 'Amount', 'From', 'To or label', 'Note']];
+  const rows = [['Date', 'Type', 'Amount', 'From', 'To or category', 'Note']];
   for (const t of [...S.tx, ...S.sweeps].sort((a, b) => a.d < b.d ? -1 : 1)) {
     if (t.t === 'out') rows.push([t.d, 'Spent', (-t.amt).toFixed(2), whereName(t.from), label(t.label).name, t.note]);
     else if (t.t === 'in') rows.push([t.d, t.src === 'pay' ? 'Pay' : 'Money in', t.amt.toFixed(2), '', [t.spend ? `Spending ${t.spend}` : '', ...Object.entries(t.save || {}).map(([k, v]) => `${saveCat(k).name} ${v}`)].filter(Boolean).join('; '), t.note]);
@@ -1228,9 +1260,7 @@ const ACT = {
   'f-moreRows': () => { S.f.limit += 300; renderActList(); },
   'pay-sub': el => paySub(el.dataset.id),
   'edit-sub': el => openSubEdit(el.dataset.id),
-  'sc-add': () => { const s = S.settings, used = new Set(s.saveCats.map(c => c.color)), color = [0, 1, 2, 3, 4, 5, 6].find(c => !used.has(c)) ?? 4; const c = { id: newId('v'), name: 'New subcategory', color, start: 0, target: 0 }; s.saveCats.push(c); saveSettings(); setTimeout(() => { const i = $(`#sc-name-${c.id}`); if (i) { i.focus(); i.select(); } }, 30); },
-  'sc-del': el => { const c = saveCat(el.dataset.id), b = saveBal(c.id); if (Math.abs(b) > 0.004) return toast(`Move the ${money(b)} in ${c.name} somewhere else first.`, 'warn', 4500); armDanger(el, 'Tap again to remove', () => { S.settings.saveCats = S.settings.saveCats.filter(x => x.id !== c.id); saveSettings(); toast(`${c.name} removed`); }); },
-  'sc-color': el => { const c = S.settings.saveCats.find(x => x.id === el.dataset.id); if (c) { c.color = ((c.color ?? 0) + 1) % 7; saveSettings(); } },
+  'savecat-edit': el => openSaveCatEdit(el.dataset.id),
   'export-csv': () => exportCSV(),
   'export-json': () => exportJSON(),
   'copy-box': () => { const t = $('#copy-box'); if (navigator.clipboard) navigator.clipboard.writeText(t.value).then(() => toast('Copied'), () => { t.select(); toast('Select all and copy'); }); else { t.select(); toast('Select all and copy'); } },
@@ -1263,11 +1293,6 @@ document.addEventListener('change', e => {
     else if (k === 'monthStart') { s.monthStart = +v; S.offset = 0; }
     else if (k === 'symbol') { s.symbol = v.trim() || 'S$'; $$('.money-in').forEach(m => m.dataset.sym = s.symbol); }
     saveSettings(false); const el = $('#split-show'); if (el) el.innerHTML = splitHtml(s); return;
-  }
-  if (t.dataset.sc) {
-    const c = s.saveCats.find(x => x.id === t.dataset.sc); if (!c) return; const f = t.dataset.scf;
-    if (f === 'name') c.name = t.value.trim() || c.name; else c[f] = r2(parseMoney(t.value));
-    saveSettings(false);
   }
 });
 
