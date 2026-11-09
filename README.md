@@ -24,8 +24,14 @@ website copy: **https://bytesizedinfo.github.io/n/spend-save/**
   your balances but don't count as saving. Insights → "Where savings came from" shows the breakdown.
 - **Month end:** unspent Spending moves to Savings → Other on the 1st. Overspending is taken from Other.
   This is worked out from your entries, so editing an old expense updates it.
-- Spending from savings, or moving savings into Spending, needs a second tap. Subscriptions are paid from
-  Spending. Insights show money in, spent, how much savings grew, total savings, and charts.
+- **Available to spend now** is the Spending left this month. Under it, "If you pay the bills still due this
+  month" lists each unpaid bill paid from Spending (overdue ones included) and what would be left after them.
+- **Bills & subscriptions** (Plan → Bills, plus a card on Home):
+  - each has a fixed amount, weekly / monthly / every 3 months / yearly, a category, and is paid from Spending
+    or a savings category
+  - nothing is recorded until you tap **Paid**, which records it on its due date and moves the next date on;
+    **Skip** moves the date on without recording
+- Spending from savings, or moving savings into Spending, needs a second tap. Insights show money in, spent, how much savings grew, total savings, and charts.
 - Data: `data/users/<id>/settings` plus `m-YYYY-MM`. Entries are `in` (`spend` + `save` per savings category),
   `out` (`label` = spending category, `from`) and `move` (`from`/`to`, where `spend` means Spending).
 

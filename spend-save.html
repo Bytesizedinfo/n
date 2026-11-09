@@ -167,7 +167,7 @@ body[data-mode="onboard"] .tabs,body[data-mode="loading"] .tabs,body[data-mode="
 .linkbtn.danger{color:var(--over)}
 
 .seg{display:flex;background:var(--track);border-radius:12px;padding:3px;gap:2px}
-.seg button{flex:1;border:0;background:none;border-radius:9px;padding:8px 6px;font-weight:700;font-size:.84rem;color:var(--muted);white-space:nowrap;min-width:0}
+.seg button{flex:1;border:0;background:none;border-radius:9px;padding:8px 6px;font-weight:700;font-size:.84rem;color:var(--muted);white-space:nowrap;min-width:0;overflow:hidden;text-overflow:ellipsis}
 .seg button[aria-pressed="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .seg.mini{padding:2px;border-radius:10px}
 .seg.mini button{padding:6px 8px;font-size:.8rem;border-radius:8px}
@@ -367,12 +367,12 @@ const S = {
    That is worked out from the entries, never stored, so editing an old expense updates it. */
 function defaultSettings() {
   return {
-    v: 1, symbol: 'S$', monthStart: 1, pay: 800, split: { spend: 200 },
+    v: 2, symbol: 'S$', monthStart: 1, pay: 800, split: { spend: 200 },
     labels: [
       { id: 'food', name: 'Food & drinks', color: 0 }, { id: 'transport', name: 'Transport', color: 6 },
       { id: 'shopping', name: 'Shopping', color: 1 }, { id: 'fun', name: 'Fun & social', color: 4 },
       { id: 'personal', name: 'Personal care', color: 5 }, { id: 'subs', name: 'Subscriptions', color: 3 },
-      { id: 'other', name: 'Other', color: 8 },
+      { id: 'bills', name: 'Bills', color: 7 }, { id: 'other', name: 'Other', color: 8 },
     ],
     saveCats: [
       { id: 'other', name: 'Other', color: 6, start: 0, target: 0 },
@@ -383,6 +383,12 @@ function defaultSettings() {
     ],
     subs: [], onboarded: false,
   };
+}
+/* v2 adds a "Bills" spending category once; deleting it later is respected. */
+function migrate(s) {
+  if ((s.v || 1) >= 2) return false;
+  if (!s.labels.some(l => l.id === 'bills')) { const i = s.labels.findIndex(l => l.id === 'other'); s.labels.splice(i < 0 ? s.labels.length : i, 0, { id: 'bills', name: 'Bills', color: 7 }); }
+  s.v = 2; return true;
 }
 const NOLABEL = { id: '_none', name: 'Uncategorised', color: 8 };
 const NOCAT = { id: '_gone', name: 'Removed category', color: 6, start: 0, target: 0 };
@@ -546,7 +552,7 @@ async function boot() {
     for (const k of Object.keys(S.months)) if (!present.has(k) && !dirty.has(k)) { delete S.months[k]; changed = true; }
     if (!present.has('settings') && !dirty.has('settings') && S.mode === 'live') { S.settings = null; changed = true; }
     if (!snap.metadata.fromCache) { clearTimeout(timer); S.slow = false; }
-    if (S.settings && S.settings.onboarded) { if (S.mode !== 'live') { S.mode = 'live'; changed = true; } if (changed) refresh(); }
+    if (S.settings && S.settings.onboarded) { if (S.mode !== 'live') { S.mode = 'live'; changed = true; } if (migrate(S.settings)) { persist('settings'); changed = true; } if (changed) refresh(); }
     else if (!snap.metadata.fromCache || snap.size) { if (S.mode !== 'onboard') { S.mode = 'onboard'; S.draft = defaultSettings(); renderView(); } }
   }, err => {
     clearTimeout(timer);
@@ -558,7 +564,7 @@ function startLocal() {
   S.local = true; let data = null;
   try { localStorage.setItem(LKEY + ':test', '1'); localStorage.removeItem(LKEY + ':test'); data = JSON.parse(localStorage.getItem(LKEY) || 'null'); } catch (e) { S.noStore = true; }
   S.months = (data && data.months) || {};
-  if (data && data.settings && data.settings.onboarded) { S.settings = Object.assign(defaultSettings(), data.settings); S.mode = 'live'; refresh(); }
+  if (data && data.settings && data.settings.onboarded) { S.settings = Object.assign(defaultSettings(), data.settings); S.mode = 'live'; if (migrate(S.settings)) persist('settings'); refresh(); }
   else { S.mode = 'onboard'; S.draft = defaultSettings(); renderView(); }
   try { navigator.storage && navigator.storage.persist && navigator.storage.persist().catch(() => {}); } catch (e) {}
 }
@@ -577,7 +583,11 @@ function demoData() {
   const s = defaultSettings(); s.onboarded = true;
   s.saveCats.find(c => c.id === 'emergency').start = 1200; s.saveCats.find(c => c.id === 'shanghai').start = 300;
   s.saveCats.find(c => c.id === 'shanghai').target = 2500;
-  s.subs = [{ id: 's1', name: 'Spotify', amount: 10.98, cycle: 'monthly', next: addDays(today(), 3), label: 'subs' }];
+  const spot = addDays(today(), 3), phone = addDays(today(), 6);
+  s.subs = [
+    { id: 's1', kind: 'sub', name: 'Spotify', amount: 10.98, cycle: 'monthly', next: spot, day: parts(spot)[2], label: 'subs', from: 'spend' },
+    { id: 'b1', kind: 'bill', name: 'Phone plan', amount: 20, cycle: 'monthly', next: phone, day: parts(phone)[2], label: 'bills', from: 'spend' },
+  ];
   S.settings = s;
   const R = rng(5), months = {}; let n = 0;
   const push = t => { t.id = 'demo' + (n++).toString(36).padStart(5, '0'); (months[monthKey(t.d)] ||= { tx: [] }).tx.push(t); };
@@ -593,7 +603,8 @@ function demoData() {
       if (R() < 0.3) push({ d, t: 'out', amt: amt(1.2, 3.2), label: 'transport', from: 'spend', note: 'MRT/bus' });
       if (R() < 0.04) push({ d, t: 'out', amt: amt(8, 30), label: 'shopping', from: 'spend', note: pick(['Shopee', 'Daiso', 'Uniqlo']) });
       if (R() < 0.03) push({ d, t: 'out', amt: amt(10, 25), label: 'fun', from: 'spend', note: pick(['Movie', 'Karaoke']) });
-      if (parts(d)[2] === parts(s.subs[0].next)[2]) push({ d, t: 'out', amt: 10.98, label: 'subs', from: 'spend', note: 'Spotify' });
+      if (d < today() && parts(d)[2] === s.subs[0].day) push({ d, t: 'out', amt: 10.98, label: 'subs', from: 'spend', note: 'Spotify', bill: 's1' });
+      if (d < today() && parts(d)[2] === s.subs[1].day) push({ d, t: 'out', amt: 20, label: 'bills', from: 'spend', note: 'Phone plan', bill: 'b1' });
     }
     if (off === -2) push({ d: addDays(p.start, 18), t: 'out', amt: 95, label: 'shopping', from: 'spend', note: 'New shoes' });
   }
@@ -636,21 +647,25 @@ function viewHome() {
   const used = m.spent + m.out, pct = m.added > 0 ? Math.min(100, used / m.added * 100) : (used > 0 ? 100 : 0);
   const stt = m.left < -0.004 ? 'over' : (m.added > 0 && used / m.added >= 0.8 ? 'warn' : 'ok');
   const next1 = fmtD(addDays(p.end, 1));
+  const ahead = billsAhead(p), afterBills = r2(m.left - ahead.total);
   let h = periodNav(p);
   h += `<section class="hero" aria-label="Spending">
     <div class="hero-top"><span class="grp-name"><i class="dot pc1"></i>Spending</span><button class="linkbtn" data-act="where-activity" data-id="spend">Activity</button></div>
-    <span class="eyebrow">${m.left < -0.004 ? 'Over by' : cur ? 'Left to spend' : 'Left at month end'}</span>
+    <span class="eyebrow">${m.left < -0.004 ? (cur ? 'Over by, right now' : 'Over by') : cur ? 'Available to spend now' : 'Left at month end'}</span>
     <div class="hero-num ${m.left < -0.004 ? 'neg' : ''}"><span class="cur">${esc(sym())}</span>${nf2.format(Math.abs(m.left))}</div>
+    ${cur && ahead.list.length ? `<span class="status ${afterBills < -0.004 ? 'over' : ''}">${afterBills < -0.004 ? I.over : ''}${money(afterBills)} left after the ${money(ahead.total)} in bills still due this month</span>` : ''}
     <span class="bar ${stt}" role="img" aria-label="${Math.round(pct)}% of spending money used"><i style="width:${pct.toFixed(1)}%"></i></span>
     ${stt === 'over' ? `<span class="status over">${I.over}Spent ${money(used)} of ${money(m.added)}</span>` : stt === 'warn' ? `<span class="status warn">${I.warn}${Math.round(pct)}% used · ${money(m.left)} left</span>` : `<span class="status">${money(m.spent)} spent of ${money(m.added)}</span>`}
-    <div class="flow"><span>Added this month</span><span>+${money(m.added)}</span><span>Spent</span><span>−${money(m.spent)}</span>${m.out ? `<span>Moved to savings</span><span>−${money(m.out)}</span>` : ''}<span class="tot">${m.left < 0 ? 'Over' : 'Left'}</span><span class="tot">${money(m.left)}</span></div>
+    <div class="flow"><span>Added this month</span><span>+${money(m.added)}</span><span>Spent</span><span>−${money(m.spent)}</span>${m.out ? `<span>Moved to savings</span><span>−${money(m.out)}</span>` : ''}<span class="tot">${m.left < 0 ? 'Over' : cur ? 'Available now' : 'Left'}</span><span class="tot">${money(m.left)}</span></div>
+    ${!cur ? '' : s.subs.some(x => x.active !== false) ? `<div class="flow"><span class="muted">If you pay the bills still due this month</span><span></span>${ahead.list.length ? ahead.list.map(o => `<span>${esc(o.x.name)} · ${o.d < today() ? 'overdue' : esc(fmtD(o.d))}</span><span>−${money(o.x.amount)}</span>`).join('') : `<span>Nothing else due this month</span><span>${money(0)}</span>`}<span class="tot">Left after bills</span><span class="tot" style="${afterBills < -0.004 ? 'color:var(--over)' : ''}">${money(afterBills)}</span></div>`
+      : `<p class="muted small">Add your bills and subscriptions to see what’s left after paying them. <button class="linkbtn" data-act="edit-bill">Add one</button></p>`}
     <p class="muted small">${cur ? (m.left >= 0 ? `Whatever’s left on ${fmtD(p.end)} goes to Savings → Other.` : `At month end the ${money(-m.left)} comes out of Savings → Other.`) : (Math.abs(m.left) < 0.005 ? 'Nothing carried over.' : m.left > 0 ? `${money(m.left)} went to Savings → Other on ${next1}.` : `${money(-m.left)} came out of Savings → Other on ${next1}.`)}${cur && !payFor(p) ? ' Log this month’s pay to fill Spending.' : ''}</p>
   </section>`;
   if (cur && !payFor(p) && s.pay > 0) h += `<section class="card"><div class="card-head"><h2>Got paid?</h2></div><p class="muted small">Log your ${mw(s.pay)}: ${mw(s.split.spend)} goes to Spending and ${mw(saveAmt())} to Savings → Other.</p><div><button class="btn small" data-act="log-pay">Log pay</button></div></section>`;
+  if (cur) h += billsCard(p);
   h += savingsCard(p);
   h += labelsCard(cur ? null : rangeFor('month', p.start));
   if (st.fromSave > 0) h += `<span class="status over">${I.warn}${money(st.fromSave)} of ${cur ? 'this month’s' : 'that month’s'} spending came out of savings</span>`;
-  if (cur) { const t = today(), due = s.subs.filter(x => x.active !== false && diffDays(t, x.next) <= 7).sort((a, b) => a.next < b.next ? -1 : 1); if (due.length) h += `<section class="card"><div class="card-head"><h2>Subscriptions due</h2><button class="link" data-act="plan-tab" data-tab="spend">All</button></div><div>${due.map(subRow).join('')}</div></section>`; }
   const recent = [...st.tx, ...S.sweeps.filter(x => x.d >= p.start && x.d <= p.end)].sort((a, b) => a.d < b.d ? 1 : a.d > b.d ? -1 : 0).slice(0, 6);
   h += `<section class="card"><div class="card-head"><h2>Recent</h2><button class="link" data-act="go" data-view="activity">See all</button></div>${recent.length ? `<div class="txs">${recent.map(txRow).join('')}</div>` : `<div class="empty">Nothing logged ${cur ? 'yet' : 'that month'}.</div>`}</section>`;
   return h;
@@ -693,18 +708,58 @@ function labelsCard(fixed) {
 
 function txRow(t) {
   let ico, title, subt, amt, cls = '', act = 'edit-tx';
-  if (t.t === 'out') { const l = label(t.label); ico = `<span class="tx-ico"><span class="dot c${l.color ?? 8}"></span></span>`; title = t.note || l.name; subt = `${t.note ? l.name + ' · ' : ''}${t.from === 'spend' ? 'Spending' : 'from ' + whereName(t.from)}`; amt = '−' + money(t.amt); if (t.from !== 'spend') cls = 'fromsave'; }
+  if (t.t === 'out') { const l = label(t.label); ico = `<span class="tx-ico"><span class="dot c${l.color ?? 8}"></span></span>`; title = t.note || l.name; subt = `${t.note ? l.name + ' · ' : ''}${t.from === 'spend' ? 'Spending' : 'from ' + whereName(t.from)}${t.bill ? ' · recurring' : ''}`; amt = '−' + money(t.amt); if (t.from !== 'spend') cls = 'fromsave'; }
   else if (t.t === 'in') { ico = `<span class="tx-ico inc">${I.up}</span>`; title = t.note || (t.src === 'pay' ? 'Pay' : 'Money in'); subt = [t.spend ? `Spending ${mw(t.spend)}` : '', ...Object.entries(t.save || {}).filter(([, v]) => v > 0).map(([k, v]) => `${saveCat(k).name} ${mw(v)}`)].filter(Boolean).join(' · '); amt = '+' + money(t.amt); cls = 'inc'; }
   else if (t.t === 'move') { ico = `<span class="tx-ico mov">${I.move}</span>`; title = `${whereName(t.from)} → ${whereName(t.to)}`; subt = t.note || 'Moved'; amt = money(t.amt); cls = 'mov'; }
   else { ico = `<span class="tx-ico mov">${I.move}</span>`; title = t.amt >= 0 ? `${monthName(t.p)} leftover → Savings · Other` : `${monthName(t.p)} overspend ← Savings · Other`; subt = 'From that month’s spending · not counted as saved'; amt = money(Math.abs(t.amt)); cls = t.amt >= 0 ? 'mov' : 'fromsave'; act = 'sweep-info'; }
   return `<button class="tx" data-act="${act}" data-id="${esc(t.id)}">${ico}<span class="tx-main"><span class="tx-title">${esc(title)}</span><span class="tx-sub">${esc(subt)}</span></span><span class="tx-amt ${cls}">${esc(amt)}</span></button>`;
 }
-const CYCLE = { monthly: 'a month', yearly: 'a year', weekly: 'a week' };
-function subRow(x) {
-  const n = diffDays(today(), x.next);
-  const d = n < 0 ? { txt: `Overdue by ${-n} day${n === -1 ? '' : 's'}`, cls: 'late' } : n === 0 ? { txt: 'Due today', cls: 'soon' } : n <= 3 ? { txt: `Due in ${n} day${n === 1 ? '' : 's'} · ${fmtD(x.next)}`, cls: 'soon' } : { txt: `Next ${fmtD(x.next)}`, cls: '' };
-  return `<div class="sub-row"><button class="nm" data-act="edit-sub" data-id="${esc(x.id)}">${esc(x.name)}</button><div class="right"><span class="num small">${money(x.amount)}</span><button class="btn soft small" data-act="pay-sub" data-id="${esc(x.id)}">Log</button></div><span class="due ${d.cls}">${esc(d.txt)} · ${money(x.amount)} ${CYCLE[x.cycle] || ''}</span></div>`;
+/* ---------- bills & subscriptions ----------
+   Stored in settings.subs: { id, kind:'bill'|'sub', name, amount, cycle, next, day, label, from:'spend'|saveCatId }.
+   Nothing is recorded until you tap Paid; then an `out` entry with `bill: id` is added and `next` moves on. */
+const CYCLES = { weekly: ['Weekly', 'a week'], monthly: ['Monthly', 'a month'], quarterly: ['Every 3 months', 'every 3 months'], yearly: ['Yearly', 'a year'] };
+const activeBills = () => S.settings.subs.filter(x => x.active !== false);
+const byNext = (a, b) => a.next < b.next ? -1 : a.next > b.next ? 1 : 0;
+const billFrom = x => x.from && (x.from === 'spend' || S.settings.saveCats.some(c => c.id === x.from)) ? x.from : 'spend';
+const defaultBillLabel = kind => { const L = S.settings.labels; const want = kind === 'bill' ? 'bills' : 'subs'; return L.some(l => l.id === want) ? want : (L.some(l => l.id === 'other') ? 'other' : (L[0]?.id || '')); };
+function stepDate(x, d) {
+  if (x.cycle === 'weekly') return addDays(d, 7);
+  const n = x.cycle === 'quarterly' ? 3 : x.cycle === 'yearly' ? 12 : 1, [y, m] = parts(d), [fy, fm] = parts(addMonths(ymd(y, m, 1), n));
+  return ymd(fy, fm, Math.min(x.day || parts(d)[2], daysIn(fy, fm)));
 }
+function occurrences(x, until) { const out = []; let d = x.next; while (d && d <= until && out.length < 60) { out.push(d); d = stepDate(x, d); } return out; }
+function billsAhead(p) { // unpaid Spending bills due by the end of this month, overdue ones included
+  const list = []; for (const x of activeBills()) if (billFrom(x) === 'spend') for (const d of occurrences(x, p.end)) list.push({ x, d });
+  list.sort((a, b) => a.d < b.d ? -1 : 1);
+  return { list, total: r2(sum(list.map(o => o.x.amount))) };
+}
+const monthlyEq = x => x.cycle === 'yearly' ? x.amount / 12 : x.cycle === 'quarterly' ? x.amount / 3 : x.cycle === 'weekly' ? x.amount * 52 / 12 : +x.amount;
+function billRow(x, mode) { // mode: 'due' (Paid + Skip), 'pay' (Paid), 'view' (no buttons)
+  const n = diffDays(today(), x.next), from = billFrom(x);
+  const d = n < 0 ? { txt: `Overdue since ${fmtD(x.next)}`, cls: 'late' } : n === 0 ? { txt: 'Due today', cls: 'soon' } : n <= 3 ? { txt: `Due in ${n} day${n === 1 ? '' : 's'} · ${fmtD(x.next)}`, cls: 'soon' } : { txt: `Next ${fmtD(x.next)}`, cls: '' };
+  return `<div class="sub-row"><button class="nm" data-act="edit-bill" data-id="${esc(x.id)}">${esc(x.name)}</button>
+    <div class="right"><span class="num small">${money(x.amount)}</span>${mode !== 'view' ? `<button class="btn soft small" data-act="pay-bill" data-id="${esc(x.id)}">Paid</button>` : ''}${mode === 'due' ? `<button class="btn ghost small" data-act="skip-bill" data-id="${esc(x.id)}">Skip</button>` : ''}</div>
+    <span class="due ${d.cls}">${esc(d.txt)} · ${esc(CYCLES[x.cycle]?.[1] || '')}${from !== 'spend' ? ` · from ${esc(whereName(from))}` : ''}</span></div>`;
+}
+function billsCard(p) {
+  const act = activeBills();
+  if (!act.length) return `<section class="card"><div class="card-head"><h2>Bills & subscriptions</h2><button class="link" data-act="edit-bill">+ Add</button></div><p class="muted small">Add rent, your phone plan, insurance or Spotify. You’ll see when each is due and what’s left after paying them.</p></section>`;
+  const t = today(), due = act.filter(x => x.next <= t).sort(byNext), soon = act.filter(x => x.next > t && x.next <= p.end).sort(byNext), later = act.filter(x => x.next > p.end).sort(byNext);
+  let h = `<section class="card" aria-label="Bills and subscriptions"><div class="card-head"><h2>Bills & subscriptions</h2><button class="link" data-act="edit-bill">+ Add</button></div>`;
+  if (due.length) h += `<div><span class="eyebrow" style="color:var(--warn)">Due now</span><div>${due.map(x => billRow(x, 'due')).join('')}</div></div>`;
+  if (soon.length) h += `<div><span class="eyebrow">Coming up this month</span><div>${soon.map(x => billRow(x, 'view')).join('')}</div></div>`;
+  if (!due.length && !soon.length) h += `<p class="muted small">Nothing else due this month.${later.length ? ` Next: ${esc(later[0].name)} on ${fmtD(later[0].next)}.` : ''}</p>`;
+  return h + `<button class="linkbtn" data-act="plan-tab" data-tab="bills" style="align-self:flex-start">See all ${act.length}</button></section>`;
+}
+function payBill(id) {
+  const s = S.settings, x = s.subs.find(v => v.id === id); if (!x) return;
+  const t = today(), d = x.next <= t ? x.next : t, from = billFrom(x);
+  const lab = s.labels.some(l => l.id === x.label) ? x.label : defaultBillLabel(x.kind);
+  x.next = stepDate(x, x.next); persist('settings');
+  addTx([{ id: newId(), d, t: 'out', amt: r2(x.amount), label: lab, from, note: x.name, bill: x.id }]);
+  toast(`${x.name} ${money(x.amount)} recorded${from !== 'spend' ? ` from ${whereName(from)}` : ''}. Next due ${fmtD(x.next)}.`);
+}
+function skipBill(id) { const x = S.settings.subs.find(v => v.id === id); if (!x) return; x.next = stepDate(x, x.next); saveSettings(); toast(`${x.name} skipped. Next due ${fmtD(x.next)}.`); }
 
 /* ---------- Activity ---------- */
 function rangeOf(f) {
@@ -813,25 +868,32 @@ function colChart(items, ref, refLabel, fill = 'var(--p1)') {
 
 /* ---------- Plan ---------- */
 function viewPlan() {
-  return `<div class="seg" role="group" aria-label="Plan sections">${[['spend', 'Pay & spending'], ['cats', 'Categories'], ['more', 'More']].map(([v, l]) => `<button data-act="plan-tab" data-tab="${v}" aria-pressed="${S.planTab === v}">${l}</button>`).join('')}</div>` + ({ spend: planSpend, cats: planCats, more: planMore }[S.planTab] || planSpend)();
+  return `<div class="seg" role="group" aria-label="Plan sections">${[['spend', 'Pay'], ['cats', 'Categories'], ['bills', 'Bills'], ['more', 'More']].map(([v, l]) => `<button data-act="plan-tab" data-tab="${v}" aria-pressed="${S.planTab === v}">${l}</button>`).join('')}</div>` + ({ spend: planSpend, cats: planCats, bills: planBills, more: planMore }[S.planTab] || planSpend)();
 }
 function splitHtml(s) {
   const pay = +s.pay || 0, sp = +s.split.spend || 0, sv = r2(pay - sp);
   return sv < -0.004 ? `<p class="small" style="color:var(--over)">Spending is ${money(-sv)} more than your pay. Lower it so the split fits.</p>`
     : `<div class="split-show"><span><i class="dot pc1" style="margin-right:8px"></i>Spending each month</span><span>${mw(sp)}</span><span><i class="dot pc0" style="margin-right:8px"></i>Savings → Other</span><span>${mw(sv)}</span></div>`;
 }
-const monthlyEq = x => x.cycle === 'yearly' ? x.amount / 12 : x.cycle === 'weekly' ? x.amount * 52 / 12 : +x.amount;
+function planBills() {
+  const s = S.settings, act = activeBills(), mo = r2(sum(act.map(monthlyEq))), spendMo = r2(sum(act.filter(x => billFrom(x) === 'spend').map(monthlyEq)));
+  const group = k => act.filter(x => (x.kind || 'sub') === k).sort(byNext);
+  return `<section class="card"><div class="card-head"><h2>Bills & subscriptions</h2></div>
+    ${act.length ? `<div class="grid2"><div><span class="eyebrow">Per month</span><div class="num" style="font-weight:700;font-size:1.15rem">${money(mo)}</div></div><div><span class="eyebrow">Per year</span><div class="num" style="font-weight:700;font-size:1.15rem">${money(mo * 12, { dp: 0 })}</div></div></div>
+      ${+s.split.spend && spendMo ? `<p class="muted small">The ones paid from Spending take about ${Math.round(spendMo / s.split.spend * 100)}% of your ${mw(+s.split.spend)} a month.</p>` : ''}`
+      : `<p class="muted small">Add things you pay regularly: rent, your phone plan, insurance, Spotify. They show as due on Home, and Home shows what’s left after paying them. Nothing is recorded until you tap Paid.</p>`}
+    <button class="btn" data-act="edit-bill">Add a bill or subscription</button></section>
+  ${[['bill', 'Bills'], ['sub', 'Subscriptions']].map(([k, t]) => { const g = group(k); return g.length ? `<section class="card"><div class="card-head"><h2>${t}</h2><span class="muted small num">${money(sum(g.map(monthlyEq)))} a month</span></div><div>${g.map(x => billRow(x, x.next <= today() ? 'due' : 'pay')).join('')}</div></section>` : ''; }).join('')}`;
+}
 function planSpend() {
-  const s = S.settings, act = s.subs.filter(x => x.active !== false).sort((a, b) => a.next < b.next ? -1 : 1), mo = sum(act.map(monthlyEq));
+  const s = S.settings;
   return `<section class="card"><div class="card-head"><h2>Pay & split</h2></div>
     <div class="grid2"><label class="field"><span>Monthly take-home pay</span><div class="money-in" data-sym="${esc(sym())}"><input class="input" id="set-pay" data-set="pay" inputmode="decimal" value="${s.pay || ''}"></div></label>
     <label class="field"><span>For spending</span><div class="money-in" data-sym="${esc(sym())}"><input class="input" id="set-spend" data-set="spend" inputmode="decimal" value="${s.split.spend || ''}"></div></label></div>
     <div id="split-show">${splitHtml(s)}</div>
     <p class="muted small">The rest of your pay goes to Savings → Other. Sort it into savings categories whenever you like. Spending you don’t use goes to Savings → Other at month end.</p>
     <label class="field"><span>Month starts on the</span><select class="input" id="set-start" data-set="monthStart">${Array.from({ length: 28 }, (_, i) => `<option value="${i + 1}" ${s.monthStart === i + 1 ? 'selected' : ''}>${ordinal(i + 1)}</option>`).join('')}</select></label></section>
-  <section class="card"><div class="card-head"><h2>Subscriptions</h2>${act.length ? `<span class="muted small num">${money(mo)} a month</span>` : ''}</div>
-    ${act.length ? `<div>${act.map(subRow).join('')}</div>` : `<p class="muted small">Add Spotify, Netflix or your phone plan. Logging a payment takes it out of Spending under the Subscriptions category.</p>`}
-    <button class="btn ghost" data-act="edit-sub">Add a subscription</button></section>`;
+  <section class="card"><div class="card-head"><h2>Bills & subscriptions</h2></div><p class="muted small">They have their own tab now.</p><div><button class="btn ghost small" data-act="plan-tab" data-tab="bills">Open Bills</button></div></section>`;
 }
 function planCats() {
   const s = S.settings;
@@ -1143,41 +1205,43 @@ function openLabelEdit(id, opts = {}) {
   });
 }
 
-/* subscriptions (paid from Spending) */
-function openSubEdit(id) {
+/* add or edit a bill or subscription */
+function openBillEdit(id) {
   const s = S.settings, x = id ? s.subs.find(v => v.id === id) : null;
-  const D = x ? clone(x) : { id: newId('s'), name: '', amount: '', cycle: 'monthly', next: addDays(today(), 1), label: s.labels.find(l => l.id === 'subs') ? 'subs' : (s.labels[0]?.id || '') };
-  openSheet(x ? 'Edit subscription' : 'New subscription', `<div class="form">
-    <label class="field"><span>Name</span><input class="input" id="sb-name" value="${esc(D.name)}" placeholder="e.g. Spotify"></label>
-    <div class="grid2"><label class="field"><span>Amount</span><div class="money-in" data-sym="${esc(sym())}"><input class="input" id="sb-amt" inputmode="decimal" value="${esc(D.amount)}" placeholder="0.00"></div></label>
-    <label class="field"><span>Billed</span><select class="input" id="sb-cycle">${Object.entries({ monthly: 'Monthly', yearly: 'Yearly', weekly: 'Weekly' }).map(([k, v]) => `<option value="${k}" ${D.cycle === k ? 'selected' : ''}>${v}</option>`).join('')}</select></label></div>
-    <div class="grid2"><label class="field"><span>Next payment</span><input class="input" type="date" id="sb-next" value="${esc(D.next)}"></label>
-    <label class="field"><span>Category</span><select class="input" id="sb-label">${s.labels.map(l => `<option value="${esc(l.id)}" ${D.label === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label></div>
-    <p class="small" id="sb-err" style="color:var(--over)" hidden></p>
-    <div class="btn-row"><button class="btn" data-act="sb-save">${x ? 'Save' : 'Add subscription'}</button>${x ? '<button class="btn danger" data-act="sb-del">Remove</button>' : ''}</div></div>`, sheet => {
+  const D = x ? { kind: x.kind || 'sub', name: x.name, amount: String(x.amount), cycle: x.cycle || 'monthly', next: x.next, label: s.labels.some(l => l.id === x.label) ? x.label : defaultBillLabel(x.kind || 'sub'), from: billFrom(x) }
+    : { kind: 'bill', name: '', amount: '', cycle: 'monthly', next: addDays(today(), 1), label: defaultBillLabel('bill'), from: 'spend' };
+  let labelTouched = !!x;
+  const body = () => `<div class="form">
+    <div class="seg" role="group" aria-label="Type"><button data-act="be-kind" data-v="bill" aria-pressed="${D.kind === 'bill'}">Bill</button><button data-act="be-kind" data-v="sub" aria-pressed="${D.kind === 'sub'}">Subscription</button></div>
+    <label class="field"><span>Name</span><input class="input" id="be-name" value="${esc(D.name)}" placeholder="${D.kind === 'bill' ? 'e.g. Phone plan, Rent, Insurance' : 'e.g. Spotify, Netflix, iCloud'}" autocomplete="off"></label>
+    <div class="grid2"><label class="field"><span>Amount</span><div class="money-in" data-sym="${esc(sym())}"><input class="input" id="be-amt" inputmode="decimal" value="${esc(D.amount)}" placeholder="0.00"></div></label>
+      <label class="field"><span>How often</span><select class="input" id="be-cycle">${Object.entries(CYCLES).map(([k, v]) => `<option value="${k}" ${D.cycle === k ? 'selected' : ''}>${v[0]}</option>`).join('')}</select></label></div>
+    <div class="grid2"><label class="field"><span>Next due</span><input class="input" type="date" id="be-next" value="${esc(D.next)}"></label>
+      <label class="field"><span>Category</span><select class="input" id="be-label">${s.labels.map(l => `<option value="${esc(l.id)}" ${D.label === l.id ? 'selected' : ''}>${esc(l.name)}</option>`).join('')}</select></label></div>
+    <label class="field"><span>Paid from</span><select class="input" id="be-from"><option value="spend" ${D.from === 'spend' ? 'selected' : ''}>Spending</option>${s.saveCats.map(c => `<option value="${esc(c.id)}" ${D.from === c.id ? 'selected' : ''}>Savings · ${esc(c.name)}</option>`).join('')}</select>
+      <span class="hint">${D.from === 'spend' ? 'Counts in “left after bills” on Home.' : 'Comes out of savings when you tap Paid, so it doesn’t affect your Spending.'}</span></label>
+    <p class="muted small">It shows as due on its date. Nothing is recorded until you tap Paid.</p>
+    <p class="small" id="be-err" style="color:var(--over)" hidden></p>
+    <div class="btn-row"><button class="btn" data-act="be-save">${x ? 'Save' : D.kind === 'bill' ? 'Add bill' : 'Add subscription'}</button>${x ? '<button class="btn danger" data-act="be-del">Delete</button>' : ''}</div></div>`;
+  const read = () => { D.name = $('#be-name').value; D.amount = $('#be-amt').value; D.cycle = $('#be-cycle').value; D.next = $('#be-next').value; D.label = $('#be-label').value; D.from = $('#be-from').value; };
+  openSheet(x ? `Edit ${x.name}` : 'New bill or subscription', body(), sheet => {
+    sheet.addEventListener('change', e => { if (e.target.id === 'be-label') labelTouched = true; if (e.target.id === 'be-from') { read(); $('.sheet-body').innerHTML = body(); } });
     sheet.addEventListener('click', e => {
-      const b = e.target.closest('[data-act]'); if (!b) return;
-      if (b.dataset.act === 'sb-del') armDanger(b, 'Tap again to remove', () => { s.subs = s.subs.filter(v => v.id !== x.id); saveSettings(); closeSheet(); toast('Subscription removed'); });
-      if (b.dataset.act === 'sb-save') {
-        const name = $('#sb-name').value.trim(), amount = r2(parseMoney($('#sb-amt').value)), next = $('#sb-next').value, err = $('#sb-err');
-        if (!name) { err.textContent = 'Give it a name.'; err.hidden = false; return; }
-        if (!(amount > 0)) { err.textContent = 'Enter an amount above zero.'; err.hidden = false; return; }
-        if (!next) { err.textContent = 'Pick the next payment date.'; err.hidden = false; return; }
-        const v = { id: D.id, name, amount, cycle: $('#sb-cycle').value, next, label: $('#sb-label').value, active: true };
+      const b = e.target.closest('[data-act]'); if (!b) return; const a = b.dataset.act;
+      if (a === 'be-kind') { read(); D.kind = b.dataset.v; if (!labelTouched) D.label = defaultBillLabel(D.kind); $('.sheet-body').innerHTML = body(); }
+      if (a === 'be-del') armDanger(b, 'Tap again to delete', () => { s.subs = s.subs.filter(v => v.id !== x.id); saveSettings(); closeSheet(); toast(`${x.name} deleted. Past payments stay in Activity.`); });
+      if (a === 'be-save') {
+        read();
+        const name = D.name.trim(), amount = r2(parseMoney(D.amount)), err = $('#be-err'), fail = m => { err.textContent = m; err.hidden = false; };
+        if (!name) return fail('Give it a name.');
+        if (!(amount > 0)) return fail('Enter an amount above zero.');
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(D.next)) return fail('Pick the next due date.');
+        const v = { id: x ? x.id : newId('b'), kind: D.kind, name, amount, cycle: D.cycle, next: D.next, day: parts(D.next)[2], label: D.label, from: D.from, active: true };
         if (x) Object.assign(x, v); else s.subs.push(v);
-        saveSettings(); closeSheet(); toast(x ? 'Subscription saved' : 'Subscription added');
+        saveSettings(); closeSheet(); toast(x ? `${name} saved` : `${name} added · next due ${fmtD(D.next)}`);
       }
     });
   });
-}
-function paySub(id) {
-  const s = S.settings, x = s.subs.find(v => v.id === id); if (!x) return;
-  const t = today(), d = x.next <= t ? x.next : t;
-  const lab = s.labels.find(l => l.id === x.label) ? x.label : (s.labels.find(l => l.id === 'subs') ? 'subs' : (s.labels[0]?.id || 'other'));
-  x.next = x.cycle === 'yearly' ? addMonths(x.next, 12) : x.cycle === 'weekly' ? addDays(x.next, 7) : addMonths(x.next, 1);
-  persist('settings');
-  addTx([{ id: newId(), d, t: 'out', amt: r2(x.amount), label: lab, from: 'spend', note: x.name }]);
-  toast(`Logged ${x.name} ${money(x.amount)} from Spending. Next ${fmtD(x.next)}.`);
 }
 
 /* ---------- export / restore ---------- */
@@ -1260,8 +1324,9 @@ const ACT = {
   'f-type': el => { S.f.type = el.dataset.v; S.f.limit = 150; $$('[data-act="f-type"]').forEach(b => b.setAttribute('aria-pressed', b === el)); renderActList(); },
   'f-clear': () => { Object.assign(S.f, { q: '', type: 'all', where: 'all', label: 'all', range: 'month', from: '', to: '', limit: 150 }); renderView(); },
   'f-moreRows': () => { S.f.limit += 300; renderActList(); },
-  'pay-sub': el => paySub(el.dataset.id),
-  'edit-sub': el => openSubEdit(el.dataset.id),
+  'pay-bill': el => payBill(el.dataset.id),
+  'skip-bill': el => skipBill(el.dataset.id),
+  'edit-bill': el => openBillEdit(el.dataset.id),
   'savecat-edit': el => openSaveCatEdit(el.dataset.id),
   'export-csv': () => exportCSV(),
   'export-json': () => exportJSON(),
