@@ -1,6 +1,26 @@
-# Steady Budget & Steady Pots
+# Spend & Save, Steady Pots & Steady Budget
 
-Two phone-first budgeting apps in Singapore dollars, each a single-file claude.ai Artifact.
+Three phone-first budgeting apps in Singapore dollars, each a single-file claude.ai Artifact. The claude.ai
+versions save to your account and sync across devices. The website copies save only in the browser you use.
+
+## Spend & Save
+
+S$800 a month in two groups: **Spending S$200** and **Savings S$600**.
+
+Open it here (private to you): https://claude.ai/artifact/RzpoUebu3QvdeWomi6G3EL ·
+website copy: **https://bytesizedinfo.github.io/n/spend-save/**
+
+- **Spending** is one amount each month. **Labels** (Food & drinks, Transport, ...) record what it went on and
+  never hold money. View them by **Today / Week / Month**, and tap a label for its history.
+- **Savings** has subcategories that hold money: Other, Shanghai trip, Emergency fund, General savings,
+  Investments. Pay's S$600 and any money you don't sort lands in **Other** until you move it.
+  Each subcategory can be viewed **for the month or in total**.
+- **Month end:** unspent Spending moves to Savings → Other on the 1st. Overspending is taken from Other.
+  This is worked out from your entries, so editing an old expense updates it.
+- Spending from savings, or moving savings into Spending, needs a second tap. Subscriptions are paid from
+  Spending. Insights show money in, spent, how much savings grew, total savings, and charts.
+- Data: `data/users/<id>/settings` plus `m-YYYY-MM`. Entries are `in` (`spend` + `save` per subcategory),
+  `out` (`label`, `from`) and `move` (`from`/`to`, where `spend` means Spending).
 
 ## Steady Pots
 
@@ -12,7 +32,7 @@ It's also a website: **https://bytesizedinfo.github.io/n/**, served by GitHub Pa
 The website saves in your phone's browser (localStorage) instead of your claude.ai account, so the two versions
 keep separate data. A backup from either one restores into the other. Add the website to your Home Screen so it
 opens like an app, works offline, and Safari doesn't clear its data.
-Rebuild it after changing the app with `python3 tools/build_site.py`.
+Rebuild both websites after changing an app with `python3 tools/build_site.py`.
 
 - **Misc is the spending pot.** The big number is what's left in it. Unspent money rolls over to next month.
 - **Log pay** puts S$800 into the pots by your plan. If the amount differs, the remainder goes to Misc.
@@ -76,5 +96,5 @@ Opened anywhere else, for example as a local file, the page runs with example da
 
 ## Files
 
-- `steady-pots.html` and `steady-budget.html`: each app is one file (HTML, CSS and JS). The Artifact publisher adds the
+- `spend-save.html`, `steady-pots.html` and `steady-budget.html`: each app is one file (HTML, CSS and JS). The Artifact publisher adds the
   `<!doctype html>` skeleton when it publishes, which is why the file starts at `<title>`.
