@@ -31,6 +31,14 @@ website copy: **https://bytesizedinfo.github.io/n/spend-save/**
     or a savings category
   - nothing is recorded until you tap **Paid**, which records it on its due date and moves the next date on;
     **Skip** moves the date on without recording
+- **Projected after bills & planned spending** sits under Available now, at the same size: available now − bills
+  still due − what's left of each category's **planned monthly amount** (set in Plan → Pay or on a spending
+  category). A bill in a planned category isn't counted twice.
+- **Goals** are savings categories with a target and a date (Goals card on Home, Plan → Categories). Logging pay
+  suggests each goal's amount for the month: (target − balance at month start) ÷ months left. Reached goals are
+  marked done, and their money stays put.
+- **Income categories** (Salary, Side income, Allowance / family, Gifts & ang bao, plus your own). Pay is Salary,
+  and Other money asks which kind. Insights shows money in by category. All income counts towards saved from income.
 - Spending from savings, or moving savings into Spending, needs a second tap. Insights show money in, spent, how much savings grew, total savings, and charts.
 - Data: `data/users/<id>/settings` plus `m-YYYY-MM`. Entries are `in` (`spend` + `save` per savings category),
   `out` (`label` = spending category, `from`) and `move` (`from`/`to`, where `spend` means Spending).
