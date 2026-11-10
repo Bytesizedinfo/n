@@ -39,6 +39,11 @@ website copy: **https://bytesizedinfo.github.io/n/spend-save/**
   marked done, and their money stays put.
 - **Income categories** (Salary, Side income, Allowance / family, Gifts & ang bao, plus your own). Pay is Salary,
   and Other money asks which kind. Insights shows money in by category. All income counts towards saved from income.
+- **Your money now** (top of Home) = Spending left this month + all savings, with a savings vs spending bar.
+  Tap it, or Insights → Total savings, to see the breakdown line by line.
+- **Split other money:** Money in → Other money → "Split it" divides it by % or by amount across Spending,
+  Savings → Other and any savings category or goal. Percentages are turned into exact cents, and the split is
+  remembered per income category.
 - Spending from savings, or moving savings into Spending, needs a second tap. Insights show money in, spent, how much savings grew, total savings, and charts.
 - Data: `data/users/<id>/settings` plus `m-YYYY-MM`. Entries are `in` (`spend` + `save` per savings category),
   `out` (`label` = spending category, `from`) and `move` (`from`/`to`, where `spend` means Spending).

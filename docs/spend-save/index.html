@@ -310,6 +310,16 @@ table.data th:first-child,table.data td:first-child{text-align:left}
 .proj{border-top:1px solid var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
 .sv-row .tag{font-size:.68rem;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:2px}
 details.done summary{cursor:pointer;font-size:.82rem;font-weight:700;color:var(--muted)}
+.segbar{display:flex;gap:2px;height:12px;border-radius:99px;overflow:hidden;background:var(--track)}
+.segbar i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 14px;font-size:.82rem;color:var(--ink-2);font-weight:600}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.key{width:9px;height:9px;border-radius:99px;flex:none;display:inline-block}
+.bal{background:var(--surface);border-radius:24px;box-shadow:var(--shadow);padding:18px;display:flex;flex-direction:column;gap:10px;border:0;text-align:left;width:100%}
+.bal .hero-num{font-size:clamp(2.4rem,11vw,3rem)}
+.pct-in{position:relative}
+.pct-in::after{content:"%";position:absolute;right:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-weight:700;pointer-events:none}
+.goal-in .pct-in .input{min-height:40px;padding:8px 28px 8px 10px;font-size:15px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -644,6 +654,7 @@ function demoData() {
   s.saveCats.find(c => c.id === 'shanghai').target = 2500;
   s.saveCats.push({ id: 'phone', name: 'New phone', color: 4, start: 0, target: 1200, goal: true, date: addMonths(periodAt(0).start, 4) });
   s.labels.find(l => l.id === 'food').plan = 100; s.labels.find(l => l.id === 'transport').plan = 50;
+  s.incomeSplits = { side: { pct: { other: 50, spend: 25, shanghai: 25 } } };
   const spot = addDays(today(), 3), phone = addDays(today(), 6);
   s.subs = [
     { id: 's1', kind: 'sub', name: 'Spotify', amount: 10.98, cycle: 'monthly', next: spot, day: parts(spot)[2], label: 'subs', from: 'spend' },
@@ -659,7 +670,7 @@ function demoData() {
     push({ d: p.start, t: 'in', src: 'pay', cat: 'salary', amt: 800, spend: 200, save: off >= -1 ? { other: 450, phone: 150 } : { other: 600 }, note: '' });
     const sortDay = addDays(p.start, 2);
     if (sortDay <= last) { push({ d: sortDay, t: 'move', amt: 300, from: 'other', to: 'emergency', note: '' }); push({ d: sortDay, t: 'move', amt: off >= -1 ? 100 : 200, from: 'other', to: 'shanghai', note: '' }); push({ d: sortDay, t: 'move', amt: off >= -1 ? 50 : 100, from: 'other', to: 'invest', note: '' }); }
-    if (off === -1) push({ d: addDays(p.start, 12), t: 'in', src: 'other', cat: 'side', amt: 120, spend: 0, save: { shanghai: 120 }, note: 'Tuition' });
+    if (off === -1) push({ d: addDays(p.start, 12), t: 'in', src: 'other', cat: 'side', amt: 120, spend: 30, save: { other: 60, shanghai: 30 }, note: 'Tuition' });
     for (let d = p.start; d <= last; d = addDays(d, 1)) {
       if (R() < 0.45) push({ d, t: 'out', amt: amt(3.5, 9), label: 'food', from: 'spend', note: pick(food) });
       if (R() < 0.3) push({ d, t: 'out', amt: amt(1.2, 3.2), label: 'transport', from: 'spend', note: 'MRT/bus' });
@@ -711,7 +722,7 @@ function viewHome() {
   const next1 = fmtD(addDays(p.end, 1));
   const ahead = billsAhead(p), planned = plannedAhead(p, ahead), projected = r2(m.left - ahead.total - planned.total);
   const bigNum = v => `<div class="hero-num ${v < -0.004 ? 'neg' : ''}"><span class="cur">${v < -0.004 ? '−' : ''}${esc(sym())}</span>${nf2.format(Math.abs(v))}</div>`;
-  let h = periodNav(p);
+  let h = periodNav(p) + balanceCard(p);
   h += `<section class="hero" aria-label="Spending">
     <div class="hero-top"><span class="grp-name"><i class="dot pc1"></i>Spending</span><button class="linkbtn" data-act="where-activity" data-id="spend">Activity</button></div>
     <span class="eyebrow">${cur ? 'Available to spend now' : 'Left at month end'}</span>
@@ -754,6 +765,34 @@ function savingsCard(p) {
   if (cur && other && other.bal > 0.004) h += `<div class="banner"><b>${money(other.bal)}</b> in Other isn’t sorted yet. <button class="linkbtn" data-act="sort-other">Sort it now</button></div>`;
   if (other && other.bal < -0.004) h += `<span class="status over">${I.over}Other is below zero. Move money into it from another category.</span>`;
   return h + `<div class="btn-row"><button class="btn ghost small" data-act="move">Move money</button></div></section>`;
+}
+/* Your money now: what's left to spend this month + everything in savings, worked out from your entries. */
+function balanceParts(p) {
+  const cur = S.offset === 0 && p.start === periodAt(0).start, until = cur ? today() : p.end;
+  const spend = spendMonth(p).left, cats = S.settings.saveCats.map(c => ({ c, v: saveBal(c.id, until) })), saved = r2(sum(cats.map(x => x.v)));
+  return { cur, until, spend, cats, saved, total: r2(spend + saved) };
+}
+function balanceCard(p) {
+  const b = balanceParts(p), pos = Math.max(0, b.saved) + Math.max(0, b.spend), w = v => pos ? (Math.max(0, v) / pos * 100).toFixed(2) : 0, pct = v => pos ? Math.round(Math.max(0, v) / pos * 100) : 0;
+  return `<button class="bal" data-act="balance" aria-label="Your money now: ${esc(money(b.total))}. Tap for the breakdown.">
+    <span class="hero-top" style="width:100%"><span class="eyebrow">${b.cur ? 'Your money now' : `Your money on ${fmtD(p.end)}`}</span><span class="linkbtn">Breakdown</span></span>
+    <span class="hero-num ${b.total < -0.004 ? 'neg' : ''}" style="display:block"><span class="cur">${b.total < -0.004 ? '−' : ''}${esc(sym())}</span>${nf2.format(Math.abs(b.total))}</span>
+    <span class="segbar" style="width:100%"><i style="width:${w(b.saved)}%;background:var(--p0)"></i><i style="width:${w(b.spend)}%;background:var(--p1)"></i></span>
+    <span class="legend" style="width:100%"><span><i class="key" style="background:var(--p0)"></i>Savings <b class="num" style="${b.saved < -0.004 ? 'color:var(--over)' : ''}">${money(b.saved)}</b> · ${pct(b.saved)}%</span><span><i class="key" style="background:var(--p1)"></i>Spending <b class="num" style="${b.spend < -0.004 ? 'color:var(--over)' : ''}">${money(b.spend)}</b> · ${pct(b.spend)}%</span></span>
+  </button>`;
+}
+function openBalance(p = periodAt(S.offset)) {
+  const b = balanceParts(p), neg = v => v < -0.004 ? ' style="color:var(--over)"' : '';
+  openSheet('Where your money is', `<div class="form">
+    <div><span class="eyebrow">${b.cur ? 'Right now' : `On ${fmtDY(p.end)}`}</span><div class="big"${neg(b.total)}><span class="cur">${esc(sym())}</span>${nf2.format(b.total)}</div></div>
+    <div class="flow" style="border-top:0;padding-top:0"><span><i class="dot pc1" style="margin-right:8px"></i>Spending · ${b.cur ? 'left this month' : `left in ${monthName(p)}`}</span><span${neg(b.spend)}>${money(b.spend)}</span>
+      <span class="tot">Savings</span><span class="tot"${neg(b.saved)}>${money(b.saved)}</span>
+      ${b.cats.map(x => `<span>&nbsp;&nbsp;<i class="dot pc${x.c.color ?? 6}" style="margin-right:8px"></i>${esc(x.c.name)}${x.c.goal ? ' <span class="muted small">(goal)</span>' : ''}</span><span${neg(x.v)}>${money(x.v)}</span>`).join('')}
+      <span class="tot">Total</span><span class="tot"${neg(b.total)}>${money(b.total)}</span></div>
+    <p class="muted small">Worked out from what you’ve logged: pay, money in, spending and moves. Spending you don’t use moves into Savings → Other at month end, so it’s never counted twice. If your bank shows a different amount, something hasn’t been logged yet.</p>
+    <div class="btn-row"><button class="btn ghost" data-act="bal-act">See activity</button></div></div>`, sheet => {
+    sheet.addEventListener('click', e => { if (e.target.closest('[data-act="bal-act"]')) { closeSheet(); Object.assign(S.f, { where: 'all', type: 'all', label: 'all', q: '', range: 'all', limit: 150 }); location.hash = 'activity'; } });
+  });
 }
 function goalsCard() {
   const act = activeGoals(), done = doneGoals();
@@ -905,7 +944,7 @@ function viewInsights() {
     <div class="tile"><span class="eyebrow">Money in</span><span class="v">${mw(st.inn)}</span>${deltaHtml(st.inn, sp.inn, true)}</div>
     <div class="tile"><span class="eyebrow">Spent</span><span class="v">${mw(st.spent)}</span>${deltaHtml(st.spent, prevSpent, false, vs)}</div>
     <div class="tile"><span class="eyebrow">Saved from income</span><span class="v">${mw(st.saved)}</span>${deltaHtml(st.saved, sp.saved, true)}</div>
-    <div class="tile"><span class="eyebrow">Total savings</span><span class="v">${mw(totalSaved(until))}</span><span class="d">${cur ? 'now' : `on ${fmtD(p.end)}`}</span></div>
+    <div class="tile" role="button" tabindex="0" data-act="balance" style="cursor:pointer"><span class="eyebrow">Total savings</span><span class="v">${mw(totalSaved(until))}</span><span class="d">${cur ? 'now' : `on ${fmtD(p.end)}`} · <span style="color:var(--accent)">see where</span></span></div>
   </div>`;
   const ps = []; for (let i = 5; i >= 0; i--) { const q = periodAt(S.offset - i); ps.push({ p: q, st: stats(q) }); }
   const at = x => x.p.end < today() ? x.p.end : today();
@@ -1108,6 +1147,18 @@ function openIn(existing, preset = {}) {
   if (M.amt == null) M.amt = '';
   if (!existing && M.src === 'pay') { if (M.amt === '') M.amt = String(s.pay || ''); M.spend = String(Math.min(r2(parseMoney(M.amt)), +s.split.spend || 0)); }
   if (M.src === 'other' && (!M.cat || M.cat === 'salary' && !existing)) M.cat = (incs.find(c => c.id !== 'salary') || incs[0] || NOINCOME).id;
+  /* splitting other money: parts are percentages (mode 'pct') or amounts (mode 'amt'), keyed by 'spend' or a savings category */
+  const SP = { mode: 'pct', parts: {} };
+  const splitDests = () => [['spend', 'Spending', 'this month', 'pc1'], ...s.saveCats.filter(c => !c.done).map(c => [c.id, c.id === 'other' ? 'Savings → Other' : c.name, c.id === 'other' ? 'savings, sort later' : c.goal ? 'goal' : 'savings', 'pc' + (c.color ?? 6)])];
+  function applyRemembered(cat) {
+    const r = s.incomeSplits && s.incomeSplits[cat], ok = k => k === 'spend' || s.saveCats.some(c => c.id === k && !c.done);
+    const keys = r ? Object.keys(r.pct || {}).filter(k => ok(k) && +r.pct[k] > 0) : [];
+    if (keys.length === 1) { M.dest = keys[0]; SP.parts = {}; }
+    else if (keys.length > 1) { M.dest = 'split'; SP.mode = 'pct'; SP.parts = {}; for (const k of keys) SP.parts[k] = +r.pct[k]; }
+    else { M.dest = 'other'; SP.parts = {}; }
+  }
+  if (existing && existing.src === 'other') { const parts = { ...(existing.spend > 0 ? { spend: existing.spend } : {}), ...(existing.save || {}) }; if (Object.keys(parts).length > 1) { M.dest = 'split'; SP.mode = 'amt'; SP.parts = parts; } }
+  else if (!existing && M.src === 'other' && !preset.dest) applyRemembered(M.cat);
   let spendTouched = !!existing, goalTouched = false;
   const goals = existing ? [] : activeGoals(), G = {};
   const savingsAmt = () => Math.max(0, r2(parseMoney(M.amt) - parseMoney(M.spend)));
@@ -1125,11 +1176,37 @@ function openIn(existing, preset = {}) {
     <label class="amount-big"><span>${esc(sym())}</span><input id="in-amt" inputmode="decimal" placeholder="0.00" value="${esc(M.amt)}" aria-label="Amount" autocomplete="off"></label>
     ${M.src === 'pay' ? `<p class="muted small" style="margin-top:-6px">Recorded as Salary.</p><label class="field"><span>For spending</span><div class="money-in" data-sym="${esc(sym())}"><input class="input" id="in-spend" inputmode="decimal" value="${esc(M.spend)}"></div></label>${goalsHtml()}<div id="in-show">${payShow()}</div><p class="muted small">The rest of the savings lands in Other. Sort it into savings categories whenever you like.</p>`
       : `<div class="field"><span>What kind of money?</span><div class="chips" role="group" aria-label="Income category">${incs.map(c => `<button class="chip" data-act="in-cat" data-v="${esc(c.id)}" aria-pressed="${M.cat === c.id}"><i class="dot c${c.color ?? 8}"></i>${esc(c.name)}</button>`).join('')}<button class="chip new" data-act="in-newinc">+ New</button></div></div>
-        <div class="field"><span>Where should it go?</span><div class="pick"><button data-act="in-dest" data-v="spend" aria-pressed="${M.dest === 'spend'}"><b><i class="dot pc1"></i>Spending</b><span>this month</span></button>${s.saveCats.filter(c => !c.done).map(c => `<button data-act="in-dest" data-v="${esc(c.id)}" aria-pressed="${M.dest === c.id}"><b><i class="dot pc${c.color ?? 6}"></i>${esc(c.name)}</b><span>${c.goal ? 'goal' : 'savings'} · ${money(saveBal(c.id))}</span></button>`).join('')}${existing ? '' : '<button data-act="in-newcat"><b>+ New category</b><span>for savings</span></button>'}</div></div>`}
+        <div class="field"><span>Where should it go?</span><div class="pick"><button data-act="in-dest" data-v="spend" aria-pressed="${M.dest === 'spend'}"><b><i class="dot pc1"></i>Spending</b><span>this month</span></button>${s.saveCats.filter(c => !c.done).map(c => `<button data-act="in-dest" data-v="${esc(c.id)}" aria-pressed="${M.dest === c.id}"><b><i class="dot pc${c.color ?? 6}"></i>${esc(c.name)}</b><span>${c.goal ? 'goal' : 'savings'} · ${money(saveBal(c.id))}</span></button>`).join('')}<button data-act="in-dest" data-v="split" aria-pressed="${M.dest === 'split'}"><b>Split it</b><span>by % or amount</span></button>${existing ? '' : '<button data-act="in-newcat"><b>+ New category</b><span>for savings</span></button>'}</div></div>${M.dest === 'split' ? splitHtml() : ''}`}
     <div class="grid2"><label class="field"><span>Date</span><input class="input" type="date" id="in-date" value="${esc(M.d)}"></label><label class="field"><span>Note <span class="hint">optional</span></span><input class="input" id="in-note" value="${esc(M.note)}" placeholder="${M.src === 'pay' ? 'e.g. November pay' : 'e.g. Tuition, ang bao'}" autocomplete="off"></label></div>
     <p class="small" id="in-err" style="color:var(--over)" hidden></p>
     <div class="btn-row"><button class="btn" data-act="in-save">${existing ? 'Save changes' : M.src === 'pay' ? 'Log pay' : 'Add money'}</button>${existing ? '<button class="btn danger" data-act="in-del">Delete</button>' : ''}</div></div>`;
-  const refreshShow = () => { const sh = $('#in-show'); if (sh) sh.innerHTML = payShow(); };
+  function splitHtml() {
+    return `<div class="field"><div class="card-head"><span>Split it</span><div class="seg mini" role="group" aria-label="Split by"><button data-act="sp-mode" data-v="pct" aria-pressed="${SP.mode === 'pct'}">%</button><button data-act="sp-mode" data-v="amt" aria-pressed="${SP.mode === 'amt'}">${esc(sym())}</button></div></div>
+      <div>${splitDests().map(([id, name, sub, dot]) => `<div class="goal-in"><span class="nm"><b><i class="dot ${dot}"></i>${esc(name)}</b><span id="spx-${esc(id)}">${esc(sub)}</span></span><div class="${SP.mode === 'pct' ? 'pct-in' : 'money-in'}" ${SP.mode === 'amt' ? `data-sym="${esc(sym())}"` : ''}><input class="input" id="sp-${esc(id)}" data-split="${esc(id)}" inputmode="decimal" value="${SP.parts[id] ? SP.parts[id] : ''}" placeholder="0" aria-label="${SP.mode === 'pct' ? 'Percent' : 'Amount'} to ${esc(name)}"></div></div>`).join('')}</div>
+      <p class="small" id="sp-sum"></p><span class="hint">Remembered for ${esc((incs.find(c => c.id === M.cat) || NOINCOME).name)} next time.</span></div>`;
+  }
+  /* turn the split into exact amounts: percentages are scaled to the total in cents, any rounding remainder goes to the biggest part */
+  function splitAmounts(total) {
+    const keys = Object.keys(SP.parts).filter(k => +SP.parts[k] > 0), out = {};
+    if (SP.mode === 'amt') { for (const k of keys) out[k] = r2(+SP.parts[k]); return out; }
+    const pctSum = sum(keys.map(k => +SP.parts[k])); if (!pctSum) return out;
+    const T = Math.round(total * 100); let used = 0, big = keys[0];
+    for (const k of keys) { const c = Math.round(T * SP.parts[k] / pctSum); out[k] = c; used += c; if (+SP.parts[k] > +SP.parts[big]) big = k; }
+    out[big] += T - used; for (const k of keys) out[k] = out[k] / 100;
+    return out;
+  }
+  function splitState() {
+    const a = r2(parseMoney(M.amt)), keys = Object.keys(SP.parts).filter(k => +SP.parts[k] > 0);
+    if (SP.mode === 'pct') { const ps = r2(sum(keys.map(k => +SP.parts[k]))), left = r2(100 - ps); return { ok: keys.length > 0 && Math.abs(left) <= 0.1001, left, txt: Math.abs(left) <= 0.1001 ? (keys.length ? `All ${money(a)} is split ✓` : '') : left > 0 ? `${left}% (${money(a * left / 100)}) left to put somewhere` : `${-left}% too much. Take some off.` }; }
+    const as = r2(sum(keys.map(k => +SP.parts[k]))), left = r2(a - as);
+    return { ok: keys.length > 0 && Math.abs(left) < 0.005, left, txt: Math.abs(left) < 0.005 ? (keys.length ? `All ${money(a)} is split ✓` : '') : left > 0 ? `${money(left)} left to put somewhere` : `${money(-left)} more than came in. Take some off.` };
+  }
+  function refreshSplit() {
+    const el = $('#sp-sum'); if (!el) return; const st = splitState();
+    el.textContent = st.txt || 'Type how much goes where.'; el.style.color = st.ok ? 'var(--good)' : st.left < 0 ? 'var(--over)' : 'var(--muted)';
+    if (SP.mode === 'pct') { const am = splitAmounts(r2(parseMoney(M.amt))); for (const [id, , sub] of splitDests()) { const x = $(`#spx-${id}`); if (x) x.textContent = +SP.parts[id] > 0 && st.ok ? `= ${money(am[id] || 0)}` : +SP.parts[id] > 0 ? `≈ ${money(parseMoney(M.amt) * SP.parts[id] / 100)}` : sub; } }
+  }
+  const refreshShow = () => { const sh = $('#in-show'); if (sh) sh.innerHTML = payShow(); refreshSplit(); };
   const refreshGoalInputs = () => { for (const g of goals) { const i = $(`#in-goal-${g.id}`); if (i && document.activeElement !== i) i.value = +G[g.id] ? G[g.id] : ''; } };
   openSheet(existing ? 'Edit money in' : 'Add', body(), sheet => {
     const onIn = e => {
@@ -1137,18 +1214,27 @@ function openIn(existing, preset = {}) {
       if (t.id === 'in-amt') { M.amt = t.value; if (M.src === 'pay' && !spendTouched) { M.spend = String(Math.min(r2(parseMoney(M.amt)), +s.split.spend || 0)); const i = $('#in-spend'); if (i) i.value = M.spend; } fillGoals(); refreshGoalInputs(); }
       if (t.id === 'in-spend') { M.spend = t.value; spendTouched = true; fillGoals(); refreshGoalInputs(); }
       if (t.dataset.goal) { G[t.dataset.goal] = r2(parseMoney(t.value)); goalTouched = true; }
+      if (t.dataset.split) SP.parts[t.dataset.split] = t.value.trim() === '' ? '' : r2(parseMoney(t.value));
       if (t.id === 'in-date') M.d = t.value || today();
       if (t.id === 'in-note') M.note = t.value;
       refreshShow();
     };
     sheet.addEventListener('input', onIn); sheet.addEventListener('change', onIn);
+    refreshSplit();
+    const repaint = () => { $('.sheet-body').innerHTML = body(); refreshSplit(); };
     sheet.addEventListener('click', e => {
       const b = e.target.closest('[data-act]'); if (!b) return; const a = b.dataset.act;
       if (a === 'kind' && b.dataset.v !== 'in') switchKind(b.dataset.v, M.amt);
-      if (a === 'in-src') { M.src = b.dataset.v; if (M.src === 'pay') { if (!M.amt) M.amt = String(s.pay || ''); if (!spendTouched) M.spend = String(Math.min(r2(parseMoney(M.amt)), +s.split.spend || 0)); fillGoals(); } else if (!M.cat || M.cat === 'salary') M.cat = (incs.find(c => c.id !== 'salary') || incs[0] || NOINCOME).id; $('.sheet-body').innerHTML = body(); }
-      if (a === 'in-cat') { M.cat = b.dataset.v; $$('[data-act="in-cat"]', sheet).forEach(x => x.setAttribute('aria-pressed', x === b)); }
+      if (a === 'in-src') { M.src = b.dataset.v; if (M.src === 'pay') { if (!M.amt) M.amt = String(s.pay || ''); if (!spendTouched) M.spend = String(Math.min(r2(parseMoney(M.amt)), +s.split.spend || 0)); fillGoals(); } else { if (!M.cat || M.cat === 'salary') M.cat = (incs.find(c => c.id !== 'salary') || incs[0] || NOINCOME).id; if (!existing) applyRemembered(M.cat); } repaint(); }
+      if (a === 'in-cat') { M.cat = b.dataset.v; if (!existing) applyRemembered(M.cat); repaint(); }
       if (a === 'in-newinc') { const keep = { src: 'other', amt: M.amt, d: M.d, note: M.note, dest: M.dest }; openIncomeCatEdit(null, { onSaved: nid => openIn(existing, { ...keep, cat: nid }), onDone: () => openIn(existing, { ...keep, cat: M.cat }) }); }
-      if (a === 'in-dest') { M.dest = b.dataset.v; $$('[data-act="in-dest"]', sheet).forEach(x => x.setAttribute('aria-pressed', x === b)); }
+      if (a === 'in-dest') { M.dest = b.dataset.v; repaint(); }
+      if (a === 'sp-mode' && b.dataset.v !== SP.mode) { // keep the same split when switching between % and amounts
+        const a0 = r2(parseMoney(M.amt));
+        if (b.dataset.v === 'amt') { const am = a0 > 0 ? splitAmounts(a0) : {}; SP.parts = {}; for (const k in am) SP.parts[k] = am[k]; }
+        else { const np = {}; for (const k in SP.parts) if (+SP.parts[k] > 0 && a0 > 0) np[k] = r2(SP.parts[k] / a0 * 100); SP.parts = np; }
+        SP.mode = b.dataset.v; repaint();
+      }
       if (a === 'in-newcat') { const keep = { src: 'other', cat: M.cat, amt: M.amt, d: M.d, note: M.note }; openSaveCatEdit(null, { onSaved: nid => openIn(null, { ...keep, dest: nid }), onDone: () => openIn(null, { ...keep, dest: M.dest }) }); }
       if (a === 'in-del') armDanger(b, 'Tap again to delete', () => { removeTx([existing.id]); closeSheet(); toast('Deleted'); });
       if (a === 'in-save') {
@@ -1168,7 +1254,14 @@ function openIn(existing, preset = {}) {
             if (sv - gt > 0.004) save.other = r2(sv - gt);
           }
           for (const k of Object.keys(save)) if (!(save[k] > 0)) delete save[k];
+        } else if (M.dest === 'split') {
+          const st = splitState(); if (!st.ok) return fail(SP.mode === 'pct' ? `The split adds up to ${r2(100 - st.left)}%. It needs to come to 100%.` : `The split adds up to ${money(amt - st.left)} of ${money(amt)}.`);
+          for (const [k, v] of Object.entries(splitAmounts(amt))) { if (!(v > 0)) continue; if (k === 'spend') spend = r2(v); else save[k] = r2(v); }
         } else if (M.dest === 'spend') spend = amt; else save = { [M.dest]: amt };
+        if (M.src === 'other' && M.cat) { // remember this split (as percentages) for the next time this kind of money comes in
+          const pct = {}; if (spend > 0) pct.spend = r2(spend / amt * 100); for (const [k, v] of Object.entries(save)) pct[k] = r2(v / amt * 100);
+          s.incomeSplits = { ...(s.incomeSplits || {}), [M.cat]: { pct } }; persist('settings');
+        }
         const tx = { id: existing ? existing.id : newId(), d: M.d, t: 'in', src: M.src, cat: M.src === 'pay' ? 'salary' : (M.cat || NOINCOME.id), amt, spend, save, note: (M.note || '').trim() };
         existing ? replaceTx(existing.id, tx) : addTx([tx]); closeSheet();
         toast(`${money(amt)} in: ${[spend ? `Spending ${mw(spend)}` : '', ...Object.entries(save).map(([k, v]) => `${saveCat(k).name} ${mw(v)}`)].filter(Boolean).join(', ')}`, '', 4500);
@@ -1534,6 +1627,7 @@ const ACT = {
   'save-view': el => { S.saveView = el.dataset.v; lsSet('spend-save:saveView', S.saveView); renderView(); },
   savecat: el => (saveCat(el.dataset.id).goal ? openGoal : openSaveCat)(el.dataset.id),
   goal: el => openGoal(el.dataset.id),
+  balance: () => openBalance(),
   'goal-edit': el => openGoalEdit(el.dataset.id),
   'income-edit': el => openIncomeCatEdit(el.dataset.id),
   label: el => openLabel(el.dataset.id, el.dataset.k),
