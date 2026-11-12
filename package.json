@@ -1,0 +1,11 @@
+{
+  "name": "skin-ritual",
+  "private": true,
+  "type": "module",
+  "description": "Personal skincare routine app: adaptive quiz, rule-based routine, shelf checker, checklist and journal.",
+  "scripts": {
+    "test": "node --test tests/*.test.mjs",
+    "smoke": "node tests/smoke.mjs",
+    "serve": "python3 -m http.server 8080"
+  }
+}
