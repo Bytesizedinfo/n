@@ -1,5 +1,7 @@
 // End-to-end smoke test in a phone-sized Chromium.
 // Usage: node tests/smoke.mjs            (OCR=1 also tests reading a photographed label; needs internet)
+// ARTIFACT=1 tests the claude.ai package from build/artifact (run tools/build-artifact.mjs first),
+// with a stand-in window.claude so the claude.ai-only code paths run.
 // Screenshots go to ./shots (or $SHOTS).
 
 import { createRequire } from 'node:module';
@@ -16,7 +18,9 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const SHOTS = process.env.SHOTS || path.join(root, 'shots');
 mkdirSync(SHOTS, { recursive: true });
 const PORT = 8000 + Math.floor(Math.random() * 900);
-const BASE = `http://127.0.0.1:${PORT}/`;
+const ARTIFACT = !!process.env.ARTIFACT;
+const SERVE_DIR = ARTIFACT ? path.join(root, 'build', 'artifact') : root;
+const BASE = `http://127.0.0.1:${PORT}/` + (ARTIFACT ? '_preview.html' : '');
 
 const ANSWERS = {
   skinType: 'oily', dehydrated: 'sometimes', age: '20s', concerns: ['acne', 'pores', 'pigment'], topConcern: 'acne',
@@ -26,7 +30,7 @@ const ANSWERS = {
   budget: 'budget', texture: 'light', prefs: ['ff'],
 };
 
-const server = spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: root, stdio: 'ignore' });
+const server = spawn('python3', ['-m', 'http.server', String(PORT), '--bind', '127.0.0.1'], { cwd: SERVE_DIR, stdio: 'ignore' });
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const errors = [];
@@ -40,7 +44,7 @@ async function shot(page, name) {
 async function answerQuiz(page) {
   for (let guard = 0; guard < 60; guard++) {
     await page.waitForTimeout(250);
-    if (page.url().includes('#/routine')) return;
+    if (page.url().includes('#routine')) return;
     const h = page.locator('h1[data-q]');
     if (!(await h.count())) { await page.waitForTimeout(400); continue; }
     const qid = await h.getAttribute('data-q');
@@ -71,6 +75,8 @@ try {
   await sleep(700);
   browser = await chromium.launch();
   const context = await browser.newContext({ ...devices['iPhone 13'], acceptDownloads: true });
+  // Stand-in for claude.ai: capabilities resolve null, as they do when a view can't run them.
+  if (ARTIFACT) await context.addInitScript(() => { window.claude = { use: async () => null }; });
   const page = await context.newPage();
   page.setDefaultTimeout(10000);
   page.on('console', (m) => { if (m.type() === 'error') errors.push(`[${step}] ${m.text()}`); });
@@ -106,12 +112,18 @@ try {
   await shot(page, '07-routine-notes');
 
   log('calendar');
-  const [ics] = await Promise.all([page.waitForEvent('download'), page.click('[data-ics]')]);
-  const icsText = readFileSync(await ics.path(), 'utf8');
+  await page.click('[data-ics]');
+  await page.waitForSelector('.sheet a[href^="https://calendar.google.com/"]');
+  assert.ok((await page.locator('.sheet a[href*="RRULE%3AFREQ%3DDAILY"]').count()) === 2, 'two daily Google Calendar links');
+  const [ics] = await Promise.all([page.waitForEvent('download'), page.click('.sheet [data-file]')]);
+  const icsText = readFileSync(await ics.path(), 'latin1');
+  if (ARTIFACT) assert.ok(icsText.startsWith('PK') && ics.suggestedFilename().endsWith('.zip'), 'calendar file is zipped on claude.ai');
   assert.ok(icsText.includes('BEGIN:VCALENDAR') && icsText.includes('RRULE:FREQ=DAILY'));
+  await page.click('.sheet [data-close]');
+  await page.waitForTimeout(300);
 
   log('today');
-  await page.click('a.tab[href="#/today"]');
+  await page.click('a.tab[href="#today"]');
   await page.waitForSelector('.checklist');
   const rows = page.locator('.check-row');
   const n = await rows.count();
@@ -125,7 +137,7 @@ try {
   await page.waitForTimeout(300);
 
   log('shelf: catalogue');
-  await page.click('a.tab[href="#/shelf"]');
+  await page.click('a.tab[href="#shelf"]');
   await page.click('[data-add]');
   await page.waitForSelector('#q');
   for (const term of ['Retinol 0.5%', 'BHA Liquid Exfoliant', 'Benzac', 'Foaming Cleanser']) {
@@ -191,7 +203,7 @@ try {
   await shot(page, '13-shelf-routine');
 
   log('journal');
-  await page.click('a.tab[href="#/journal"]');
+  await page.click('a.tab[href="#journal"]');
   await page.click('[data-feel="4"]');
   await page.click('[data-rate="breakouts"][data-n="2"]');
   await page.click('[data-rate="redness"][data-n="1"]');
@@ -212,38 +224,38 @@ try {
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForSelector('#note');
   assert.equal(await page.inputValue('#note'), 'Started the new BHA.');
-  await page.click('a.tab[href="#/shelf"]');
+  await page.click('a.tab[href="#shelf"]');
   await page.waitForSelector('text=Vitamin C Glow Serum');
 
   log('more + compare');
-  await page.click('a.tab[href="#/more"]');
-  await page.waitForSelector('text=Sync is off');
+  await page.click('a.tab[href="#more"]');
+  await page.waitForSelector(ARTIFACT ? 'text=Saved on this device' : 'text=Sync is off');
   await shot(page, '15-more');
-  await page.locator('a[href^="#/compare"]').first().click();
+  await page.locator('a[href^="#compare"]').first().click();
   await page.waitForSelector('text=Compare routines');
   await shot(page, '16-compare');
 
   log('dark mode');
-  await page.click('a.tab[href="#/more"]');
+  await page.click('a.tab[href="#more"]');
   await page.click('[data-theme="dark"]');
-  await page.click('a.tab[href="#/today"]');
+  await page.click('a.tab[href="#today"]');
   await shot(page, '17-today-dark');
-  await page.click('a.tab[href="#/routine"]');
+  await page.click('a.tab[href="#routine"]');
   await shot(page, '18-routine-dark');
-  await page.click('a.tab[href="#/journal"]');
+  await page.click('a.tab[href="#journal"]');
   await page.waitForSelector('#chart svg');
   await shot(page, '19-journal-dark');
 
   log('narrow phone');
   await page.setViewportSize({ width: 320, height: 640 });
-  await page.click('a.tab[href="#/routine"]');
+  await page.click('a.tab[href="#routine"]');
   await page.click('[data-tab="weekly"]');
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
   assert.ok(overflow <= 0, `no sideways scroll at 320px (overflow ${overflow}px)`);
   await shot(page, '20-week-320');
 
   log('export backup');
-  await page.click('a.tab[href="#/more"]');
+  await page.click('a.tab[href="#more"]');
   const [backup] = await Promise.all([page.waitForEvent('download'), page.click('[data-export]')]);
   const data = JSON.parse(readFileSync(await backup.path(), 'utf8'));
   assert.equal(data.app, 'skin-ritual');

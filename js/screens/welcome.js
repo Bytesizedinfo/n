@@ -20,8 +20,8 @@ export function render(view, { go }) {
     </div>
     <div class="stack" style="margin-top:22px">
       <button class="btn primary block" data-start>${draft && draft.answers && Object.keys(draft.answers).length ? 'Continue the quiz' : 'Start the quiz'}</button>
-      ${st.configured && !st.user ? html`<button class="btn block" data-signin>${icon('cloud')} Already set up? Sign in to sync</button>` : ''}
-      ${st.user ? html`<p class="center small muted"><span class="sync-dot on"></span> Signed in as ${st.user.email}${st.status === 'syncing' ? ' · syncing…' : ''}</p>` : ''}
+      ${st.provider === 'firebase' && !st.user ? html`<button class="btn block" data-signin>${icon('cloud')} Already set up? Sign in to sync</button>` : ''}
+      ${st.user ? html`<p class="center small muted"><span class="sync-dot on"></span> ${st.provider === 'claude' ? 'Saving to your Claude account' : `Signed in as ${st.user.email}`}${st.status === 'syncing' ? ' · syncing…' : ''}</p>` : ''}
     </div>
     <p class="tiny faint center" style="margin-top:22px">General skincare guidance, not medical advice. See a doctor for persistent or severe skin problems.</p>
   `);

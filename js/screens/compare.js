@@ -9,7 +9,7 @@ const label = (h) => `${formatDate(h.date.slice(0, 10), { day: 'numeric', month:
 export function render(view, { params, go }) {
   const history = app.history();
   if (history.length < 2) {
-    view.innerHTML = String(html`<div class="page-head"><h1>Compare</h1></div><div class="card soft"><p style="margin:0">Retake the quiz or build from your shelf to have something to compare with.</p></div><a class="btn block" href="#/more" style="margin-top:14px">Back</a>`);
+    view.innerHTML = String(html`<div class="page-head"><h1>Compare</h1></div><div class="card soft"><p style="margin:0">Retake the quiz or build from your shelf to have something to compare with.</p></div><a class="btn block" href="#more" style="margin-top:14px">Back</a>`);
     return;
   }
   const b = history.find((h) => h.id === params.get('b')) || history[0];
@@ -20,7 +20,7 @@ export function render(view, { params, go }) {
   const item = (s, extra = '') => html`<div class="note">${icon(when(s) === 'Morning' ? 'sun' : 'moon')}<div><b>${s.title}</b><div class="small muted">${when(s)}${s.base ? '' : ' · ' + freqLabel(s.freq, s.routineSlot || 'pm')}${extra}</div></div></div>`;
 
   view.innerHTML = String(html`
-    <div class="page-head"><div><div class="eyebrow">History</div><h1>Compare routines</h1></div><a class="icon-btn" href="#/more" aria-label="Back">${icon('x')}</a></div>
+    <div class="page-head"><div><div class="eyebrow">History</div><h1>Compare routines</h1></div><a class="icon-btn" href="#more" aria-label="Back">${icon('x')}</a></div>
     <div class="card">
       <label class="field" for="ca">Before</label>
       <select id="ca">${history.filter((h) => h.id !== b.id).map((h) => html`<option value="${h.id}" ${h.id === a.id ? 'selected' : ''}>${label(h)}</option>`)}</select>

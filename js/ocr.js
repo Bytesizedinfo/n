@@ -2,7 +2,11 @@
 
 import { loadBitmap } from './store/photos.js';
 
-const SRC = 'https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js';
+const CDN = 'https://cdn.jsdelivr.net/npm/tesseract.js@7.0.0/dist/tesseract.min.js';
+// On claude.ai the page can't fetch from CDNs at run time, so the reader's files are published with it.
+const LOCAL = 'vendor/tesseract/';
+const useLocal = () => typeof window !== 'undefined' && !!window.claude;
+const abs = (p) => new URL(p, location.href).href;
 let loading = null;
 
 function loadTesseract() {
@@ -10,7 +14,7 @@ function loadTesseract() {
   if (!loading) {
     loading = new Promise((resolve, reject) => {
       const s = document.createElement('script');
-      s.src = SRC;
+      s.src = useLocal() ? LOCAL + 'tesseract.min.js' : CDN;
       s.async = true;
       s.onload = () => resolve(window.Tesseract);
       s.onerror = () => { loading = null; reject(new Error('Couldn’t load the text reader. Check your connection and try again.')); };
@@ -53,7 +57,10 @@ export async function readLabel(file, onProgress = () => {}) {
   onProgress(0, 'Loading the text reader…');
   const T = await loadTesseract();
   const canvas = await prepare(file);
+  // worker-wrap.js (made by tools/build-artifact.mjs) serves the language data from a base64 .txt file.
+  const local = useLocal() ? { workerPath: abs(LOCAL + 'worker-wrap.js'), corePath: abs(LOCAL), langPath: abs(LOCAL + 'lang'), workerBlobURL: false } : {};
   const worker = await T.createWorker('eng', 1, {
+    ...local,
     logger: (m) => {
       if (m.status === 'recognizing text') onProgress(m.progress, 'Reading the label…');
       else onProgress(null, 'Getting ready…');

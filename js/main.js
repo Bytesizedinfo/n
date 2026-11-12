@@ -26,17 +26,35 @@ const TITLES = { welcome: 'Skin Ritual', quiz: 'Quiz · Skin Ritual', today: 'To
 let current = null;
 let lastRoute = null;
 
+// Routes are plain "#name" hashes (claude.ai pages only pass those through); extra
+// parameters travel in memory. Old "#/name?x=y" links still work.
+let pendingParams = null;
+
 function parseHash() {
   const h = location.hash.replace(/^#\/?/, '');
   const [path, qs] = h.split('?');
-  return { name: path || '', params: new URLSearchParams(qs || '') };
+  const params = new URLSearchParams(qs || '');
+  if (pendingParams && pendingParams.name === path) {
+    for (const [k, v] of Object.entries(pendingParams.params)) params.set(k, v);
+  }
+  return { name: path || '', params };
 }
 
 export function go(name, params) {
-  const qs = params ? '?' + new URLSearchParams(params).toString() : '';
-  const next = '#/' + name + qs;
+  pendingParams = params ? { name, params } : null;
+  const next = '#' + name;
   if (location.hash === next) render(); else location.hash = next;
 }
+
+document.addEventListener('click', (e) => {
+  const a = e.target.closest('[data-go]');
+  if (!a) {
+    if (e.target.closest('a[href^="#"]')) pendingParams = null;
+    return;
+  }
+  e.preventDefault();
+  go(a.dataset.go, a.dataset.params ? JSON.parse(a.dataset.params) : null);
+});
 
 export function applyTheme() {
   const t = app.settings().theme;
@@ -51,7 +69,7 @@ function renderTabs(route) {
   document.getElementById('view').classList.toggle('no-tabs', !show);
   if (!show) return;
   const active = route === 'compare' ? 'more' : route;
-  nav.innerHTML = String(html`<div class="tabs-inner">${TABS.map(([k, label, ic]) => html`<a class="tab" href="#/${k}" ${active === k ? html`aria-current="page"` : ''}>${icon(ic)}<span>${label}</span></a>`)}</div>`);
+  nav.innerHTML = String(html`<div class="tabs-inner">${TABS.map(([k, label, ic]) => html`<a class="tab" href="#${k}" ${active === k ? html`aria-current="page"` : ''}>${icon(ic)}<span>${label}</span></a>`)}</div>`);
 }
 
 function render() {
@@ -69,7 +87,7 @@ function render() {
     cleanup = ROUTES[route].render(view, { params, go, rerender: render });
   } catch (e) {
     console.error(e);
-    view.innerHTML = String(html`<div class="card"><h2>Something went wrong</h2><p class="muted">${e.message}</p><button class="btn" onclick="location.hash='#/today';location.reload()">Reload</button></div>`);
+    view.innerHTML = String(html`<div class="card"><h2>Something went wrong</h2><p class="muted">${e.message}</p><button class="btn" onclick="location.hash='#today';location.reload()">Reload</button></div>`);
   }
   current = { route, cleanup };
   renderTabs(route);

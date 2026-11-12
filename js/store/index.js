@@ -11,7 +11,8 @@ let mode = 'local';
 let user = null;
 let cloud = null;
 let unlisten = null;
-let status = firebaseConfig ? 'loading' : 'not-configured';
+let status = 'loading';
+if (!firebaseConfig && !(typeof window !== 'undefined' && window.claude && typeof window.claude.use === 'function')) status = 'not-configured';
 let lastError = '';
 
 const now = () => new Date().toISOString();
@@ -34,11 +35,56 @@ export function subscribe(fn) {
 }
 
 export function storeStatus() {
-  return { configured: !!firebaseConfig, mode, status, user, error: lastError };
+  const provider = user ? user.provider : (firebaseConfig ? 'firebase' : (claudeHost() ? 'claude' : null));
+  return { configured: !!firebaseConfig || provider === 'claude', provider, mode, status, user, error: lastError };
+}
+
+function claudeHost() {
+  return typeof window !== 'undefined' && !!window.claude && typeof window.claude.use === 'function';
+}
+
+// Merge this device's data with the account copy, upload what's newer here, then listen for changes.
+async function connect(u) {
+  user = u;
+  status = 'syncing';
+  emit('auth');
+  try {
+    const remote = await cloud.loadCloud(u.uid);
+    const { merged, uploads } = mergeSnapshots(snap, remote);
+    snap = merged;
+    saveLocal(snap);
+    mode = 'cloud';
+    emit('data');
+    await cloud.uploadAll(u.uid, snap, uploads);
+    status = 'synced';
+    lastError = '';
+    emit('status');
+    unlisten = cloud.listen(u.uid, applyRemote);
+  } catch (e) {
+    console.error(e);
+    onWriteError(e);
+  }
 }
 
 export async function initStore() {
-  if (!firebaseConfig) return;
+  if (!firebaseConfig) {
+    // Opened as a claude.ai page: sync through the page's own private storage.
+    if (!claudeHost()) return;
+    status = 'loading';
+    emit('status');
+    try {
+      cloud = await import('./claudedb.js');
+      const u = await cloud.initClaude(onWriteError);
+      if (!u) { status = 'not-configured'; cloud = null; emit('status'); return; }
+      await connect(u);
+    } catch (e) {
+      console.error(e);
+      status = 'not-configured';
+      cloud = null;
+      emit('status');
+    }
+    return;
+  }
   try {
     cloud = await import('./cloud.js');
     await cloud.initCloud(firebaseConfig);
@@ -51,31 +97,14 @@ export async function initStore() {
   }
   cloud.onAuth(async (u) => {
     if (unlisten) { unlisten(); unlisten = null; }
-    user = u;
     if (!u) {
+      user = null;
       mode = 'local';
       status = 'signed-out';
       emit('auth');
       return;
     }
-    status = 'syncing';
-    emit('auth');
-    try {
-      const remote = await cloud.loadCloud(u.uid);
-      const { merged, uploads } = mergeSnapshots(snap, remote);
-      snap = merged;
-      saveLocal(snap);
-      mode = 'cloud';
-      emit('data');
-      await cloud.uploadAll(u.uid, snap, uploads);
-      status = 'synced';
-      lastError = '';
-      emit('status');
-      unlisten = cloud.listen(u.uid, applyRemote);
-    } catch (e) {
-      console.error(e);
-      onWriteError(e);
-    }
+    await connect({ ...u, provider: 'firebase' });
   });
 }
 
@@ -93,13 +122,13 @@ function applyRemote(part, kind) {
 }
 
 export async function signIn() {
-  if (!cloud) throw new Error('Sync isn’t set up yet.');
+  if (!cloud || !cloud.signIn) throw new Error('Sync isn’t set up yet.');
   await cloud.signIn();
 }
 
 export async function signOut({ clearDevice = false } = {}) {
   if (unlisten) { unlisten(); unlisten = null; }
-  if (cloud) await cloud.signOutCloud();
+  if (cloud && cloud.signOutCloud) await cloud.signOutCloud();
   mode = 'local';
   user = null;
   if (clearDevice) {

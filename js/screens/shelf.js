@@ -62,7 +62,7 @@ export function render(view, { go }) {
       <div class="card blush" style="margin-top:18px">
         <h3>Build my routine from these</h3>
         <p class="small" style="margin:4px 0 12px">Uses your products where they fit, schedules around clashes, benches what you don’t need and suggests anything missing.</p>
-        ${answers ? html`<button class="btn primary block" data-build>${icon('sparkles')} Build from my shelf</button>` : html`<a class="btn primary block" href="#/quiz">Take the quiz first</a>`}
+        ${answers ? html`<button class="btn primary block" data-build>${icon('sparkles')} Build from my shelf</button>` : html`<a class="btn primary block" href="#quiz">Take the quiz first</a>`}
       </div>` : ''}
 
     ${groups.map(([cat, list]) => html`

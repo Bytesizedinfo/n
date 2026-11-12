@@ -79,8 +79,8 @@ export function render(view) {
       <p class="tiny faint center" style="margin:10px 0 0">Top half: morning · bottom half: night</p>
     </div>
 
-    ${!hasJournal ? html`<a class="card sage row" style="margin-top:14px;text-decoration:none;color:inherit" href="#/journal">${icon('book')}<div class="grow"><b>How’s your skin today?</b><div class="small muted">A 20-second check-in helps spot patterns.</div></div>${icon('right')}</a>` : ''}
-    ${profile && profile.referrals.length ? html`<a class="card soft row" style="margin-top:14px;text-decoration:none;color:inherit" href="#/routine?tab=notes">${icon('shield')}<div class="grow small">Worth checking with a doctor: see the notes on your routine.</div>${icon('right')}</a>` : ''}
+    ${!hasJournal ? html`<a class="card sage row" style="margin-top:14px;text-decoration:none;color:inherit" href="#journal">${icon('book')}<div class="grow"><b>How’s your skin today?</b><div class="small muted">A 20-second check-in helps spot patterns.</div></div>${icon('right')}</a>` : ''}
+    ${profile && profile.referrals.length ? html`<a class="card soft row" style="margin-top:14px;text-decoration:none;color:inherit" href="#routine" data-go="routine" data-params='{"tab":"notes"}'>${icon('shield')}<div class="grow small">Worth checking with a doctor: see the notes on your routine.</div>${icon('right')}</a>` : ''}
   `);
 
   view.querySelectorAll('[data-slot]').forEach((b) => b.addEventListener('click', () => { slotChoice = b.dataset.slot; render(view); }));

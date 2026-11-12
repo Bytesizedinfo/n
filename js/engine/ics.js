@@ -51,6 +51,34 @@ function event({ summary, description, dateStr, time, rrule, minutes = 10 }) {
   ];
 }
 
+function plusMinutes(dateStr, time, minutes) {
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const [hh, mm] = time.split(':').map(Number);
+  const t = new Date(y, m - 1, d, hh, mm + minutes);
+  const p = (n) => String(n).padStart(2, '0');
+  return `${t.getFullYear()}${p(t.getMonth() + 1)}${p(t.getDate())}T${p(t.getHours())}${p(t.getMinutes())}00`;
+}
+
+// "Add to Google Calendar" links: a repeating morning and night reminder, plus weekly extras.
+export function googleCalendarLinks(routine, { amTime = '07:30', pmTime = '22:00', startDate, appUrl = '', timeZone } = {}) {
+  const start = startDate || routine.startDate;
+  let tz = timeZone;
+  if (!tz) { try { tz = Intl.DateTimeFormat().resolvedOptions().timeZone; } catch { tz = 'Asia/Singapore'; } }
+  const tail = appUrl ? `\n\nToday's exact steps: ${appUrl}` : '\n\nOpen Skin Ritual for today’s exact steps.';
+  const list = (slot) => routine.steps.filter((s) => s.slot === slot).sort((a, b) => a.order - b.order).map((s, i) => `${i + 1}. ${s.title}`).join('\n');
+  const link = (text, details, time, rrule, minutes) => 'https://calendar.google.com/calendar/render?' + new URLSearchParams({
+    action: 'TEMPLATE', text, details: details + tail, dates: `${plusMinutes(start, time, 0)}/${plusMinutes(start, time, minutes)}`, ctz: tz, recur: 'RRULE:' + rrule,
+  }).toString();
+  const out = [
+    { label: 'Morning routine', when: `Every day at ${amTime}`, url: link('Skin Ritual: morning routine', list('am'), amTime, 'FREQ=DAILY', 10) },
+    { label: 'Night routine', when: `Every day at ${pmTime}`, url: link('Skin Ritual: night routine', list('pm'), pmTime, 'FREQ=DAILY', 10) },
+  ];
+  for (const s of routine.steps.filter((x) => x.slot === 'weekly' && x.days && x.days.length)) {
+    out.push({ label: s.title, when: s.days.map((d) => DAY_NAMES[d]).join(', '), url: link(`Skin Ritual: ${s.title}`, (s.why || []).join(' '), pmTime, `FREQ=WEEKLY;BYDAY=${s.days.map((d) => BYDAY[d]).join(',')}`, 15) });
+  }
+  return out;
+}
+
 export function buildIcs(routine, { amTime = '07:30', pmTime = '22:00', startDate, appUrl = '' } = {}) {
   const start = startDate || routine.startDate;
   const am = routine.steps.filter((s) => s.slot === 'am').sort((a, b) => a.order - b.order);

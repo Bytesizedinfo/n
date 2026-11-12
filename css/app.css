@@ -129,7 +129,9 @@ p { margin: 0 0 10px; }
 .view {
   max-width: 600px;
   margin: 0 auto;
-  padding: calc(16px + var(--safe-t)) 16px calc(var(--tabs-h) + 28px + var(--safe-b));
+  padding-block: calc(16px + var(--safe-t)) calc(var(--tabs-h) + 28px + var(--safe-b));
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
   outline: none;
 }
 .view.no-tabs { padding-bottom: calc(28px + var(--safe-b)); }
@@ -200,6 +202,7 @@ p { margin: 0 0 10px; }
 /* ---------- tabs ---------- */
 .tabs {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 20;
+  padding-left: env(safe-area-inset-left, 0px); padding-right: env(safe-area-inset-right, 0px);
   display: flex; justify-content: center;
   background: color-mix(in srgb, var(--surface) 92%, transparent);
   backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);

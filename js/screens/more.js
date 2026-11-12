@@ -2,7 +2,7 @@ import { html, icon, toast, confirmDialog, openSheet, downloadFile, LOGO } from 
 import { app } from '../app.js';
 import { storeStatus, signIn, signOut, exportData, importData, resetAll } from '../store/index.js';
 import { clearPhotos } from '../store/photos.js';
-import { buildIcs } from '../engine/ics.js';
+import { openReminders } from './common.js';
 import { formatDate, todayStr } from '../engine/dates.js';
 import { CONCERNS } from '../data/ingredients.js';
 import { PRICES_CHECKED } from '../data/products.js';
@@ -18,7 +18,15 @@ export function render(view, { go }) {
   const profile = app.profile();
   const history = app.history();
 
-  const syncCard = !st.configured
+  const chip = html`<span class="chip ${st.status === 'error' ? 'danger' : 'sage'}"><span class="sync-dot ${st.status === 'error' ? 'err' : 'on'}"></span> ${st.status === 'syncing' ? 'Syncing…' : st.status === 'error' ? 'Sync problem' : 'Synced'}</span>`;
+  const syncCard = st.provider === 'claude'
+    ? (st.user
+      ? html`<div class="card"><div class="row"><div class="card-title grow" style="margin:0">${icon('cloud')}<h3>Saved to your Claude account</h3></div>${chip}</div>
+          <p class="small" style="margin:10px 0 0">Your routine, shelf, checklist and journal save automatically. Open this page on any phone or computer where you’re signed in to Claude and everything is there. Journal photos stay on the device they were taken on.</p>
+          ${st.status === 'error' ? html`<p class="small" style="color:var(--danger);margin:8px 0 0">${st.error}</p>` : ''}</div>`
+      : html`<div class="card"><div class="card-title">${icon('cloud')}<h3>${st.status === 'loading' ? 'Connecting to your Claude account…' : 'Saved on this device'}</h3></div>
+          <p class="small" style="margin:0">${st.status === 'loading' ? 'One moment.' : 'Syncing isn’t available in this view, so your data stays in this browser. Open the page from your own Claude account to sync it.'}</p></div>`)
+    : !st.configured
     ? html`<div class="card"><div class="card-title">${icon('cloud')}<h3>Sync is off</h3></div>
         <p class="small">Your data is saved on this device. To have it follow you to other phones and browsers, connect a free Firebase project (about 5 minutes).</p>
         <a class="btn small" href="${README}" target="_blank" rel="noopener">How to turn on sync</a></div>`
@@ -26,7 +34,7 @@ export function render(view, { go }) {
       ? html`<div class="card"><div class="row">
           <div class="icon-btn" style="background:var(--blush-soft);color:var(--blush-ink);border:0;font-weight:700">${(st.user.name || st.user.email || '?')[0].toUpperCase()}</div>
           <div class="grow"><b>${st.user.name || 'Signed in'}</b><div class="small muted">${st.user.email}</div></div>
-          <span class="chip ${st.status === 'error' ? 'danger' : 'sage'}"><span class="sync-dot ${st.status === 'error' ? 'err' : 'on'}"></span> ${st.status === 'syncing' ? 'Syncing…' : st.status === 'error' ? 'Sync problem' : 'Synced'}</span>
+          ${chip}
         </div>
         ${st.status === 'error' ? html`<p class="small" style="color:var(--danger);margin:10px 0 0">${st.error}</p>` : html`<p class="small muted" style="margin:10px 0 0">Changes save automatically and appear on your other devices.</p>`}
         <button class="btn small" data-signout style="margin-top:10px">Sign out</button></div>`
@@ -47,15 +55,15 @@ export function render(view, { go }) {
           ${profile.picked.filter((c) => c !== profile.top).map((c) => html`<span class="chip">${CONCERNS[c]}</span>`)}
           <span class="chip">${['Not sensitive', 'A little sensitive', 'Sensitive', 'Very sensitive'][profile.sensitivity]}</span>
         </div>
-        <div class="row" style="margin-top:14px"><a class="btn small grow" href="#/quiz?retake=1">${icon('refresh')} Retake the quiz</a></div>
+        <div class="row" style="margin-top:14px"><a class="btn small grow" href="#quiz" data-go="quiz" data-params='{"retake":"1"}'>${icon('refresh')} Retake the quiz</a></div>
         <p class="tiny faint" style="margin:10px 0 0">Retake it when the seasons change, when your skin changes, or every few months. You can compare the new routine with the old one.</p>
-      </div>` : html`<div class="section-title">Your skin</div><a class="btn primary block" href="#/quiz">Take the quiz</a>`}
+      </div>` : html`<div class="section-title">Your skin</div><a class="btn primary block" href="#quiz">Take the quiz</a>`}
 
     ${history.length ? html`<div class="section-title">History</div>
       <div class="card flat">${history.slice(0, 12).map((h, i) => html`<div class="row" style="padding:8px 0;${i ? 'border-top:1px solid var(--line)' : ''}">
         <div class="grow"><b class="small">${formatDate(h.date.slice(0, 10), { day: 'numeric', month: 'short', year: 'numeric' })}</b>
           <div class="tiny muted">${h.source === 'shelf' ? 'Built from shelf' : 'Quiz'}${h.routine && h.routine.summary && h.routine.summary.top ? ' · ' + CONCERNS[h.routine.summary.top] : ''}${routine && h.routine && h.routine.id === routine.id ? ' · current' : ''}</div></div>
-        ${history.length >= 2 ? html`<a class="btn small ghost" href="#/compare?b=${h.id}">Compare</a>` : ''}
+        ${history.length >= 2 ? html`<a class="btn small ghost" href="#compare" data-go="compare" data-params='{"b":"${h.id}"}'>Compare</a>` : ''}
         <button class="icon-btn" style="border:0" data-hmenu="${h.id}" aria-label="More options">${icon('dots')}</button>
       </div>`)}</div>` : ''}
 
@@ -66,7 +74,7 @@ export function render(view, { go }) {
           <div class="grow"><label class="field" for="pmt">Night</label><input type="time" id="pmt" value="${settings.pmTime}"></div>
         </div>
         <button class="btn block" data-ics style="margin-top:12px">${icon('calendar')} Add reminders to my calendar</button>
-        <p class="tiny faint" style="margin:10px 0 0">Downloads a calendar file with daily morning and night reminders, plus your weekly extras. Open it to add them to your phone’s calendar.</p>
+        <p class="tiny faint" style="margin:10px 0 0">Adds repeating morning and night reminders, plus your weekly extras, to Google Calendar or your phone’s calendar.</p>
       </div>` : ''}
 
     <div class="section-title">Appearance</div>
@@ -101,14 +109,14 @@ export function render(view, { go }) {
   view.querySelectorAll('[data-theme]').forEach((b) => b.addEventListener('click', () => { app.saveSettings({ theme: b.dataset.theme }); applyTheme(); render(view, { go }); }));
   on('#amt', 'change', (e) => app.saveSettings({ amTime: e.target.value || '07:30' }));
   on('#pmt', 'change', (e) => app.saveSettings({ pmTime: e.target.value || '22:00' }));
-  on('[data-ics]', 'click', () => {
-    const s = app.settings();
-    downloadFile('skin-ritual-reminders.ics', buildIcs(routine, { amTime: s.amTime, pmTime: s.pmTime, appUrl: location.href.split('#')[0] }), 'text/calendar');
-    toast('Open the file to add the reminders.');
-  });
-  on('[data-export]', 'click', () => {
-    downloadFile(`skin-ritual-backup-${todayStr()}.json`, JSON.stringify(exportData(), null, 1), 'application/json');
-    toast('Backup downloaded (photos aren’t included)');
+  on('[data-ics]', 'click', () => openReminders(routine));
+  on('[data-export]', 'click', async () => {
+    try {
+      const res = await downloadFile(`skin-ritual-backup-${todayStr()}.json`, JSON.stringify(exportData(), null, 1), 'application/json');
+      if (res === 'saved') toast('Backup saved (photos aren’t included)');
+    } catch (e) {
+      toast(e.message);
+    }
   });
   on('#imp', 'change', async (e) => {
     const file = e.target.files && e.target.files[0];
@@ -124,7 +132,7 @@ export function render(view, { go }) {
     }
   });
   on('[data-reset]', 'click', async () => {
-    if (!(await confirmDialog(`This deletes your quiz answers, routine, shelf, checklist, journal and photos${st.user ? ' from this device and your account' : ' on this device'}. It can’t be undone.`, { title: 'Reset everything?', ok: 'Delete everything', danger: true }))) return;
+    if (!(await confirmDialog(`This deletes your quiz answers, routine, shelf, checklist, journal and photos${st.user ? (st.provider === 'claude' ? ' from this device and your Claude account' : ' from this device and your account') : ' on this device'}. It can’t be undone.`, { title: 'Reset everything?', ok: 'Delete everything', danger: true }))) return;
     await resetAll();
     await clearPhotos();
     toast('Everything has been reset');

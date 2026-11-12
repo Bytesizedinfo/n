@@ -28,7 +28,14 @@ The recommendations come from built-in rules (no AI, no API keys). Everything ru
 - **More**: sync, retake the quiz, compare past routines, calendar reminders (.ics), light/dark theme, backup
   export/import and reset.
 
-## Open it as a website
+## Open it
+
+**On claude.ai (ready now):** https://claude.ai/artifact/QANf64cGxTrANbYhQ3hxPm. It's private to your Claude
+account. Your data saves to your Claude account automatically, so it's there on any phone or computer where
+you're signed in to Claude. No setup needed. To update it after changing the code, run
+`node tools/build-artifact.mjs` and republish `build/artifact/`.
+
+## Open it as your own website (GitHub Pages)
 
 The app is plain HTML, CSS and JavaScript with no build step, so GitHub Pages can serve it straight from
 this branch.
@@ -95,6 +102,8 @@ No build step. Serve the folder and open it:
 ```
 npm run serve            # python3 -m http.server 8080 → http://localhost:8080
 npm test                 # engine, parser and sync-merge unit tests (node --test)
+node tools/build-artifact.mjs           # package for claude.ai into build/artifact/
+ARTIFACT=1 OCR=1 npm run smoke          # test that package with the claude.ai code paths
 npm run smoke            # full click-through in a phone-sized Chromium; screenshots in ./shots
 OCR=1 npm run smoke      # also reads a photographed label (downloads Tesseract, needs internet)
 ```
@@ -106,7 +115,7 @@ js/screens/                        welcome, quiz, today, routine, shelf, journal
 js/engine/                         profile, select, routine, scheduler, rampup, shelf, parse, examples,
                                    compare, ics, progress, dates
 js/data/                           questions, ingredients, interactions, products
-js/store/                          local storage, Firestore sync, merge, on-device photos
+js/store/                          local storage, Firestore or Claude-account sync, merge, on-device photos
 js/ocr.js                          label photo → text (Tesseract.js, loaded on demand)
 firestore.rules                    per-user security rules for Firestore
 tests/                             unit tests, fixtures and the smoke test

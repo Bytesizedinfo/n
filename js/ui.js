@@ -124,8 +124,30 @@ export function confirmDialog(message, { title = 'Are you sure?', ok = 'Yes', ca
   });
 }
 
-export function downloadFile(filename, data, type = 'text/plain') {
+export const inClaude = () => typeof window !== 'undefined' && !!window.claude && typeof window.claude.use === 'function';
+
+// Save a generated file. On claude.ai the viewer confirms each save; elsewhere it downloads directly.
+// Resolves 'saved' or 'declined'; rejects with a readable message.
+export async function downloadFile(filename, data, type = 'text/plain') {
   const blob = data instanceof Blob ? data : new Blob([data], { type });
+  if (inClaude()) {
+    const dl = await window.claude.use('downloads');
+    if (dl) {
+      try {
+        await dl.save({ filename, data: blob });
+        return 'saved';
+      } catch (e) {
+        if (e && e.code === 'declined') return 'declined';
+        if (e && e.code === 'rate_limited') throw new Error('A save is already waiting for you. Finish that one first.');
+        throw new Error('Saving files isn’t available here.');
+      }
+    }
+  }
+  anchorDownload(filename, blob);
+  return 'saved';
+}
+
+function anchorDownload(filename, blob) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;

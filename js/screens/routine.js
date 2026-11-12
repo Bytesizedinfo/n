@@ -1,12 +1,11 @@
-import { html, icon, productCard, downloadFile, toast, confirmDialog } from '../ui.js';
+import { html, icon, productCard, confirmDialog } from '../ui.js';
 import { app } from '../app.js';
 import { BY_ID, CONCERNS } from '../data/ingredients.js';
 import { PRODUCT_BY_ID } from '../data/products.js';
 import { phaseForDate } from '../engine/routine.js';
 import { DAY_NAMES, daysLabel, freqLabel } from '../engine/scheduler.js';
-import { buildIcs } from '../engine/ics.js';
 import { todayStr, formatDate } from '../engine/dates.js';
-import { shelfById, stepName, stepDetail } from './common.js';
+import { shelfById, stepName, stepDetail, openReminders } from './common.js';
 
 const SHORT = {
   tretinoin: 'Tretinoin', adapalene: 'Adapalene', retinal: 'Retinal', retinol: 'Retinol', hpr: 'Retinoid', retinyl: 'Retinyl', bakuchiol: 'Bakuchiol',
@@ -112,7 +111,7 @@ export function render(view, { params, go }) {
       ${sum.pregnancy ? html`<span class="chip info">Pregnancy-safe picks</span>` : ''}
     </div>
     ${isNew ? html`<div class="callout good" style="margin-bottom:14px">${icon('sparkles')}<div class="t"><b>Your routine is ready.</b> Tap any step to see why it’s there and products to try. ${routine.ramp.length ? 'Strong actives start slowly; the Today tab keeps track for you.' : ''}
-      ${history.length >= 2 ? html`<div style="margin-top:6px"><a href="#/compare">Compare with your previous routine</a></div>` : ''}</div></div>` : ''}
+      ${history.length >= 2 ? html`<div style="margin-top:6px"><a href="#compare">Compare with your previous routine</a></div>` : ''}</div></div>` : ''}
     <div class="seg scroll" role="tablist" aria-label="Routine sections">
       ${TABS.map(([k, label, ic]) => html`<button role="tab" data-tab="${k}" aria-selected="${tab === k}">${icon(ic)} ${label}</button>`)}
     </div>
@@ -123,17 +122,13 @@ export function render(view, { params, go }) {
       ${routine.source === 'shelf'
         ? html`<button class="btn block" data-quiz-routine>${icon('sparkles')} Switch to the quiz-recommended routine</button>`
         : shelf.length ? html`<button class="btn block" data-shelf-routine>${icon('shelf')} Build from my shelf instead</button>` : ''}
-      <a class="btn block" href="#/quiz?retake=1">${icon('refresh')} Retake the quiz</a>
-      ${history.length >= 2 ? html`<a class="btn block" href="#/compare">${icon('compare')} Compare with a previous routine</a>` : ''}
+      <a class="btn block" href="#quiz" data-go="quiz" data-params='{"retake":"1"}'>${icon('refresh')} Retake the quiz</a>
+      ${history.length >= 2 ? html`<a class="btn block" href="#compare">${icon('compare')} Compare with a previous routine</a>` : ''}
     </div>
   `);
 
   view.querySelectorAll('[data-tab]').forEach((b) => b.addEventListener('click', () => go('routine', { tab: b.dataset.tab })));
-  view.querySelector('[data-ics]').addEventListener('click', () => {
-    const s = app.settings();
-    downloadFile('skin-ritual-reminders.ics', buildIcs(routine, { amTime: s.amTime, pmTime: s.pmTime, appUrl: location.href.split('#')[0] }), 'text/calendar');
-    toast('Open the file to add the reminders to your calendar.');
-  });
+  view.querySelector('[data-ics]').addEventListener('click', () => openReminders(routine));
   const sr = view.querySelector('[data-shelf-routine]');
   if (sr) sr.addEventListener('click', async () => {
     if (!(await confirmDialog('This replaces your current routine with one built from the products on your shelf. Your current one stays in your history.', { title: 'Build from your shelf?', ok: 'Build it' }))) return;
