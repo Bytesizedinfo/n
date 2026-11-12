@@ -6,6 +6,13 @@ import { buildProfile } from './profile.js';
 import { scoreActive, chooseActives, maxActives, helpsText } from './select.js';
 import { productIssues, pickExamples } from './examples.js';
 import { assemble, itemForActive } from './routine.js';
+import { avoidWordHits } from './parse.js';
+
+// Attach hits for the person's own "avoid" words (from pasted ingredient lists).
+function prep(products, profile) {
+  if (!profile.avoidWords || !profile.avoidWords.length) return products;
+  return products.map((p) => (p.inci ? { ...p, wordHits: avoidWordHits(p.inci, profile.avoidWords) } : p));
+}
 
 const PRIORITY = [
   'tretinoin', 'retinal', 'adapalene', 'retinol', 'hpr', 'retinyl', 'bakuchiol', 'hydroquinone',
@@ -72,6 +79,7 @@ function maskTypeOf(product) {
 
 export function analyseShelf(products, answersOrProfile) {
   const profile = answersOrProfile && answersOrProfile.concerns && answersOrProfile.avoid ? answersOrProfile : buildProfile(answersOrProfile || {});
+  products = prep(products, profile);
   const perProduct = {};
   for (const p of products) {
     perProduct[p.id] = { issues: productIssues(p, profile), role: roleOf(p), primary: primaryActive(p), irritation: productIrritation(p) };
@@ -147,6 +155,7 @@ function pickBest(list, profile, prefer = () => 0) {
 
 export function buildFromShelf(products, answers, opts = {}) {
   const profile = buildProfile(answers || {});
+  products = prep(products, profile);
   const analysis = analyseShelf(products, profile);
   const unused = [];
   const gaps = [];
