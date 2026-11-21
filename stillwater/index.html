@@ -1,0 +1,474 @@
+<!doctype html>
+<html lang="en" data-act="1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stillwater Retreat</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Lakeside retreats at Hollin Mere. No screens, no schedule, no signal.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..700&family=Inter:wght@400;500;600&family=IM+Fell+English:ital@0;1&family=IM+Fell+English+SC&family=Reenie+Beanie&display=swap">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+<div class="waterline" aria-hidden="true">
+  <svg class="wave" viewBox="0 0 1200 24" preserveAspectRatio="none"><path d="M0 12 C100 2 200 2 300 12 S500 22 600 12 S800 2 900 12 S1100 22 1200 12 V24 H0 Z"/></svg>
+  <div class="water-body"></div>
+</div>
+
+<header class="nav" id="top">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#hero" aria-label="Stillwater, back to top">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="12.5" r="6.5"/><path d="M3 20.5h26M7.5 25h17"/></svg>
+      <span class="brand-name">Stillwater</span>
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#stays">Stays</a>
+      <a href="#guides">Guides</a>
+      <a href="#mere">The mere</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false" aria-label="Turn on lake sounds" title="Lake sounds">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wv" d="M15.5 9a4.2 4.2 0 0 1 0 6M18.2 6.6a7.6 7.6 0 0 1 0 10.8"/><path class="mute" d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
+      </button>
+      <a class="btn btn-small" href="#book" data-swap="Stay" data-at="0.5" data-mode="now">Book a stay</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ ACT I · ORDINARY ============ -->
+<section class="hero" id="hero" data-d="0">
+  <div class="hero-scene" id="heroScene" role="img" aria-label="Dawn over a still lake. Pine forest lines the far shore and a wooden jetty runs out into the water."></div>
+  <div class="wrap hero-copy">
+    <p class="eyebrow">Hollin Mere · Fenmoor Valley</p>
+    <h1 class="hero-title" id="heroTitle"><span data-later="Reconnect with ourselves." data-at="0.3">Reconnect with yourself.</span></h1>
+    <p class="hero-sub" id="heroSub">Lakeside retreats for the overstimulated. No screens, no schedule, no signal. Just still water, slow mornings and the quiet you forgot you needed.</p>
+    <div class="hero-cta">
+      <a class="btn" href="#book" id="heroBook">Book your stay</a>
+      <button class="btn btn-ghost" id="listenBtn" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 12c2.5-3 4.5-3 7 0s4.5 3 7 0 4.5-3 6 0M2 17c2.5-3 4.5-3 7 0s4.5 3 7 0 4.5-3 6 0M2 7c2.5-3 4.5-3 7 0s4.5 3 7 0 4.5-3 6 0"/></svg>
+        <span>Listen to the lake</span>
+      </button>
+    </div>
+    <p class="hero-rating"><span class="stars" aria-hidden="true">★★★★★</span> 4.9 from 2,180 guest reviews</p>
+    <p class="returned-note" id="returnedNote" hidden>Not you? <button class="linklike" type="button" data-unsubscribe>Unsubscribe</button></p>
+  </div>
+</section>
+
+<section class="press" data-d="0" aria-label="Press">
+  <div class="wrap press-inner">
+    <span class="press-label">As featured in</span>
+    <span class="press-logo p1">The Unhurried Review</span>
+    <span class="press-logo p2">MOSSLINE</span>
+    <span class="press-logo p3">Field &amp; Fern <i>Weekly</i></span>
+    <span class="press-logo p4">the low season</span>
+  </div>
+</section>
+
+<section class="pillars band" id="about" data-d="0">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">How Stillwater works</p>
+      <h2>Three days in, people stop reaching for their pockets.</h2>
+      <p class="lede">We built Stillwater for people who can't remember the last time they were bored. You arrive, we take your phone, and the valley does the rest.</p>
+    </div>
+    <div class="pillar-grid">
+      <article class="pillar">
+        <svg class="icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M26 7a13 13 0 1 0 7 21A11 11 0 0 1 26 7z"/><path d="M9 33h22"/></svg>
+        <h3>Rest</h3>
+        <p>Cabins on the water's edge with blackout shutters, wool blankets and no clocks. Most guests sleep ten hours on their first night.</p>
+      </article>
+      <article class="pillar">
+        <svg class="icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M12 22V11a2 2 0 0 1 4 0v8M16 19V8a2 2 0 0 1 4 0v11M20 19V9a2 2 0 0 1 4 0v11M24 20v-7a2 2 0 0 1 4 0v11c0 6-4 10-10 10-4 0-6-2-8-5l-4-7a2 2 0 0 1 3.4-2L12 24"/></svg>
+        <h3>Release</h3>
+        <p>Hand in your phone when you arrive. Breathwork, cold-water swims and long silent walks help you let go of <span data-later="whoever you were before you came." data-at="0.36">whatever you brought with you.</span></p>
+      </article>
+      <article class="pillar">
+        <svg class="icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M4 24c4-4 8-4 12 0s8 4 12 0 6-3 8-1M4 31c4-4 8-4 12 0s8 4 12 0 6-3 8-1"/><circle cx="20" cy="12" r="5"/></svg>
+        <h3>Return</h3>
+        <p><span data-later="Everyone returns to the water in the end." data-at="0.42">Go home lighter than you arrived. Guests tell us they come back changed.</span></p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="stays band" id="stays" data-d="0.02">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Stays</p>
+      <h2>Choose how long you need.</h2>
+      <p class="lede">Every stay includes a lakeside cabin, three meals a day from our kitchen garden, and the sauna, jetty and trails.</p>
+    </div>
+    <div class="stay-grid">
+      <article class="stay">
+        <h3>Weekend Reset</h3>
+        <p class="stay-len">2 nights · Friday to Sunday</p>
+        <p class="price"><b>£340</b> per person</p>
+        <p class="stay-desc">A gentle introduction. Two guided swims, one long sauna and a great deal of sleep.</p>
+        <ul class="ticks"><li>Lakeside cabin</li><li>All meals</li><li>Guided dawn swim</li><li>Phone-free from arrival</li></ul>
+        <a class="btn btn-outline" href="#book">Choose dates</a>
+      </article>
+      <article class="stay featured">
+        <span class="badge">Most booked</span>
+        <h3>Seven Days of Stillness</h3>
+        <p class="stay-len">7 nights · Sunday to Sunday</p>
+        <p class="price"><b>£1,180</b> per person</p>
+        <p class="stay-desc">The full programme, including our silent day and the long swim to the far shore.</p>
+        <ul class="ticks"><li>Everything in Weekend Reset</li><li>Silent day with Sister Agnes</li><li>Swim to the far shore</li><li>Evening listening sessions</li></ul>
+        <a class="btn" href="#book">Choose dates</a>
+        <p class="scarcity"><i class="dot"></i>2 rooms left this autumn</p>
+      </article>
+      <article class="stay long">
+        <h3>The Long Stay</h3>
+        <p class="stay-len">Open-ended · Departure: —</p>
+        <p class="price"><b>On application</b></p>
+        <p class="stay-desc">For guests who feel ready to stay. We take care of everything at home, so you don't have to.</p>
+        <ul class="ticks"><li>A cabin of your own</li><li>Your own place at the evening service</li><li>Family informed on your behalf</li><li>No return date</li></ul>
+        <a class="btn btn-outline" href="#book">Enquire</a>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="stats" id="stats" data-d="0.08" aria-label="Stillwater in numbers">
+  <div class="wrap stat-row">
+    <div class="stat"><b data-count="12408">12,408</b><span>guests welcomed</span></div>
+    <div class="stat"><b data-count="4.9" data-dec="1">4.9</b><span>average rating</span></div>
+    <div class="stat"><b data-count="0" id="departures">0</b><span data-later="departures" data-at="0.3">early departures</span></div>
+    <div class="stat live"><b id="onsite">1,204</b><span><i class="dot"></i>guests on site right now <em class="incl" data-later="(including you)" data-at="0.3"></em></span></div>
+  </div>
+</section>
+
+<!-- ============ ACT II · UNCANNY ============ -->
+<section class="reviews band" id="reviews" data-d="0.2">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Guest stories</p>
+      <h2>People who found their stillness.</h2>
+    </div>
+    <div class="review-grid">
+      <figure class="review">
+        <div class="stars" role="img" aria-label="5 out of 5 stars">★★★★★</div>
+        <blockquote><p><span class="cap">H</span>onestly the best sleep I've had in years. I didn't think about work once. After a while I didn't think about anything.</p></blockquote>
+        <figcaption><span class="avatar" data-face="margaret"></span><span><b>Margaret Hale</b><small>Leeds · stayed September 1952</small></span></figcaption>
+      </figure>
+      <figure class="review">
+        <div class="stars" role="img" aria-label="5 out of 5 stars">★★★★★</div>
+        <blockquote><p><span class="cap">E</span>very morning the mist sat on the water as if it was waiting for us. The staff knew my name before I'd said it.</p></blockquote>
+        <figcaption><span class="avatar" data-face="daniel"></span><span><b>Daniel Okafor</b><small>Bristol · stayed October 1974</small></span></figcaption>
+      </figure>
+      <figure class="review">
+        <div class="stars" role="img" aria-label="5 out of 5 stars">★★★★★</div>
+        <blockquote><p><span class="cap">L</span>eaving was the only hard part. In the end I didn't have to.</p></blockquote>
+        <figcaption><span class="avatar" data-face="priya"></span><span><b>Priya Raman</b><small>London · stayed March 2009</small></span></figcaption>
+      </figure>
+      <figure class="review">
+        <div class="stars seven" role="img" aria-label="7 out of 5 stars">★★★★★★★</div>
+        <blockquote><p><span class="cap">P</span>eace like I have never known. The bells at night are beautiful once you learn the words.</p></blockquote>
+        <figcaption><span class="avatar sepia" data-face="ada"></span><span><b>Ada Pell</b><small>Hollin Green · stayed 1891</small></span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="guides band" id="guides" data-d="0.3">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Your guides</p>
+      <h2>The people who'll look after you.</h2>
+      <p class="lede">Our small team lives on site all year round. Most of them first came here as guests.</p>
+    </div>
+    <div class="guide-grid">
+      <article class="guide">
+        <div class="portrait" data-face="agnes" data-kind="portrait" data-blink></div>
+        <h3>Sister Agnes Merrow</h3>
+        <p class="role">Founder · Head of Arrivals</p>
+        <p>Agnes has met every one of our guests at the water's edge since Stillwater opened in 1891. She believes rest is something you surrender to.</p>
+      </article>
+      <article class="guide">
+        <div class="portrait" data-face="tam" data-kind="portrait"></div>
+        <h3>Tam Ashdown</h3>
+        <p class="role">Keeper of the Water</p>
+        <p>Tam leads the dawn swim and looks after the mere. He prefers to stay on the water and rarely comes ashore.</p>
+      </article>
+      <article class="guide">
+        <div class="portrait" data-face="wren" data-kind="portrait"></div>
+        <h3>Wren Halloway</h3>
+        <p class="role">Guest Experience</p>
+        <p>Wren answers your questions on chat and settles in our newest arrivals. Wren first came to Stillwater as a guest in 1987, for a weekend.</p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="day band" id="day" data-d="0.38">
+  <div class="wrap day-grid">
+    <div class="section-head">
+      <p class="eyebrow">A day at Stillwater</p>
+      <h2>Slow mornings. Early nights.</h2>
+      <p class="lede">There's no timetable to keep, only a rhythm to fall into. This is how most days go.</p>
+    </div>
+    <ol class="timeline">
+      <li><time>06:00</time><div><h3>Sunrise breathwork</h3><p>On the jetty, wrapped in blankets, as the mist lifts off the water.</p></div></li>
+      <li><time>07:30</time><div><h3>Cold-water swim</h3><p>Always optional. Tam swims beside you.</p></div></li>
+      <li><time>08:30</time><div><h3>Breakfast</h3><p>Porridge, mere-smoked trout and rye from our own oven.</p></div></li>
+      <li><time>11:00</time><div><h3 data-flicker="Silent wake" data-at="0.36">Silent walk</h3><p>Along the old road, to the place where it disappears into the water.</p></div></li>
+      <li><time>15:00</time><div><h3>Sauna and rest</h3><p>Sleep, read, or sit and watch the water. Guests find it surprisingly hard to look away.</p></div></li>
+      <li><time>19:00</time><div><h3>Supper by the fire</h3><p>Shared tables. You'll find you have more in common with the others than you expected.</p></div></li>
+      <li><time>21:00</time><div><h3 data-flicker="Lie still" data-at="0.38">Lights out</h3><p>Please close your shutters after dark and keep them closed until morning.</p></div></li>
+      <li class="late"><time>03:00</time><div><h3>Listening</h3><p>Some guests hear bells from the water. This is normal. <span data-flicker="Answer them." data-at="0.42">Do not answer them.</span></p></div></li>
+      <li class="late later"><time>03:33</time><div><h3>The Call</h3><p>Stay in your cabin unless you hear your name.</p></div></li>
+    </ol>
+  </div>
+</section>
+
+<section class="find band" id="find" data-d="0.46">
+  <div class="wrap find-grid">
+    <div class="map" id="map" role="img" aria-label="Map of the Fenmoor Valley. Every road ends at the edge of Hollin Mere. A dotted line marks the old road continuing under the water to the drowned village of Hollin Green."></div>
+    <div class="directions">
+      <p class="eyebrow">Getting here</p>
+      <h2>Easy to find. Hard to leave.</h2>
+      <dl>
+        <dt>By car</dt>
+        <dd>Leave the motorway at junction 14 and follow signs for Fenmoor. After the cattle grid the road narrows. Follow it until it stops. Then keep walking.</dd>
+        <dt>By train</dt>
+        <dd>The nearest station is Ravensby, 38 miles away. We'll collect you. We always collect you.</dd>
+        <dt>Good to know</dt>
+        <dd>The last fuel station is 40 miles out, and there's no phone signal past Ravensby Gill.</dd>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ACT III · WRONG ============ -->
+<section class="mere band" id="mere" data-d="0.54">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Our mere</p>
+      <h2>The story of Hollin Mere.</h2>
+      <p class="lede">Every guest asks about the water. This is the account kept in the parish register.</p>
+    </div>
+    <article class="record">
+      <header class="record-head">
+        <span>Parish of St. Hollin, Fenmoor</span>
+        <span>Register of Events · 1891</span>
+      </header>
+      <span class="stamp" aria-hidden="true">Hollin<br>Green</span>
+      <p>In the spring of 1891 the Fenmoor Water Board completed its dam at Ravensby Gill, and the valley of Hollin Green was flooded to supply the towns below. The village had stood for six hundred years. Its people were offered new houses in Ravensby, and most accepted.</p>
+      <p>The congregation of St. Hollin's did not. On the evening the sluices were closed, forty-one parishioners gathered in the church under Agnes Merrow, sister of the curate. They told the Board's men they had <em>chosen stillness</em>, and that they would wait for the water together. <span class="redact">The water reached the windows at a quarter past nine. They were still singing.</span></p>
+      <p>No bodies were recovered. <span class="redact">Agnes Merrow walked out of the mere three days later, dry.</span> That autumn she founded a house on the new shore, so that the parish would never be without company.</p>
+      <p>On still days the spire can be seen beneath the surface. <span class="redact">The service has not ended.</span></p>
+      <p class="margin-note n1" aria-hidden="true">they are still down there</p>
+      <p class="margin-note n2" aria-hidden="true">don't swim past the buoys</p>
+      <p class="margin-note n3" aria-hidden="true">41 + 12,408</p>
+    </article>
+  </div>
+</section>
+
+<section class="faq band" id="faq" data-d="0.63">
+  <div class="wrap faq-grid">
+    <div class="section-head">
+      <p class="eyebrow">Questions</p>
+      <h2>Before you arrive.</h2>
+      <p class="lede">Anything else, ask Wren on chat.</p>
+    </div>
+    <div class="faq-list" id="faqList">
+      <details><summary>What should I pack?</summary><p>Warm layers, swimwear and walking boots. Leave your laptop at home; there's nowhere to plug it in.</p></details>
+      <details><summary>Is there phone signal?</summary><p data-later="No." data-at="0.6">No. Phones are handed in when you arrive and kept safe in the boathouse until you leave.</p></details>
+      <details><summary>Do I have to swim?</summary><p>No. But most guests find they want to after the third night.</p></details>
+      <details><summary>Can I leave early?</summary><p>Why would you want to?</p></details>
+      <details><summary>What are the bells I can hear at night?</summary><p>There are no bells at Hollin Mere. The nearest church is eleven miles away.</p></details>
+      <details><summary>Who is the woman on the jetty?</summary><p>There is no woman on the jetty.</p></details>
+      <details class="typed" id="typedQ" hidden><summary><span class="typing-target"></span></summary><p>It isn't. You're getting lower.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="book band" id="book" data-d="0.7">
+  <div class="wrap book-grid">
+    <div class="section-head">
+      <p class="eyebrow">Book</p>
+      <h2>Reserve your cabin.</h2>
+      <p class="lede">We'll confirm within the hour. Nothing is charged until you arrive.</p>
+    </div>
+    <form class="book-form" id="bookForm" novalidate>
+      <div class="field">
+        <label for="guestName">Full name</label>
+        <input id="guestName" name="name" autocomplete="name" placeholder="Your name">
+      </div>
+      <div class="field">
+        <label for="guestEmail">Email</label>
+        <input id="guestEmail" name="email" type="email" autocomplete="email" placeholder="you@example.com">
+        <small>Only used to confirm your booking.</small>
+      </div>
+      <div class="field">
+        <label for="stayType">Stay</label>
+        <select id="stayType" name="stay">
+          <option>Weekend Reset</option>
+          <option selected>Seven Days of Stillness</option>
+          <option>The Long Stay</option>
+        </select>
+      </div>
+      <div class="field-row">
+        <div class="field"><label for="arrive" id="arriveLabel">Arrival</label><input id="arrive" name="arrive" type="date"></div>
+        <div class="field"><label for="depart">Departure</label><input id="depart" name="depart" type="date"></div>
+      </div>
+      <label class="check" for="consent"><input id="consent" name="consent" type="checkbox"> <span>I agree to the terms of stay</span></label>
+      <button class="btn btn-block" id="bookBtn" type="submit">Confirm booking</button>
+      <p class="form-note" id="formNote" aria-live="polite"></p>
+      <div class="confirm" id="confirm" hidden>
+        <p class="confirm-title">Booking confirmed</p>
+        <dl>
+          <dt>Reference</dt><dd>SW-1891-0041</dd>
+          <dt>Cabin</dt><dd>41</dd>
+          <dt>Arrival</dt><dd>Tonight</dd>
+          <dt>Departure</dt><dd>—</dd>
+        </dl>
+        <p>Someone will meet you at the water's edge.</p>
+      </div>
+    </form>
+  </div>
+</section>
+
+<footer class="site-footer" id="footer" data-d="0.76">
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <a class="brand" href="#hero">
+        <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><circle cx="16" cy="12.5" r="6.5"/><path d="M3 20.5h26M7.5 25h17"/></svg>
+        <span class="brand-name">Stillwater</span>
+      </a>
+      <p>Lakeside retreats at Hollin Mere, Fenmoor.</p>
+    </div>
+    <div class="footer-links">
+      <h4>Visit</h4>
+      <a href="#stays">Stays</a>
+      <a href="#find">Getting here</a>
+      <a href="#faq">FAQ</a>
+    </div>
+    <div class="footer-news">
+      <h4>Notes from the mere</h4>
+      <form id="newsForm" class="news-form">
+        <label for="newsEmail" class="sr">Email address</label>
+        <input id="newsEmail" type="email" placeholder="Email address">
+        <button class="btn btn-small" type="submit">Sign up</button>
+      </form>
+      <p class="tiny" id="newsNote">Seasonal letters, four a year. <button type="button" class="linklike" data-unsubscribe>Unsubscribe</button> any time.</p>
+    </div>
+  </div>
+  <div class="wrap footer-base">
+    <span>© <span class="yr">2026</span> Stillwater Retreats Ltd. Hollin Mere, Fenmoor.</span>
+    <span>Privacy · Terms · Cookies</span>
+  </div>
+  <p class="keep-going" aria-hidden="true">keep going</p>
+</footer>
+
+<!-- ============ ACT IV · TERROR ============ -->
+<section class="descent" id="descent" data-d="0.8" aria-label="Below the surface">
+  <div class="descent-stage" id="descentStage">
+    <canvas id="deepCanvas" aria-hidden="true"></canvas>
+    <div class="nave" id="nave" aria-hidden="true"></div>
+    <div class="congregation" id="congregation" aria-hidden="true"></div>
+    <div class="handprints" id="handprints" aria-hidden="true"></div>
+    <div class="fragments" id="fragments">
+      <p data-p="0.03" class="fl" style="top:22%">You are below the surface now.</p>
+      <p data-p="0.13" class="fr" style="top:62%">It is quieter down here.</p>
+      <p data-p="0.24" class="fl" style="top:30%">Hollin Green kept its church.</p>
+      <p data-p="0.34" class="fr" style="top:20%">They are still at the evening service.</p>
+      <p data-p="0.46" class="fc" style="top:14%">We were told to be still.</p>
+      <p data-p="0.57" class="fl" style="top:18%">The water is warm once you stop fighting.</p>
+      <p data-p="0.68" class="fr" style="top:12%">There is room on the pew beside us.</p>
+      <p data-p="0.79" class="fc" style="top:10%">Don't hold your breath.</p>
+      <p data-p="0.89" class="fc big" style="top:42%">We can see you.</p>
+    </div>
+    <div class="gauge" aria-hidden="true"><span>Depth</span><b id="depth">02.0</b><span>m</span></div>
+  </div>
+</section>
+
+<section class="memorial" id="memorial" data-d="0.96">
+  <div class="wrap">
+    <p class="memorial-kicker">St. Hollin's, below Hollin Mere</p>
+    <h2>Returned to the water</h2>
+    <ol class="roll" id="roll">
+      <li><span>Ada Pell</span><span>1891</span></li>
+      <li><span>Josiah Pell</span><span>1891</span></li>
+      <li><span>The Revd. Thomas Merrow</span><span>1891</span></li>
+      <li class="many"><span>and thirty-eight others of this parish</span><span>1891</span></li>
+      <li><span>Margaret Hale</span><span>1952</span></li>
+      <li><span>Daniel Okafor</span><span>1974</span></li>
+      <li><span>Wren Halloway</span><span>1987</span></li>
+      <li><span>Priya Raman</span><span>2009</span></li>
+      <li><span>Tom and Ellie Brandt</span><span>2019</span></li>
+      <li class="many"><span>and twelve thousand, four hundred others</span><span>&nbsp;</span></li>
+      <li class="you"><span id="youName">You</span><span id="youYear">2026</span></li>
+    </ol>
+  </div>
+</section>
+
+<section class="bottom" id="bottom" data-d="1">
+  <div class="bottom-stage">
+    <div class="surfacing" id="surfacing" aria-hidden="true"></div>
+    <p class="last-line"><span class="l1">You came all this way.</span><span class="l2">Stay.</span></p>
+  </div>
+</section>
+
+</main>
+
+<!-- overlays -->
+<div class="scare" id="scare" hidden aria-hidden="true"><div class="scare-face" id="scareFace"></div></div>
+
+<div class="cookie" id="cookie" role="dialog" aria-labelledby="cookieTitle" hidden>
+  <p class="cookie-title" id="cookieTitle">A quick note on cookies</p>
+  <p class="cookie-body" id="cookieBody">We use cookies to give you a calmer browsing experience and to remember you next time.</p>
+  <div class="cookie-prefs" id="cookiePrefs" hidden>
+    <label class="switch"><input type="checkbox" checked disabled> <span>Essential</span></label>
+    <label class="switch"><input type="checkbox" id="ckAnalytics"> <span>Analytics</span></label>
+    <label class="switch"><input type="checkbox" id="ckRemember" checked> <span>Remembering you</span></label>
+  </div>
+  <div class="cookie-actions">
+    <button class="btn btn-small" id="cookieAccept" type="button">Accept</button>
+    <button class="btn btn-small btn-outline" id="cookieSettings" type="button">Settings</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden>
+  <span id="toastText">This part is best with headphones.</span>
+  <button class="btn btn-small" id="toastAction" type="button">Turn on sound</button>
+  <button class="toast-x" id="toastClose" type="button" aria-label="Dismiss">×</button>
+</div>
+
+<div class="chat" id="chat">
+  <div class="chat-preview" id="chatPreview" hidden><span id="chatPreviewText"></span></div>
+  <div class="chat-panel" id="chatPanel" role="dialog" aria-labelledby="chatName" hidden>
+    <div class="chat-head">
+      <span class="chat-avatar" id="chatHeadAvatar"></span>
+      <span class="chat-who"><b id="chatName">Wren</b><small id="chatStatus"><i class="dot"></i>Online · usually replies in minutes</small></span>
+      <button class="chat-close" id="chatClose" type="button" aria-label="Close chat">×</button>
+    </div>
+    <div class="chat-log" id="chatLog" aria-live="polite"></div>
+    <form class="chat-form" id="chatForm">
+      <label for="chatInput" class="sr">Message</label>
+      <input id="chatInput" autocomplete="off" placeholder="Write a message…">
+      <button type="submit" aria-label="Send"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12l16-8-6 16-2.5-6.5z"/></svg></button>
+    </form>
+  </div>
+  <button class="chat-launch" id="chatLaunch" type="button" aria-label="Chat with Wren">
+    <span class="chat-avatar" id="chatLaunchAvatar"></span>
+    <span class="chat-badge" id="chatBadge" hidden>1</span>
+  </button>
+</div>
+
+<script src="js/dread.js"></script>
+<script src="js/art.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/uncanny.js"></script>
+<script src="js/chat.js"></script>
+<script src="js/finale.js"></script>
+</body>
+</html>
