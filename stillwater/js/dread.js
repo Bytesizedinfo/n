@@ -44,20 +44,27 @@
   var sections = [];
   function measure() {
     sections = Array.prototype.map.call(document.querySelectorAll('[data-d]'), function (el) {
-      return { top: el.getBoundingClientRect().top + window.scrollY, d: parseFloat(el.getAttribute('data-d')) || 0 };
-    }).sort(function (a, b) { return a.top - b.top; });
+      return { el: el, d: parseFloat(el.getAttribute('data-d')) || 0 };
+    });
   }
   SW.measure = measure;
 
-  function dreadAt(y) {
-    if (!sections.length) return 0;
-    if (y <= sections[0].top) return sections[0].d;
-    for (var i = 0; i < sections.length - 1; i++) {
-      var a = sections[i], b = sections[i + 1];
-      if (y < b.top) return SW.lerp(a.d, b.d, (y - a.top) / Math.max(1, b.top - a.top));
+  /* dread at the middle of the viewport, from the sections' live positions.
+     Reading positions relative to the viewport (not window.scrollY) works whichever element scrolls. */
+  function dreadNow() {
+    var n = sections.length;
+    if (!n) return 0;
+    var y = window.innerHeight * 0.5, prevTop = sections[0].el.getBoundingClientRect().top;
+    if (y <= prevTop) return sections[0].d;
+    for (var i = 0; i < n - 1; i++) {
+      var nextTop = sections[i + 1].el.getBoundingClientRect().top;
+      if (y < nextTop) return SW.lerp(sections[i].d, sections[i + 1].d, (y - prevTop) / Math.max(1, nextTop - prevTop));
+      prevTop = nextTop;
     }
-    return sections[sections.length - 1].d;
+    return sections[n - 1].d;
   }
+  /** how far the page has scrolled, whichever element is scrolling */
+  SW.scrolled = function () { return sections.length ? -sections[0].el.getBoundingClientRect().top : window.scrollY; };
 
   /* palette stops: colour tokens as a function of dread */
   function hex(h) { var n = parseInt(h.slice(1), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
@@ -116,10 +123,10 @@
   var lastY = -1, lastT = 0;
   SW.velocity = 0;
   function frame(now) {
-    var y = window.scrollY;
+    var y = SW.scrolled();
     SW.velocity = SW.lerp(SW.velocity, (y - lastY) / Math.max(1, now - lastT) * 16, 0.2);
     lastY = y; lastT = now;
-    var target = dreadAt(y + window.innerHeight * 0.5);
+    var target = dreadNow();
     var gap = target - SW.raw;
     SW.raw += gap * (Math.abs(gap) > 0.15 ? 0.3 : 0.12);
     if (Math.abs(gap) < 0.0002) SW.raw = target;
@@ -138,7 +145,7 @@
   SW.resetDread = function (floor) {
     SW.floor = floor || 0;
     SW.maxD = 0;
-    SW.raw = dreadAt(window.scrollY + window.innerHeight * 0.5);
+    SW.raw = dreadNow();
     lastPaint = -1;
   };
 
@@ -158,7 +165,7 @@
     root.setAttribute('data-act', '1');
     if (SW.returned) SW.floor = 0.16;
     paint(SW.floor);
-    requestAnimationFrame(function (t) { lastT = t; lastY = window.scrollY; frame(t); });
+    requestAnimationFrame(function (t) { lastT = t; lastY = SW.scrolled(); frame(t); });
     window.addEventListener('resize', measure);
     window.addEventListener('load', measure);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(measure);

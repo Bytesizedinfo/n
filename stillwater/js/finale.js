@@ -188,27 +188,35 @@
   var scareEl = $('#scare'), scareFace = $('#scareFace');
   scareFace.appendChild(art.scareFace('sf'));
 
-  var bottomSince = 0, scared = false, rest = 0;
-  function atBottom() { return window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 3; }
-  SW.on('frame', function (now) {
+  /* The scare is timed from the bottom section's own position, never from "the end of the document":
+     phone toolbars, safe-area padding and fractional scrolling can stop that from ever lining up. */
+  var scared = false, stayedSince = 0, deepSince = 0, q = 0;
+  function bottomProgress() {
     var r = bottom.getBoundingClientRect();
-    if (r.top > window.innerHeight) { bottomSince = 0; rest = 0; return; }
-    var q = SW.clamp(-r.top / Math.max(1, bottom.offsetHeight - window.innerHeight), 0, 1);
-    if (atBottom()) { if (!bottomSince) bottomSince = now; rest = Math.min(1, (now - bottomSince) / 1300); }
-    else { bottomSince = 0; rest = 0; }
+    if (r.top > window.innerHeight) return -1;
+    var travel = Math.max(1, r.height - window.innerHeight);
+    return SW.clamp(-r.top / travel, 0, 1);
+  }
+  SW.on('frame', function (now) {
+    q = bottomProgress();
+    if (q < 0) { stayedSince = 0; deepSince = 0; return; }
+    if (q >= 0.55) { if (!stayedSince) stayedSince = now; } else stayedSince = 0;
+    if (q >= 0.97) { if (!deepSince) deepSince = now; } else deepSince = 0;
+    var rest = deepSince ? Math.min(1, (now - deepSince) / 1000) : 0;
     var k = SW.clamp(q * 0.8 + rest * 0.2, 0, 1);
     surf.style.opacity = (0.04 + k * 0.32).toFixed(3);
     surf.style.filter = 'blur(' + (7 - k * 5).toFixed(2) + 'px)';
     surf.style.transform = 'translate(-50%, ' + (-40 + (1 - k) * 14).toFixed(2) + '%) scale(' + (0.46 + k * 0.16).toFixed(3) + ')';
-    if (q > 0.55) line.classList.add('stay');
-    if (!scared && bottomSince && now - bottomSince > 1300) scare();
+    if (stayedSince) line.classList.add('stay');
+    if (scared) return;
+    if ((stayedSince && now - stayedSince > 2500) || (deepSince && now - deepSince > 1000)) scare();
   });
-  function tryingToGoFurther() { if (!scared && bottomSince && performance.now() - bottomSince > 350) scare(); }
-  window.addEventListener('wheel', function (e) { if (e.deltaY > 0 && atBottom()) tryingToGoFurther(); }, { passive: true });
+  function tryingToGoFurther() { if (!scared && q >= 0.9) scare(); }
+  window.addEventListener('wheel', function (e) { if (e.deltaY > 0) tryingToGoFurther(); }, { passive: true });
   var touchY = null;
   window.addEventListener('touchstart', function (e) { touchY = e.touches[0].clientY; }, { passive: true });
-  window.addEventListener('touchmove', function (e) { if (touchY != null && touchY - e.touches[0].clientY > 24 && atBottom()) tryingToGoFurther(); }, { passive: true });
-  window.addEventListener('keydown', function (e) { if ((e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ' || e.key === 'End') && atBottom()) tryingToGoFurther(); });
+  window.addEventListener('touchmove', function (e) { if (touchY != null && touchY - e.touches[0].clientY > 24) tryingToGoFurther(); }, { passive: true });
+  window.addEventListener('keydown', function (e) { if (e.key === 'ArrowDown' || e.key === 'PageDown' || e.key === ' ' || e.key === 'End') tryingToGoFurther(); });
 
   function scare() {
     scared = true;
@@ -249,6 +257,7 @@
     // the chat panel and toasts start fresh
     $('#cookie').hidden = true; $('#toast').hidden = true;
     window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0; document.body.scrollTop = 0;
     SW.resetDread(0.16);
     line.classList.remove('stay');
     scareEl.classList.add('fadeout');
@@ -256,7 +265,7 @@
       scareEl.hidden = true;
       scareEl.classList.remove('go', 'black', 'fadeout');
       document.body.classList.remove('hush');
-      scared = false; bottomSince = 0;
+      scared = false; stayedSince = 0; deepSince = 0;
     }, 1500);
     SW.audio.resume();
     SW.emit('returned');
