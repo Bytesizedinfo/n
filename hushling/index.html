@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en" data-act="1">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hushling Halo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Halo, the baby monitor that never sleeps. So you can.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Fraunces:opsz,wght,SOFT@9..144,300..700,0..100&family=VT323&display=swap">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+<div class="vignette" aria-hidden="true"></div>
+
+<header class="nav" id="top">
+  <div class="wrap nav-inner">
+    <a class="brand" href="#hero" aria-label="Hushling, back to top">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M20.5 4.5a12 12 0 1 0 7 19.5A10 10 0 0 1 20.5 4.5z"/><circle cx="10.5" cy="20" r="2.2"/></svg>
+      <span class="brand-name">hushling</span>
+    </a>
+    <nav class="nav-links" aria-label="Main">
+      <a href="#features">Halo</a>
+      <a href="#live">See it live</a>
+      <a href="#nightshift">Night Shift</a>
+      <a href="#reviews">Reviews</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="sound-toggle" id="soundToggle" type="button" aria-pressed="false" aria-label="Turn on sound" title="Sound">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="spk" d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path class="wv" d="M15.5 9a4.2 4.2 0 0 1 0 6M18.2 6.6a7.6 7.6 0 0 1 0 10.8"/><path class="mute" d="M16 9.5l5 5M21 9.5l-5 5"/></svg>
+      </button>
+      <a class="btn btn-small" href="#shop" data-swap="She's already here" data-at="0.6" data-mode="now">Buy Halo · £249</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- ============ ACT I · ORDINARY ============ -->
+<section class="hero" id="hero" data-d="0">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="pill">New</span> Halo 2 · the smart baby monitor</p>
+      <h1 id="heroTitle">Sleep through the night. <span class="soft" data-later="She's got this one." data-at="0.35">Halo's got this one.</span></h1>
+      <p class="hero-sub" id="heroSub">Halo watches every breath, translates every cry and settles your baby back to sleep with a calm, familiar voice. So you can stay in bed.</p>
+      <div class="hero-cta">
+        <a class="btn" href="#shop" id="heroBuy">Buy Halo · £249</a>
+        <button class="btn btn-ghost" id="listenBtn" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg>
+          <span>Hear Halo's lullaby</span>
+        </button>
+      </div>
+      <ul class="hero-proof">
+        <li><b>★ 4.8</b> from 18,000 reviews</li>
+        <li><b>100</b> nights to try it</li>
+        <li><b>No</b> subscription</li>
+      </ul>
+      <p class="returned-note" id="returnedNote" hidden>Not you? <button class="linklike" type="button" data-unsubscribe>Unsubscribe</button></p>
+    </div>
+    <div class="hero-stage" aria-label="The Halo camera on a nursery wall, and the Hushling app showing a sleeping baby">
+      <div class="halo-wall"><span class="halo-device" data-halo></span></div>
+      <div class="phone">
+        <div class="phone-notch"></div>
+        <div class="app-head"><span class="app-room">Nursery</span><span class="app-status" id="heroStatus"><i class="dot"></i>Maisie is asleep · 2h 14m</span></div>
+        <div class="phone-feed"><canvas class="feed" id="heroFeed" aria-hidden="true"></canvas></div>
+        <div class="app-row"><span>Breathing</span><b>34/min</b><span>Room</span><b>21°C</b></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="trust" data-d="0" aria-label="Press and endorsements">
+  <div class="wrap trust-inner">
+    <p class="trust-count">Trusted by <b data-count="400000">400,000</b> families</p>
+    <div class="press">
+      <span class="press-logo p1">The Parenting Desk</span>
+      <span class="press-logo p2">BRIGHT&amp;EARLY</span>
+      <span class="press-logo p3">Nursery <i>Weekly</i></span>
+      <span class="press-logo p4">the small hours</span>
+    </div>
+  </div>
+</section>
+
+<section class="features band" id="features" data-d="0.02">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Meet Halo</p>
+      <h2>Everything a monitor should do, and the one thing none of them could.</h2>
+    </div>
+    <div class="feature-grid">
+      <article class="feature">
+        <svg class="icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M3 22h7l3-8 5 16 4-12 3 4h12"/></svg>
+        <h3>Every breath, counted</h3>
+        <p>Halo tracks breathing motion from across the room. No wearables, nothing in the cot. If anything changes, you'll know in seconds.</p>
+      </article>
+      <article class="feature">
+        <svg class="icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M8 10h24a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H18l-7 6v-6H8a3 3 0 0 1-3-3V13a3 3 0 0 1 3-3z"/><path d="M13 19h.01M20 19h.01M27 19h.01"/></svg>
+        <h3>Know what every cry means</h3>
+        <p>Our cry translator was trained on two million hours of real babies. Hungry, tired, too warm, or just wants you.</p>
+      </article>
+      <article class="feature">
+        <svg class="icon" viewBox="0 0 40 40" aria-hidden="true"><rect x="14" y="5" width="12" height="20" rx="6"/><path d="M9 20a11 11 0 0 0 22 0M20 31v5"/></svg>
+        <h3>Talk them back to sleep</h3>
+        <p>Crystal-clear two-way audio and forty lullabies, played through Halo's warm little speaker.</p>
+      </article>
+      <article class="feature">
+        <svg class="icon" viewBox="0 0 40 40" aria-hidden="true"><path d="M27 6a14 14 0 1 0 8 22A12 12 0 0 1 27 6z"/><path d="M14 18l2 2 4-4"/></svg>
+        <h3>Night Shift</h3>
+        <p><span data-later="When she wakes, Halo goes in. You don't have to. You shouldn't." data-at="0.5">When your baby stirs, Halo's soothing voice settles them before they fully wake. Most parents switch it on and never look back.</span></p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="report band" id="report" data-d="0.09">
+  <div class="wrap report-grid">
+    <div class="section-head">
+      <p class="eyebrow">Mornings</p>
+      <h2>Wake up to a report, not a rough night.</h2>
+      <p class="lede">Every morning Halo tells you how the night went: how long they slept, how they breathed, and anything that happened while you were asleep.</p>
+    </div>
+    <article class="app-card" aria-label="Example sleep report">
+      <header><span class="avatar-initial">M</span><span><b>Maisie</b><small>Last night</small></span><span class="chip">Great night</span></header>
+      <div class="hypno" aria-hidden="true">
+        <i style="--h:40%"></i><i style="--h:70%"></i><i style="--h:90%"></i><i style="--h:85%"></i><i style="--h:60%"></i><i style="--h:95%"></i><i style="--h:90%"></i><i style="--h:75%"></i><i style="--h:92%"></i><i style="--h:88%"></i><i style="--h:65%"></i><i style="--h:50%"></i>
+      </div>
+      <div class="hypno-axis"><span>19:00</span><span>01:00</span><span>07:00</span></div>
+      <dl class="stats">
+        <div><dt>Slept</dt><dd>11h 42m</dd></div>
+        <div><dt>Woke</dt><dd>0 times</dd></div>
+        <div><dt>Settled by Night Shift</dt><dd>3</dd></div>
+        <div><dt>Visitors</dt><dd id="visitors">0</dd></div>
+      </dl>
+    </article>
+  </div>
+</section>
+
+<!-- ============ ACT II · UNCANNY ============ -->
+<section class="live" id="live" data-d="0.18">
+  <div class="wrap live-grid">
+    <div class="live-steps">
+      <div class="section-head">
+        <p class="eyebrow">See it live</p>
+        <h2>Try Halo in our demo nursery.</h2>
+        <p class="lede">This is a real Halo streaming from the nursery we built at our office in Wexley. Have a look around.</p>
+      </div>
+      <article class="step" data-step="pan">
+        <h3>Look around</h3>
+        <p>Halo's camera pans and tilts, so you can check the whole room from your phone. Use the arrows under the picture.</p>
+      </article>
+      <article class="step" data-step="ir">
+        <h3>See in the dark</h3>
+        <p>Turn on night vision. Halo's infrared sees in complete darkness, up to five metres from the cot, <span data-later="and some things only show up in the dark." data-at="0.32">so you never need to switch on a light.</span></p>
+      </article>
+      <article class="step" data-step="breath">
+        <h3>Watch every breath</h3>
+        <p>The line under the picture is breathing, measured from the rise and fall of the blanket. A healthy baby breathes around 30 to 40 times a minute. <span class="later-note" data-later="The slower line isn't Maisie." data-at="0.34"></span></p>
+      </article>
+      <article class="step" data-step="lullaby">
+        <h3>Play a lullaby</h3>
+        <p>Halo has forty, and learns which ones work. <span data-flicker="She sings along." data-at="0.36">Most babies settle within a verse.</span></p>
+      </article>
+      <article class="step" data-step="talk">
+        <h3>Say goodnight</h3>
+        <p>Hold the talk button and your voice is in the room instantly. Halo turns down its own voice while you speak, <span data-later="then answers for you." data-at="0.4">so they only hear you.</span></p>
+      </article>
+    </div>
+    <div class="live-device">
+      <div class="monitor" id="demoMonitor">
+        <div class="monitor-screen">
+          <canvas class="feed" id="demoFeed" aria-label="Live view of the demo nursery"></canvas>
+          <span class="monitor-hint" id="demoHint" hidden></span>
+        </div>
+        <div class="monitor-stats">
+          <div class="breath"><span class="lab">Breathing</span><b id="breathRate">34</b><small>/min</small><canvas id="breathGraph" aria-hidden="true"></canvas></div>
+          <div class="presence"><span class="lab">In the room</span><b id="presence">1</b></div>
+        </div>
+        <div class="monitor-controls">
+          <button class="ctl" id="ctlLeft" type="button" aria-label="Pan left"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+          <button class="ctl wide" id="ctlIR" type="button" aria-pressed="false">Night vision</button>
+          <button class="ctl wide" id="ctlLullaby" type="button" aria-pressed="false">Lullaby</button>
+          <button class="ctl wide" id="ctlTalk" type="button">Hold to talk</button>
+          <button class="ctl" id="ctlRight" type="button" aria-label="Pan right"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="reviews band" id="reviews" data-d="0.44">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Parents on Halo</p>
+      <h2>18,000 families, sleeping again.</h2>
+    </div>
+    <div class="review-grid">
+      <figure class="review">
+        <div class="stars" role="img" aria-label="5 out of 5 stars">★★★★★</div>
+        <blockquote><p>Night Shift is a lifesaver. Maisie settles in seconds. She won't settle for us anymore, but honestly, who's complaining.</p></blockquote>
+        <figcaption><span class="avatar" data-face="hannah"></span><span><b>Hannah</b><small>Mum to Maisie, 8 months</small></span></figcaption>
+      </figure>
+      <figure class="review">
+        <div class="stars" role="img" aria-label="5 out of 5 stars">★★★★★</div>
+        <blockquote><p>We stopped going in at night. Halo said we didn't need to, and she was right.</p></blockquote>
+        <figcaption><span class="avatar" data-face="tom"></span><span><b>Tom</b><small>Dad to Arlo, 1</small></span></figcaption>
+      </figure>
+      <figure class="review">
+        <div class="stars" role="img" aria-label="4 out of 5 stars">★★★★<span class="dim">★</span></div>
+        <blockquote><p>Our son talks to the camera now and Halo talks back. It's very sweet. Only wish we could change the voice. We've tried.</p></blockquote>
+        <figcaption><span class="avatar" data-face="ruth"></span><span><b>Ruth</b><small>Mum to Kofi, 2</small></span></figcaption>
+      </figure>
+      <figure class="review">
+        <div class="stars" role="img" aria-label="5 out of 5 stars">★★★★★</div>
+        <blockquote><p>Since Halo, our daughter sleeps fourteen hours a night. Sometimes longer.</p></blockquote>
+        <figcaption><span class="avatar" data-face="dev"></span><span><b>Dev</b><small>Dad to Isla, 10 months</small></span></figcaption>
+      </figure>
+    </div>
+  </div>
+</section>
+
+<section class="translate band" id="translate" data-d="0.5">
+  <div class="wrap translate-grid">
+    <div class="section-head">
+      <p class="eyebrow">Cry translator</p>
+      <h2>Every cry means something.</h2>
+      <p class="lede">Halo listens for the pitch, rhythm and length of each cry and tells you what your baby needs. Try three cries from our library.</p>
+    </div>
+    <div class="translator" id="translator">
+      <div class="wave" aria-hidden="true"><canvas id="cryWave"></canvas></div>
+      <div class="cry-buttons">
+        <button class="ctl wide" type="button" data-cry="0">Cry 1</button>
+        <button class="ctl wide" type="button" data-cry="1">Cry 2</button>
+        <button class="ctl wide" type="button" data-cry="2">Cry 3</button>
+      </div>
+      <div class="cry-result" aria-live="polite">
+        <span class="cry-label" id="cryLabel">Choose a cry</span>
+        <span class="cry-meter"><i id="cryMeter" style="width:0%"></i></span>
+        <span class="cry-conf" id="cryConf"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ACT III · WRONG ============ -->
+<section class="nightshift band" id="nightshift" data-d="0.55">
+  <div class="wrap ns-grid">
+    <div class="section-head">
+      <p class="eyebrow">Night Shift</p>
+      <h2>A calm voice in the dark, every time.</h2>
+      <p class="lede">Night Shift's voice was trained on thousands of hours of real nannies, so it sounds like someone who has loved a great many children. You can read everything it says.</p>
+      <label class="switch-row" for="nsSwitch"><span>Night Shift</span><input type="checkbox" id="nsSwitch" checked role="switch"><i class="track" aria-hidden="true"></i></label>
+      <p class="form-note" id="nsNote" aria-live="polite"></p>
+    </div>
+    <ol class="transcript" id="transcript">
+      <li><time>02:13</time><span class="sys">Maisie stirred</span></li>
+      <li class="nanny"><time>02:13</time><span>Shh, shh. Mummy's asleep.</span></li>
+      <li class="nanny"><time>02:14</time><span>I'm here. I'm always here.</span></li>
+      <li><time>02:16</time><span class="sys">Maisie babbled · translated: <b>"lady"</b></span></li>
+      <li class="nanny"><time>02:17</time><span>Open your eyes, little one. Look at me.</span></li>
+      <li class="nanny"><time>02:17</time><span>Good girl.</span></li>
+      <li class="nanny"><time>02:19</time><span>We don't wake them. We never need to wake them.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section class="setup band" id="setup" data-d="0.61">
+  <div class="wrap">
+    <div class="section-head">
+      <p class="eyebrow">Setup</p>
+      <h2>Up and running in five minutes.</h2>
+    </div>
+    <ol class="setup-list">
+      <li><b>Mount Halo</b><span>Screw the bracket to the wall above the cot. Halo needs to see the whole room.</span></li>
+      <li><b>Pair your phone</b><span>Open the Hushling app and hold your phone near Halo.</span></li>
+      <li><b>Teach Halo your voice</b><span>Read a short bedtime story aloud. Halo learns how you sound.</span></li>
+      <li><b>Teach Halo your baby's voice</b><span>Leave Halo listening for one night.</span></li>
+      <li class="odd"><b>Let Halo be your voice</b><span>She'll take it from here.</span></li>
+      <li class="odd extra" hidden><b>Don't go in</b><span>Whatever you hear.</span></li>
+    </ol>
+  </div>
+</section>
+
+<section class="faq band" id="faq" data-d="0.65">
+  <div class="wrap faq-grid">
+    <div class="section-head">
+      <p class="eyebrow">Questions</p>
+      <h2>Good to know.</h2>
+    </div>
+    <div class="faq-list">
+      <details><summary>Does Halo record?</summary><p data-later="Always." data-at="0.62">Halo keeps the last 24 hours of video so you can look back at the night. You can delete it at any time.</p></details>
+      <details><summary>Can I turn Night Shift off?</summary><p>Why would you want to?</p></details>
+      <details><summary>Is Halo a medical device?</summary><p>No. Halo is not a medical device and doesn't replace safe sleep practice.</p></details>
+      <details><summary>Who is the woman in night vision?</summary><p>Halo doesn't show people who aren't there.</p></details>
+      <details><summary>Why does my baby look at the corner?</summary><p>Babies are drawn to faces.</p></details>
+    </div>
+  </div>
+</section>
+
+<section class="log band" id="log" data-d="0.69">
+  <div class="wrap log-grid">
+    <div class="section-head">
+      <p class="eyebrow">Activity</p>
+      <h2>Tonight in the nursery.</h2>
+      <p class="lede">Halo keeps a log of everything it notices, so nothing happens without you knowing.</p>
+    </div>
+    <ol class="events" id="events">
+      <li><time>02:13</time><span>Motion in the Nursery</span></li>
+      <li><time>02:13</time><span>Night Shift is settling Maisie</span></li>
+      <li><time>02:15</time><span>Voice detected <em>(not yours)</em></span></li>
+      <li><time>02:15</time><span>In the room: 2</span></li>
+      <li><time>02:21</time><span>Halo was moved. Camera angle changed</span></li>
+      <li><time>02:31</time><span>Maisie is out of view</span></li>
+      <li class="nanny"><time>02:31</time><span>Night Shift: "She's with me."</span></li>
+      <li><time>02:40</time><span>Door opened · Landing</span></li>
+      <li><time>02:41</time><span>Motion in the Parents' room</span></li>
+    </ol>
+  </div>
+</section>
+
+<section class="shop band" id="shop" data-d="0.73">
+  <div class="wrap shop-grid">
+    <div class="shop-visual"><span class="halo-device" data-halo></span></div>
+    <div class="shop-card">
+      <p class="eyebrow">Halo 2</p>
+      <h2>£249</h2>
+      <p class="lede">Camera, wall bracket and the Hushling app. Night Shift included, for life.</p>
+      <fieldset class="swatches">
+        <legend>Finish</legend>
+        <label><input type="radio" name="finish" id="finishMoon" checked> <span class="sw moon"></span> Moon white</label>
+        <label><input type="radio" name="finish" id="finishDusk"> <span class="sw dusk"></span> Dusk</label>
+      </fieldset>
+      <button class="btn btn-block" id="addToBasket" type="button">Add to basket</button>
+      <div class="basket" id="basket" hidden>
+        <p class="basket-title">Your basket</p>
+        <div class="basket-row"><span id="basketItem">1 × Halo 2, Moon white</span><b>£249</b></div>
+        <div class="basket-row"><span>Delivery</span><b id="basketDelivery">Free · 2 to 3 days</b></div>
+        <button class="btn btn-block" id="checkout" type="button">Checkout</button>
+        <p class="form-note" id="shopNote" aria-live="polite"></p>
+      </div>
+      <p class="small-print">100 nights to try it. Free returns.</p>
+    </div>
+  </div>
+</section>
+
+<footer class="site-footer" id="footer" data-d="0.77">
+  <div class="wrap footer-grid">
+    <div>
+      <a class="brand" href="#hero"><svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M20.5 4.5a12 12 0 1 0 7 19.5A10 10 0 0 1 20.5 4.5z"/><circle cx="10.5" cy="20" r="2.2"/></svg><span class="brand-name">hushling</span></a>
+      <p class="tiny">Halo is not a medical device. Always follow safe sleep guidance.</p>
+    </div>
+    <div class="footer-links"><a href="#features">Halo</a><a href="#live">Demo nursery</a><a href="#faq">Help</a></div>
+    <div class="footer-news">
+      <form id="newsForm" class="news-form">
+        <label for="newsEmail" class="sr">Email address</label>
+        <input id="newsEmail" type="email" placeholder="Sleep tips by email">
+        <button class="btn btn-small" type="submit">Sign up</button>
+      </form>
+      <p class="tiny" id="newsNote">One email a fortnight. <button type="button" class="linklike" data-unsubscribe>Unsubscribe</button> any time.</p>
+    </div>
+  </div>
+  <div class="wrap footer-base"><span>© <span class="yr">2026</span> Hushling Ltd.</span><span>Privacy · Terms · Accessibility</span></div>
+  <p class="keep-going" aria-hidden="true">keep watching</p>
+</footer>
+
+<!-- ============ ACT IV · TERROR ============ -->
+<section class="takeover" id="takeover" data-d="0.8" aria-label="The Hushling app at night">
+  <div class="tk-stage" id="tkStage">
+    <div class="tk-bar"><span class="tk-app"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M20.5 4.5a12 12 0 1 0 7 19.5A10 10 0 0 1 20.5 4.5z"/></svg>Halo</span><span class="tk-room" id="tkRoom">Nursery</span><span class="tk-time" id="tkTime">03:02</span></div>
+    <div class="tk-screen"><canvas class="feed" id="tkFeed" aria-hidden="true"></canvas></div>
+    <ol class="tk-alerts" id="tkAlerts" aria-live="polite"></ol>
+    <div class="tk-words" id="tkWords">
+      <p data-p="0.04">It's very quiet now.</p>
+      <p data-p="0.2">She's settling Maisie.</p>
+      <p data-p="0.34">The cot is empty.</p>
+      <p data-p="0.47">Halo is looking for her.</p>
+      <p data-p="0.6">She's asleep. I'll take it from here.</p>
+      <p data-p="0.76" class="big">Don't turn around.</p>
+    </div>
+  </div>
+</section>
+
+<section class="bottom" id="bottom" data-d="1">
+  <div class="bottom-stage">
+    <p class="last-line"><span class="l1">Halo is listening.</span><span class="l2">Goodnight.</span></p>
+  </div>
+</section>
+
+</main>
+
+<!-- overlays -->
+<div class="scare" id="scare" hidden aria-hidden="true"><div class="scare-face" id="scareFace"></div><div class="scare-osd">CAM 3  FRONT CAMERA</div></div>
+
+<div class="pip" id="pip" hidden>
+  <button class="pip-open" id="pipOpen" type="button" aria-label="Jump to the live demo">
+    <canvas class="feed" id="pipFeed" aria-hidden="true"></canvas>
+    <span class="pip-label"><i class="dot"></i><span id="pipLabel">Demo nursery · live</span></span>
+  </button>
+  <button class="pip-close" id="pipClose" type="button" aria-label="Close the live view">×</button>
+</div>
+
+<div class="notifs" id="notifs" aria-live="polite"></div>
+
+<div class="ask" id="ask" role="dialog" aria-labelledby="askTitle" hidden>
+  <p class="ask-title" id="askTitle">Get sleep tips as notifications?</p>
+  <p class="ask-body" id="askBody">We'll send one tip a week, and let you know when Halo is back in stock.</p>
+  <div class="ask-actions">
+    <button class="btn btn-small" id="askAllow" type="button">Allow</button>
+    <button class="btn btn-small btn-outline" id="askBlock" type="button">Not now</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" hidden>
+  <span>This part is best with headphones.</span>
+  <button class="btn btn-small" id="toastAction" type="button">Turn on sound</button>
+  <button class="toast-x" id="toastClose" type="button" aria-label="Dismiss">×</button>
+</div>
+
+<script src="js/dread.js"></script>
+<script src="js/art.js"></script>
+<script src="js/feed.js"></script>
+<script src="js/audio.js"></script>
+<script src="js/uncanny.js"></script>
+<script src="js/finale.js"></script>
+</body>
+</html>
